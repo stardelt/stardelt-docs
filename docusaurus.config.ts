@@ -38,6 +38,14 @@ const config: Config = {
 
   themeConfig: {
     image: 'img/logo-wordmark.svg',
+    announcementBar: {
+      id: 'pre-alpha-disclaimer',
+      content:
+        '⚠️ <b>Pre-alpha.</b> stardelt is in an MVP / vibecoding phase — moving fast, iterating in the open. Expect breaking changes; not ready for production.',
+      backgroundColor: '#1a1f3d',
+      textColor: '#e6e9ff',
+      isCloseable: false,
+    },
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: true,

@@ -12,7 +12,7 @@ function HomepageHero(): ReactNode {
       <div className={styles.heroInner}>
         <div className={styles.status}>
           <span className={styles.statusDot} aria-hidden="true" />
-          Phase 0 — design complete, no code yet
+          Pre-alpha · MVP / vibecoding phase — moving fast
         </div>
         <img
           className={styles.wordmark}
@@ -249,9 +249,9 @@ function DiveDeeper(): ReactNode {
         <span className={styles.eyebrow}>Dive deeper</span>
         <h2 className={styles.sectionTitle}>The full design lives in the docs.</h2>
         <p className={styles.sectionLede}>
-          Phase 0 is documentation. Architecture, component selection,
-          licensing analysis, diagrams — load-bearing for everything that
-          comes later.
+          Architecture, component selection, licensing analysis, diagrams —
+          load-bearing for everything that comes later. The codebase is
+          pre-alpha; the docs are where the design is settled.
         </p>
         <div className={styles.docGrid}>
           {docCards.map((d) => (
