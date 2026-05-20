@@ -1,6 +1,6 @@
 # stardelt-docs
 
-The stardelt documentation site, published to **https://docs.stardelt.io**.
+The stardelt documentation site, published to **https://stardelt.io**.
 
 Built with [Docusaurus 3](https://docusaurus.io). Theme matches the Nova UI and the marketing site at stardelt.io — same palette (`#0b0e1f` background, `#5b6cff` accent), same system font stack, dark mode only.
 
@@ -22,7 +22,7 @@ npm run serve
 
 ## Deployment
 
-Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages. The custom domain `docs.stardelt.io` is pinned via `static/CNAME` — make sure your DNS has `docs.stardelt.io CNAME stardelt.github.io.`
+Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages. The custom domain `stardelt.io` is pinned via `static/CNAME` — make sure your DNS has `stardelt.io CNAME stardelt.github.io.`
 
 ## Layout
 
