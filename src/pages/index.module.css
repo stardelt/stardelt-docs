@@ -81,6 +81,7 @@
   border: 1px solid var(--ifm-toc-border-color);
   background: rgba(17, 21, 43, 0.6);
   backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .heroTagline {
