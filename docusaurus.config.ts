@@ -1,0 +1,88 @@
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
+import type * as Preset from '@docusaurus/preset-classic';
+
+const config: Config = {
+  title: 'Stardelt',
+  tagline: 'A self-hostable data platform for Kubernetes.',
+  favicon: 'img/logo.svg',
+
+  url: 'https://stardelt.io',
+  baseUrl: '/',
+
+  organizationName: 'stardelt',
+  projectName: 'stardelt-docs',
+
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
+
+  i18n: { defaultLocale: 'en', locales: ['en'] },
+
+  markdown: { mermaid: true },
+  themes: ['@docusaurus/theme-mermaid'],
+
+  presets: [
+    [
+      'classic',
+      {
+        docs: {
+          sidebarPath: './sidebars.ts',
+          routeBasePath: '/docs',
+          editUrl: 'https://github.com/stardelt/stardelt-docs/tree/main/',
+        },
+        blog: false,
+        theme: { customCss: './src/css/custom.css' },
+      } satisfies Preset.Options,
+    ],
+  ],
+
+  themeConfig: {
+    image: 'img/logo-wordmark.svg',
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: true,
+      respectPrefersColorScheme: false,
+    },
+    navbar: {
+      title: 'Stardelt',
+      logo: { alt: 'Stardelt', src: 'img/logo.svg' },
+      items: [
+        { to: '/docs/architecture/overview', label: 'Architecture', position: 'left' },
+        { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
+        { to: '/docs/design/master-spec', label: 'Design', position: 'left' },
+        { to: '/docs/mvp', label: 'MVP', position: 'left' },
+        { href: 'https://stardelt.io', label: 'stardelt.io', position: 'right' },
+        { href: 'https://github.com/stardelt', label: 'GitHub', position: 'right' },
+      ],
+    },
+    footer: {
+      style: 'dark',
+      links: [
+        {
+          title: 'Documentation',
+          items: [
+            { label: 'Architecture', to: '/docs/architecture/overview' },
+            { label: 'Components', to: '/docs/architecture/components' },
+            { label: 'Roadmap', to: '/docs/roadmap' },
+            { label: 'Sovereignty', to: '/docs/architecture/sovereignty' },
+          ],
+        },
+        {
+          title: 'Community',
+          items: [
+            { label: 'GitHub org', href: 'https://github.com/stardelt' },
+            { label: 'stardelt.io', href: 'https://stardelt.io' },
+          ],
+        },
+      ],
+      copyright: `Apache 2.0 — Stardelt. Runs in your Kubernetes cluster.`,
+    },
+    prism: {
+      theme: prismThemes.dracula,
+      darkTheme: prismThemes.dracula,
+      additionalLanguages: ['bash', 'yaml', 'toml', 'rust', 'sql', 'python', 'json'],
+    },
+  } satisfies Preset.ThemeConfig,
+};
+
+export default config;

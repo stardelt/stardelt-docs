@@ -1,0 +1,175 @@
+/* Stardelt docs theme.
+   Palette mirrors Nova UI and stardelt-www exactly. Dark mode only. */
+
+:root,
+[data-theme='dark'] {
+  --ifm-color-primary: #5b6cff;
+  --ifm-color-primary-dark: #4055ff;
+  --ifm-color-primary-darker: #3447ff;
+  --ifm-color-primary-darkest: #1e2a78;
+  --ifm-color-primary-light: #7283ff;
+  --ifm-color-primary-lighter: #8294ff;
+  --ifm-color-primary-lightest: #a4b3ff;
+
+  --ifm-background-color: #0b0e1f;
+  --ifm-background-surface-color: #11152b;
+  --ifm-color-content: #e7ebff;
+  --ifm-color-content-secondary: #a4abd0;
+
+  --ifm-toc-border-color: #232a4d;
+  --ifm-hr-border-color: #232a4d;
+  --ifm-card-background-color: #11152b;
+  --ifm-card-border-radius: 14px;
+
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter,
+    Helvetica, Arial, sans-serif;
+  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  --ifm-heading-font-weight: 700;
+  --ifm-h1-font-size: 2.6rem;
+  --ifm-h2-font-size: 1.8rem;
+
+  --ifm-code-background: rgba(91, 108, 255, 0.12);
+  --ifm-code-color: #c1c8ff;
+  --docusaurus-highlighted-code-line-bg: rgba(91, 108, 255, 0.18);
+
+  --ifm-menu-color-background-active: rgba(91, 108, 255, 0.15);
+  --ifm-menu-color-background-hover: rgba(91, 108, 255, 0.08);
+  --ifm-link-color: #8294ff;
+}
+
+html {
+  background: var(--ifm-background-color);
+}
+
+body {
+  color: var(--ifm-color-content);
+  letter-spacing: 0.005em;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+      800px 600px at 90% -10%,
+      rgba(91, 108, 255, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 700px at -10% -20%,
+      rgba(30, 42, 120, 0.35),
+      transparent 60%
+    );
+}
+
+h1,
+h2,
+h3,
+h4 {
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  background: linear-gradient(180deg, #ffffff 0%, #c1c8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Navbar: translucent glass like Nova's sidebar */
+.navbar {
+  background: rgba(17, 21, 43, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+  box-shadow: none;
+}
+
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Sidebar menu */
+.theme-doc-sidebar-container {
+  background: rgba(17, 21, 43, 0.4);
+  backdrop-filter: blur(8px);
+  border-right: 1px solid var(--ifm-toc-border-color);
+}
+
+.menu__link {
+  border-radius: 10px;
+}
+
+.menu__link--active {
+  background-color: var(--ifm-menu-color-background-active);
+  border: 1px solid rgba(91, 108, 255, 0.3);
+  color: #ffffff;
+}
+
+/* Cards & content */
+.card,
+article {
+  border-radius: var(--ifm-card-border-radius);
+}
+
+/* Code blocks */
+.theme-code-block {
+  background: #11152b !important;
+  border: 1px solid var(--ifm-toc-border-color);
+  border-radius: 12px;
+}
+
+code {
+  border: 1px solid rgba(91, 108, 255, 0.18);
+  border-radius: 6px;
+  padding: 0.1rem 0.35rem;
+}
+
+/* Footer */
+.footer--dark {
+  background: rgba(17, 21, 43, 0.6);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--ifm-toc-border-color);
+}
+
+/* Mermaid diagrams: use the dark palette */
+.docusaurus-mermaid-container {
+  background: #11152b;
+  border: 1px solid var(--ifm-toc-border-color);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+/* Tables */
+table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+thead tr {
+  background: rgba(91, 108, 255, 0.1);
+}
+
+/* Buttons */
+.button--primary {
+  background: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 12px 40px rgba(91, 108, 255, 0.28);
+}
+
+.button--primary:hover {
+  background: var(--ifm-color-primary-dark);
+  border-color: var(--ifm-color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.button--secondary {
+  background: transparent;
+  border-color: var(--ifm-toc-border-color);
+  color: var(--ifm-color-content);
+}
