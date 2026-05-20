@@ -59,7 +59,6 @@ const config: Config = {
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
         { to: '/docs/design/master-spec', label: 'Design', position: 'left' },
         { to: '/docs/mvp', label: 'MVP', position: 'left' },
-        { href: 'https://stardelt.io', label: 'stardelt.io', position: 'right' },
         { href: 'https://github.com/stardelt', label: 'GitHub', position: 'right' },
       ],
     },

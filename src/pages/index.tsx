@@ -6,6 +6,88 @@ import clsx from 'clsx';
 
 import styles from './index.module.css';
 
+/* ------------------------------------------------------------------ */
+/*  SVG icons                                                           */
+/* ------------------------------------------------------------------ */
+
+function IconDatabase(): ReactNode {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <ellipse cx="10" cy="6" rx="6.5" ry="2.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M3.5 6v3.5c0 1.38 2.91 2.5 6.5 2.5s6.5-1.12 6.5-2.5V6" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M3.5 9.5V13c0 1.38 2.91 2.5 6.5 2.5S16.5 14.38 16.5 13V9.5" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function IconFlow(): ReactNode {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="1.5" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="8" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="14.5" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M5.5 10h2.5M12.5 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function IconWave(): ReactNode {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M2 8c1-2 2-2 3 0s2 2 3 0 2-2 3 0 2 2 3 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M2 13c1-2 2-2 3 0s2 2 3 0 2-2 3 0 2 2 3 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function IconNeural(): ReactNode {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="4" cy="5" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="4" cy="10" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="4" cy="15" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="16" cy="10" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M5.75 5.3L14.25 9.5M5.75 10H14.25M5.75 14.7L14.25 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function IconLayers(): ReactNode {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <path d="M10 2L2 6l8 4 8-4-8-4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+      <path d="M2 10l8 4 8-4" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+      <path d="M2 14l8 4 8-4" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function IconGrid(): ReactNode {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <rect x="2.5" y="2.5" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="11.5" y="2.5" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="2.5" y="11.5" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="11.5" y="11.5" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  );
+}
+
+function IconTimeline(): ReactNode {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+      <circle cx="10" cy="5" r="2" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="10" cy="10.5" r="2" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="10" cy="16" r="2" stroke="currentColor" strokeWidth="1.5" strokeDasharray="1.5 1.5"/>
+      <path d="M10 7v1.5M10 12.5v1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hero                                                                */
+/* ------------------------------------------------------------------ */
+
 function HomepageHero(): ReactNode {
   return (
     <header className={styles.hero}>
@@ -35,7 +117,7 @@ function HomepageHero(): ReactNode {
             Read the design
           </Link>
           <Link
-            className={clsx('button button--secondary button--lg', styles.ctaSecondary)}
+            className="button button--secondary button--lg"
             href="https://github.com/stardelt"
           >
             GitHub org →
@@ -48,6 +130,10 @@ function HomepageHero(): ReactNode {
     </header>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Vision                                                              */
+/* ------------------------------------------------------------------ */
 
 type Principle = { title: string; body: string };
 
@@ -105,29 +191,33 @@ function Vision(): ReactNode {
   );
 }
 
-type Pillar = { icon: string; title: string; body: string; tools: string[] };
+/* ------------------------------------------------------------------ */
+/*  Pillars                                                             */
+/* ------------------------------------------------------------------ */
+
+type Pillar = { icon: ReactNode; title: string; body: string; tools: string[] };
 
 const pillars: Pillar[] = [
   {
-    icon: '◆',
+    icon: <IconDatabase />,
     title: 'Lakehouse',
     body: 'Federated MPP and embedded engines on shared Iceberg tables.',
     tools: ['Trino', 'DuckDB', 'Superset', 'JupyterHub', 'Kyuubi'],
   },
   {
-    icon: '▣',
+    icon: <IconFlow />,
     title: 'Batch ETL',
     body: 'Orchestration and transformation, declared in code.',
     tools: ['Spark', 'Airflow', 'dbt-core', 'SQLMesh', 'SeaTunnel'],
   },
   {
-    icon: '∿',
+    icon: <IconWave />,
     title: 'Streaming',
     body: 'Pipelines, CDC, materialized views on Apache-licensed streaming SQL.',
     tools: ['Kafka', 'Flink', 'RisingWave', 'Debezium', 'Apicurio'],
   },
   {
-    icon: '★',
+    icon: <IconNeural />,
     title: 'ML / AI',
     body: 'Training, serving and inference — including LLMs — on your hardware.',
     tools: ['Ray', 'Kubeflow', 'MLflow', 'KServe', 'vLLM', 'Qdrant'],
@@ -150,10 +240,8 @@ function Pillars(): ReactNode {
         <div className={styles.pillarGrid}>
           {pillars.map((p) => (
             <div key={p.title} className={styles.pillarCard}>
-              <h3 className={styles.pillarTitle}>
-                <span className={styles.pillarIcon} aria-hidden="true">{p.icon}</span>
-                {p.title}
-              </h3>
+              <div className={styles.cardIcon}>{p.icon}</div>
+              <h3 className={styles.pillarTitle}>{p.title}</h3>
               <p className={styles.pillarBody}>{p.body}</p>
               <div className={styles.pillarTools}>
                 {p.tools.map((t) => (
@@ -167,6 +255,10 @@ function Pillars(): ReactNode {
     </section>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Sovereignty                                                         */
+/* ------------------------------------------------------------------ */
 
 const sovereigntyPrinciples: Principle[] = [
   {
@@ -205,7 +297,7 @@ function Sovereignty(): ReactNode {
         </div>
         <div className={styles.sectionCta}>
           <Link
-            className={clsx('button button--secondary button--lg', styles.ctaSecondary)}
+            className="button button--secondary button--lg"
             to="/docs/architecture/sovereignty"
           >
             Read the sovereignty commitments →
@@ -216,25 +308,29 @@ function Sovereignty(): ReactNode {
   );
 }
 
-type DocCard = { icon: string; title: string; body: string; to: string; cta: string };
+/* ------------------------------------------------------------------ */
+/*  Dive deeper                                                         */
+/* ------------------------------------------------------------------ */
+
+type DocCard = { icon: ReactNode; title: string; body: string; to: string; cta: string };
 
 const docCards: DocCard[] = [
   {
-    icon: '◬',
+    icon: <IconLayers />,
     title: 'Architecture',
     body: 'Four-layer model, control-plane CRDs, the operating model, and how the upstream operators compose.',
     to: '/docs/architecture/overview',
     cta: 'Read the architecture →',
   },
   {
-    icon: '▦',
+    icon: <IconGrid />,
     title: 'Components',
     body: 'Per-layer inventory of upstream OSS picks with licenses, rationale, and a rejection list with reasons.',
     to: '/docs/architecture/components',
     cta: 'Browse components →',
   },
   {
-    icon: '⌬',
+    icon: <IconTimeline />,
     title: 'Roadmap',
     body: 'Phases 0 through 6, what ships when, and an explicit list of what is out of scope for v1.',
     to: '/docs/roadmap',
@@ -256,10 +352,8 @@ function DiveDeeper(): ReactNode {
         <div className={styles.docGrid}>
           {docCards.map((d) => (
             <Link key={d.title} to={d.to} className={styles.docCard}>
-              <div className={styles.docHead}>
-                <span className={styles.docIcon} aria-hidden="true">{d.icon}</span>
-                <h3 className={styles.docTitle}>{d.title}</h3>
-              </div>
+              <div className={styles.cardIcon}>{d.icon}</div>
+              <h3 className={styles.docTitle}>{d.title}</h3>
               <p className={styles.docBody}>{d.body}</p>
               <span className={styles.docLink}>{d.cta}</span>
             </Link>
@@ -269,6 +363,10 @@ function DiveDeeper(): ReactNode {
     </section>
   );
 }
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                                */
+/* ------------------------------------------------------------------ */
 
 export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
