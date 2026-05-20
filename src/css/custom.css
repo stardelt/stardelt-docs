@@ -171,5 +171,5 @@ thead tr {
 .button--secondary {
   background: transparent;
   border-color: var(--ifm-toc-border-color);
-  color: var(--ifm-color-content);
+  color: #f5f5f5;
 }
