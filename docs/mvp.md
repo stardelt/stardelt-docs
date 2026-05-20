@@ -4,14 +4,14 @@ sidebar_label: "MVP"
 slug: /mvp
 ---
 
-# Stardelt MVP — local kind deployment
+# stardelt MVP — local kind deployment
 
-The MVP runs Stardelt's lakehouse slice on a single-node `kind` cluster.
+The MVP runs stardelt's lakehouse slice on a single-node `kind` cluster.
 Plan progress:
 
 - **Stage 1 — done**: kind + SeaweedFS + Lakekeeper + Trino, smoke test passes.
 - **Stage 2 — done**: Apache Airflow installed; `nyc_taxi_load` DAG loads NYC TLC yellow-taxi Parquet via pyiceberg into `warehouse.nyc_taxi.yellow_trips`.
-- **Stage 3 — done (first draft)**: Stardelt Nova up. Rust+axum backend proxies Lakekeeper + Trino, serves the built UI as static assets. Vite/React/TS/Tailwind UI has Overview, Catalog (namespace+table tree, schema view), Query (textarea editor + results table + localStorage history), and Health (auto-refreshing Trino info). Single pod (`stardelt/nova:dev`), `kubectl port-forward svc/nova 8080:8080` to access.
+- **Stage 3 — done (first draft)**: stardelt Nova up. Rust+axum backend proxies Lakekeeper + Trino, serves the built UI as static assets. Vite/React/TS/Tailwind UI has Overview, Catalog (namespace+table tree, schema view), Query (textarea editor + results table + localStorage history), and Health (auto-refreshing Trino info). Single pod (`stardelt/nova:dev`), `kubectl port-forward svc/nova 8080:8080` to access.
 - **Stage 3.5 — done**: Apache Superset added as the BI / dashboard component. Reachable two ways: dedicated app at `http://localhost:8089` (via `make superset-ui`) and embedded inside Nova at `/dashboards` (iframe). Trino warehouse pre-registered as the "Trino Warehouse" database connection.
 - **Stages 4–5** (Lakehouse CRD operator, one-command demo) pending.
 
@@ -107,7 +107,7 @@ Database name visible in Superset: **Trino Warehouse**. Verified from inside the
 
 ## Stage 2 — Apache Airflow + nyc_taxi_load DAG
 
-The data loader is a real Airflow DAG, not a one-shot Job. This costs more cluster resources (~4 extra pods) but uses the canonical Stardelt orchestration component instead of a throwaway.
+The data loader is a real Airflow DAG, not a one-shot Job. This costs more cluster resources (~4 extra pods) but uses the canonical stardelt orchestration component instead of a throwaway.
 
 **Image**: `stardelt/airflow:dev` — `apache/airflow:slim-3.2.0-python3.12` + the providers that ship outside the slim image (`postgres`, `fab`, `cncf-kubernetes`) + `pyiceberg`/`pyarrow`/`httpx` + DAGs baked in via `COPY dags/`. Built and `kind load`-ed by `scripts/build-images.sh`.
 
@@ -187,7 +187,7 @@ The Ozone path is **not** abandoned — it should work on a multi-node cluster o
 
 9. **Iceberg REST catalog uses optimistic concurrency.** Parallel appends to the same table from multiple Airflow tasks conflict and roll back. Set `max_active_tasks=1` on DAGs that write to a single table, or implement retry-on-conflict.
 
-10. **Apache Airflow `slim-3.x` image omits providers.** The chart assumes `postgres`, `fab`, and `cncf-kubernetes` providers; we install them in the Stardelt-owned Airflow image. Without them the migrations Job fails with `ModuleNotFoundError: psycopg2`, then `auth_manager` import errors, then `airflow.providers.cncf` missing for KubernetesExecutor.
+10. **Apache Airflow `slim-3.x` image omits providers.** The chart assumes `postgres`, `fab`, and `cncf-kubernetes` providers; we install them in the stardelt-owned Airflow image. Without them the migrations Job fails with `ModuleNotFoundError: psycopg2`, then `auth_manager` import errors, then `airflow.providers.cncf` missing for KubernetesExecutor.
 
 11. **emptyDir storage in stateful pods does not survive pod restart.** SeaweedFS volume/master/filer initially ran on emptyDir; a `helm upgrade` restarted them, the data vanished, and Iceberg metadata pointed at non-existent Parquet files (`FileNotFoundException` on Trino read). All three SeaweedFS components now use `persistentVolumeClaim`.
 
@@ -199,6 +199,6 @@ The Ozone path is **not** abandoned — it should work on a multi-node cluster o
 
 | Stage | What it adds |
 |---|---|
-| 3 (in progress) | Stardelt Nova endpoint wiring (catalog browser, SQL editor, query history, Trino health). Scaffold landed. |
+| 3 (in progress) | stardelt Nova endpoint wiring (catalog browser, SQL editor, query history, Trino health). Scaffold landed. |
 | 4 | `stardelt-operator` — minimal `Lakehouse` CRD reconciled into Trino StatefulSet via embedded templates (Rust + kube-rs) |
 | 5 | One-command demo: `make up && make airflow-trigger && make pf` end-to-end in &lt;20 min |

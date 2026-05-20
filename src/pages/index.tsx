@@ -17,7 +17,7 @@ function HomepageHero(): ReactNode {
         <img
           className={styles.wordmark}
           src="/img/logo-wordmark.svg"
-          alt="Stardelt"
+          alt="stardelt"
         />
         <h1 className={styles.heroTitle}>
           A self-hostable data platform for Kubernetes.
@@ -69,12 +69,12 @@ const visionPrinciples: Principle[] = [
     body: 'A small set of top-level CRDs (Lakehouse, Pipeline, StreamApp, MLWorkspace) reconcile into the per-component operators, instead of asking platform teams to assemble them by hand.',
   },
   {
-    title: 'Stardelt Nova — single UI',
+    title: 'stardelt Nova — single UI',
     body: 'SSO, catalog browser, lineage view, cost attribution, audit search, and deep-links into the underlying tools. One place to start for engineers, one place to look for auditors.',
   },
   {
     title: 'Open formats at rest',
-    body: 'Tables are Iceberg + Parquet on object storage. Uninstalling Stardelt leaves your data readable by any Iceberg-compatible engine — no proprietary metadata to peel off.',
+    body: 'Tables are Iceberg + Parquet on object storage. Uninstalling stardelt leaves your data readable by any Iceberg-compatible engine — no proprietary metadata to peel off.',
   },
 ];
 
@@ -82,13 +82,13 @@ function Vision(): ReactNode {
   return (
     <section id="vision" className={styles.section}>
       <div className={styles.container}>
-        <span className={styles.eyebrow}>Why Stardelt</span>
+        <span className={styles.eyebrow}>Why stardelt</span>
         <h2 className={styles.sectionTitle}>
           Built for teams that need the data to stay inside their cluster.
         </h2>
         <p className={styles.sectionLede}>
           Managed data warehouses keep the control plane at the vendor and
-          charge per credit. Stardelt runs the whole stack inside your
+          charge per credit. stardelt runs the whole stack inside your
           Kubernetes cluster — same engines, same SQL, same ML — operated by
           you.
         </p>

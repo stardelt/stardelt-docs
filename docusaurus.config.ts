@@ -3,7 +3,7 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'Stardelt',
+  title: 'stardelt',
   tagline: 'A self-hostable data platform for Kubernetes.',
   favicon: 'img/logo.svg',
 
@@ -44,8 +44,8 @@ const config: Config = {
       respectPrefersColorScheme: false,
     },
     navbar: {
-      title: 'Stardelt',
-      logo: { alt: 'Stardelt', src: 'img/logo.svg' },
+      title: 'stardelt',
+      logo: { alt: 'stardelt', src: 'img/logo.svg' },
       items: [
         { to: '/docs/architecture/overview', label: 'Architecture', position: 'left' },
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
@@ -75,7 +75,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Apache 2.0 — Stardelt. Runs in your Kubernetes cluster.`,
+      copyright: `Apache 2.0 — stardelt. Runs in your Kubernetes cluster.`,
     },
     prism: {
       theme: prismThemes.dracula,

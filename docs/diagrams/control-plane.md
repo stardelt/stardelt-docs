@@ -5,13 +5,13 @@ sidebar_label: "Control plane"
 
 # Control-plane reconciliation
 
-How Stardelt's top-level CRDs reconcile into per-component CRDs via the platform operator.
+How stardelt's top-level CRDs reconcile into per-component CRDs via the platform operator.
 
 ```mermaid
 flowchart TB
   USER["User<br/>(YAML or Nova UI)"]
 
-  subgraph STARDELT_CRDS["Stardelt Top-level CRDs"]
+  subgraph STARDELT_CRDS["stardelt Top-level CRDs"]
     PI["PlatformInstance<br/>(singleton)"]
     T["Tenant"]
     LH["Lakehouse"]
@@ -22,7 +22,7 @@ flowchart TB
 
   OP["stardelt-platform-operator<br/>(Rust, kube-rs)"]
 
-  subgraph COMPONENT_CRDS["Per-component CRDs (Stardelt + upstream operators)"]
+  subgraph COMPONENT_CRDS["Per-component CRDs (stardelt + upstream operators)"]
     direction LR
 
     subgraph FOUND_CRDS["Foundation"]

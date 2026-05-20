@@ -2,10 +2,10 @@
 title: "Phase 0 design spec"
 sidebar_label: "Master spec"
 slug: /design/master-spec
-description: "Stardelt master design spec (2026-05-16). Canonical rationale for component selection and the layered architecture."
+description: "stardelt master design spec (2026-05-16). Canonical rationale for component selection and the layered architecture."
 ---
 
-# Stardelt — Phase 0 Design Spec
+# stardelt — Phase 0 Design Spec
 
 *Status: draft (2026-05-16) · Authors: martin (originator), claude (drafting)*
 
@@ -15,11 +15,11 @@ description: "Stardelt master design spec (2026-05-16). Canonical rationale for 
 
 ### Elevator pitch
 
-Proprietary cloud data platforms gave you SQL and ML without servers — and took your data sovereignty in exchange. **Stardelt gives you the same capabilities — on your servers, in your country, under your control.**
+Proprietary cloud data platforms gave you SQL and ML without servers — and took your data sovereignty in exchange. **stardelt gives you the same capabilities — on your servers, in your country, under your control.**
 
 ### Four differentiating claims (the marketing core)
 
-1. **Total sovereignty.** Stardelt runs end-to-end inside your perimeter — control plane, compute, catalog, storage, identity, every single byte. The dominant proprietary lakehouse platforms are SaaS; even their BYOC offerings keep the control plane at the vendor and phone home for licensing and telemetry. With Stardelt, nothing leaves your cluster unless you tell it to. EU companies escape US CLOUD Act exposure. Defense and public-sector workloads can run air-gapped. Reversible by design — your tables stay in open Iceberg format on your storage; uninstalling Stardelt doesn't take your data with it.
+1. **Total sovereignty.** stardelt runs end-to-end inside your perimeter — control plane, compute, catalog, storage, identity, every single byte. The dominant proprietary lakehouse platforms are SaaS; even their BYOC offerings keep the control plane at the vendor and phone home for licensing and telemetry. With stardelt, nothing leaves your cluster unless you tell it to. EU companies escape US CLOUD Act exposure. Defense and public-sector workloads can run air-gapped. Reversible by design — your tables stay in open Iceberg format on your storage; uninstalling stardelt doesn't take your data with it.
 2. **No vendor handcuffs.** 100% OSI permissive (Apache 2.0 / MIT / BSD) with one documented MPL-2.0 exception for the OpenBao secrets backend. Zero BSL, SSPL, ELv2, or AGPL components.
 3. **One CRD, not 47 YAMLs.** A composed control plane (`PlatformInstance`, `Tenant`, `Lakehouse`, `Pipeline`, `StreamApp`, `MLWorkspace`) sits on top of per-component operators. This is the gap Stackable left open and the experience proprietary-SaaS lakehouse users expect.
 4. **Modern stack, no Hadoop heritage.** Iceberg via Lakekeeper or Apache Polaris (REST catalogs), Trino + DuckDB for SQL, RisingWave for streaming SQL, OpenFGA for fine-grained authorization, OpenBao for secrets, VictoriaMetrics/VictoriaLogs + Perses for observability. Not Hive Metastore + Grafana + MinIO.
@@ -39,7 +39,7 @@ Platform engineers and data engineers at mid-to-large companies who already run 
 
 ## 2. Architecture
 
-Stardelt is structured as four horizontal layers plus the **Stardelt Nova** UI that spans all of them.
+stardelt is structured as four horizontal layers plus the **stardelt Nova** UI that spans all of them.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -67,7 +67,7 @@ Stardelt is structured as four horizontal layers plus the **Stardelt Nova** UI t
 ### Operating model
 
 - **Per-component operators**, predominantly Rust on `kube-rs`, following Stackable and Lakekeeper conventions. Where mature upstream operators exist (Strimzi for Kafka, KubeRay for Ray, Spark Operator), we adopt them. We only write operators where there is a real OSS gap.
-- **Control plane operator (`stardelt-platform-operator`)** reconciles the top-level Stardelt CRDs into per-component CRDs.
+- **Control plane operator (`stardelt-platform-operator`)** reconciles the top-level stardelt CRDs into per-component CRDs.
 - **Cross-cutting operators** borrowed conceptually from Stackable: a `secret-operator` (CSI-mounted ephemeral credentials, backed by OpenBao) and a `listener-operator` (uniform exposure: ClusterIP / LoadBalancer / Ingress / Gateway API).
 
 ### Control plane CRDs
@@ -83,10 +83,10 @@ Stardelt is structured as four horizontal layers plus the **Stardelt Nova** UI t
 
 ### Multi-tenancy primitives (v1)
 
-Reserved in the data model from day one so the eventual hosted Stardelt doesn't require a rewrite:
+Reserved in the data model from day one so the eventual hosted stardelt doesn't require a rewrite:
 
 - `Tenant` CRD with quotas, identity binding, network policy, catalog namespace
-- All Stardelt resources scoped by `tenant` label; audit events carry `tenant_id`
+- All stardelt resources scoped by `tenant` label; audit events carry `tenant_id`
 - OpenFGA realm per tenant (or shared realm with tenant-scoped relations)
 - Cost attribution by tenant label (OpenCost relabeling rules)
 - Nova UI tenant-aware (MVP: one tenant; later: tenant switcher)
@@ -178,14 +178,14 @@ License legend: ✓ verified live during Phase 0 · ◯ from research (re-verify
 | BI / dashboards | Apache Superset | Lightdash (verify OSS posture) | Apache 2.0 ◯ |
 | Error tracking | GlitchTip | — | Apache 2.0 ◯ |
 
-### L4 — Stardelt-native (we build)
+### L4 — stardelt-native (we build)
 
 | Component | Purpose | Stack |
 |---|---|---|
 | `stardelt-platform-operator` | Reconciles top-level CRDs | Rust + kube-rs |
 | `stardelt-secret-operator` | CSI-mounted ephemeral creds | Rust + kube-rs |
 | `stardelt-listener-operator` | Uniform exposure abstraction | Rust + kube-rs |
-| **Stardelt Nova** | Unified UI: SSO, tenants, catalog, lineage, cost, audit | TypeScript + React (front), Rust + axum (back) |
+| **stardelt Nova** | Unified UI: SSO, tenants, catalog, lineage, cost, audit | TypeScript + React (front), Rust + axum (back) |
 | `stardelt` CLI | Day-1 install + Day-2 ops + demos | Rust |
 
 ### Hard rejection list (license-disqualified)
@@ -202,7 +202,7 @@ Re-verify the live `LICENSE` file for these before any v1 release: StarRocks (du
 
 ### Identity & SSO
 
-Keycloak is the only IdP Stardelt cares about. Customer IdPs (Okta, Entra ID, Google Workspace, on-prem AD/LDAP) federate into Keycloak via SAML or OIDC; Keycloak is the broker. One realm per Stardelt cluster; tenants map to Keycloak groups. All Stardelt components consume OIDC tokens from Keycloak: Trino, Lakekeeper, Superset, JupyterHub, Airflow, Nova UI. Users authenticate once at Nova; deep-link tokens carry through to native component UIs. Optional: customer brings their own Keycloak/Authentik/Dex and Stardelt accepts an external OIDC issuer URL.
+Keycloak is the only IdP stardelt cares about. Customer IdPs (Okta, Entra ID, Google Workspace, on-prem AD/LDAP) federate into Keycloak via SAML or OIDC; Keycloak is the broker. One realm per stardelt cluster; tenants map to Keycloak groups. All stardelt components consume OIDC tokens from Keycloak: Trino, Lakekeeper, Superset, JupyterHub, Airflow, Nova UI. Users authenticate once at Nova; deep-link tokens carry through to native component UIs. Optional: customer brings their own Keycloak/Authentik/Dex and stardelt accepts an external OIDC issuer URL.
 
 ### Authorization (two-layer)
 
@@ -212,10 +212,10 @@ Keycloak is the only IdP Stardelt cares about. Customer IdPs (Okta, Entra ID, Go
 
 ### Audit
 
-- Single audit pipeline: every Stardelt component emits structured JSON to Kafka topic `stardelt.audit.v1`.
-- A Stardelt-shipped Flink job tees the topic into: (a) VictoriaLogs for short-term operator search, (b) Iceberg table `stardelt_audit.events` for long-term retention and analytics.
+- Single audit pipeline: every stardelt component emits structured JSON to Kafka topic `stardelt.audit.v1`.
+- A stardelt-shipped Flink job tees the topic into: (a) VictoriaLogs for short-term operator search, (b) Iceberg table `stardelt_audit.events` for long-term retention and analytics.
 - Nova UI ships an Audit Search screen over (a). Security teams query (b) via Trino.
-- Event schema is OpenTelemetry-compatible with Stardelt extensions for tenant/principal context.
+- Event schema is OpenTelemetry-compatible with stardelt extensions for tenant/principal context.
 
 ### Lineage
 
@@ -223,7 +223,7 @@ OpenLineage is the wire protocol — Spark, Airflow, dbt, Flink, Trino, SQLMesh 
 
 ### Cost transparency
 
-OpenCost scrapes K8s usage and attributes by namespace and label. Stardelt-shipped Prometheus relabeling rules attach `stardelt.io/tenant` and `stardelt.io/pillar` labels to every workload. Nova UI ships per-tenant and per-pillar cost views. Pitch: *Proprietary platforms hide credits. Stardelt shows you exactly which team's Spark job spent the GPU hour.*
+OpenCost scrapes K8s usage and attributes by namespace and label. stardelt-shipped Prometheus relabeling rules attach `stardelt.io/tenant` and `stardelt.io/pillar` labels to every workload. Nova UI ships per-tenant and per-pillar cost views. Pitch: *Proprietary platforms hide credits. stardelt shows you exactly which team's Spark job spent the GPU hour.*
 
 ### Backup, DR, HA
 
@@ -238,7 +238,7 @@ OpenCost scrapes K8s usage and attributes by namespace and label. Stardelt-shipp
 
 ### Compliance posture
 
-Stardelt is *evidence-gathering infrastructure*, not a certified product. Customers pursuing SOC2, ISO27001, BSI C5, FedRAMP-on-your-own-cloud, etc. inherit Stardelt's controls; certifications are theirs to obtain. Stardelt ships control-mapping starter kits in Phase 5.
+stardelt is *evidence-gathering infrastructure*, not a certified product. Customers pursuing SOC2, ISO27001, BSI C5, FedRAMP-on-your-own-cloud, etc. inherit stardelt's controls; certifications are theirs to obtain. stardelt ships control-mapping starter kits in Phase 5.
 
 ---
 
@@ -250,7 +250,7 @@ This document, the docs scaffolding, the README, the logo, the LICENSES.md, the 
 
 ### Phase 1 — Lakehouse MVP — the control-plane proof point
 
-End-to-end `kubectl apply -f lakehouse.yaml` → 15 minutes later, query an Iceberg table in Trino via Stardelt Nova.
+End-to-end `kubectl apply -f lakehouse.yaml` → 15 minutes later, query an Iceberg table in Trino via stardelt Nova.
 
 - L1 minimum: Keycloak, K8s Secrets (OpenBao deferred to P5), VictoriaMetrics + VictoriaLogs + Perses, OpenCost
 - L2: Apache Ozone (+ BYO-S3 path), Lakekeeper, Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
@@ -281,7 +281,7 @@ KubeRay, Kubeflow Pipelines, MLflow, Feast, KServe, vLLM, Qdrant. `MLWorkspace` 
 - **Performance track: Apache Gluten + Velox** for Spark/Trino native vectorized execution (the OSS answer to proprietary vectorized engines)
 - First 10 documented production references
 
-### Phase 6 — Hosted Stardelt (optional commercial spin-out)
+### Phase 6 — Hosted stardelt (optional commercial spin-out)
 
 Only happens if community pull justifies it. Multi-tenancy primitives from Phase 1 are already real, so the work is: managed control plane, self-service onboarding, billing, support tier.
 
@@ -306,12 +306,12 @@ Only happens if community pull justifies it. Multi-tenancy primitives from Phase
 - A proprietary query engine (we ship Trino + DuckDB)
 - Replacing the user's Kubernetes cluster (we run *on* K8s, we don't install it)
 - Multi-cluster federation (Phase 5+ at earliest)
-- Edge-only mode (small-footprint Stardelt — interesting future, out of scope for v1)
+- Edge-only mode (small-footprint stardelt — interesting future, out of scope for v1)
 
 ## 7. Open questions / pre-release verifications
 
 1. Live `LICENSE` file re-verification for the components listed in §3's "Pre-release license verifications" line.
-2. Trademark and domain claim for "Stardelt" and "Stardelt Nova" (USPTO, EUIPO, .io / .dev / .com).
+2. Trademark and domain claim for "stardelt" and "stardelt Nova" (USPTO, EUIPO, .io / .dev / .com).
 3. GitHub organization claim: `stardelt`.
 4. Governance model: BDFL-style (single maintainer) vs. lightweight steering committee from day one. Reserve trademark to a future foundation entity.
 5. Code of Conduct, CONTRIBUTING, GOVERNANCE — deferred to Phase 1 start.

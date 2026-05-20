@@ -4,9 +4,9 @@ sidebar_label: "Roadmap"
 slug: /roadmap
 ---
 
-# Stardelt Roadmap
+# stardelt Roadmap
 
-Stardelt is a multi-year vision. Each phase produces something demoable and usable on its own — not "half-built monolith until v1.0."
+stardelt is a multi-year vision. Each phase produces something demoable and usable on its own — not "half-built monolith until v1.0."
 
 The MVP (Phase 0 + Phase 1) is the only milestone needed to validate the bet. Phases 2–6 are gated on community pull.
 
@@ -30,7 +30,7 @@ The MVP (Phase 0 + Phase 1) is the only milestone needed to validate the bet. Ph
 
 ## Phase 1 — Lakehouse MVP
 
-**Goal**: `kubectl apply -f lakehouse.yaml` → 15 minutes later, you're querying an Iceberg table in Trino through Stardelt Nova.
+**Goal**: `kubectl apply -f lakehouse.yaml` → 15 minutes later, you're querying an Iceberg table in Trino through stardelt Nova.
 
 This is the wedge. A single working pillar with the composed control plane proves the differentiator over Stackable.
 
@@ -39,7 +39,7 @@ This is the wedge. A single working pillar with the composed control plane prove
 - L1 (substrate, minimum viable): Keycloak, **K8s Secrets** (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
 - L2 (data foundation): Apache Ozone (+ BYO-S3 path), Lakekeeper, Apache Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
 - L3 Pillar 1 (Lakehouse SQL only): Trino, DuckDB, Apache Superset, JupyterHub
-- L4 (Stardelt-native): `stardelt-platform-operator` (only `PlatformInstance`, `Tenant`, `Lakehouse` CRDs), basic `stardelt-secret-operator`, basic `stardelt-listener-operator`, **Nova MVP** (SSO landing + catalog browser + simple cost view + audit search), `stardelt` CLI
+- L4 (stardelt-native): `stardelt-platform-operator` (only `PlatformInstance`, `Tenant`, `Lakehouse` CRDs), basic `stardelt-secret-operator`, basic `stardelt-listener-operator`, **Nova MVP** (SSO landing + catalog browser + simple cost view + audit search), `stardelt` CLI
 
 **Validation:**
 
@@ -86,7 +86,7 @@ This is the wedge. A single working pillar with the composed control plane prove
 
 ## Phase 5 — Production hardening
 
-This is where Stardelt earns the "battle-tested" claim.
+This is where stardelt earns the "battle-tested" claim.
 
 **Adds:**
 
@@ -99,7 +99,7 @@ This is where Stardelt earns the "battle-tested" claim.
 - **Performance track — Apache Gluten + Velox** for Spark/Trino native vectorized execution (the OSS answer to proprietary vectorized engines)
 - **First 10 documented production references**
 
-## Phase 6 — Hosted Stardelt (optional, commercial)
+## Phase 6 — Hosted stardelt (optional, commercial)
 
 Only happens if community pull justifies it. The multi-tenancy primitives from Phase 1 already exist (`Tenant` CRD, OpenFGA realms per tenant, cost attribution by tenant), so the work is operational, not architectural:
 

@@ -5,7 +5,7 @@ sidebar_label: "Layers"
 
 # Layered architecture
 
-The four horizontal layers that make up Stardelt, with Nova on top.
+The four horizontal layers that make up stardelt, with Nova on top.
 
 ```mermaid
 flowchart TB
@@ -19,7 +19,7 @@ flowchart TB
     NOVA_LINK["Deep-links to native UIs"]
   end
 
-  subgraph L4["L4 — Stardelt Control Plane (CRDs, Rust operators)"]
+  subgraph L4["L4 — stardelt Control Plane (CRDs, Rust operators)"]
     CRD1["PlatformInstance"]
     CRD2["Tenant"]
     CRD3["Lakehouse"]

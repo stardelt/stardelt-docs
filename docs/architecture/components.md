@@ -4,9 +4,9 @@ sidebar_label: "Components"
 slug: /architecture/components
 ---
 
-# Stardelt Component Map
+# stardelt Component Map
 
-The full inventory of upstream OSS projects Stardelt composes, organized by architectural layer. License legend: **✓** verified live during Phase 0 research · **◯** from research; re-verify the live `LICENSE` file before any Stardelt release.
+The full inventory of upstream OSS projects stardelt composes, organized by architectural layer. License legend: **✓** verified live during Phase 0 research · **◯** from research; re-verify the live `LICENSE` file before any stardelt release.
 
 For the *why* (signature picks, rationale), see the [Architecture doc](overview.md) and [the design spec](../design/master-spec.md).
 
@@ -88,19 +88,19 @@ For the rejection list (BSL / SSPL / AGPL components that look attractive but we
 | Backup of K8s resources | **Velero** | — | Apache 2.0 ◯ |
 | Database operator (Postgres for Lakekeeper, Keycloak, MLflow) | **CloudNative-PG** | — | Apache 2.0 ◯ |
 
-## L4 — Stardelt-native (we build)
+## L4 — stardelt-native (we build)
 
 | Component | Purpose | Stack |
 |---|---|---|
 | `stardelt-platform-operator` | Reconciles top-level CRDs (`PlatformInstance`, `Tenant`, `Lakehouse`, `Pipeline`, `StreamApp`, `MLWorkspace`) into per-component CRDs | Rust + kube-rs |
 | `stardelt-secret-operator` | CSI-driven ephemeral credentials backed by OpenBao (Stackable-pattern) | Rust + kube-rs |
 | `stardelt-listener-operator` | Uniform exposure abstraction (ClusterIP / LoadBalancer / Ingress / Gateway API) | Rust + kube-rs |
-| **Stardelt Nova** | Unified UI: SSO landing · tenant mgmt · catalog browser · lineage · cost view · audit search · deep-links | TypeScript + React + Tailwind (front); Rust + axum (back) |
+| **stardelt Nova** | Unified UI: SSO landing · tenant mgmt · catalog browser · lineage · cost view · audit search · deep-links | TypeScript + React + Tailwind (front); Rust + axum (back) |
 | `stardelt` CLI | Day-1 install, Day-2 ops, demos | Rust |
 
 ## Pre-release license verifications
 
-The following components are believed Apache/MIT/BSD as of Phase 0 research but have either had recent license drift, open-core arrangements, or ambiguity. **Re-verify the live `LICENSE` file before any Stardelt release** and demote to alternative if drifted:
+The following components are believed Apache/MIT/BSD as of Phase 0 research but have either had recent license drift, open-core arrangements, or ambiguity. **Re-verify the live `LICENSE` file before any stardelt release** and demote to alternative if drifted:
 
 - StarRocks (dual Apache 2.0 / ELv2 modules — check which features land in which)
 - Authentik (enterprise modules separately licensed)
@@ -121,7 +121,7 @@ The following components are believed Apache/MIT/BSD as of Phase 0 research but 
 
 ## Component decision criteria
 
-Stardelt picks components by:
+stardelt picks components by:
 
 1. **License**: OSI permissive (Apache 2.0 / MIT / BSD). Single MPL-2.0 exception. No BSL / SSPL / ELv2 / AGPL — no exceptions.
 2. **Production maturity in 2026**: real users, active commits, recent releases.
@@ -130,7 +130,7 @@ Stardelt picks components by:
 5. **Sovereignty compatibility**: no required outbound calls at runtime.
 6. **Integration with adjacent picks**: e.g., Lakekeeper + OpenFGA + Iceberg + Trino is a known-good combination.
 
-When two components score equally, Stardelt prefers:
+When two components score equally, stardelt prefers:
 
 - CNCF or ASF projects over vendor-led ones (governance, sustainability).
 - Rust or Go components over JVM where K8s controller-pattern fits (cold-start, footprint).

@@ -4,16 +4,16 @@ sidebar_label: "Licenses"
 slug: /architecture/licenses
 ---
 
-# Stardelt License Policy
+# stardelt License Policy
 
-Stardelt is licensed **Apache License 2.0**. The platform composes upstream OSS projects; their respective licenses apply to those binaries when Stardelt installs them on your cluster.
+stardelt is licensed **Apache License 2.0**. The platform composes upstream OSS projects; their respective licenses apply to those binaries when stardelt installs them on your cluster.
 
 This document is the source of truth for:
 
-1. The license policy itself (what licenses Stardelt will and will not ship).
+1. The license policy itself (what licenses stardelt will and will not ship).
 2. The documented exception (OpenBao).
 3. The hard rejection list (license-disqualified components, with reasons).
-4. The verification process before any Stardelt release.
+4. The verification process before any stardelt release.
 
 ## Policy
 
@@ -23,13 +23,13 @@ This document is the source of truth for:
 | **Documented exception** | MPL 2.0 | **OpenBao only** — see below |
 | **Rejected** | AGPL, GPL (any), BSL, SSPL, ELv2, Confluent Community License, FSL, proprietary, source-available-but-not-OSI | See rejection list |
 
-The policy is **strict on purpose**. Stardelt's "no vendor handcuffs, self-host forever" claim only holds if every component in the default install is provably free of relicensing risk.
+The policy is **strict on purpose**. stardelt's "no vendor handcuffs, self-host forever" claim only holds if every component in the default install is provably free of relicensing risk.
 
 ## Documented license exceptions
 
 ### OpenBao — MPL 2.0
 
-**Context**: Stardelt needs an HA-grade secrets and PKI backend. HashiCorp Vault relicensed from MPL 2.0 to BSL 1.1 in August 2023. **OpenBao** is the Linux Foundation–governed fork of Vault from its pre-BSL days, contributed to by IBM and a wider community. Its license is **MPL 2.0**, an OSI-approved license, but weak-copyleft *per file* — not a pure permissive license like Apache 2.0.
+**Context**: stardelt needs an HA-grade secrets and PKI backend. HashiCorp Vault relicensed from MPL 2.0 to BSL 1.1 in August 2023. **OpenBao** is the Linux Foundation–governed fork of Vault from its pre-BSL days, contributed to by IBM and a wider community. Its license is **MPL 2.0**, an OSI-approved license, but weak-copyleft *per file* — not a pure permissive license like Apache 2.0.
 
 **Decision**: Accept MPL 2.0 for OpenBao as a single documented exception.
 
@@ -38,13 +38,13 @@ The policy is **strict on purpose**. Stardelt's "no vendor handcuffs, self-host 
 1. There is no Apache/MIT/BSD HA-grade secrets manager in 2026. The alternatives are: Kubernetes Sealed Secrets (no dynamic credentials, no PKI, no rotation), or proprietary cloud-KMS services (defeats the sovereignty story).
 2. MPL 2.0 is materially weaker copyleft than AGPL or GPL. It applies per-file, allows linking with proprietary or differently-licensed code, and does not impose network-use obligations. Most corporate legal teams approve MPL without escalation.
 3. OpenBao is governed under the Linux Foundation, removing single-vendor relicensing risk.
-4. Customers who prefer not to ship OpenBao can use the **External Secrets Operator** (Apache 2.0) to plug into their own Vault / OpenBao / cloud KMS — Stardelt does not require shipping OpenBao itself.
+4. Customers who prefer not to ship OpenBao can use the **External Secrets Operator** (Apache 2.0) to plug into their own Vault / OpenBao / cloud KMS — stardelt does not require shipping OpenBao itself.
 
 **Customers must be told this clearly.** The README, ARCHITECTURE doc, and install docs all surface OpenBao's MPL 2.0 status as the single non-permissive component in the default install.
 
 ## Hard rejection list
 
-Components that look attractive and are frequently asked about, but **cannot be shipped** under Stardelt's policy:
+Components that look attractive and are frequently asked about, but **cannot be shipped** under stardelt's policy:
 
 | Component | License | Status / notes |
 |---|---|---|
@@ -74,7 +74,7 @@ Components that look attractive and are frequently asked about, but **cannot be 
 
 ## Pre-release verification process
 
-Before any Stardelt release:
+Before any stardelt release:
 
 1. Fetch the live `LICENSE` file for every primary component listed in [COMPONENTS.md](components.md) from `github.com/<org>/<repo>/blob/main/LICENSE`.
 2. Confirm exact license name; cross-reference with the OSI list (https://opensource.org/licenses).
@@ -90,4 +90,4 @@ If you believe a component listed in components.md is not under the license stat
 - Link to the offending LICENSE file or relicense announcement.
 - The OSI status of the new license.
 
-License accuracy is non-negotiable for Stardelt. We will demote or replace any component whose license has drifted out of policy.
+License accuracy is non-negotiable for stardelt. We will demote or replace any component whose license has drifted out of policy.

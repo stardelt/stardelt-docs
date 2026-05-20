@@ -1,6 +1,6 @@
 # stardelt-docs
 
-The Stardelt documentation site, published to **https://docs.stardelt.io**.
+The stardelt documentation site, published to **https://docs.stardelt.io**.
 
 Built with [Docusaurus 3](https://docusaurus.io). Theme matches the Nova UI and the marketing site at stardelt.io — same palette (`#0b0e1f` background, `#5b6cff` accent), same system font stack, dark mode only.
 
@@ -28,7 +28,7 @@ Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the s
 
 ```
 docs/                  # markdown content (architecture, roadmap, design spec, MVP notes, diagrams)
-src/css/custom.css     # Stardelt theme overrides
+src/css/custom.css     # stardelt theme overrides
 src/pages/index.tsx    # homepage hero
 static/img/            # logo + wordmark
 static/CNAME           # GitHub Pages custom domain

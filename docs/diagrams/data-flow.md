@@ -5,13 +5,13 @@ sidebar_label: "Data flow"
 
 # Lakehouse read path
 
-The canonical Stardelt query flow — from Nova to Ozone, with OIDC, OpenFGA authorization, and OpenLineage emission.
+The canonical stardelt query flow — from Nova to Ozone, with OIDC, OpenFGA authorization, and OpenLineage emission.
 
 ```mermaid
 sequenceDiagram
   autonumber
   actor User as "User (BI / notebook / Spark job)"
-  participant Nova as "Stardelt Nova"
+  participant Nova as "stardelt Nova"
   participant KC as "Keycloak<br/>(IdP / OIDC)"
   participant Engine as "Trino / DuckDB / Spark"
   participant LK as "Lakekeeper<br/>(Iceberg REST Catalog)"

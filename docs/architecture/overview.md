@@ -4,9 +4,9 @@ sidebar_label: "Overview"
 slug: /architecture/overview
 ---
 
-# Stardelt Architecture
+# stardelt Architecture
 
-Stardelt is a Kubernetes-native data platform structured as four horizontal layers plus the **Stardelt Nova** UI. This document describes the layered model, the operating model, the control-plane CRDs, and the cross-cutting concerns.
+stardelt is a Kubernetes-native data platform structured as four horizontal layers plus the **stardelt Nova** UI. This document describes the layered model, the operating model, the control-plane CRDs, and the cross-cutting concerns.
 
 For the full design rationale see [`docs/superpowers/specs/2026-05-16-stardelt-design.md`](../design/master-spec.md).
 
@@ -39,17 +39,17 @@ See [diagrams/01-layers.mmd](../diagrams/layers) for the Mermaid version.
 
 ### L0 — Kubernetes (user-provided)
 
-Stardelt is *not* a Kubernetes distribution. Users bring any conformant cluster: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, kind, kubeadm, or a sovereign-cloud K8s (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway). Supported Kubernetes versions: current N and N-1.
+stardelt is *not* a Kubernetes distribution. Users bring any conformant cluster: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, kind, kubeadm, or a sovereign-cloud K8s (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway). Supported Kubernetes versions: current N and N-1.
 
 ### L1 — Substrate (always installed)
 
-Cluster-wide services every Stardelt deployment depends on:
+Cluster-wide services every stardelt deployment depends on:
 
 - **Identity**: Keycloak — SAML/OIDC/LDAP broker. Federates customer IdPs.
 - **Secrets**: OpenBao (MPL-2.0, [documented exception](licenses.md#documented-license-exceptions)). PKI, dynamic credentials, KV store. Customers may BYO an existing Vault/OpenBao via External Secrets Operator.
 - **Service mesh**: Cilium with Cilium Service Mesh — mTLS east-west, Hubble for audit-grade flow visibility.
 - **Observability**: VictoriaMetrics (metrics), VictoriaLogs (logs), Jaeger (traces), Perses (dashboards). All Apache 2.0. Replaces the AGPL Grafana stack.
-- **Cost attribution**: OpenCost with Stardelt label-relabeling.
+- **Cost attribution**: OpenCost with stardelt label-relabeling.
 - **Optional**: Harbor (container registry mirror, required for air-gap installs); Envoy Gateway (north-south ingress).
 
 ### L2 — Data Foundation (always installed)
@@ -65,7 +65,7 @@ Shared services every pillar consumes:
 
 ### L3 — Pillar engines (opt-in per tenant)
 
-Tenants opt into pillars via the Stardelt CRDs. Each pillar reuses the L1/L2 substrate.
+Tenants opt into pillars via the stardelt CRDs. Each pillar reuses the L1/L2 substrate.
 
 | Pillar | Components |
 |---|---|
@@ -74,7 +74,7 @@ Tenants opt into pillars via the Stardelt CRDs. Each pillar reuses the L1/L2 sub
 | **Streaming** | Apache Kafka (Strimzi) · Apicurio Registry · Apache Flink · RisingWave · Debezium |
 | **ML / AI** | KubeRay · Kubeflow Pipelines · MLflow · Feast · KServe · vLLM · Qdrant · Envoy AI Gateway |
 
-### L4 — Stardelt Control Plane
+### L4 — stardelt Control Plane
 
 The differentiator. A single declarative CRD set composes the underlying components.
 
@@ -89,7 +89,7 @@ The differentiator. A single declarative CRD set composes the underlying compone
 
 The **`stardelt-platform-operator`** reconciles these into per-component CRDs (`TrinoCluster`, `SparkApplication`, `KafkaCluster`, `RayCluster`, etc.). See [diagrams/02-control-plane.mmd](../diagrams/control-plane).
 
-### Stardelt Nova (spans all layers)
+### stardelt Nova (spans all layers)
 
 A first-class web UI that fixes the "every component has its own UI" problem.
 
@@ -100,9 +100,9 @@ A first-class web UI that fixes the "every component has its own UI" problem.
 
 ## Operating model
 
-Stardelt follows the **operator-per-component pattern**, with a thin **control plane operator** on top.
+stardelt follows the **operator-per-component pattern**, with a thin **control plane operator** on top.
 
-- **Per-component operators** are Rust on `kube-rs` where Stardelt writes them, or adopted upstream (Strimzi, KubeRay, Spark Operator, CloudNative-PG, etc.) where mature.
+- **Per-component operators** are Rust on `kube-rs` where stardelt writes them, or adopted upstream (Strimzi, KubeRay, Spark Operator, CloudNative-PG, etc.) where mature.
 - **Cross-cutting operators** borrowed conceptually from Stackable: `stardelt-secret-operator` (CSI-mounted ephemeral creds from OpenBao) and `stardelt-listener-operator` (uniform exposure abstraction).
 - **`stardelt-platform-operator`** is the new layer: reconciles top-level CRDs into per-component CRDs.
 
@@ -112,7 +112,7 @@ The canonical lakehouse read path:
 
 ```
                     ┌────────────────────┐
-   client (BI,      │ Stardelt Nova /     │
+   client (BI,      │ stardelt Nova /     │
    notebook,    ──▶ │ Trino / DuckDB /   │
    Spark job)       │ Spark              │
                     └─────────┬──────────┘
@@ -142,10 +142,10 @@ See [diagrams/03-data-flow.mmd](../diagrams/data-flow).
 
 ## Multi-tenancy
 
-Multi-tenancy primitives exist in v1 even though MVP deployments are single-tenant. This avoids a rewrite when the optional hosted Stardelt arrives in Phase 6.
+Multi-tenancy primitives exist in v1 even though MVP deployments are single-tenant. This avoids a rewrite when the optional hosted stardelt arrives in Phase 6.
 
 - `Tenant` CRD is real on day one.
-- Every Stardelt resource carries a `stardelt.io/tenant` label.
+- Every stardelt resource carries a `stardelt.io/tenant` label.
 - Audit events carry `tenant_id`.
 - OpenCost groups costs by tenant label.
 - OpenFGA has a realm or namespace per tenant.
@@ -162,7 +162,7 @@ Multi-tenancy primitives exist in v1 even though MVP deployments are single-tena
 
 ## Compliance
 
-Stardelt is *evidence-gathering infrastructure*, not a certified product. Phase 5 ships control-mapping starter kits for SOC2, ISO27001, BSI C5, and FedRAMP-on-your-own-cluster. Certifications remain the customer's responsibility.
+stardelt is *evidence-gathering infrastructure*, not a certified product. Phase 5 ships control-mapping starter kits for SOC2, ISO27001, BSI C5, and FedRAMP-on-your-own-cluster. Certifications remain the customer's responsibility.
 
 ## What this document does not cover
 
