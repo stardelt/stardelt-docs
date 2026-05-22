@@ -6,6 +6,10 @@ slug: /architecture/components
 
 # stardelt Component Map
 
+:::info Implementation detail
+Engineering depth for this page lives in [Components — Implementation](./components-impl).
+:::
+
 The full inventory of upstream OSS projects stardelt composes, organized by architectural layer. License legend: **✓** verified live during Phase 0 research · **◯** from research; re-verify the live `LICENSE` file before any stardelt release.
 
 For the *why* (signature picks, rationale), see the [Architecture doc](overview.md) and [the design spec](../design/master-spec.md).
