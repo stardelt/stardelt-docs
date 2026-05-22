@@ -83,4 +83,4 @@ docker run --rm -it \
   node:20 sh -c "npm install --no-audit --no-fund && npm start -- --host 0.0.0.0 --no-open"
 ```
 
-Open <http://localhost:3000>. Docusaurus hot-reloads on file changes.
+Open `http://localhost:3000`. Docusaurus hot-reloads on file changes.

@@ -4,6 +4,22 @@ const sidebars: SidebarsConfig = {
   docs: [
     {
       type: 'category',
+      label: 'Intro',
+      collapsed: false,
+      items: ['intro/overview'],
+    },
+    {
+      type: 'category',
+      label: 'Getting started',
+      collapsed: false,
+      items: [
+        'getting-started/prerequisites',
+        'getting-started/local-kind',
+        'getting-started/smoke-test',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Architecture',
       collapsed: false,
       items: [
@@ -13,6 +29,12 @@ const sidebars: SidebarsConfig = {
         'architecture/sovereignty',
       ],
     },
+    {
+      type: 'category',
+      label: 'Diagrams',
+      collapsed: true,
+      items: ['diagrams/layers', 'diagrams/control-plane', 'diagrams/data-flow'],
+    },
     'roadmap',
     {
       type: 'category',
@@ -20,12 +42,15 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: ['design/master-spec'],
     },
-    'mvp',
     {
       type: 'category',
-      label: 'Diagrams',
+      label: 'Developer',
       collapsed: true,
-      items: ['diagrams/layers', 'diagrams/control-plane', 'diagrams/data-flow'],
+      link: { type: 'doc', id: 'developer/index' },
+      items: [
+        'developer/contributing',
+        'developer/implementation-log',
+      ],
     },
   ],
 };
