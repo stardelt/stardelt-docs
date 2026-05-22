@@ -64,11 +64,11 @@ make down             # tear down the cluster
 1. **kind cluster** (`deploy/kind-config.yaml`) — single node, host ports 8080/8081/8181 mapped to the host.
 2. **CloudNative-PG operator** (`cnpg/cloudnative-pg`) in namespace `cnpg-system`. Used by Lakekeeper for its metadata Postgres.
 3. **SeaweedFS** in `stardelt` — master + volume + filer + S3 gateway, trimmed for kind (1 replica each, replication `000`). The `lakehouse` bucket is auto-created on install.
-4. **S3 credentials Secret** (`deploy/manifests/ozone-s3-creds.yaml`) — `access-key`, `secret-key`, `endpoint`, `bucket`, `region` consumed by Lakekeeper bootstrap and Trino's catalog config. The Secret name is `ozone-s3-creds` for backward compatibility — see [ADR 001](../developer/decisions/001-seaweedfs-over-ozone).
+4. **S3 credentials Secret** (`deploy/manifests/stardelt-s3-creds.yaml`) — `access-key`, `secret-key`, `endpoint`, `bucket`, `region` consumed by Lakekeeper bootstrap and Trino's catalog config.
 5. **Lakekeeper Postgres** (`postgresql.cnpg.io/Cluster` `lakekeeper-pg`) — single instance, 2 GiB.
 6. **Lakekeeper** — bundled Postgres + OpenFGA disabled, `authz.backend: allowall`, points at the CNPG Postgres via the `lakekeeper-pg-app` Secret.
 7. **Lakekeeper warehouse bootstrap** (`deploy/manifests/lakekeeper-bootstrap.yaml`) — a Job that POSTs `/management/v1/bootstrap` and `/management/v1/warehouse` (creating `warehouse` on `s3://lakehouse/warehouse`). Idempotent.
-8. **Trino** — coordinator + 1 worker, 2 GiB heap each. The catalog `warehouse` is configured with `iceberg.catalog.type=rest`, REST URI = Lakekeeper, S3 endpoint = SeaweedFS, path-style access, credentials from `ozone-s3-creds`.
+8. **Trino** — coordinator + 1 worker, 2 GiB heap each. The catalog `warehouse` is configured with `iceberg.catalog.type=rest`, REST URI = Lakekeeper, S3 endpoint = SeaweedFS, path-style access, credentials from `stardelt-s3-creds`.
 9. **Apache Airflow** — slim image plus the `postgres`, `fab`, and `cncf-kubernetes` providers; KubernetesExecutor; ships the `nyc_taxi_load` DAG that loads NYC TLC yellow-taxi Parquet into `warehouse.nyc_taxi.yellow_trips` via pyiceberg.
 
 When this finishes, verify with the [smoke test](./smoke-test).
