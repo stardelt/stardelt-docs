@@ -1,5 +1,18 @@
 # Docs Restructure (issue #2) Implementation Plan
 
+> **SUPERSESSION (2026-05-22, mid-execution):** Task 8 (ADR 001 — SeaweedFS over Ozone) is **dropped**. Per user decision while executing this plan, Ozone is removed from the project entirely (we're at the start of the project, no real backward compatibility to preserve). Effects on this plan:
+> - **Task 8 is skipped**; the placeholder file at `docs/developer/decisions/001-seaweedfs-over-ozone.md` is deleted along with the empty `decisions/` directory.
+> - **Task 4 (local-kind.md)** drops the "Secret name is `ozone-s3-creds` for backward compatibility" callout. The Secret is renamed `stardelt-s3-creds`.
+> - **Task 6 (implementation-log.md)** drops the "Storage layer" section and the Ozone-specific lessons (originally lessons 3 and 4); other lessons renumber.
+> - **Task 7 (contributing.md)** drops the "Adding a new ADR" sub-section.
+> - **Task 9 (developer/index.md)** drops the ADR listing.
+> - **Task 10 (components-impl.md)** drops the "Component decisions captured as ADRs" section.
+> - **Task 11 (sidebars.ts wiring + final verify)** drops the `decisions/001-seaweedfs-over-ozone` sidebar entry and curl check.
+> - A parallel cross-repo refactor in `stardelt-platform`, `stardelt-demos`, and the parent `CLAUDE.md` renames `ozone-s3-creds` → `stardelt-s3-creds`, `OZONE_ACCESS_KEY` → `S3_ACCESS_KEY`, `OZONE_SECRET_KEY` → `S3_SECRET_KEY`, and deletes the `/var/lib/ozone` kind hostMount (SeaweedFS uses PVCs, the mount was dead).
+> - Already-shipped architecture docs (`docs/architecture/*`, `docs/design/master-spec.md`, `docs/diagrams/*`, `docs/roadmap.md`) are rewritten to make SeaweedFS the primary storage component; Ozone is no longer mentioned.
+>
+> Below is the original plan text. The corrected content for each remaining task is applied at execution time; refer to the resulting commits, not the blocks below, for what shipped.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Restructure `stardelt-docs/docs/` into audience tiers (intro / getting-started / architecture / developer), extract user-facing install content out of `mvp.md`, and formalise the sidecar `*-impl.md` writing convention with one demonstration pair.
