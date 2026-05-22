@@ -5,7 +5,7 @@ sidebar_label: "Data flow"
 
 # Lakehouse read path
 
-The canonical stardelt query flow — from Nova to Ozone, with OIDC, OpenFGA authorization, and OpenLineage emission.
+The canonical stardelt query flow — from Nova to SeaweedFS, with OIDC, OpenFGA authorization, and OpenLineage emission.
 
 ```mermaid
 sequenceDiagram
@@ -17,7 +17,7 @@ sequenceDiagram
   participant LK as "Lakekeeper<br/>(Iceberg REST Catalog)"
   participant FGA as "OpenFGA"
   participant OL as "OpenLineage / Marquez"
-  participant OZ as "Apache Ozone (or BYO-S3)"
+  participant SW as "SeaweedFS (or BYO-S3)"
 
   User->>Nova: open
   Nova->>KC: OIDC auth (SAML/OIDC federation to corporate IdP)
@@ -32,11 +32,11 @@ sequenceDiagram
   LK->>FGA: check(user, "read", "table:X")
   FGA-->>LK: allow / deny
   alt allow
-    LK->>OZ: vend short-lived S3 credentials
-    OZ-->>LK: STS-style credentials
+    LK->>SW: vend short-lived S3 credentials
+    SW-->>LK: STS-style credentials
     LK-->>Engine: table metadata + creds
-    Engine->>OZ: read Parquet files
-    OZ-->>Engine: data
+    Engine->>SW: read Parquet files
+    SW-->>Engine: data
     Engine-->>User: result set
     Engine->>OL: emit RunEvent (query lineage)
     LK->>OL: emit RunEvent (catalog access)

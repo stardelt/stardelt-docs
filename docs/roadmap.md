@@ -37,7 +37,7 @@ This is the wedge. A single working pillar with the composed control plane prove
 **Scope:**
 
 - L1 (substrate, minimum viable): Keycloak, **K8s Secrets** (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
-- L2 (data foundation): Apache Ozone (+ BYO-S3 path), Lakekeeper, Apache Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
+- L2 (data foundation): SeaweedFS (+ BYO-S3 path), Lakekeeper, Apache Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
 - L3 Pillar 1 (Lakehouse SQL only): Trino, DuckDB, Apache Superset, JupyterHub
 - L4 (stardelt-native): `stardelt-platform-operator` (only `PlatformInstance`, `Tenant`, `Lakehouse` CRDs), basic `stardelt-secret-operator`, basic `stardelt-listener-operator`, **Nova MVP** (SSO landing + catalog browser + simple cost view + audit search), `stardelt` CLI
 

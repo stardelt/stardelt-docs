@@ -35,7 +35,7 @@ For the rejection list (BSL / SSPL / AGPL components that look attractive but we
 
 | Slot | Primary | Alternative | License |
 |---|---|---|---|
-| Object storage (S3-compatible) | **Apache Ozone** | BYO-S3 (AWS, GCS, Azure Blob, Ceph), CubeFS (CNCF Graduated), SeaweedFS | Apache 2.0 ✓ |
+| Object storage (S3-compatible) | **SeaweedFS** | BYO-S3 (AWS, GCS, Azure Blob, Ceph), CubeFS (CNCF Graduated) | Apache 2.0 ✓ |
 | Catalog (Iceberg REST) | **Lakekeeper** (Rust) | **Apache Polaris** (Java, 1.3.0-incubating Jan 2026) | Apache 2.0 ✓ |
 | Table format | **Apache Iceberg** | Hudi, Paimon, Delta (via Polaris generic tables) | Apache 2.0 ◯ |
 | Policy engine | **OPA** (admission-tier) + **OpenFGA** (data-tier) | — | Apache 2.0 ◯ |

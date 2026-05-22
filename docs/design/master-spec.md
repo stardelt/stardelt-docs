@@ -124,7 +124,7 @@ License legend: ✓ verified live during Phase 0 · ◯ from research (re-verify
 
 | Slot | Primary | Alternative | License |
 |---|---|---|---|
-| Object storage | **Apache Ozone** | BYO-S3, CubeFS (CNCF Graduated), SeaweedFS | Apache 2.0 ✓ |
+| Object storage | **SeaweedFS** | BYO-S3, CubeFS (CNCF Graduated) | Apache 2.0 ✓ |
 | Catalog (Iceberg REST) | **Lakekeeper** | Apache Polaris 1.3.0-incubating | Apache 2.0 ✓ |
 | Table format | Apache Iceberg | Hudi, Paimon, Delta (via Polaris generic tables) | Apache 2.0 ◯ |
 | Policy engine | OPA + OpenFGA | — | Apache 2.0 ◯ |
@@ -229,7 +229,7 @@ OpenCost scrapes K8s usage and attributes by namespace and label. stardelt-shipp
 
 | Concern | Mechanism |
 |---|---|
-| Iceberg tables | Object-store-level replication (Ozone multi-site; BYO-S3 vendor replication) |
+| Iceberg tables | Object-store-level replication (BYO-S3 vendor replication) |
 | Catalog (Lakekeeper) metadata | CloudNative-PG with WAL archival to object store |
 | Keycloak | CloudNative-PG + Velero of K8s resources |
 | Kafka | Strimzi MirrorMaker 2 for cross-cluster replication |
@@ -253,7 +253,7 @@ This document, the docs scaffolding, the README, the logo, the LICENSES.md, the 
 End-to-end `kubectl apply -f lakehouse.yaml` → 15 minutes later, query an Iceberg table in Trino via stardelt Nova.
 
 - L1 minimum: Keycloak, K8s Secrets (OpenBao deferred to P5), VictoriaMetrics + VictoriaLogs + Perses, OpenCost
-- L2: Apache Ozone (+ BYO-S3 path), Lakekeeper, Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
+- L2: SeaweedFS (+ BYO-S3 path), Lakekeeper, Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
 - L3 Pillar 1 only: Trino, DuckDB, Superset, JupyterHub
 - L4: `stardelt-platform-operator` (only `PlatformInstance`, `Tenant`, `Lakehouse`), basic secret-operator, basic listener-operator, **Nova MVP** (SSO landing + catalog browser + simple cost view + audit search), `stardelt` CLI
 - Validation: single-cluster, single-tenant; kind/k3d demo + real-cluster install guide

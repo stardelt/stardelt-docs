@@ -48,7 +48,7 @@ Components that look attractive and are frequently asked about, but **cannot be 
 
 | Component | License | Status / notes |
 |---|---|---|
-| **MinIO** | AGPL-3.0 | Relicensed from Apache 2.0 in 2021. Repository **archived April 25, 2026**; community edition "no longer maintained". Pushed users to commercial AIStor ($96k/yr for 400TB). Replacement: **Apache Ozone**. |
+| **MinIO** | AGPL-3.0 | Relicensed from Apache 2.0 in 2021. Repository **archived April 25, 2026**; community edition "no longer maintained". Pushed users to commercial AIStor ($96k/yr for 400TB). Replacement: **SeaweedFS**. |
 | **Grafana** | AGPL-3.0 | Since 2021. Replacement: **Perses** (CNCF Sandbox). |
 | **Grafana Loki** | AGPL-3.0 | Since 2024. Replacement: **VictoriaLogs**. |
 | **Grafana Tempo** | AGPL-3.0 | Since 2024. Replacement: **Jaeger**. |
@@ -66,7 +66,7 @@ Components that look attractive and are frequently asked about, but **cannot be 
 | **Kubecost Enterprise** | open-core, Enterprise proprietary | Use the underlying engine **OpenCost** directly. |
 | **Weights & Biases** | proprietary SaaS | Replacement: **MLflow** + Aim. |
 | **Dagster Cloud / Prefect Cloud / Astronomer** | proprietary SaaS | Replacement: **Apache Airflow** + **Argo Workflows**. |
-| **Garage (object store)** | AGPL-3.0 | Replacement: **Apache Ozone**, CubeFS, SeaweedFS. |
+| **Garage (object store)** | AGPL-3.0 | Replacement: **SeaweedFS**, CubeFS. |
 | **CockroachDB self-hosted core** | BSL 1.1 | Replacement: **PostgreSQL** via CloudNative-PG. |
 | **MongoDB** | SSPL | Replacement: **PostgreSQL**. |
 | **Tecton, Featureform (commercial)** | proprietary / open-core | Replacement: **Feast**. |

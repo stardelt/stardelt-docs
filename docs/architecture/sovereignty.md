@@ -76,7 +76,7 @@ stardelt persists data only in open, vendor-neutral formats:
 
 stardelt's primary components are governed by:
 
-- The **Apache Software Foundation** (Iceberg, Kafka, Spark, Flink, Airflow, Ozone, Polaris, Superset, SeaTunnel, Kyuubi, ...)
+- The **Apache Software Foundation** (Iceberg, Kafka, Spark, Flink, Airflow, Polaris, Superset, SeaTunnel, Kyuubi, ...)
 - The **Cloud Native Computing Foundation** (Cilium, OpenFGA, OpenCost, OpenLineage, Perses, ...)
 - The **Linux Foundation** (OpenBao, Delta Lake, ...)
 - **Vendor-neutral or non-US projects** where applicable (Lakekeeper, VictoriaMetrics, Keycloak)

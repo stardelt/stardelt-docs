@@ -27,7 +27,7 @@ flowchart TB
 
     subgraph FOUND_CRDS["Foundation"]
       LK["LakekeeperCluster"]
-      OZ["OzoneCluster"]
+      SW["SeaweedFS"]
       PG["Cluster (CloudNative-PG)"]
     end
 

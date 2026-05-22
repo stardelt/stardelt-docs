@@ -39,7 +39,7 @@ flowchart TB
   subgraph L2["L2 — Data Foundation (always installed)"]
     CAT["Catalog: Lakekeeper / Apache Polaris"]
     FMT["Apache Iceberg"]
-    OBJ["Apache Ozone (or BYO-S3)"]
+    OBJ["SeaweedFS (or BYO-S3)"]
     POL["OPA + OpenFGA"]
     LIN["OpenLineage + Marquez"]
   end

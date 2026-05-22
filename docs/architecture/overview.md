@@ -56,7 +56,7 @@ Cluster-wide services every stardelt deployment depends on:
 
 Shared services every pillar consumes:
 
-- **Object storage**: Apache Ozone (primary, Apache 2.0, S3-compatible) or BYO-S3 (AWS S3, GCS, Azure Blob via S3, external Ceph, NetApp, etc.). CubeFS (CNCF Graduated) and SeaweedFS are documented alternatives.
+- **Object storage**: SeaweedFS (primary, Apache 2.0, S3-compatible) or BYO-S3 (AWS S3, GCS, Azure Blob via S3, external Ceph, NetApp, etc.). CubeFS (CNCF Graduated) is a documented alternative.
 - **Catalog (Iceberg REST)**: Lakekeeper (primary, Rust, first-class OpenFGA authz) or Apache Polaris (alternative, vendor-donated, ASF incubating).
 - **Table format**: Apache Iceberg as default; Polaris's "generic tables" allow Hudi, Paimon, and Delta to coexist.
 - **Policy**: OPA (admission-tier policy-as-code) + OpenFGA (relationship-based fine-grained authz at catalog/engine layer).
@@ -128,7 +128,7 @@ The canonical lakehouse read path:
                               │ vended object-store creds
                               ▼
                     ┌────────────────────┐
-                    │ Apache Ozone        │
+                    │ SeaweedFS           │
                     │ (or BYO S3)         │
                     └────────────────────┘
                               │ Parquet files
