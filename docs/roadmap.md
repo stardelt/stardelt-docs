@@ -110,18 +110,6 @@ Only happens if community pull justifies it. The multi-tenancy primitives from P
 
 The hosted version remains optional. Self-hosting will always be the canonical path.
 
-## Effort sizing (rough, not commitments)
-
-| Phase | Small team (3–5 eng) | Single maintainer + contribs |
-|---|---|---|
-| Phase 0 | done in this doc-set | done in this doc-set |
-| Phase 1 — Lakehouse MVP | 6–9 months | 12–18 months |
-| Phase 2 — Batch | 3–4 months | 6–9 months |
-| Phase 3 — Streaming | 4–6 months | 9–12 months |
-| Phase 4 — ML/AI | 4–6 months | 9–12 months |
-| Phase 5 — Hardening | 6–9 months | 12+ months |
-| Phase 6 — Hosted | 12+ months | unrealistic solo |
-
 ## What we are *not* doing in v1
 
 - No fully managed SaaS (Phase 6 only, optional).

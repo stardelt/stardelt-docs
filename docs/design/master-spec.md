@@ -285,18 +285,6 @@ KubeRay, Kubeflow Pipelines, MLflow, Feast, KServe, vLLM, Qdrant. `MLWorkspace` 
 
 Only happens if community pull justifies it. Multi-tenancy primitives from Phase 1 are already real, so the work is: managed control plane, self-service onboarding, billing, support tier.
 
-### Effort sizing (rough, not commitments)
-
-| Phase | Small team (3–5 eng) | Single maintainer + contribs |
-|---|---|---|
-| Phase 0 | done in this conversation | done in this conversation |
-| Phase 1 — Lakehouse MVP | 6–9 months | 12–18 months |
-| Phase 2 — Batch | 3–4 months | 6–9 months |
-| Phase 3 — Streaming | 4–6 months | 9–12 months |
-| Phase 4 — ML/AI | 4–6 months | 9–12 months |
-| Phase 5 — Hardening | 6–9 months | 12+ months |
-| Phase 6 — Hosted | 12+ months | unrealistic solo |
-
 ---
 
 ## 6. Out of scope (v1)
