@@ -24,24 +24,12 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'architecture/overview',
-        'architecture/components',
+        'architecture/services',        
         'architecture/licenses',
         'architecture/sovereignty',
       ],
     },
-    {
-      type: 'category',
-      label: 'Diagrams',
-      collapsed: true,
-      items: ['diagrams/layers', 'diagrams/control-plane', 'diagrams/data-flow'],
-    },
     'roadmap',
-    {
-      type: 'category',
-      label: 'Design',
-      collapsed: true,
-      items: ['design/master-spec'],
-    },
     {
       type: 'category',
       label: 'Developer',

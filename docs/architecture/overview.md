@@ -6,167 +6,101 @@ slug: /architecture/overview
 
 # stardelt Architecture
 
-stardelt is a Kubernetes-native data platform structured as four horizontal layers plus the **stardelt Nova** UI. This document describes the layered model, the operating model, the control-plane CRDs, and the cross-cutting concerns.
+**stardelt is an opinionated collection of open-source services, shipped together as a Kubernetes-native data platform.** You bring the Kubernetes cluster; stardelt installs and wires the services that turn it into a lakehouse, a streaming platform, a notebook environment, and a BI surface — under a single UI.
 
-For the full design rationale see [`docs/superpowers/specs/2026-05-16-stardelt-design.md`](../design/master-spec.md).
+This page is the high-level overview. Per-service detail (what each service does, upstream link, license) lives in [Services](./services).
 
-## Layered model
+## What's in the box
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                         STARDELT NOVA  (UI)                       │
-│   SSO landing │ tenant mgmt │ catalog browser │ lineage │ cost  │
-│   audit search │ platform health │ deep-links to native UIs      │
-├──────────────────────────────────────────────────────────────────┤
-│  L4 │  STARDELT CONTROL PLANE  (CRDs)                            │
-│     │  PlatformInstance · Tenant · Lakehouse · Pipeline ·         │
-│     │  StreamApp · MLWorkspace                                    │
-├──────────────────────────────────────────────────────────────────┤
-│  L3 │  PILLAR ENGINES  (opt-in per tenant)                       │
-│     │  Lakehouse SQL · Batch ETL · Streaming · ML/AI · BI/UX      │
-├──────────────────────────────────────────────────────────────────┤
-│  L2 │  DATA FOUNDATION  (always installed)                       │
-│     │  Catalog · Iceberg · Object storage · Policy · Lineage      │
-├──────────────────────────────────────────────────────────────────┤
-│  L1 │  SUBSTRATE  (always installed)                              │
-│     │  Identity · Secrets · Mesh · Observability · Cost            │
-├──────────────────────────────────────────────────────────────────┤
-│  L0 │  KUBERNETES  (user brings it)                               │
-└──────────────────────────────────────────────────────────────────┘
-```
+![stardelt service architecture: Kubernetes platform at the base, the always-installed stardelt core stack of data services, opt-in services that operators can enable, and stardelt Nova and the stardelt Operator on top](/img/architecture-layers.svg)
 
-See [diagrams/01-layers.mmd](../diagrams/layers) for the Mermaid version.
+### Kubernetes — the platform you bring
 
-### L0 — Kubernetes (user-provided)
+stardelt is *not* a Kubernetes distribution. Any conformant cluster works: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, kind, or a sovereign-cloud K8s (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway). Supported versions: current N and N-1.
 
-stardelt is *not* a Kubernetes distribution. Users bring any conformant cluster: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, kind, kubeadm, or a sovereign-cloud K8s (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway). Supported Kubernetes versions: current N and N-1.
+### stardelt core stack — always installed
 
-### L1 — Substrate (always installed)
+The opinionated set that defines what stardelt *is*. Every install ships these services:
 
-Cluster-wide services every stardelt deployment depends on:
+- **stardelt Nova** — unified UI. SSO landing, catalog browser, lineage view, audit search, platform health, and deep-links into the native UI of every service below.
+- **stardelt Operator** — CRD reconciler / control plane. Composes the services below from a small declarative API.
+- **Apache Trino** — distributed SQL engine; fast interactive queries over Iceberg.
+- **Apache Spark (Spark Connect)** — distributed compute. Spark Connect exposes a persistent remote endpoint so notebooks and other clients connect without spawning their own driver.
+- **Apache Airflow** — workflow orchestration for batch and scheduled jobs.
+- **JupyterHub** — multi-user notebook environment; the front door for interactive analysis.
+- **Apache Superset** — BI and dashboards over Trino.
+- **Apache Iceberg** — open table format; the storage abstraction every engine reads and writes.
+- **Lakekeeper** — Iceberg REST catalog; vends table metadata and short-lived object-store credentials.
+- **SeaweedFS** — S3-compatible object storage; the default data plane.
+- **Apache Kafka (KRaft)** — event-streaming backbone for ingest, CDC, and audit events.
 
-- **Identity**: Keycloak — SAML/OIDC/LDAP broker. Federates customer IdPs.
-- **Secrets**: OpenBao (MPL-2.0, [documented exception](licenses.md#documented-license-exceptions)). PKI, dynamic credentials, KV store. Customers may BYO an existing Vault/OpenBao via External Secrets Operator.
-- **Service mesh**: Cilium with Cilium Service Mesh — mTLS east-west, Hubble for audit-grade flow visibility.
-- **Observability**: VictoriaMetrics (metrics), VictoriaLogs (logs), Jaeger (traces), Perses (dashboards). All Apache 2.0. Replaces the AGPL Grafana stack.
-- **Cost attribution**: OpenCost with stardelt label-relabeling.
-- **Optional**: Harbor (container registry mirror, required for air-gap installs); Envoy Gateway (north-south ingress).
+### Opt-in services — enabled per operator choice
 
-### L2 — Data Foundation (always installed)
+These extend stardelt but aren't required. Operators often have existing equivalents already in the cluster:
 
-Shared services every pillar consumes:
+- **Keycloak** — OIDC / SAML / LDAP provider. Skip if your cluster already federates an IdP.
+- **Prometheus + Grafana** — metrics and dashboards. Skip if your cluster already has a monitoring stack.
+- **Alertmanager** — alert routing, paired with Prometheus.
+- **cert-manager** — TLS certificate lifecycle.
+- **Argo CI** — GitOps delivery.
+- **Apache SeaTunnel** — data integration / EL connectors.
+- **Apache Flink** — stream processing for event-driven pipelines and CDC.
+- **Open Policy Agent (OPA)** — fine-grained policy enforcement.
 
-- **Object storage**: SeaweedFS (primary, Apache 2.0, S3-compatible) or BYO-S3 (AWS S3, GCS, Azure Blob via S3, external Ceph, NetApp, etc.). CubeFS (CNCF Graduated) is a documented alternative.
-- **Catalog (Iceberg REST)**: Lakekeeper (primary, Rust, first-class OpenFGA authz) or Apache Polaris (alternative, vendor-donated, ASF incubating).
-- **Table format**: Apache Iceberg as default; Polaris's "generic tables" allow Hudi, Paimon, and Delta to coexist.
-- **Policy**: OPA (admission-tier policy-as-code) + OpenFGA (relationship-based fine-grained authz at catalog/engine layer).
-- **Lineage**: OpenLineage wire protocol + Marquez collector.
-- **Data quality**: Soda Core (primary), Great Expectations and dbt tests as alternatives.
+See [Services](./services) for the per-service description and upstream links.
 
-### L3 — Pillar engines (opt-in per tenant)
-
-Tenants opt into pillars via the stardelt CRDs. Each pillar reuses the L1/L2 substrate.
-
-| Pillar | Components |
-|---|---|
-| **Lakehouse SQL** | Trino · DuckDB · Apache Kyuubi (SQL gateway) · Apache Superset (BI) · JupyterHub |
-| **Batch ETL** | Apache Spark (Spark Operator) · Apache Airflow · Argo Workflows · dbt-core · SQLMesh · Apache SeaTunnel |
-| **Streaming** | Apache Kafka (Strimzi) · Apicurio Registry · Apache Flink · RisingWave · Debezium |
-| **ML / AI** | KubeRay · Kubeflow Pipelines · MLflow · Feast · KServe · vLLM · Qdrant · Envoy AI Gateway |
-
-### L4 — stardelt Control Plane
-
-The differentiator. A single declarative CRD set composes the underlying components.
-
-| CRD | Scope | Purpose |
-|---|---|---|
-| `PlatformInstance` | cluster singleton | What's enabled — pillars on, shared identity/storage/catalog config |
-| `Tenant` | namespace | Logical tenant: Keycloak group binding, quotas, network policies, catalog namespace, OpenFGA realm |
-| `Lakehouse` | per tenant | Catalog namespace + storage credentials + engines (Trino, DuckDB) |
-| `Pipeline` | per tenant | EL (SeaTunnel) + transformation (dbt/SQLMesh) + orchestration (Airflow/Argo) |
-| `StreamApp` | per tenant | Kafka topic + Flink job or RisingWave materialized view + sink |
-| `MLWorkspace` | per tenant | Jupyter + Ray cluster + MLflow + Feast + KServe |
-
-The **`stardelt-platform-operator`** reconciles these into per-component CRDs (`TrinoCluster`, `SparkApplication`, `KafkaCluster`, `RayCluster`, etc.). See [diagrams/02-control-plane.mmd](../diagrams/control-plane).
-
-### stardelt Nova (spans all layers)
-
-A first-class web UI that fixes the "every component has its own UI" problem.
-
-- **Single SSO landing** via Keycloak. Authenticate once.
-- **Native screens** for cross-cutting concerns: tenant/workspace management, unified catalog browser (Iceberg tables across Lakekeeper namespaces), lineage graph (OpenLineage), audit search, cost-per-tenant view (OpenCost), platform health.
-- **Embeds / deep-links** to each tool's native UI with SSO tokens carried through (Trino UI, Superset, Airflow UI, JupyterHub, MLflow, Lakekeeper UI, etc.). We do not re-implement query editors or notebook UIs.
-- Stack: TypeScript + React + Tailwind (front-end), Rust + axum (back-end). Apache 2.0.
-
-## Operating model
-
-stardelt follows the **operator-per-component pattern**, with a thin **control plane operator** on top.
-
-- **Per-component operators** are Rust on `kube-rs` where stardelt writes them, or adopted upstream (Strimzi, KubeRay, Spark Operator, CloudNative-PG, etc.) where mature.
-- **Cross-cutting operators** borrowed conceptually from Stackable: `stardelt-secret-operator` (CSI-mounted ephemeral creds from OpenBao) and `stardelt-listener-operator` (uniform exposure abstraction).
-- **`stardelt-platform-operator`** is the new layer: reconciles top-level CRDs into per-component CRDs.
-
-## Data flow
+## How the services connect
 
 The canonical lakehouse read path:
 
-```
-                    ┌────────────────────┐
-   client (BI,      │ stardelt Nova /     │
-   notebook,    ──▶ │ Trino / DuckDB /   │
-   Spark job)       │ Spark              │
-                    └─────────┬──────────┘
-                              │ OIDC token (Keycloak)
-                              │ + Iceberg REST query
-                              ▼
-                    ┌────────────────────┐
-                    │ Lakekeeper          │
-                    │ (Iceberg REST       │
-                    │  Catalog)           │
-                    └─────────┬──────────┘
-                              │ table metadata +
-                              │ vended object-store creds
-                              ▼
-                    ┌────────────────────┐
-                    │ SeaweedFS           │
-                    │ (or BYO S3)         │
-                    └────────────────────┘
-                              │ Parquet files
-                              ▼
-                          (read by engine)
+```text
+   client (BI / notebook / Spark job)
+                │
+                │  query
+                ▼
+   ┌──────────────────────────┐
+   │  Trino  /  Spark Connect │
+   └────────────┬─────────────┘
+                │  Iceberg REST + OIDC token
+                ▼
+   ┌──────────────────────────┐
+   │       Lakekeeper          │
+   │  (Iceberg REST catalog)   │
+   └────────────┬─────────────┘
+                │  table metadata + short-lived S3 creds
+                ▼
+   ┌──────────────────────────┐
+   │        SeaweedFS          │
+   │   (or BYO S3-compatible)  │
+   └────────────┬─────────────┘
+                │  Parquet files
+                ▼
+            (read by engine)
 ```
 
-OpenFGA is consulted by Lakekeeper on every metadata operation; OPA is consulted by the K8s API server on every CRD mutation. OpenLineage events are emitted by engines and the catalog into Marquez. Audit events flow to Kafka topic `stardelt.audit.v1` → VictoriaLogs (short-term) + Iceberg `stardelt_audit.events` (long-term).
+Apache Kafka carries audit events and (when ingest pipelines are wired up) source-of-truth events that Airflow batches or Flink processes into Iceberg tables. JupyterHub talks to Trino for SQL and to Spark Connect for heavier compute; Superset talks to Trino for dashboards.
 
-See [diagrams/03-data-flow.mmd](../diagrams/data-flow).
+## Operating model
+
+stardelt follows the **operator-per-service pattern**: each service is managed by its own well-maintained upstream operator (Strimzi for Kafka, Spark Operator for Spark, CloudNative-PG for Postgres backing Lakekeeper, etc.). On top sits the **stardelt Operator**, which reconciles a small set of top-level CRDs into the per-service CRDs underneath. Operators run as standard Kubernetes controllers — no SaaS side, no phone-home.
 
 ## Multi-tenancy
 
-Multi-tenancy primitives exist in v1 even though MVP deployments are single-tenant. This avoids a rewrite when the optional hosted stardelt arrives in Phase 6.
+Multi-tenancy primitives exist in v1 even though MVP deployments are single-tenant. This avoids a rewrite later:
 
-- `Tenant` CRD is real on day one.
 - Every stardelt resource carries a `stardelt.io/tenant` label.
 - Audit events carry `tenant_id`.
-- OpenCost groups costs by tenant label.
-- OpenFGA has a realm or namespace per tenant.
-- Cilium NetworkPolicies isolate tenant namespaces by default.
+- Tenant namespaces can be isolated by Kubernetes NetworkPolicies.
 
-## Sovereignty architecture
+## Sovereignty
 
 [Full commitments in SOVEREIGNTY.md.](sovereignty.md) Architectural enforcement:
 
-- **No mandatory outbound calls.** Documented network-egress matrix per release.
+- **No mandatory outbound calls.** Every release ships a documented network-egress matrix.
 - **Air-gap install profile.** All images at `ghcr.io/stardelt/...` plus mirrors; `images.tar` bundle ships with each release.
 - **No license server.** There isn't one. There will never be one.
 - **Opt-in telemetry only.** Off by default.
 
 ## Compliance
 
-stardelt is *evidence-gathering infrastructure*, not a certified product. Phase 5 ships control-mapping starter kits for SOC2, ISO27001, BSI C5, and FedRAMP-on-your-own-cluster. Certifications remain the customer's responsibility.
-
-## What this document does not cover
-
-- Detailed CRD schemas — Phase 1 implementation plan.
-- Engine-specific tuning — Phase 1+ operator docs.
-- Migration playbooks from proprietary SaaS lakehouse platforms — Phase 5+ guide.
-- Multi-cluster federation — Phase 5+ at earliest.
+stardelt is *evidence-gathering infrastructure*, not a certified product. Later phases ship control-mapping starter kits for SOC2, ISO27001, BSI C5, and FedRAMP-on-your-own-cluster. Certifications remain the operator's responsibility.

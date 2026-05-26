@@ -6,9 +6,10 @@ slug: /intro/overview
 
 # What is stardelt
 
-stardelt is a Kubernetes-native, fully open-source data platform that delivers
-Lakehouse SQL, Batch ETL, Streaming, and ML/AI on any cloud or on-prem cluster —
-under your own sovereignty, without vendor lock-in.
+stardelt is a Kubernetes-native, fully open-source data platform — an
+opinionated collection of upstream OSS services shipped together as a
+lakehouse, batch, streaming, notebook, and BI environment that runs on any
+cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
 
 ## What makes stardelt different
 
@@ -16,16 +17,16 @@ under your own sovereignty, without vendor lock-in.
   leaves your cluster unless you tell it to. EU companies escape US CLOUD Act
   exposure; defense and public-sector workloads can run air-gapped. Reversible
   by design — your tables stay in open Iceberg format on your storage.
-- **No vendor handcuffs.** 100 % OSI-permissive (Apache 2.0 / MIT / BSD) with
-  one documented MPL-2.0 exception for the OpenBao secrets backend. Zero BSL,
-  SSPL, ELv2, or AGPL components.
-- **One CRD, not 47 YAMLs.** A composed control plane (`PlatformInstance`,
-  `Tenant`, `Lakehouse`, `Pipeline`, `StreamApp`, `MLWorkspace`) sits on top of
-  per-component operators. That's the gap left by the previous generation of
-  Kubernetes data stacks.
-- **Modern stack, no Hadoop heritage.** Iceberg via Lakekeeper, Trino + DuckDB
-  for SQL, RisingWave for streaming SQL, OpenFGA for fine-grained authorization,
-  OpenBao for secrets, VictoriaMetrics / VictoriaLogs + Perses for observability.
+- **No vendor handcuffs.** 100 % OSI-permissive (Apache 2.0 / MIT / BSD). Zero
+  BSL, SSPL, ELv2, or AGPL components.
+- **One CRD, not 47 YAMLs.** The stardelt Operator reconciles a small set of
+  top-level CRDs into the per-service operators below. That's the gap left by
+  the previous generation of Kubernetes data stacks.
+- **Modern stack, no Hadoop heritage.** Apache Iceberg via Lakekeeper, Trino
+  for interactive SQL, Spark Connect for distributed compute, JupyterHub for
+  notebooks, Superset for BI, Apache Kafka (KRaft) for streaming, SeaweedFS
+  for object storage, Airflow for orchestration — composed by the stardelt
+  Operator and surfaced through stardelt Nova.
 
 ## Where to go next
 

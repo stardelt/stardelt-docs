@@ -20,10 +20,6 @@ want the [Getting Started](../getting-started/local-kind) section instead.
   of how the MVP came together, including stage progress and lessons
   learned.
 
-## Implementation pages (sidecar `*-impl.md`)
+## Services
 
-These pages carry the engineering depth for a corresponding human-facing
-page. They aren't listed in the main sidebar — link them from their human
-sibling and from here.
-
-- [`architecture/components-impl`](../architecture/components-impl) — sibling of [Components](../architecture/components)
+See [`architecture/services`](../architecture/services) for the full list of services stardelt ships and the criteria for picking them.
