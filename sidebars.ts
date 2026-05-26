@@ -14,8 +14,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'getting-started/prerequisites',
-        'getting-started/local-kind',
-        'getting-started/smoke-test',
+        'getting-started/local-kind'
       ],
     },
     {
