@@ -17,7 +17,6 @@ docs/
 ├── getting-started/   # user-facing "how do I run it"
 ├── architecture/      # user-facing "how does it fit together"
 ├── design/            # user-facing canonical design spec
-├── diagrams/          # Mermaid diagrams referenced from the above
 ├── roadmap.md         # public roadmap
 └── developer/         # contributor-facing — this section
     ├── index.md

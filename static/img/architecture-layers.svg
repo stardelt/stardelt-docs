@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 632" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">stardelt service architecture</title>
+  <desc id="desc">stardelt is an opinionated collection of open-source services. The diagram shows the Kubernetes platform at the base, the always-installed core stack of data services, the opt-in services that operators can enable, and the stardelt Nova UI and stardelt Operator on top.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1130"/>
+      <stop offset="100%" stop-color="#0b0e1f"/>
+    </linearGradient>
+    <linearGradient id="nova" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3447ff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#5b6cff" stop-opacity="0.55"/>
+    </linearGradient>
+    <linearGradient id="op" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1e2a78" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#1e2a78" stop-opacity="0.35"/>
+    </linearGradient>
+    <linearGradient id="k8s" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0e1228" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0e1228" stop-opacity="0.45"/>
+    </linearGradient>
+  </defs>
+
+  <style>
+    .caption { fill: #a4b3ff; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; }
+    .caption-sub { fill: #a4abd0; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; }
+    .chip-name { fill: #ffffff; font-size: 13px; font-weight: 700; }
+    .chip-role { fill: #a4abd0; font-size: 10.5px; font-weight: 500; }
+    .core-chip { fill: #1a2256; fill-opacity: 0.65; stroke: #5b6cff; stroke-opacity: 0.55; }
+    .optin-chip { fill: #11152b; fill-opacity: 0.55; stroke: #5b6cff; stroke-opacity: 0.22; }
+  </style>
+
+  <rect width="700" height="632" fill="url(#bg)" rx="16"/>
+
+  <!-- stardelt Nova -->
+  <g transform="translate(20,20)">
+    <rect width="660" height="80" rx="12" fill="url(#nova)" stroke="#7283ff" stroke-opacity="0.55"/>
+    <rect x="0" y="0" width="6" height="80" rx="3" fill="#a4b3ff"/>
+    <text x="22" y="32" fill="#ffffff" font-size="17" font-weight="700" letter-spacing="0.06em">STARDELT NOVA</text>
+    <text x="22" y="52" fill="#e7ebff" font-size="12" font-weight="500" opacity="0.95">
+      single SSO landing  ·  catalog browser  ·  lineage  ·  audit search  ·  platform health
+    </text>
+    <text x="22" y="70" fill="#e7ebff" font-size="12" font-weight="500" opacity="0.85">
+      deep-links into the native UIs of every service below
+    </text>
+  </g>
+
+  <!-- stardelt Operator -->
+  <g transform="translate(20,112)">
+    <rect width="660" height="58" rx="12" fill="url(#op)" stroke="#5b6cff" stroke-opacity="0.5"/>
+    <rect x="0" y="0" width="6" height="58" rx="3" fill="#7283ff" fill-opacity="0.8"/>
+    <text x="22" y="26" fill="#ffffff" font-size="15" font-weight="700" letter-spacing="0.06em">STARDELT OPERATOR</text>
+    <text x="22" y="46" fill="#c1c8ff" font-size="12" font-weight="500" opacity="0.9">
+      CRD reconciler  ·  composes the services below into one declarative platform
+    </text>
+  </g>
+
+  <!-- Core stack caption -->
+  <text x="22" y="194" class="caption">STARDELT CORE STACK</text>
+  <text x="194" y="194" class="caption-sub">always installed</text>
+
+  <!-- Compute & UX row (5 chips) -->
+  <g transform="translate(20,200)">
+    <g transform="translate(0,0)">
+      <rect width="120" height="72" rx="10" class="core-chip"/>
+      <text x="60" y="32" text-anchor="middle" class="chip-name">Trino</text>
+      <text x="60" y="52" text-anchor="middle" class="chip-role">SQL engine</text>
+    </g>
+    <g transform="translate(135,0)">
+      <rect width="120" height="72" rx="10" class="core-chip"/>
+      <text x="60" y="32" text-anchor="middle" class="chip-name">Spark Connect</text>
+      <text x="60" y="52" text-anchor="middle" class="chip-role">distributed compute</text>
+    </g>
+    <g transform="translate(270,0)">
+      <rect width="120" height="72" rx="10" class="core-chip"/>
+      <text x="60" y="32" text-anchor="middle" class="chip-name">Airflow</text>
+      <text x="60" y="52" text-anchor="middle" class="chip-role">orchestration</text>
+    </g>
+    <g transform="translate(405,0)">
+      <rect width="120" height="72" rx="10" class="core-chip"/>
+      <text x="60" y="32" text-anchor="middle" class="chip-name">JupyterHub</text>
+      <text x="60" y="52" text-anchor="middle" class="chip-role">notebooks</text>
+    </g>
+    <g transform="translate(540,0)">
+      <rect width="120" height="72" rx="10" class="core-chip"/>
+      <text x="60" y="32" text-anchor="middle" class="chip-name">Superset</text>
+      <text x="60" y="52" text-anchor="middle" class="chip-role">BI &amp; dashboards</text>
+    </g>
+  </g>
+
+  <!-- Data services row (4 chips) -->
+  <g transform="translate(20,284)">
+    <g transform="translate(0,0)">
+      <rect width="153" height="72" rx="10" class="core-chip"/>
+      <text x="76.5" y="32" text-anchor="middle" class="chip-name">Lakekeeper</text>
+      <text x="76.5" y="52" text-anchor="middle" class="chip-role">Iceberg REST catalog</text>
+    </g>
+    <g transform="translate(169,0)">
+      <rect width="153" height="72" rx="10" class="core-chip"/>
+      <text x="76.5" y="32" text-anchor="middle" class="chip-name">Apache Iceberg</text>
+      <text x="76.5" y="52" text-anchor="middle" class="chip-role">table format</text>
+    </g>
+    <g transform="translate(338,0)">
+      <rect width="153" height="72" rx="10" class="core-chip"/>
+      <text x="76.5" y="32" text-anchor="middle" class="chip-name">SeaweedFS</text>
+      <text x="76.5" y="52" text-anchor="middle" class="chip-role">S3-compatible storage</text>
+    </g>
+    <g transform="translate(507,0)">
+      <rect width="153" height="72" rx="10" class="core-chip"/>
+      <text x="76.5" y="32" text-anchor="middle" class="chip-name">Apache Kafka</text>
+      <text x="76.5" y="52" text-anchor="middle" class="chip-role">streaming (KRaft)</text>
+    </g>
+  </g>
+
+  <!-- Opt-in caption -->
+  <text x="22" y="380" class="caption">OPT-IN SERVICES</text>
+  <text x="170" y="380" class="caption-sub">enabled per operator choice</text>
+
+  <!-- Opt-in row 1 -->
+  <g transform="translate(20,386)">
+    <g transform="translate(0,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">Keycloak</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">OIDC provider</text>
+    </g>
+    <g transform="translate(169,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">Prometheus + Grafana</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">metrics &amp; dashboards</text>
+    </g>
+    <g transform="translate(338,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">Alertmanager</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">alert routing</text>
+    </g>
+    <g transform="translate(507,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">cert-manager</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">TLS lifecycle</text>
+    </g>
+  </g>
+
+  <!-- Opt-in row 2 -->
+  <g transform="translate(20,456)">
+    <g transform="translate(0,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">Argo CI</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">GitOps</text>
+    </g>
+    <g transform="translate(169,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">Apache SeaTunnel</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">data integration</text>
+    </g>
+    <g transform="translate(338,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">Apache Flink</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">stream processing</text>
+    </g>
+    <g transform="translate(507,0)">
+      <rect width="153" height="58" rx="10" class="optin-chip"/>
+      <text x="76.5" y="26" text-anchor="middle" class="chip-name">OPA</text>
+      <text x="76.5" y="44" text-anchor="middle" class="chip-role">policy enforcement</text>
+    </g>
+  </g>
+
+  <!-- Kubernetes substrate -->
+  <g transform="translate(20,534)">
+    <rect width="660" height="72" rx="12" fill="url(#k8s)" stroke="#5b6cff" stroke-opacity="0.25"/>
+    <rect x="0" y="0" width="6" height="72" rx="3" fill="#5b6cff" fill-opacity="0.45"/>
+    <text x="22" y="30" fill="#ffffff" font-size="15" font-weight="700" letter-spacing="0.06em">KUBERNETES</text>
+    <text x="140" y="30" fill="#a4abd0" font-size="12" font-weight="500" letter-spacing="0.02em">the platform — you bring it</text>
+    <text x="22" y="54" fill="#a4abd0" font-size="11" font-weight="500" opacity="0.85">
+      EKS  ·  GKE  ·  AKS  ·  OpenShift  ·  k3s  ·  kind  ·  STACKIT  ·  OVHcloud
+    </text>
+  </g>
+</svg>

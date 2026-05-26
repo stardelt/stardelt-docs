@@ -105,9 +105,9 @@ function HomepageHero(): ReactNode {
           A self-hostable data platform for Kubernetes.
         </h1>
         <p className={styles.heroSubtitle}>
-          Lakehouse, batch ETL, streaming and ML/AI workloads composed from
-          upstream OSS into one declarative platform CRD. Apache 2.0. Runs
-          in your cluster.
+          An opinionated collection of upstream OSS services — lakehouse SQL,
+          distributed compute, streaming, notebooks and BI — composed by one
+          declarative platform operator. Apache 2.0. Runs in your cluster.
         </p>
         <div className={styles.ctaRow}>
           <Link
@@ -148,11 +148,11 @@ const visionPrinciples: Principle[] = [
   },
   {
     title: 'OSI-permissive licenses',
-    body: 'Apache 2.0 / MIT / BSD across the stack, with one documented MPL-2.0 exception (OpenBao). Components on BSL, SSPL, ELv2 or AGPL are excluded by policy.',
+    body: 'Apache 2.0 / MIT / BSD across the stack. Services on BSL, SSPL, ELv2 or AGPL are excluded by policy.',
   },
   {
     title: 'One CRD per workload',
-    body: 'A small set of top-level CRDs (Lakehouse, Pipeline, StreamApp, MLWorkspace) reconcile into the per-component operators, instead of asking platform teams to assemble them by hand.',
+    body: 'A small set of top-level CRDs (Lakehouse, Pipeline, StreamApp) reconcile into the per-service operators, instead of asking platform teams to assemble them by hand.',
   },
   {
     title: 'stardelt Nova — single UI',
@@ -200,27 +200,27 @@ type Pillar = { icon: ReactNode; title: string; body: string; tools: string[] };
 const pillars: Pillar[] = [
   {
     icon: <IconDatabase />,
-    title: 'Lakehouse',
-    body: 'Federated MPP and embedded engines on shared Iceberg tables.',
-    tools: ['Trino', 'DuckDB', 'Superset', 'JupyterHub', 'Kyuubi'],
+    title: 'Lakehouse SQL',
+    body: 'Interactive SQL over Iceberg tables on object storage.',
+    tools: ['Trino', 'Iceberg', 'Lakekeeper', 'SeaweedFS'],
   },
   {
     icon: <IconFlow />,
-    title: 'Batch ETL',
-    body: 'Orchestration and transformation, declared in code.',
-    tools: ['Spark', 'Airflow', 'dbt-core', 'SQLMesh', 'SeaTunnel'],
+    title: 'Compute & orchestration',
+    body: 'Spark Connect for distributed jobs, Airflow for scheduling.',
+    tools: ['Spark Connect', 'Airflow'],
   },
   {
     icon: <IconWave />,
     title: 'Streaming',
-    body: 'Pipelines, CDC, materialized views on Apache-licensed streaming SQL.',
-    tools: ['Kafka', 'Flink', 'RisingWave', 'Debezium', 'Apicurio'],
+    body: 'Kafka as the event backbone; Flink (opt-in) for stream processing.',
+    tools: ['Kafka (KRaft)', 'Flink'],
   },
   {
     icon: <IconNeural />,
-    title: 'ML / AI',
-    body: 'Training, serving and inference — including LLMs — on your hardware.',
-    tools: ['Ray', 'Kubeflow', 'MLflow', 'KServe', 'vLLM', 'Qdrant'],
+    title: 'Notebooks & BI',
+    body: 'JupyterHub for analysis, Superset for dashboards — both wired into Trino and Spark.',
+    tools: ['JupyterHub', 'Superset'],
   },
 ];
 
@@ -230,12 +230,12 @@ function Pillars(): ReactNode {
       <div className={styles.container}>
         <span className={styles.eyebrow}>Architecture</span>
         <h2 className={styles.sectionTitle}>
-          Four workload pillars on a shared foundation.
+          An opinionated collection of services on a shared foundation.
         </h2>
         <p className={styles.sectionLede}>
-          Modern 2026 component picks on a shared Iceberg + Lakekeeper
-          foundation. Identity by Keycloak, secrets by OpenBao, fine-grained
-          authorization by OpenFGA.
+          Modern 2026 service picks on a shared Iceberg + Lakekeeper
+          foundation. Composed by the stardelt Operator and surfaced through
+          stardelt Nova.
         </p>
         <div className={styles.pillarGrid}>
           {pillars.map((p) => (
@@ -318,16 +318,16 @@ const docCards: DocCard[] = [
   {
     icon: <IconLayers />,
     title: 'Architecture',
-    body: 'Four-layer model, control-plane CRDs, the operating model, and how the upstream operators compose.',
+    body: 'How the core stack and opt-in services compose on Kubernetes, and how requests flow between them.',
     to: '/docs/architecture/overview',
     cta: 'Read the architecture →',
   },
   {
     icon: <IconGrid />,
-    title: 'Components',
-    body: 'Per-layer inventory of upstream OSS picks with licenses, rationale, and a rejection list with reasons.',
-    to: '/docs/architecture/components',
-    cta: 'Browse components →',
+    title: 'Services',
+    body: 'Per-service descriptions, licenses, and upstream links for the core stack and the opt-in services.',
+    to: '/docs/architecture/services',
+    cta: 'Browse services →',
   },
   {
     icon: <IconTimeline />,

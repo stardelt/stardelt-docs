@@ -59,7 +59,6 @@ const config: Config = {
         { to: '/docs/getting-started/local-kind', label: 'Getting started', position: 'left' },
         { to: '/docs/architecture/overview', label: 'Architecture', position: 'left' },
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
-        { to: '/docs/design/master-spec', label: 'Design', position: 'left' },
         { href: 'https://github.com/stardelt', label: 'GitHub', position: 'right' },
       ],
     },

@@ -48,4 +48,4 @@ sidebars.ts            # sidebar structure
 
 ## Editing content
 
-All markdown lives under `docs/`. Add a new page by dropping a `.md` file in the right folder and listing it in `sidebars.ts`. Mermaid diagrams render natively — see `docs/diagrams/` for examples.
+All markdown lives under `docs/`. Add a new page by dropping a `.md` file in the right folder and listing it in `sidebars.ts`.

@@ -18,13 +18,12 @@ The MVP (Phase 0 + Phase 1) is the only milestone needed to validate the bet. Ph
 
 - [x] [Design spec](design/master-spec.md)
 - [x] [Architecture](architecture/overview.md)
-- [x] [Component map](architecture/components.md) with license verification
+- [x] [Services](architecture/services.md) with license verification
 - [x] [License policy](architecture/licenses.md) — accepted, exception, rejected
 - [x] [Sovereignty commitments](architecture/sovereignty.md)
 - [x] Roadmap — this document
 - [x] [README](https://github.com/stardelt) — marketing-ready
 - [x] Brand: logo, wordmark
-- [x] Mermaid diagrams — [diagrams/layers](diagrams/layers)
 
 **No code yet.** This is intentional. We get the design right, recruit the team, then build.
 
