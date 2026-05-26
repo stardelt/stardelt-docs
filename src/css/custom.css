@@ -80,13 +80,23 @@ h1 {
   color: transparent;
 }
 
-/* Navbar: translucent glass like Nova's sidebar */
+/* Navbar: translucent glass like Nova's sidebar.
+   The visual effect lives on .navbar__inner, not .navbar, because
+   backdrop-filter on .navbar makes it a containing block for the mobile
+   slide-in sidebar (position: fixed) and clips the sidebar to the
+   navbar's height. */
 .navbar {
+  background: transparent;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+  box-shadow: none;
+  padding: 0;
+}
+
+.navbar__inner {
   background: rgba(17, 21, 43, 0.6);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--ifm-toc-border-color);
-  box-shadow: none;
+  padding: var(--ifm-navbar-padding-vertical) var(--ifm-navbar-padding-horizontal);
 }
 
 .navbar__title {
