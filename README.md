@@ -6,12 +6,22 @@ Built with [Docusaurus 3](https://docusaurus.io). Theme matches the Nova UI and 
 
 ## Local development
 
+### With Docker (recommended)
+
+```bash
+docker compose up
+```
+
+Open <http://localhost:3000>. First run installs dependencies into a named volume and may take a minute or two; subsequent starts reuse the cached `node_modules` and reach "compiled successfully" in seconds. Hot reload works through the bind mount (file watching uses polling so it's reliable on WSL2 and macOS Docker Desktop).
+
+### With host Node
+
+Requires Node ≥ 18.
+
 ```bash
 npm install
 npm start
 ```
-
-Open http://localhost:3000.
 
 ## Build & preview
 
