@@ -29,28 +29,14 @@ const sidebars: SidebarsConfig = {
         'architecture/sovereignty',
       ],
     },
-    {
-      type: 'category',
-      label: 'Diagrams',
-      collapsed: true,
-      items: ['diagrams/layers', 'diagrams/control-plane', 'diagrams/data-flow'],
-    },
     'roadmap',
-    {
-      type: 'category',
-      label: 'Design',
-      collapsed: true,
-      items: ['design/master-spec'],
-    },
     {
       type: 'category',
       label: 'Developer',
       collapsed: true,
       link: { type: 'doc', id: 'developer/index' },
       items: [
-        'developer/contributing',
-        'developer/implementation-log',
-      ],
+        'developer/contributing'      ],
     },
   ],
 };
