@@ -97,7 +97,7 @@ code is a last resort, and the list of things stardelt deliberately never builds
 
 ### D16 — Nova personal settings & theming
 - **Status:** Proposed · target **P2**
-- **Gap:** Competitors offer light/dark themes, org branding, per-user editor preferences. Nova ships **dark-mode only** with fixed branding.
+- **Gap:** Competitors offer light/dark themes, org branding, per-user editor preferences. Nova shipped **dark-only** with fixed branding; a light/dark toggle now exists (dark remains the default).
 - **Decision:** Keep a **single opinionated dark theme** as the default and add *per-user* preferences (theme toggle, editor prefs) at P2; add *org branding* only if an operator asks, and keep it config-on-CRD rather than a build-your-own-UI toolkit.
 - **Rationale:** a curated look is part of the product, not a gap to close; over-configurable UI undermines the "opinionated defaults" principle.
 - **Alternates:** ignore permanently.
@@ -125,7 +125,7 @@ and are **not** repeated here unless the delta is a genuine build.
 | 6 | MCP server for agents | B S | none | **D13** | P3 |
 | 7 | Iceberg maintenance UI (compaction/GC) | B S | none | **D14** | P3 |
 | 8 | Queryable system tables | B | Nova audit search only | **D15** | P5 |
-| 9 | Personal settings / theming | B S | dark-only, fixed | **D16** | P2 |
+| 9 | Personal settings / theming | B S | toggle shipped; branding fixed | **D16** | P2 |
 | 10 | Saved-queries store & sharing | B D S | none | build in Nova | P2 |
 | 11 | Alerts on query conditions | B D | none | build + Airflow | P2 |
 | 12 | Per-object "wiki"/docs editing | D S | OpenMetadata (planned) | plug | P1→P2 |
