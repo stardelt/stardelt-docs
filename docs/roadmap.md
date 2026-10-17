@@ -12,7 +12,7 @@ The MVP (Phase 0 + Phase 1) is the only milestone needed to validate the bet. Ph
 
 The [master spec](design/master-spec.md) is the single source of truth for what stardelt is, the plug matrix (contracts, defaults, alternates per domain), and the build/integrate/never-build boundary. The [execution plan](design/execution-plan.md) chunks the phases into handover-ready work packages — where a phase's component list and the plug matrix disagree, **the plug matrix wins** — a service enters a phase only as a default behind an existing contract.
 
-## Phase 0 — Now — Research, design, branding
+## Phase 0 — Done — Research, design, branding
 
 **Goal**: make the case strong enough to recruit collaborators.
 
@@ -23,11 +23,22 @@ The [master spec](design/master-spec.md) is the single source of truth for what 
 - [x] [Services](architecture/services.md) with license verification
 - [x] [License policy](architecture/licenses.md) — accepted, exception, rejected
 - [x] [Sovereignty commitments](architecture/sovereignty.md)
+- [x] [Execution plan](design/execution-plan.md) — the work packages, and the verified state of each repo
 - [x] Roadmap — this document
 - [x] [README](https://github.com/stardelt) — marketing-ready
 - [x] Brand: logo, wordmark
 
-**No code yet.** This is intentional. We get the design right, recruit the team, then build.
+### Current stage (2026-10)
+
+The design is done, and the platform is no longer paper. A live single-node **dev environment**
+exists — Hetzner **k3s** (`cx33`, ~€10/month) running the **core** stack (**CloudNative-PG,
+SeaweedFS, Lakekeeper, Trino**) plus **Nova** and **JupyterHub**, with Let's Encrypt TLS served
+through the `dev/playground` ingress-nginx. [alpha.dev.stardelt.io](https://alpha.dev.stardelt.io) is Nova; `trino.` and
+`jupyter.` answer on the same domain. **Superset and Airflow are not installed** there — they need
+the `full` profile and a 16 GB node. The operator's CRDs, reconcile planner and controller
+skeleton exist and are unit-tested, but no adapter installs an upstream chart from a CRD yet, and
+nothing proves the stack headlessly. Both are what the
+[execution plan](design/execution-plan.md) queues next.
 
 ## Phase 1 — Lakehouse MVP
 
@@ -35,19 +46,19 @@ The [master spec](design/master-spec.md) is the single source of truth for what 
 
 This is the wedge. A single working pillar with the composed control plane proves the differentiator over Stackable.
 
-**Scope:**
+**Scope** (✅ = running on the dev cluster today, ◐ = partial):
 
-- L1 (substrate, minimum viable): Keycloak, **K8s Secrets** (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
-- L2 (data foundation): SeaweedFS (+ BYO-S3 path), Lakekeeper, Apache Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
-- L3 Pillar 1 (Lakehouse SQL only): Trino, DuckDB, Apache Superset, JupyterHub
-- L4 (stardelt-native): `stardelt-operator` (only `PlatformInstance`, `Tenant`, `Lakehouse` CRDs), **Nova MVP** (SSO landing + catalog browser + simple cost view + audit search), `stardelt` CLI
+- L1 (substrate, minimum viable): Keycloak, **K8s Secrets** ✅ (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
+- L2 (data foundation): SeaweedFS (+ BYO-S3 path) ✅, Lakekeeper ✅, Apache Iceberg ✅, OPA + OpenFGA bootstrap, OpenLineage emit-only
+- L3 Pillar 1 (Lakehouse SQL only): Trino ✅, DuckDB, Apache Superset (not on the dev node — `full` profile), JupyterHub ✅
+- L4 (stardelt-native): `stardelt-operator` ◐ (CRDs, reconcile planner and controller skeleton; adapters not yet), **Nova MVP** ✅ (catalog browser, SQL editor, load & transfer, jobs, lineage, platform apps — SSO still pending, [WP-18/WP-12](design/execution-plan.md)), `stardelt` CLI
 
-**Validation:**
+**Validation** (✅ done today, ◐ partial, — not started):
 
-- Single-cluster, single-tenant.
-- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice.
-- Documented install path for real clusters.
-- First 5 pilot users.
+- Single-cluster, single-tenant. ✅
+- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice. ✅ — the k3s cluster is live; the kind path installs the same `core` profile through the platform Makefile, but nothing runs it automatically yet ([WP-02](design/execution-plan.md)).
+- Documented install path for real clusters. ◐ — `make install` / `make install-core` are documented and in use; the install is bash, not a CRD.
+- First 5 pilot users. — the dev environment is public at `alpha.dev.stardelt.io`; no pilots yet.
 
 ## Phase 2 — Batch ETL pillar
 

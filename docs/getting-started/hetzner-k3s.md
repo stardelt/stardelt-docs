@@ -50,6 +50,11 @@ make install               # full: + Airflow + Superset
 
 Then set up ingress and TLS from `dev/playground`.
 
+A cluster provisioned exactly this way is already running: Nova at
+[alpha.dev.stardelt.io](https://alpha.dev.stardelt.io), with `trino.` and `jupyter.` under the
+same wildcard host. It serves the `core` profile — SeaweedFS, Lakekeeper, Trino, Nova and
+JupyterHub; Superset and Airflow need the `full` profile and a 16 GB node.
+
 ## Tear it down
 
 ```sh

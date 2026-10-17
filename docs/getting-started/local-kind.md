@@ -16,7 +16,7 @@ Before you start, install the tools in [Prerequisites](./prerequisites).
 ## The stack you'll get
 
 ```
-        Airflow (KubernetesExecutor)
+        Airflow (KubernetesExecutor)          ← APP_PROFILE=full only
                  │ pyiceberg
                  ▼
         trino (coordinator + 1 worker)
@@ -30,35 +30,38 @@ Before you start, install the tools in [Prerequisites](./prerequisites).
    CNPG lakekeeper-pg (Postgres)
 ```
 
-Everything lives in namespace `stardelt`; the cluster is named `stardelt`.
+Nova runs in front of it. Everything lives in namespace `stardelt`; the cluster is named
+`stardelt`.
 
 ## Bring it up
 
 From `stardelt-demos/`:
 
 ```bash
-make up               # kind + CNPG + SeaweedFS + Lakekeeper + Trino + Airflow + Superset + Nova
+make up               # kind cluster, then delegates the install to stardelt-platform
 make smoke            # acceptance: CREATE/INSERT/SELECT through Trino
-make airflow-trigger  # trigger the nyc_taxi_load DAG
 make pf               # port-forwards (Trino 8081, Lakekeeper 8181)
-make airflow-ui       # Airflow UI on localhost:8088
-make superset-ui      # Superset UI on localhost:8089
-make down             # delete the cluster
+
+APP_PROFILE=full make up      # adds Airflow + Superset (needs ~16 GB to be comfortable)
+make airflow-trigger          # full only: trigger the nyc_taxi_load DAG
+make airflow-ui               # full only: Airflow UI on localhost:8088
+make superset-ui              # full only: Superset UI on localhost:8089
+make down                     # delete the cluster
 ```
 
 `make up` is idempotent — re-running it skips steps that already succeeded.
 
 ## What `make up` does
 
-1. Creates the kind cluster from `kind/kind-config.yaml` (host ports 8080/8081/8181).
-2. Installs the CloudNative-PG operator (`cnpg-system`).
-3. Installs SeaweedFS (1 replica each; replication `000`), bucket `lakehouse`.
-4. Applies the `stardelt-s3-creds` Secret.
-5. Creates the `lakekeeper-pg` CNPG cluster.
-6. Installs Lakekeeper (OpenFGA disabled, `authz.backend: allowall`).
-7. Bootstraps the Lakekeeper warehouse on `s3://lakehouse/warehouse`.
-8. Installs Trino (coordinator + 1 worker).
-9. Builds the stardelt images, installs Airflow, Superset and Nova.
+The demo repo owns only the kind-specific steps; the install itself is the platform Makefile, so
+the two paths cannot drift ([WP-17](../design/execution-plan.md)):
+
+1. Creates the kind cluster from `kind/kind-config.yaml` (host ports 8080/8081/8181), selects its
+   kube-context, and creates the `stardelt` namespace.
+2. Builds the stardelt-owned images and loads them into kind.
+3. Runs `make install-core` (default `APP_PROFILE=core`) — or `make install` with
+   `APP_PROFILE=full` — in `stardelt-platform`. `SLIM=1` forwards the small-node overrides.
+4. Re-points the Nova Deployment at the locally built image instead of `ghcr.io`.
 
 ## Inspect
 

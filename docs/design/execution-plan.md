@@ -12,19 +12,25 @@ This is a living queue, not a contract: WPs get added, split, and reordered. The
 
 ## 1. State of the code (start here, handover agents)
 
+Verified against the sibling repos on 2026-10-17. "Real" means it runs today; "missing" means the next agent's work.
+
 | Repo | What's real | What's missing / wrong |
 |---|---|---|
-| `stardelt-platform` | Pinned Helm values (`helm-values/{seaweedfs,lakekeeper,trino,airflow,superset}.yaml`), manifests, `Makefile` 9-step `install` (idempotent-ish), dedupe Helm plugin | Bash-orchestrated (no operator); **pinned dev secrets** in `airflow.yaml` (fernet/JWT); no profiles |
-| `stardelt-demos` | Working kind demo (`kind/up.sh`, `smoke.sh`), NYC-taxi DAG (`dags/nyc_taxi_load.py`) | Duplicates platform wiring |
-| `stardelt-nova` | Working axum backend (`catalog.rs`, `trino.rs` proxies), React SPA (Overview, Catalog, Query, Dashboards, Health) | `auth_mode: static-dev` (no real auth); Superset is an iframe to a port-forward, not proxied |
-| `stardelt-operator` | Crate scaffold only — `main.rs` sleeps forever; `chart/` is a TODO | **Everything.** No CRDs, no reconcile loop. This is the differentiator |
-| `stardelt-docs` | Live Docusaurus site, master spec, roadmap | Architecture pages reconciled with the plug matrix |
+| `stardelt-platform` | Chart versions pinned in exactly one place (the root Makefile), with Renovate reading those pins; `make lint` + CI (yamllint, ShellCheck, `helm template`); three install paths — `install` (full), `install-core` (`SLIM=1`, the cheap-node core stack) and `install-notebooks` (JupyterHub); `dev/hetzner-k3s` creates a real single-node k3s cluster; `dev/playground` adds ingress-nginx (host-network) + cert-manager + ingresses for nova, trino, superset, airflow and jupyterhub; `dev/cloudflare-dns.sh`; `ghcr.io/stardelt/*` images, pulled with a `ghcr-creds` secret | Bash-orchestrated: **no platform Helm chart, no operator path**; Airflow and Superset exist only in the `full` profile (they do not fit the 8 GB dev node); CI lints and templates but never installs, so nothing proves the stack end to end (WP-02); `helm-values/airflow.yaml` still carries kind-only pinned secrets (WP-16) |
+| `stardelt-nova` | axum backend — `/api/me`, `/api/catalog/*`, `/api/query`, `/api/jobs`, `/api/apps`, `/api/ingest/upload`, `/api/transfer`; React SPA with Overview, Catalog (preview, columns, details), SQL editor, Load & transfer (CSV/JSON upload, table copy), Jobs, Lineage, Dashboards, Platform apps (live status probe + deep links) and a light/dark theme; `NOVA_DEMO=1` runs the whole UI with no cluster; deployed on the dev cluster behind TLS | `auth_mode: static-dev` — no OIDC login yet (WP-18, WP-12); Dashboards is a configurable iframe to a port-forwarded Superset, not a gateway route (WP-11); Trino and Lakekeeper are the only real data backends |
+| `stardelt-operator` | CRDs `PlatformInstance`, `Tenant`, `Lakehouse`, `IngestionSource`, `Pipeline`, with generated `chart/crds/`; a pure, unit-tested reconcile planner; a controller skeleton; the operator chart; 19 unit tests; `cargo` CI | **No adapters** — nothing installs an upstream chart yet (WP-21, then WP-30/31/32); the chart is not on the dev cluster, and `make install` does not apply the CRDs |
+| `stardelt-demos` | `kind/up.sh` is a thin wrapper over the platform Makefile (`APP_PROFILE=core` by default, `full` adds Airflow + Superset, `SLIM` forwarded); `smoke.sh`, the NYC-taxi DAG, kind-loaded images | No automated kind run anywhere (WP-02); the Airflow and Superset targets only make sense with `APP_PROFILE=full` |
+| `stardelt-docs` | Live site, master spec, execution plan, roadmap, license policy, architecture pages | Status text rots faster than the code: this table, the [roadmap](../roadmap) and the `Status` lines below are dated snapshots — when they disagree with a repo, the repo wins. The docs build runs on push to `main` only, so a broken link can merge |
+
+**Deployed today.** The Hetzner dev cluster is live: one `cx33` k3s node running the **core** profile — CloudNative-PG, SeaweedFS, Lakekeeper, Trino — plus **Nova** and **JupyterHub**, with Let's Encrypt TLS from `dev/playground`. Nova answers at `alpha.dev.stardelt.io`; Trino and JupyterHub at `trino.` and `jupyter.` on the same domain. **Superset and Airflow are not installed** — they need the `full` profile and a 16 GB node. Nova's Apps page probes each service and shows what is actually up, not what is merely configured.
 
 ## 2. Conventions
 
 ### WP format
 
 Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Acceptance** (must be true when done), **Verification** (command a CI runner or agent runs — no vibes), **Depends** (WPs that must merge first), **Size** (S ≤ half a session, M ≤ one session, L ≤ three sessions).
+
+A WP that has been started carries a **Status** line: what exists and what remains, verified against the repos, never against this document. Read it before writing the first line of code for that WP.
 
 ### Definition of done (every WP, no exceptions)
 
@@ -55,6 +61,7 @@ Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Accept
 **Verification.** CI status on every PR.
 **Depends.** —.
 **Size.** M.
+**Status.** Mostly done. `ci.yml` in `stardelt-platform`, `stardelt-nova`, `stardelt-operator` and `stardelt-demos` runs lint/build/test on push and on pull request. Remaining: `stardelt-docs` builds only on push to `main` (no PR check), and `main` is not branch-protected, so red CI still does not block a merge.
 
 ### WP-02 — The verification gate (L)
 
@@ -64,6 +71,7 @@ Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Accept
 **Verification.** `gh run watch` on the nightly workflow; job must end with the smoke assertion passing.
 **Depends.** WP-01.
 **Size.** L.
+**Status.** Not started. Today the only evidence a stack works is someone installing it by hand on the Hetzner node; `kind/up.sh` and `smoke.sh` are the pieces this WP would wire into Actions.
 
 ### WP-03 — Repo hygiene and handover kit (M)
 
@@ -73,6 +81,7 @@ Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Accept
 **Verification.** `ls AGENTS.md` per repo; board URL returns the issues.
 **Depends.** —.
 **Size.** M.
+**Status.** Not started. No repo carries an `AGENTS.md` yet — the working agreement lives in the workspace-root `AGENTS.md` and the [developer section](../developer/index.md) — and there are no issue templates; this document is still the WP list.
 
 ### WP-04 — Demo stage: `demo.stardelt.io` (L)
 
@@ -82,6 +91,7 @@ Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Accept
 **Verification.** Probe job history green; issue auto-filed in a chaos test.
 **Depends.** WP-02, WP-16 (no dev secrets on a public box), WP-12 (guest login). **Human: provision the Hetzner k3s dev cluster (`make dev-up`), point DNS `demo.stardelt.io`.**
 **Size.** L.
+**Status.** Partially done, under a different hostname. The human part is done and the `dev/playground` path ships the cluster, DNS and TLS: Nova is publicly reachable at `alpha.dev.stardelt.io`, with the other service UIs under the same wildcard. Remaining: a guest read-only identity (WP-12), a Superset dashboard to click into on this node, the 15-minute probe workflow, and the killed-pod self-heal check.
 
 ## 4. Track A — P0 spine hardening and refactors (make the existing stack the substrate the operator will drive)
 
@@ -102,6 +112,7 @@ Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Accept
 **Verification.** Documented `helm repo`/chart refs; spot-check install of the two not yet in the stack (CNPG is; Keycloak isn't).
 **Depends.** WP-02.
 **Size.** S.
+**Status.** Not started. The pins this WP must inventory live in the root Makefile of `stardelt-platform` (Renovate reads them there), and `dev/playground/README.md` + `docs/getting-started/prerequisites.md` say where each service is reached — but there is still no per-plug inventory page (upstream chart or operator, install method, health signal, version pin).
 
 ### WP-15 — Platform profiles and per-plug values (M)
 
@@ -111,6 +122,7 @@ Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Accept
 **Verification.** Install on the Hetzner dev cluster (or kind for the core subset) with `PROFILE=demo` + `smoke.sh` passes.
 **Depends.** WP-02 (CI proves it).
 **Size.** M.
+**Status.** Partially done, by a different mechanism: `helm-values/slim/` holds the small-node overrides and `make install-core SLIM=1` is the working cheap-node path, with `install` as the full one. Remaining: the `plugs/<plug>/values-<profile>.yaml` layout, a `PROFILE=` argument, and anyone honouring `PlatformInstance.spec.profile` (WP-23).
 
 ### WP-16 — Secrets out of version control (S)
 
@@ -165,17 +177,19 @@ Every WP below specifies: **Context** (why), **Tasks** (what, ordered), **Accept
 **Verification.** kind demo green in CI (WP-02 uses the unified path).
 **Depends.** WP-15, WP-04 (k3s target motivated by stage).
 **Size.** M.
+**Status.** Done for the wiring. `stardelt-demos/kind/up.sh` owns only the kind-specific steps and delegates the install to the platform Makefile (`APP_PROFILE=core` by default, `SLIM` forwarded), so there is one wiring source of truth. Remaining: image build and load still live in the demos repo rather than behind a shared Make target, and the k3s path is `dev/hetzner-k3s` + `dev/playground` run by hand, not a one-command stage recipe.
 
 ## 5. Track B — Operator first blood (the differentiator; start as soon as WP-02 exists)
 
 ### WP-20 — Operator skeleton (L)
 
-**Context.** The repo sleeps. It needs to become a real controller: reconcile loop, status, leader election, metrics — the shape WP-B21/B22 plug into.
+**Context.** The repo needs to become a real controller: reconcile loop, status, leader election, metrics — the shape WP-21/WP-23 plug into.
 **Tasks.** Replace `main.rs` with kube-rs controller-runtime wiring: CRD type scaffolding (schemars-derived spec/status), controller manager, events, `? metric` server, leader election, graceful shutdown; operator Helm chart (fill the TODO `chart/`); `cargo test` with a mocked kube client; CI integration via WP-02's contract tier.
 **Acceptance.** Operator deploys into kind via its chart, logs a real (no-op) reconcile for a stub CRD, `/metrics` serves.
 **Verification.** Contract-tier CI job: install operator → apply stub CR → status transitions in logs.
 **Depends.** WP-02.
 **Size.** L.
+**Status.** Partially done. In place: the five CRD types with generated `chart/crds/`, a pure reconcile planner, a controller skeleton that watches `PlatformInstance`, `Lakehouse`, `IngestionSource` and `Pipeline` and writes status, the operator chart, and 19 unit tests. Remaining: nothing installs an upstream chart, so the plan is computed and reported but not applied (WP-21); the operator is not deployed by `make install` and has never run against the dev cluster (which needs the contract tier from WP-02).
 
 ### WP-21 — `Lakehouse` CRD reconciles the real stack (L)
 
@@ -251,10 +265,12 @@ NL→SQL in the Query editor: schema context from the Lakekeeper proxy, prompts 
 | 6 | 30 → 31 / 32 → 33 → 34 → 35 → 36 | Track C, strictly ordered |
 | 7 | 40, 41 | AI |
 
+Waves 1 and 5 are partly done: CI exists in every repo (WP-01), the demos are unified (WP-17) and a public dev cluster is live. Still missing from wave 1: per-repo `AGENTS.md` and issue templates (WP-03). Wave 2 — the verification gate — is the open blocker, and Track B waits on it.
+
 ## 9. Human actions (the only things that need you)
 
-1. **Wave 1, once:** review/merge the CI + `AGENTS.md` PRs.
-2. **Before WP-04:** rent the VPS (Hetzner CCX23-class, ~€30/mo), point DNS `demo.stardelt.io`.
+1. **Wave 1, once:** review/merge the CI PRs — done, except branch protection on `main` and the `AGENTS.md` + issue-template pass (WP-03).
+2. **Before WP-04:** ~~rent the VPS, point DNS~~ **done** — the dev cluster runs (Hetzner `cx33`, ~€10/mo) with DNS and TLS at `alpha.dev.stardelt.io`. A separate public `demo.stardelt.io` stage with a guest identity is still WP-04.
 3. **Weekly, ~30 min:** triage the board, reorder WPs, review PRs (phone-sized PRs are enforced by convention).
 4. **On scope changes:** edit the master spec via PR — never let the plan and the spec drift.
 

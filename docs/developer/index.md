@@ -25,7 +25,7 @@ If you just want to **use** stardelt, start at [Getting Started](/docs/getting-s
 | `stardelt-docs` | Docusaurus site + design docs | `npm install && npm run build` |
 | `stardelt-platform` | Helm values, manifests, install, Hetzner dev cluster | `make deps`, `helm lint` |
 | `stardelt-nova` | Rust axum backend + React UI | `cargo check`, `npm --prefix frontend run build` |
-| `stardelt-operator` | kube-rs CRD operator (scaffold) | `cargo check` |
+| `stardelt-operator` | kube-rs operator: CRDs + reconcile planner, controller skeleton | `cargo check`, `cargo test` |
 | `stardelt-demos` | kind demo (NYC taxi) | `make up`, `make smoke` |
 
 ## Conventions
