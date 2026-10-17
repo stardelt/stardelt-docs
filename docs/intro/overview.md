@@ -17,8 +17,8 @@ cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
   leaves your cluster unless you tell it to. EU companies escape US CLOUD Act
   exposure; defense and public-sector workloads can run air-gapped. Reversible
   by design — your tables stay in open Iceberg format on your storage.
-- **No vendor handcuffs.** 100 % OSI-permissive (Apache 2.0 / MIT / BSD). Zero
-  BSL, SSPL, ELv2, or AGPL components.
+- **No vendor handcuffs.** Permissive OSI licenses (Apache 2.0 / MIT / BSD) everywhere, with
+  one documented MPL 2.0 exception (OpenBao). Zero BSL, SSPL, ELv2, or AGPL components.
 - **One CRD, not 47 YAMLs.** The stardelt Operator reconciles a small set of
   top-level CRDs into the per-service operators below. That's the gap left by
   the previous generation of Kubernetes data stacks.
@@ -30,7 +30,8 @@ cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
 
 ## Where to go next
 
-- **Try it on your laptop.** [Run stardelt locally on kind](../getting-started/local-kind).
+- **Try it on the dev cluster.** [Hetzner k3s](../getting-started/hetzner-k3s) for the full
+  stack, or [kind](../getting-started/local-kind) for the core slice.
 - **Understand the system first.** [Architecture overview](../architecture/overview)
   or the full [design spec](../design/master-spec).
 - **See what's planned.** [Roadmap](../roadmap).

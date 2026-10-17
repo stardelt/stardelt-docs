@@ -14,11 +14,13 @@ const config: Config = {
   projectName: 'stardelt-docs',
 
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
 
   i18n: { defaultLocale: 'en', locales: ['en'] },
 
-  markdown: { mermaid: true },
+  markdown: {
+    mermaid: true,
+    hooks: { onBrokenMarkdownLinks: 'warn' },
+  },
   themes: ['@docusaurus/theme-mermaid'],
 
   presets: [
@@ -69,7 +71,7 @@ const config: Config = {
           title: 'Documentation',
           items: [
             { label: 'Architecture', to: '/docs/architecture/overview' },
-            { label: 'Components', to: '/docs/architecture/components' },
+            { label: 'Components', to: '/docs/architecture/services' },
             { label: 'Roadmap', to: '/docs/roadmap' },
             { label: 'Sovereignty', to: '/docs/architecture/sovereignty' },
           ],

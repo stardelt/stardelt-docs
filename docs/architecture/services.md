@@ -99,16 +99,23 @@ OIDC / SAML / LDAP identity provider — federates an upstream corporate IdP int
 - Site: [keycloak.org](https://www.keycloak.org)
 - Repo: [github.com/keycloak/keycloak](https://github.com/keycloak/keycloak)
 
-### Prometheus + Grafana
+### Observability — VictoriaMetrics, VictoriaLogs, Perses, Jaeger, OpenCost
 
-Metrics collection and dashboards. Skip if the cluster already has a monitoring stack. Apache 2.0.
+Metrics, logs, dashboards, traces and cost attribution. Apache 2.0. Skip what your cluster
+already provides.
 
-- Prometheus: [prometheus.io](https://prometheus.io)
-- Grafana: [github.com/grafana/grafana](https://github.com/grafana/grafana)
+- VictoriaMetrics: [victoriametrics.com](https://victoriametrics.com)
+- VictoriaLogs: [docs.victoriametrics.com/victorialogs](https://docs.victoriametrics.com/victorialogs/)
+- Perses: [perses.dev](https://perses.dev)
+- Jaeger: [jaegertracing.io](https://www.jaegertracing.io)
+- OpenCost: [opencost.io](https://opencost.io)
+
+**Grafana is not used** — it is AGPL-3.0 and rejected by the [license policy](./licenses).
+Perses replaces Grafana dashboards; VictoriaMetrics replaces Mimir/Prometheus at scale.
 
 ### Alertmanager
 
-Alert routing and grouping, paired with Prometheus. Apache 2.0.
+Alert routing and grouping, paired with VictoriaMetrics. Apache 2.0.
 
 - Repo: [github.com/prometheus/alertmanager](https://github.com/prometheus/alertmanager)
 

@@ -6,20 +6,40 @@ slug: /developer
 
 # Developer section
 
-You've reached the contributor-facing section of the stardelt docs. The
-content here documents how the codebase is wired together and what gotchas
-we hit along the way. If you just want to **use** stardelt, you probably
-want the [Getting Started](../getting-started/local-kind) section instead.
+Contributor-facing material: how the repos fit together, how to build and verify, and how the
+AI development fleet works.
+
+If you just want to **use** stardelt, start at [Getting Started](/docs/getting-started/prerequisites).
 
 ## Start here
 
-- [**Contributing to the docs**](./contributing) — how the docs are
-  organised, the human-page / impl-sibling writing convention, how to
-  preview the site locally.
-- [**Implementation log**](./implementation-log) — running engineer's log
-  of how the MVP came together, including stage progress and lessons
-  learned.
+- [**AI development fleet**](/docs/developer/ai-fleet) — the build plane: portal, workers, guardrails. Not
+  part of the product.
+- [**Execution plan**](/docs/design/execution-plan) — the work packages an agent or human picks up.
+- [**Master spec**](/docs/design/master-spec) — the source of truth for what stardelt is.
 
-## Services
+## Repo map
 
-See [`architecture/services`](../architecture/services) for the full list of services stardelt ships and the criteria for picking them.
+| Repo | Role | Build |
+|---|---|---|
+| `stardelt-docs` | Docusaurus site + design docs | `npm install && npm run build` |
+| `stardelt-platform` | Helm values, manifests, install, Hetzner dev cluster | `make deps`, `helm lint` |
+| `stardelt-nova` | Rust axum backend + React UI | `cargo check`, `npm --prefix frontend run build` |
+| `stardelt-operator` | kube-rs CRD operator (scaffold) | `cargo check` |
+| `stardelt-demos` | kind demo (NYC taxi) | `make up`, `make smoke` |
+
+## Conventions
+
+- One work package at a time; branch `wp/<id>-slug`.
+- **Never push to `main`** — open a draft PR.
+- Keep PRs small; split rather than push a mega-change.
+- Update docs when behavior a reader sees changes.
+- Dependencies must be OSI-permissive ([license policy](/docs/architecture/licenses)); one
+  documented MPL exception (OpenBao).
+
+## Local docs preview
+
+```bash
+npm install
+npm start          # http://localhost:3000
+```

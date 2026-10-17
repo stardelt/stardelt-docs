@@ -39,8 +39,9 @@ The opinionated set that defines what stardelt *is*. Every install ships these s
 These extend stardelt but aren't required. Operators often have existing equivalents already in the cluster:
 
 - **Keycloak** — OIDC / SAML / LDAP provider. Skip if your cluster already federates an IdP.
-- **Prometheus + Grafana** — metrics and dashboards. Skip if your cluster already has a monitoring stack.
-- **Alertmanager** — alert routing, paired with Prometheus.
+- **VictoriaMetrics + VictoriaLogs + Perses + Jaeger** — metrics, logs, dashboards and traces. Skip if your cluster already has an observability stack.
+- **OpenCost** — cost attribution per tenant, namespace and workload.
+- **Alertmanager** — alert routing, paired with VictoriaMetrics.
 - **cert-manager** — TLS certificate lifecycle.
 - **Argo CI** — GitOps delivery.
 - **Apache SeaTunnel** — data integration / EL connectors.

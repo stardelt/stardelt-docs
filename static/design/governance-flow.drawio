@@ -1,0 +1,124 @@
+<mxfile host="app.diagrams.net" agent="stardelt-docs" version="24.7.7">
+  <diagram id="stardelt-governance-flow" name="the pitch: flow and rails">
+    <mxGraphModel dx="1340" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1340" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bg" value="" style="rounded=0;fillColor=#0d1130;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="1340" height="760" as="geometry" />
+        </mxCell>
+        <mxCell id="title" value="stardelt — the pitch" style="text;html=1;fontColor=#ffffff;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="0" width="400" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="title-sub" value="One governed path from source to insight. Two rails cross every step: identity &amp; policy, and governance (lineage · quality · audit)." style="text;html=1;fontColor=#a4b3ff;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="26" width="900" height="18" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rail-identity" value="IDENTITY &amp; POLICY RAIL — one OIDC token from login to engine to catalog · OPA-enforced row/column security at the catalog · one audit trail" style="rounded=1;arcSize=6;fillColor=#1e2a78;fillOpacity=0.55;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="1260" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="rail-governance" value="GOVERNANCE RAIL — lineage, schema, quality results and audit events captured automatically into OpenMetadata (nobody fills in forms)" style="rounded=1;arcSize=6;fillColor=#1e2a78;fillOpacity=0.55;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="656" width="1260" height="44" as="geometry" />
+        </mxCell>
+
+        <mxCell id="col-label-sources" value="SOURCES" style="text;html=1;fontColor=#a4b3ff;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="40" y="116" width="200" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="col-label-ingest" value="INGESTION (domain split)" style="text;html=1;fontColor=#a4b3ff;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="290" y="116" width="220" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="col-label-transform" value="TRANSFORM" style="text;html=1;fontColor=#a4b3ff;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="560" y="116" width="220" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="col-label-spine" value="LAKEHOUSE SPINE" style="text;html=1;fontColor=#a4b3ff;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="830" y="116" width="190" height="16" as="geometry" />
+        </mxCell>
+        <mxCell id="col-label-consume" value="CONSUME" style="text;html=1;fontColor=#a4b3ff;fontSize=10;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="116" width="230" height="16" as="geometry" />
+        </mxCell>
+
+        <mxCell id="src-saas" value="SaaS apps&#10;(Salesforce, GA4, APIs)" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="150" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="src-db" value="Databases&#10;(change data capture)" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="270" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="src-edge" value="Files &amp; edge systems&#10;(enterprise integration)" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="390" width="200" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ing-airbyte" value="Airbyte&#10;SaaS connectors" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="150" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ing-debezium" value="Debezium&#10;CDC" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="270" width="220" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="ing-nifi" value="Apache NiFi&#10;enterprise integration" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="290" y="390" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="transform" value="Transform&#10;dbt + Airflow&#10;quality gates (Soda · dbt tests)&#10;data contracts" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="150" width="220" height="310" as="geometry" />
+        </mxCell>
+
+        <mxCell id="spine" value="Apache Iceberg&#10;—&#10;Iceberg REST catalog&#10;Lakekeeper (alt: Polaris)&#10;OPA policy · row/column security&#10;—&#10;S3 storage&#10;SeaweedFS (or BYO S3)" style="rounded=1;fillColor=#1e2a78;fillOpacity=0.5;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="150" width="190" height="310" as="geometry" />
+        </mxCell>
+
+        <mxCell id="con-trino" value="Trino&#10;interactive SQL" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="150" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="con-superset" value="Superset&#10;BI &amp; dashboards" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="220" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="con-jupyter" value="JupyterHub&#10;workspaces (same identity, same policy)" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="290" width="230" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="con-copilot" value="Nova copilot&#10;NL→SQL — runs on air-gapped vLLM / Ollama" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1070" y="360" width="230" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="src-saas" target="ing-airbyte">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="src-db" target="ing-debezium">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="src-edge" target="ing-nifi">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="ing-airbyte" target="transform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="ing-debezium" target="transform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="ing-nifi" target="transform">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f7" value="writes / reads" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;fontColor=#a4b3ff;fontSize=10;html=1;" edge="1" parent="1" source="transform" target="spine">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f8" value="Iceberg REST + OIDC token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;fontColor=#a4b3ff;fontSize=10;html=1;" edge="1" parent="1" source="spine" target="con-trino">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="spine" target="con-superset">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="spine" target="con-jupyter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#5b6cff;endArrow=blockThin;endFill=1;html=1;" edge="1" parent="1" source="spine" target="con-copilot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="nova-box" value="stardelt Nova — the one place above all of this: catalog browser · pipelines · lineage · quality · dashboards · copilot. Deep-links into native UIs where they are better." style="rounded=1;fillColor=#141a3d;strokeColor=#5b6cff;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="490" width="1260" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="op-box" value="stardelt operator — below all of this: CRDs are the source of truth, Nova is only a viewport. GitOps end-to-end." style="rounded=1;fillColor=#0e1228;strokeColor=#5b6cff;strokeOpacity=0.4;fontColor=#ffffff;fontSize=12;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="575" width="1260" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

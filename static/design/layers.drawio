@@ -1,0 +1,121 @@
+<mxfile host="app.diagrams.net" agent="stardelt-docs" version="24.7.7">
+  <diagram id="stardelt-layers" name="stardelt architecture layers">
+    <mxGraphModel dx="1200" dy="860" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="860" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bg" value="" style="rounded=0;fillColor=#0d1130;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="0" y="0" width="1200" height="860" as="geometry" />
+        </mxCell>
+        <mxCell id="title" value="stardelt — five layers" style="text;html=1;fontColor=#ffffff;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="0" width="400" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="title-sub" value="Only the top two layers are stardelt code. Everything below is curated, wired, consumed — never forked." style="text;html=1;fontColor=#a4b3ff;fontSize=11;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="28" width="700" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="band-exp" value="EXPERIENCE" style="rounded=1;arcSize=4;fillColor=#141a3d;strokeColor=#5b6cff;strokeOpacity=0.55;fontColor=#a4b3ff;fontSize=11;fontStyle=1;spacingLeft=14;spacingTop=8;verticalAlign=top;align=left;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="1120" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="chip-nova" value="stardelt Nova&#10;one UI — catalog · pipelines · lineage · dashboards · copilot" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="95" width="420" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="chip-cli" value="stardelt CLI" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="95" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="chip-api" value="REST API&#10;(CRD projection)" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="710" y="95" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="chip-gitops" value="GitOps&#10;(CRDs are the source of truth)" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="95" width="220" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="band-cp" value="CONTROL PLANE — stardelt code" style="rounded=1;arcSize=4;fillColor=#1e2a78;fillOpacity=0.45;strokeColor=#5b6cff;strokeOpacity=0.55;fontColor=#a4b3ff;fontSize=11;fontStyle=1;spacingLeft=14;spacingTop=8;verticalAlign=top;align=left;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="190" width="1120" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="chip-operator" value="stardelt Operator&#10;CRDs, reconciliation, server-side apply" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="225" width="330" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="chip-gov" value="Governance engine&#10;identity mapping · OPA policy · audit" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="225" width="330" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="chip-meta" value="Metadata spine&#10;OpenMetadata — lineage · quality · glossary" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="770" y="225" width="360" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="band-dp" value="DATA PLANE — curated upstream OSS (pluggable, one default per domain)" style="rounded=1;arcSize=4;fillColor=#141a3d;strokeColor=#5b6cff;strokeOpacity=0.55;fontColor=#a4b3ff;fontSize=11;fontStyle=1;spacingLeft=14;spacingTop=8;verticalAlign=top;align=left;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="340" width="1120" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="dp1" value="Airbyte&#10;SaaS ingestion" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp2" value="NiFi&#10;enterprise integration" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="170" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp3" value="Debezium&#10;CDC" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="280" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp4" value="dbt&#10;transforms" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="390" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp5" value="Airflow&#10;orchestration" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="500" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp6" value="Trino&#10;query engine" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp7" value="Spark&#10;heavy compute" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp8" value="Superset&#10;BI" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp9" value="JupyterHub&#10;workspaces" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="940" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="dp10" value="KServe · vLLM&#10;model + LLM serving" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.5;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="375" width="100" height="85" as="geometry" />
+        </mxCell>
+
+        <mxCell id="band-spine" value="LAKEHOUSE SPINE" style="rounded=1;arcSize=4;fillColor=#1e2a78;fillOpacity=0.35;strokeColor=#5b6cff;strokeOpacity=0.55;fontColor=#a4b3ff;fontSize=11;fontStyle=1;spacingLeft=14;spacingTop=8;verticalAlign=top;align=left;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="500" width="1120" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="spine-iceberg" value="Apache Iceberg&#10;the open table format — every engine, one format" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="535" width="330" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="spine-catalog" value="Iceberg REST catalog&#10;Lakekeeper (default) · Polaris (alternate)" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="535" width="330" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="spine-s3" value="S3 object storage&#10;SeaweedFS (default) · BYO S3" style="rounded=1;fillColor=#1a2256;strokeColor=#5b6cff;strokeOpacity=0.8;fontColor=#ffffff;fontSize=13;fontStyle=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="770" y="535" width="360" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="band-fd" value="FOUNDATION — bring your own Kubernetes" style="rounded=1;arcSize=4;fillColor=#0e1228;fillOpacity=0.85;strokeColor=#5b6cff;strokeOpacity=0.3;fontColor=#a4b3ff;fontSize=11;fontStyle=1;spacingLeft=14;spacingTop=8;verticalAlign=top;align=left;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="640" width="1120" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="fd1" value="EKS · GKE · AKS · OpenShift · RKE2 · k3s · kind · sovereign clouds" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.25;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="675" width="330" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="fd2" value="Keycloak&#10;OIDC identity" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.25;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="675" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="fd3" value="OPA&#10;policy" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.25;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="675" width="120" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="fd4" value="OpenBao&#10;secrets" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.25;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="675" width="120" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="fd5" value="VictoriaMetrics · Jaeger&#10;observability" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.25;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="880" y="675" width="120" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="fd6" value="OpenCost&#10;cost" style="rounded=1;fillColor=#11152b;strokeColor=#5b6cff;strokeOpacity=0.25;fontColor=#ffffff;fontSize=12;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="675" width="110" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="stardelt builds: Experience + Control Plane.&#10;stardelt integrates: Data Plane + Spine + Foundation.&#10;stardelt never builds: engines, connectors, BI tools, the table format." style="text;html=1;fontColor=#a4b3ff;fontSize=11;align=left;verticalAlign=top;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="770" width="700" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
