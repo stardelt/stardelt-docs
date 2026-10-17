@@ -108,6 +108,27 @@ Conventions:
 - **Patches flow upstream; no vendored forks** of upstream services (master spec §5). stardelt's own
   images publish to `ghcr.io/stardelt/...`.
 
+## Container images
+
+**CI builds them — a laptop or a cluster node does not.** Each repo that ships an image
+(`stardelt-nova`, `stardelt-operator`, `stardelt-platform`) has an `Image` workflow:
+
+| Event | Result |
+|---|---|
+| Pull request touching the image | image is built, not pushed — a broken Dockerfile fails the PR |
+| Merge to `main` | pushed as `dev`, `main` and an immutable `sha-<short>` |
+| Tag `v*` | pushed under the tag as well |
+
+The job summary prints the digest. **Deployments pin the digest**, never the moving tag:
+
+```bash
+kubectl -n stardelt set image deploy/nova nova=ghcr.io/stardelt/nova@sha256:…
+```
+
+A mutable tag is not an upgrade path: the kubelet may keep serving a cached layer, so "the tag moved"
+and "the cluster changed" are different events. `make image` in a repo still works for local
+iteration, but nothing in the platform install depends on it.
+
 ## Changelog strategy
 
 Two artifacts, different audiences — do not merge them:
