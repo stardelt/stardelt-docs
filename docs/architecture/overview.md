@@ -105,3 +105,32 @@ Multi-tenancy primitives exist in v1 even though MVP deployments are single-tena
 ## Compliance
 
 stardelt is *evidence-gathering infrastructure*, not a certified product. Later phases ship control-mapping starter kits for SOC2, ISO27001, BSI C5, and FedRAMP-on-your-own-cluster. Certifications remain the operator's responsibility.
+
+## Out of scope / non-goals
+
+Being explicit about what the core stack will *not* contain saves everyone a design debate later.
+The master spec's [§9 "What stardelt is not"](../design/master-spec.md#9-what-stardelt-is-not) is
+authoritative; this is the concrete consequence for service selection.
+
+**Hadoop-era services are out of scope for the stardelt core stack:**
+
+| Not included | Instead | Why |
+|---|---|---|
+| **HDFS** | SeaweedFS (S3 API), or your own S3-compatible store | The data plane is object storage behind the S3 API; Iceberg tables live on it. A block-oriented filesystem with NameNode semantics adds a stateful failure domain and a second storage abstraction for no benefit. |
+| **Hive Metastore as the primary catalog** | **Lakekeeper** (Iceberg REST); the plug matrix lists Apache Polaris and Gravitino as alternates | The catalog contract is the Iceberg REST spec. A Hive Metastore-backed catalog is neither the default nor an alternate in the [plug matrix](../design/master-spec.md#5-the-plug-matrix), and nothing in the stack depends on one. |
+| **YARN** | Kubernetes (scheduling), Trino and Spark Connect (execution) | stardelt runs on a cluster you already operate. Adding a second scheduler means two places to enforce policy, quota, and identity — the exact fragmentation the platform exists to remove. |
+| **ZooKeeper** | Kafka in KRaft mode (via Strimzi) | Kafka has not needed ZooKeeper for metadata since KRaft. See [Services](./services). |
+
+Two qualifications, so this is not read as a ban on interoperability:
+
+- **Reading old data.** Iceberg's own migration paths, and engines that can attach an external
+  metastore, are a customer decision. stardelt does not ship, wire, or support HDFS or a Hive
+  Metastore as part of the platform.
+- **Consuming upstream services.** If a legacy system speaks S3 or the Iceberg REST protocol, it can
+  read the lakehouse like any other client. That is a property of the [contracts](../design/master-spec.md#3-the-core-insight-contracts--defaults--glue),
+  not a stardelt feature.
+
+This follows from the two principles that decide service selection: **Iceberg is the spine**, and
+services must be *modern architecture — not Hadoop/HDFS heritage* (see [Service selection
+criteria](./services.md#service-selection-criteria)). A component that cannot be described as a plug
+behind a CRD or a published spec does not enter the core stack, whichever era it comes from.

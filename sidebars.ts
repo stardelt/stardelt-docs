@@ -43,6 +43,7 @@ const sidebars: SidebarsConfig = {
       link: { type: 'doc', id: 'developer/index' },
       items: [
         'developer/index',
+        'developer/contributing',
         'developer/ai-fleet',
       ],
     },

@@ -15,15 +15,24 @@ Provisioning artifacts live in
 
 ## What you get
 
-- One Ubuntu 24.04 VM running k3s (Traefik ingress, ServiceLB, local-path storage).
-- A firewall allowing SSH + the Kubernetes API only from your current public IP.
-- A standalone kubeconfig at `~/.kube/stardelt-dev.yaml`.
-- Roughly **€30/month** (`cpx41`, 8 vCPU / 16 GB). Destroy it when idle.
+- One node, default **`cx33`** (4 vCPU / 8 GB, ~€10/month); workloads are scheduled on it.
+- A private network, a firewall (SSH + Kubernetes API from your IP only, 80/443 open), and the
+  Hetzner CCM + CSI driver.
+- **No cloud load balancer** and **no bundled ingress controller** — ingress comes from
+  [`dev/playground`](https://github.com/stardelt/stardelt-platform/tree/main/dev/playground)
+  (ingress-nginx, host-network), which keeps the cost off the bill.
+- A kubeconfig at `~/.kube/stardelt-dev.yaml`.
+- Playground DNS (A + wildcard A) for `$INGRESS_HOST`, when Cloudflare credentials exist.
 
 ## Bring it up
 
+Needs the [`hetzner-k3s`](https://github.com/vitobotta/hetzner-k3s) binary, an SSH keypair, and
+`HCLOUD_TOKEN` (in `~/.config/stardelt/hetzner.env` or `dev/hetzner-k3s/.env`).
+
 ```sh
-# prerequisites: hcloud CLI, an SSH key, HCLOUD_TOKEN (or `hcloud context create`)
+# hetzner-k3s itself: `brew install vitobotta/tap/hetzner_k3s`, or the release binary
+# from github.com/vitobotta/hetzner-k3s/releases
+set -a; . ~/.config/stardelt/hetzner.env; set +a
 cd stardelt-platform
 make dev-up
 
@@ -34,10 +43,12 @@ kubectl get nodes
 ## Deploy stardelt onto it
 
 ```sh
-cd stardelt-platform
-make install
-make pf
+make install-core SLIM=1   # core: storage + catalog + query + Nova — fits cx33
+# or, on a 16 GB node (NODE_TYPE=cx43, ~€19/month):
+make install               # full: + Airflow + Superset
 ```
+
+Then set up ingress and TLS from `dev/playground`.
 
 ## Tear it down
 
