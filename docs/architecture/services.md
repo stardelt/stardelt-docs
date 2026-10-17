@@ -15,13 +15,13 @@ The opinionated set every stardelt install ships. These services define what sta
 
 ### stardelt Nova
 
-Unified web UI: single SSO landing, catalog browser over Iceberg tables, lineage view, audit search, platform health, and deep-links into the native UI of every service below. TypeScript + React (front-end), Rust + axum (back-end). Apache 2.0.
+Unified web UI: catalog browser over Iceberg tables (preview, columns, details), SQL editor, load & transfer (CSV/JSON upload, table copy), jobs, lineage view, dashboards, live platform-app status with deep-links into the native UI of every service below, and an offline demo mode (`NOVA_DEMO=1`). Single SSO landing and audit search are planned. TypeScript + React (front-end), Rust + axum (back-end). Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-nova](https://github.com/stardelt/stardelt-nova)
 
 ### stardelt Operator
 
-The platform's CRD reconciler. Composes the services below from a small declarative API (`PlatformInstance`, `Lakehouse`, `Pipeline`, `StreamApp`). Rust + `kube-rs`. Apache 2.0.
+The platform's CRD reconciler. Composes the services below from a small declarative API (`PlatformInstance`, `Tenant`, `Lakehouse`, `IngestionSource`, `Pipeline`; `StreamApp` planned at P3). Pre-alpha: the CRDs, the reconcile planner and the controller skeleton exist and are unit-tested — applying the upstream charts (the per-plug adapters) is the next milestone. Rust + `kube-rs`. Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-operator](https://github.com/stardelt/stardelt-operator)
 
