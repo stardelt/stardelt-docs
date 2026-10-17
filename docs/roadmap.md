@@ -10,13 +10,15 @@ stardelt is a multi-year vision. Each phase produces something demoable and usab
 
 The MVP (Phase 0 + Phase 1) is the only milestone needed to validate the bet. Phases 2–6 are gated on community pull.
 
+The [master spec](design/master-spec.md) is the single source of truth for what stardelt is, the plug matrix (contracts, defaults, alternates per domain), and the build/integrate/never-build boundary. The [execution plan](design/execution-plan.md) chunks the phases into handover-ready work packages — where a phase's component list and the plug matrix disagree, **the plug matrix wins** — a service enters a phase only as a default behind an existing contract.
+
 ## Phase 0 — Now — Research, design, branding
 
 **Goal**: make the case strong enough to recruit collaborators.
 
 **Deliverables (this repository):**
 
-- [x] [Design spec](design/master-spec.md)
+- [x] [Design spec](design/master-spec.md) — product definition, plug matrix, principles, sequencing, decision record
 - [x] [Architecture](architecture/overview.md)
 - [x] [Services](architecture/services.md) with license verification
 - [x] [License policy](architecture/licenses.md) — accepted, exception, rejected
@@ -38,12 +40,13 @@ This is the wedge. A single working pillar with the composed control plane prove
 - L1 (substrate, minimum viable): Keycloak, **K8s Secrets** (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
 - L2 (data foundation): SeaweedFS (+ BYO-S3 path), Lakekeeper, Apache Iceberg, OPA + OpenFGA bootstrap, OpenLineage emit-only
 - L3 Pillar 1 (Lakehouse SQL only): Trino, DuckDB, Apache Superset, JupyterHub
-- L4 (stardelt-native): `stardelt-platform-operator` (only `PlatformInstance`, `Tenant`, `Lakehouse` CRDs), basic `stardelt-secret-operator`, basic `stardelt-listener-operator`, **Nova MVP** (SSO landing + catalog browser + simple cost view + audit search), `stardelt` CLI
+- L4 (stardelt-native): `stardelt-operator` (only `PlatformInstance`, `Tenant`, `Lakehouse` CRDs), **Nova MVP** (SSO landing + catalog browser + simple cost view + audit search), `stardelt` CLI
 
 **Validation:**
 
 - Single-cluster, single-tenant.
-- `kind` / `k3d` demo for laptops; documented install path for real clusters.
+- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice.
+- Documented install path for real clusters.
 - First 5 pilot users.
 
 ## Phase 2 — Batch ETL pillar

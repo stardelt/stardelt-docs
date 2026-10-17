@@ -14,6 +14,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'getting-started/prerequisites',
+        'getting-started/hetzner-k3s',
         'getting-started/local-kind'
       ],
     },
@@ -23,10 +24,16 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'architecture/overview',
-        'architecture/services',        
+        'architecture/services',
         'architecture/licenses',
         'architecture/sovereignty',
       ],
+    },
+    {
+      type: 'category',
+      label: 'Design',
+      collapsed: false,
+      items: ['design/master-spec', 'design/execution-plan', 'design/nova-feature-parity', 'design/gap-decisions'],
     },
     'roadmap',
     {
@@ -35,7 +42,9 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       link: { type: 'doc', id: 'developer/index' },
       items: [
-        'developer/contributing'      ],
+        'developer/index',
+        'developer/ai-fleet',
+      ],
     },
   ],
 };

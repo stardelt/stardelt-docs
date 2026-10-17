@@ -76,15 +76,15 @@ Components that look attractive and are frequently asked about, but **cannot be 
 
 Before any stardelt release:
 
-1. Fetch the live `LICENSE` file for every primary component listed in [COMPONENTS.md](components.md) from `github.com/<org>/<repo>/blob/main/LICENSE`.
+1. Fetch the live `LICENSE` file for every primary component listed in [Services](./services) from `github.com/<org>/<repo>/blob/main/LICENSE`.
 2. Confirm exact license name; cross-reference with the OSI list (https://opensource.org/licenses).
 3. For projects flagged in the *Pre-release license verifications* section of COMPONENTS.md, re-read the LICENSE in full — these are projects with known license-drift risk.
-4. If a primary has drifted to an unacceptable license, demote to the listed alternative and update components.md.
+4. If a primary has drifted to an unacceptable license, demote to the listed alternative and update services.md.
 5. Record the verification in a `LICENSE-VERIFICATION-<release>.md` artifact alongside the release tag.
 
 ## Reporting license issues
 
-If you believe a component listed in components.md is not under the license stated here, open an issue with:
+If you believe a component listed in services.md is not under the license stated here, open an issue with:
 
 - Component name and version.
 - Link to the offending LICENSE file or relicense announcement.
