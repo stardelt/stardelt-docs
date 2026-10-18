@@ -101,6 +101,7 @@ own tooling — they are the signals that actually predict trouble here:
 | Node disk and memory | SeaweedFS and Trino are the consumers; a full disk fails writes |
 | Certificate expiry (`kubectl get certificates -A`) | an expired ingress cert is a silent outage |
 | Helm release status (`helm list -A`) | catches a release stuck in `pending-upgrade` before an upgrade does |
+| Writes to a **new** bucket hanging | SeaweedFS' volume server ran out of volume slots: the master cannot create a volume for a new collection and the client just blocks (`failed to find writable volumes … Not enough data nodes found` in the master log). The chart sets `maxVolumes: 100`; the upstream default (0 → auto-configure, **7** on Linux) runs out on a real install |
 
 ## The honest "not yet" list
 
