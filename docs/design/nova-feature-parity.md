@@ -33,7 +33,7 @@ competitor artifact. This keeps Nova's provenance clean and consistent with
 | Recently viewed / favorites / bookmarks | B D S | Nova | Postgres (CNPG) | P2 | ◐ |
 | Object management via UI, CLI, and REST API | B S | `stardelt` CLI + Nova REST + operator CRDs | stardelt Operator | P1→P2 | ◐ |
 | Deep-links into native UIs of every service | — (stardelt-specific) | Already core to Nova | per-service URLs | P1 | ✅ |
-| Personal settings: theme, language, editor prefs | B S | Nova settings | Nova | P2 | ❌ Nova is dark-mode only today |
+| Personal settings: theme, language, editor prefs | B S | Nova settings | Nova | P2 | ◐ light/dark toggle shipped (dark is the default); language and editor prefs planned |
 | Domain- / business-group browsing | B S | Nova grouping by `stardelt.io/tenant` + domain tag | OpenMetadata | P3 | ◐ |
 
 ## 2. Catalog & data discovery
@@ -79,7 +79,7 @@ competitor artifact. This keeps Nova's provenance clean and consistent with
 | Tag-governed / attribute-based access control (ABAC) | B S | Nova policy | OPA + OpenMetadata tags | P2 | ◐ **differentiator** |
 | Managed-access spaces (owner cannot self-grant) | D | Nova scoping | OpenFGA | P3 | ○ |
 | One OIDC token flows UI → engine → catalog | B D S | Nova SSO | Keycloak + token passthrough | P1 | ◐ **differentiator** |
-| Audit log of access + changes; searchable, exportable | B D S | Nova audit search (MVP) | Kafka `stardelt.audit.v1` → Iceberg | P1→P5 | ✅ partial |
+| Audit log of access + changes; searchable, exportable | B D S | Nova audit search (MVP) | Kafka `stardelt.audit.v1` → Iceberg | P1→P5 | ◐ (no audit endpoint or Kafka yet) |
 | Auto data classification (scan for PII/financial) | B S | Nova classification (optional) | OpenMetadata classifiers | P4 | ○ no default |
 | Access-request workflow (email/Slack/webhook) | B | Nova requests (optional) | Nova + notifications | P4 | ○ |
 | Service principals / service accounts | B S | Nova + Keycloak clients | Keycloak | P2 | ◐ |
@@ -94,7 +94,7 @@ competitor artifact. This keeps Nova's provenance clean and consistent with
 | Impact analysis / root-cause via descendants | B D S | Nova lineage | OpenMetadata | P2 | ◐ |
 | External / ingested lineage from non-stardelt tools | B | Nova lineage ingest | OpenLineage contract | P2 | ◐ |
 | Glossary / business terms / semantic layer | B S | Nova glossary | OpenMetadata | P2 | ◐ |
-| Object-level lineage only (no column) | D | Nova lineage | OpenMetadata | P1 | ✅ exceeds |
+| Object-level lineage only (no column) | D | Nova lineage | OpenMetadata | P1 | ◐ (the Lineage page is a static illustration of the demo schema until capture lands) |
 
 ## 6. Pipelines & orchestration
 

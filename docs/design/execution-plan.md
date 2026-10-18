@@ -12,15 +12,15 @@ This is a living queue, not a contract: WPs get added, split, and reordered. The
 
 ## 1. State of the code (start here, handover agents)
 
-Verified against the sibling repos on 2026-10-17. "Real" means it runs today; "missing" means the next agent's work.
+Verified against the sibling repos' `main` branches on 2026-10-18. "Real" means it runs today; "missing" means the next agent's work.
 
 | Repo | What's real | What's missing / wrong |
 |---|---|---|
-| `stardelt-platform` | Chart versions pinned in exactly one place (the root Makefile), with Renovate reading those pins; `make lint` + CI (yamllint, ShellCheck, `helm template`); three install paths — `install` (full), `install-core` (`SLIM=1`, the cheap-node core stack) and `install-notebooks` (JupyterHub); `dev/hetzner-k3s` creates a real single-node k3s cluster; `dev/playground` adds ingress-nginx (host-network) + cert-manager + ingresses for nova, trino, superset, airflow and jupyterhub; `dev/cloudflare-dns.sh`; `ghcr.io/stardelt/*` images, pulled with a `ghcr-creds` secret | Bash-orchestrated: **no platform Helm chart, no operator path**; Airflow and Superset exist only in the `full` profile (they do not fit the 8 GB dev node); CI lints and templates but never installs, so nothing proves the stack end to end (WP-02); `helm-values/airflow.yaml` still carries kind-only pinned secrets (WP-16) |
-| `stardelt-nova` | axum backend — `/api/me`, `/api/catalog/*`, `/api/query`, `/api/jobs`, `/api/apps`, `/api/ingest/upload`, `/api/transfer`; React SPA with Overview, Catalog (preview, columns, details), SQL editor, Load & transfer (CSV/JSON upload, table copy), Jobs, Lineage, Dashboards, Platform apps (live status probe + deep links) and a light/dark theme; `NOVA_DEMO=1` runs the whole UI with no cluster; deployed on the dev cluster behind TLS | `auth_mode: static-dev` — no OIDC login yet (WP-18, WP-12); Dashboards is a configurable iframe to a port-forwarded Superset, not a gateway route (WP-11); Trino and Lakekeeper are the only real data backends |
-| `stardelt-operator` | CRDs `PlatformInstance`, `Tenant`, `Lakehouse`, `IngestionSource`, `Pipeline`, with generated `chart/crds/`; a pure, unit-tested reconcile planner; a controller skeleton; the operator chart; 19 unit tests; `cargo` CI | **No adapters** — nothing installs an upstream chart yet (WP-21, then WP-30/31/32); the chart is not on the dev cluster, and `make install` does not apply the CRDs |
+| `stardelt-platform` | Chart versions pinned in the root Makefile (the source of truth; `chart/Chart.yaml` and CI carry mirrored copies), with Renovate reading those pins; `make lint` + CI (yamllint, ShellCheck, `helm template`); three install paths — `install` (full), `install-core` (`SLIM=1`, the cheap-node core stack) and `install-notebooks` (JupyterHub); an umbrella Helm chart (`chart/`, `make chart-install`) with the same components, versions and values; `make install-operator` (dev path, from the sibling `stardelt-operator` checkout); `dev/hetzner-k3s` creates a real single-node k3s cluster; `dev/playground` adds ingress-nginx (host-network) + cert-manager + ingresses for nova, trino, superset, airflow and jupyterhub; `dev/cloudflare-dns.sh`; `ghcr.io/stardelt/*` images, pulled with a `ghcr-creds` secret | The Makefile path is bash-orchestrated, and the operator is not part of `install` / `install-core`; in the umbrella chart Superset and Airflow cannot both be enabled in one release; Airflow and Superset exist only in the `full` profile (they do not fit the 8 GB dev node); CI lints and templates but never installs, so nothing proves the stack end to end (WP-02); `helm-values/airflow.yaml` still carries kind-only pinned secrets (WP-16) |
+| `stardelt-nova` | axum backend — `/api/me`, `/api/health`, `/api/trino/cluster`, `/api/catalog/*`, `/api/query`, `/api/jobs`, `/api/apps` (+ `/api/apps/:id`), `/api/workloads`, `/api/ingest/upload`, `/api/transfer`; React SPA with Overview, Catalog (preview, columns, details), SQL editor, Load & transfer (CSV/JSON upload, table copy), Jobs, Lineage, Dashboards, Platform apps (live status probe, per-app detail pages, deep links), Platform health and a light/dark theme; `NOVA_DEMO=1` runs the whole UI with no cluster; deployed on the dev cluster behind TLS | `auth_mode: static-dev` — no OIDC login yet (WP-18, WP-12); Dashboards is an iframe to Superset (the deployed app URL from `/api/apps`, else a configurable port-forward), not a gateway route (WP-11); Lineage is a static illustration of the demo schema — nothing is captured yet (WP-34); there is no audit search; Trino and Lakekeeper are the only real data backends |
+| `stardelt-operator` | CRDs `PlatformInstance`, `Tenant`, `Lakehouse`, `IngestionSource`, `Pipeline`, with generated `chart/crds/`; a pure, unit-tested reconcile planner with the golden chart pins; a Helm adapter (`helm.rs`) and a controller that reconciles `Tenant` → Namespace, `PlatformInstance` → the CloudNative-PG operator and `Lakehouse` → SeaweedFS + Lakekeeper + Trino (plan-only unless `dryRun: false`, with an `adopt` guard and per-Lakehouse value overrides); the operator chart and a CI-built image; 43 unit tests; `cargo` CI (fmt, clippy, check, test, and a check that its chart pins match the platform's) | **No controller for `IngestionSource` or `Pipeline`** (WP-30/31/32); a non-dry-run `Lakehouse` install end to end, the warehouse bootstrap and the CNPG `Cluster` are still open (WP-21); the operator is not part of `make install` (`make install-operator` is a dev path) |
 | `stardelt-demos` | `kind/up.sh` is a thin wrapper over the platform Makefile (`APP_PROFILE=core` by default, `full` adds Airflow + Superset, `SLIM` forwarded); `smoke.sh`, the NYC-taxi DAG, kind-loaded images; `kind/gate.sh` + `.github/workflows/verify.yml` install the core profile and smoke it on every PR and push to `main` (WP-02) | The gate's scope stops at the data path: Nova, Airflow, Superset, the taxi DAG, a nightly schedule and the operator contract tier are still open; the Airflow and Superset targets only make sense with `APP_PROFILE=full` |
-| `stardelt-docs` | Live site, master spec, execution plan, roadmap, license policy, architecture pages | Status text rots faster than the code: this table, the [roadmap](../roadmap) and the `Status` lines below are dated snapshots — when they disagree with a repo, the repo wins. The docs build runs on push to `main` only, so a broken link can merge |
+| `stardelt-docs` | Live site, master spec, execution plan, roadmap, license policy, architecture pages | Status text rots faster than the code: this table, the [roadmap](../roadmap) and the `Status` lines below are dated snapshots — when they disagree with a repo, the repo wins. The docs build also runs on pull requests, and a broken link fails it |
 
 **Deployed today.** The Hetzner dev cluster is live: one `cx33` k3s node running the **core** profile — CloudNative-PG, SeaweedFS, Lakekeeper, Trino — plus **Nova** and **JupyterHub**, with Let's Encrypt TLS from `dev/playground`. Nova answers at `alpha.dev.stardelt.io`; Trino and JupyterHub at `trino.` and `jupyter.` on the same domain. **Superset and Airflow are not installed** — they need the `full` profile and a 16 GB node. Nova's Apps page probes each service and shows what is actually up, not what is merely configured.
 
@@ -61,7 +61,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** CI status on every PR.
 **Depends.** —.
 **Size.** M.
-**Status.** Mostly done. `ci.yml` in `stardelt-platform`, `stardelt-nova`, `stardelt-operator` and `stardelt-demos` runs lint/build/test on push and on pull request. Remaining: `stardelt-docs` builds only on push to `main` (no PR check), and `main` is not branch-protected, so red CI still does not block a merge.
+**Status.** Mostly done. `ci.yml` in `stardelt-platform`, `stardelt-nova`, `stardelt-operator` and `stardelt-demos` runs lint/build/test on push and on pull request. `stardelt-docs` builds on pull requests too, and broken links fail that build. Remaining: `main` is not branch-protected in any repo, so red CI still does not block a merge.
 
 ### WP-02 — The verification gate (L)
 
@@ -81,7 +81,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** `ls AGENTS.md` per repo; board URL returns the issues.
 **Depends.** —.
 **Size.** M.
-**Status.** Not started. No repo carries an `AGENTS.md` yet — the working agreement lives in the workspace-root `AGENTS.md` and the [developer section](../developer/index.md) — and there are no issue templates; this document is still the WP list.
+**Status.** Partially done. `AGENTS.md` exists in `stardelt-platform`, `stardelt-nova`, `stardelt-operator` and `stardelt-demos`. Remaining: `stardelt-docs` has none (its working agreement lives in the workspace-root `AGENTS.md` and the [developer section](../developer/index.md)), no repo has issue templates, and this document is still the WP list.
 
 ### WP-04 — Demo stage: `demo.stardelt.io` (L)
 
@@ -103,6 +103,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** `npm run build` (broken-links list empty).
 **Depends.** WP-01.
 **Size.** S.
+**Status.** Partially done. The footer link is fixed (`Components` now points at `/docs/architecture/services`) and the overview references the plug matrix in its non-goals section. Remaining: `services.md` still describes services rather than contracts, defaults and alternates.
 
 ### WP-14 — Adapter inventory (S)
 
@@ -150,6 +151,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** Playwright/curl check: `/api/dashboards/...` returns Superset content through the gateway.
 **Depends.** WP-01.
 **Size.** M.
+**Status.** Partly mitigated. The page now embeds the deployed Superset URL reported by `/api/apps` and only falls back to a port-forward when none is deployed. It is still a direct iframe: there is no Superset proxy in the backend and no `/api/dashboards/...` route.
 
 ### WP-18 — Nova auth abstraction (S)
 
@@ -189,12 +191,12 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** Contract-tier CI job: install operator → apply stub CR → status transitions in logs.
 **Depends.** WP-02.
 **Size.** L.
-**Status.** Partially done. In place: the five CRD types with generated `chart/crds/`, a pure reconcile planner, a controller skeleton that watches `PlatformInstance`, `Lakehouse`, `IngestionSource` and `Pipeline` and writes status, the operator chart, and 19 unit tests. Remaining: nothing installs an upstream chart, so the plan is computed and reported but not applied (WP-21); the operator is not deployed by `make install` and has never run against the dev cluster (which needs the contract tier from WP-02).
+**Status.** Partially done. In place: the five CRD types with generated `chart/crds/`, a pure reconcile planner, a Helm adapter, a controller that watches `PlatformInstance`, `Tenant` and `Lakehouse` and writes status, the operator chart and image, and 43 unit tests; the operator's own `AGENTS.md` reports `Tenant`, `PlatformInstance` and `Lakehouse` reconciled against the dev cluster. Remaining: no controller for `IngestionSource` or `Pipeline`; no leader election, metrics endpoint or events; the operator is not deployed by `make install` (`make install-operator` is a dev path); and no CI job runs it against a cluster (that needs the contract tier from WP-02).
 
 ### WP-21 — `Lakehouse` CRD reconciles the real stack (L)
 
 **Context.** First real plug: `Lakehouse` (catalog + storage, per the plug matrix) → applies WP-15's per-plug values via server-side apply / Helm, with profile support.
-**Tasks.** `Lakehouse` spec: `{catalog: {impl: lakekeeper|polaris}, storage: {impl: seaweedfs|byoS3}, profile}`; reconciler applies SeaweedFS + CNPG + Lakekeeper (+ bootstrap) from `plugs/` values; status reports readiness per component; ownership labels; finalizer-based uninstall.
+**Tasks.** `Lakehouse` spec: `{catalog: {implementation: lakekeeper|polaris}, storage: {implementation: seaweedfs|byoS3}, profile}`; reconciler applies SeaweedFS + CNPG + Lakekeeper (+ bootstrap) from `plugs/` values; status reports readiness per component; ownership labels; finalizer-based uninstall.
 **Acceptance.** `kubectl apply` of one `Lakehouse` in a fresh kind produces a working catalog; delete tears it down; status is truthful.
 **Verification.** Contract-tier CI: apply → wait ready → `smoke.sh` catalog portion passes → delete → gone.
 **Depends.** WP-20, WP-15, WP-14.
@@ -224,13 +226,13 @@ A WP that has been started carries a **Status** line: what exists and what remai
 
 ### WP-30 — `IngestionSource` contract (M)
 
-The CRD schema + adapter framework for all three ingestion domains (`saas` / `enterprise` / `cdc`), with one fake adapter for tests. No engine yet. **Acceptance:** apply a fake source → adapter framework dispatches → status truthfully reports "no impl configured."
+The CRD schema + adapter framework for all three ingestion domains (`saas` / `enterprise` / `cdc`), with one fake adapter for tests. No engine yet. **Acceptance:** apply a fake source → adapter framework dispatches → status truthfully reports "no impl configured." **Status.** The `IngestionSource` CRD and the domain-to-component planner rule exist; there is no controller or adapter framework yet.
 ### WP-31 — Apache SeaTunnel adapter (M)
 
 `domain: saas` → Apache SeaTunnel plug + one connector (e.g. GA4 or a public API) landing in Iceberg. **Acceptance:** demo dataset appears in the catalog via the CRD, no manual steps.
 ### WP-32 — `Pipeline` contract + Airflow adapter (L)
 
-`Pipeline` CRD (steps, schedule, engine ref) → Airflow adapter; port `nyc_taxi_load.py` to a declarative `Pipeline`. **Acceptance:** taxi load runs from a `kubectl apply`, status surfaces run state.
+`Pipeline` CRD (steps, schedule, engine ref) → Airflow adapter; port `nyc_taxi_load.py` to a declarative `Pipeline`. **Acceptance:** taxi load runs from a `kubectl apply`, status surfaces run state. **Status.** The `Pipeline` CRD (with `status.runs`) and the engine-to-component planner rule exist; there is no controller or Airflow adapter yet.
 ### WP-33 — dbt + Soda quality gates (M)
 
 dbt plug as a transform step; Soda/dbt tests as a gate step; failing gate = red pipeline + surfaced state. **Acceptance:** a deliberately failing test turns the `Pipeline` status red and blocks downstream.
@@ -267,11 +269,11 @@ NL→SQL in the Query editor: schema context from the Lakekeeper proxy, prompts 
 | 6 | 30 → 31 / 32 → 33 → 34 → 35 → 36 | Track C, strictly ordered |
 | 7 | 40, 41 | AI |
 
-Waves 1 and 5 are partly done: CI exists in every repo (WP-01), the demos are unified (WP-17) and a public dev cluster is live. Still missing from wave 1: per-repo `AGENTS.md` and issue templates (WP-03). Wave 2 — the verification gate — is the open blocker, and Track B waits on it.
+Waves 1 and 5 are partly done: CI exists in every repo (WP-01), the demos are unified (WP-17) and a public dev cluster is live. Still missing from wave 1: `AGENTS.md` in `stardelt-docs` and issue templates (WP-03). Wave 2 — the verification gate — is the open blocker, and Track B waits on it.
 
 ## 9. Human actions (the only things that need you)
 
-1. **Wave 1, once:** review/merge the CI PRs — done, except branch protection on `main` and the `AGENTS.md` + issue-template pass (WP-03).
+1. **Wave 1, once:** review/merge the CI PRs — done, except branch protection on `main`, `AGENTS.md` in `stardelt-docs` and the issue-template pass (WP-03).
 2. **Before WP-04:** ~~rent the VPS, point DNS~~ **done** — the dev cluster runs (Hetzner `cx33`, ~€10/mo) with DNS and TLS at `alpha.dev.stardelt.io`. A separate public `demo.stardelt.io` stage with a guest identity is still WP-04.
 3. **Weekly, ~30 min:** triage the board, reorder WPs, review PRs (phone-sized PRs are enforced by convention).
 4. **On scope changes:** edit the master spec via PR — never let the plan and the spec drift.

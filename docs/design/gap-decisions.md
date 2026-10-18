@@ -124,7 +124,7 @@ and are **not** repeated here unless the delta is a genuine build.
 | 5 | Access-request workflow | B | direct grants | **D12** | P4 |
 | 6 | MCP server for agents | B S | none | **D13** | P3 |
 | 7 | Iceberg maintenance UI (compaction/GC) | B S | none | **D14** | P3 |
-| 8 | Queryable system tables | B | Nova audit search only | **D15** | P5 |
+| 8 | Queryable system tables | B | none (Nova audit search is planned) | **D15** | P5 |
 | 9 | Personal settings / theming | B S | toggle shipped; branding fixed | **D16** | P2 |
 | 10 | Saved-queries store & sharing | B D S | none | build in Nova | P2 |
 | 11 | Alerts on query conditions | B D | none | build + Airflow | P2 |
@@ -139,7 +139,7 @@ and are **not** repeated here unless the delta is a genuine build.
 | 20 | Table-format migration (→ Iceberg) | S | none | plug (Spark) | P4 |
 | 21 | Cross-cluster federation | D | Trino connectors (single) | plug (Trino) | P4+ |
 | 22 | Data sharing to external consumers | B D | Iceberg tables readable | plug (Iceberg REST) | P2 |
-| 23 | FinOps / cost dashboards | B D S | basic cost view | plug (OpenCost) | P3 |
+| 23 | FinOps / cost dashboards | B D S | none (no cost view in Nova; OpenCost not installed) | plug (OpenCost) | P3 |
 | 24 | Multi-tenant network isolation | B D S | primitives only | `Tenant` + NetPol | P2 |
 | 25 | Service-account / service-principal management | B S | Keycloak clients (manual) | plug (Keycloak) | P2 |
 | 26 | HA / RTO-RPO guarantees | B S | none | roadmap P5 | P5 |

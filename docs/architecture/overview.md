@@ -98,6 +98,11 @@ The canonical lakehouse read path:
 
 Apache Kafka carries audit events and (when ingest pipelines are wired up) source-of-truth events that Airflow batches or Flink processes into Iceberg tables. JupyterHub talks to Trino for SQL and to Spark Connect for heavier compute; Superset talks to Trino for dashboards.
 
+The OIDC-token and vended-credential steps in the diagram are the target design. The dev install
+is identity-less today: Trino reads and writes S3 with the static credentials from the
+`stardelt-s3-creds` Secret (`vended-credentials-enabled=false` in `helm-values/trino.yaml`) and
+Nova runs with a static dev user (`auth_mode: static-dev`).
+
 ## Operating model
 
 stardelt follows the **operator-per-service pattern**: each service is managed by its own well-maintained upstream operator (Strimzi for Kafka, Spark Operator for Spark, CloudNative-PG for Postgres backing Lakekeeper, etc.). On top sits the **stardelt Operator**, which reconciles a small set of top-level CRDs into the per-service CRDs underneath. Operators run as standard Kubernetes controllers — no SaaS side, no phone-home.
