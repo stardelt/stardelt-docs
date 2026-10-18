@@ -42,6 +42,7 @@ const sidebars: SidebarsConfig = {
       label: 'Operations',
       collapsed: false,
       items: [
+        'operations/production',
         'operations/backups',
       ],
     },
