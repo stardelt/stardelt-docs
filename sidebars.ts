@@ -49,6 +49,7 @@ const sidebars: SidebarsConfig = {
           label: 'Permission model research (Unity Catalog / Dremio)',
           href: '/docs/architecture/permissions-research',
         },
+        'design/multitenant-catalogs',
       ],
     },
     {
