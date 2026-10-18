@@ -26,6 +26,20 @@ decide first, or says "analysis only" (no ticket yet). Pick work from §7, not f
 
 ---
 
+## Status update, 2026-10-18 evening
+
+The implementation moved after the snapshot above. Re-verified against `main` and the dev cluster:
+
+| Gap | Now |
+|---|---|
+| G-C1 public endpoints bypass the IdP | **Mitigated.** Trino authenticates every statement with a Keycloak token, Superset/Airflow/JupyterHub sign in through Keycloak, Keycloak publishes an allow-list. See [security model](../architecture/security-model) |
+| G-M3 secrets | **Partly done.** Airflow/Superset secrets are generated, `install-core` no longer overwrites the S3 Secret. The S3 key pair is still committed: [#100](https://github.com/stardelt/stardelt-platform/issues/100), [#101](https://github.com/stardelt/stardelt-platform/issues/101), [#102](https://github.com/stardelt/stardelt-platform/issues/102), cutover [#108](https://github.com/stardelt/stardelt-platform/issues/108) |
+| G-H9 any signed-in user runs any SQL under Nova's identity | **Partly done.** Trino sees the user's own token; access rules (Lakekeeper authz) are still `allowall` |
+| G-H8 backups | **Partly done.** Chart path has continuous catalog backups; the backup guard exists. Off-cluster destination still open |
+| Others | Unchanged at the time of writing; re-verify before acting (the register above is a snapshot) |
+
+---
+
 ## 1. Plug matrix (master spec §5) vs. implementation
 
 Columns: **CRD**, the field that selects the plug. **Planner**, an entry in
