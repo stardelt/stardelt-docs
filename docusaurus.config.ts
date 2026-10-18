@@ -13,7 +13,7 @@ const config: Config = {
   organizationName: 'stardelt',
   projectName: 'stardelt-docs',
 
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'throw',
 
   i18n: { defaultLocale: 'en', locales: ['en'] },
 
