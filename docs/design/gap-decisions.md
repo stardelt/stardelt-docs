@@ -26,7 +26,7 @@ code is a last resort, and the list of things stardelt deliberately never builds
 
 ---
 
-## Part A — Decision record (D8–D16)
+## Part A — Decision record (D8–D22)
 
 ### D8 — Per-tenant compute isolation
 - **Status:** Proposed · target **P3**
@@ -36,6 +36,8 @@ code is a last resort, and the list of things stardelt deliberately never builds
 - **Alternates:** multiple `Lakehouse`-scoped Trino clusters for hard isolation (P4+). The `Lakehouse` contract already permits this without an architecture change.
 - **Contract touched:** `Tenant` (resource-group policy), `Lakehouse` (engine).
 - **Non-goal:** a proprietary engine; per-query GPU scheduling.
+
+- **Amended 2026-10-18 (D21):** the `Tenant` CRD is dropped for v1. Segregation of compute and data uses `Catalog` and `SqlWarehouse` resources with owner groups under one `PlatformInstance`; per-team isolation stays P3 and namespace isolation becomes an optional layer.
 
 ### D9 — `Volume` (non-tabular objects in the catalog)
 - **Status:** Proposed · target **P3**
@@ -102,6 +104,42 @@ code is a last resort, and the list of things stardelt deliberately never builds
 - **Rationale:** a curated look is part of the product, not a gap to close; over-configurable UI undermines the "opinionated defaults" principle.
 - **Alternates:** ignore permanently.
 - **Non-goal:** a full white-label/theming engine in v1.
+
+### Operator baseline decisions (taken 2026-10-18 by the maintainer)
+
+Tracked in [stardelt-operator#55](https://github.com/stardelt/stardelt-operator/issues/55). End state: an administrator installs **the operator and one `PlatformInstance` with custom values**; the Helm chart and the Makefile are transitional dev paths and receive only what keeps the dev cluster and the kind demo working.
+
+### D17 — Non-Helm prerequisites of a `Lakehouse`
+- **Status:** Accepted · Wave 1
+- **Gap:** a non-dry-run `Lakehouse` installs Helm releases but not the CNPG `Cluster`, the S3 `Secret` or the warehouse bootstrap, yet reports `Ready`.
+- **Decision:** typed server-side apply from Rust (field manager `stardelt-operator`) for the `Cluster`, the `Secret` (random keys when absent; `credentialsSecretRef` for BYO-S3) and the bootstrap `Job`; Job completion is a status condition, not a Helm hook.
+- **Rationale:** the spec's stated mechanism, easy ownerReferences, no second chart to version.
+- **Alternates:** a small prerequisites chart (hook problems, second artifact); reusing the platform umbrella chart (couples operator releases to platform releases).
+
+### D18 — Lifecycle of managed resources
+- **Status:** Accepted · Wave 3
+- **Decision:** a finalizer uninstalls releases in reverse plan order; `spec.deletionPolicy` defaults to `Retain` (PVCs and buckets survive), `Delete` is opt-in; one `Lakehouse` per namespace in v1alpha1 with component release names kept; ownership labels `stardelt.io/{lakehouse,component}` on everything the operator creates.
+- **Rationale:** data outlives the custom resource unless someone asks otherwise; no breaking rename.
+
+### D19 — Operator privileges
+- **Status:** Accepted
+- **Decision:** keep the wildcard `ClusterRole` and document it: an installer operator that applies whatever upstream charts contain is privileged by nature. Hardening (namespaced Roles generated from `helm template`) is deferred, not rejected.
+- **Consequence:** the operator can read every Secret in the cluster; the [security model](../architecture/security-model) states it.
+
+### D20 — Identity in `PlatformInstance`
+- **Status:** Accepted · Wave 2
+- **Decision:** `spec.identity { mode: none | platform | external, issuerUrl, groupClaim, adminGroup, ... }` and `spec.baseDomain`, with CEL validation. The operator publishes `stardelt-identity` and, for `platform`, plans Keycloak with its CNPG `Cluster`. No `IdentityProvider` CRD.
+- **Rationale:** an organization commonly runs the platform several times (staging, test, production) against **one** external IdP tenant. Each instance has its own app registration (client ids and secret references) and its own group or role mapping; see [one IdP, several platform instances](../architecture/identity-integrations#one-idp-several-platform-instances). Platform-mode Keycloak is for organizations without an IdP.
+
+### D21 — Tenancy
+- **Status:** Accepted · amends D8
+- **Decision:** the `Tenant` CRD is dropped for v1 ([operator#54](https://github.com/stardelt/stardelt-operator/issues/54)). One `PlatformInstance` per platform; data domains and compute are segregated by `Catalog` and `SqlWarehouse` (docs#64) with owner groups. Namespace isolation (quota, NetworkPolicy) may return as an optional layer.
+- **Rationale:** `PlatformInstance` already is the cluster-level object; a namespace per tenant was more structure than the one-platform-per-organization model needs.
+
+### D22 — One source of curated values; the operator is the install path
+- **Status:** Accepted · Wave 4
+- **Decision:** the operator is the source of the curated Helm values and the target install path (operator plus custom values). During migration the Makefile and chart read values from the operator (`stardelt-operator values <plug> <profile>`), checked by a CI parity test. New functionality is built operator-first.
+- **Alternates:** per-plug files in the platform repo consumed by all three paths; keeping three copies plus a checker.
 
 ---
 
