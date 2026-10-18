@@ -41,9 +41,9 @@ Spark), [multi-warehouse design](https://github.com/stardelt/stardelt-docs/issue
 |---|---|---|---|
 | 1 | Unit | One object, **`Pipeline`** (a "job" is a pipeline with one task). Replace linear `steps[]` by `tasks[]` with `dependsOn`, plus `trigger`, `params`, `retries`, `timeout`, `runAs`. v1alpha1 may break: nothing consumes it yet | Databricks does the same (a job has tasks); one concept to learn |
 | 2 | Engine | **Airflow 3 executes; the `Pipeline` CR is the source of truth.** A generic loader DAG file in the Airflow image reads `Pipeline` resources through the Kubernetes API (read-only ServiceAccount) in the dag-processor and builds one DAG per resource | Airflow cannot create DAGs through an API; this keeps definitions declarative and removes image rebuilds. The "bring your own Python DAG" route stays for experts (git-sync bundle) and is labelled *trusted* |
-| 3 | Who writes the CR | **Nova** (its ServiceAccount, with a Role limited to `Pipeline` in the user's tenant namespace) on behalf of an authenticated user; GitOps/`kubectl` for the platform team. Users never need `kubectl` | Spec principle 2: Nova edits CRDs, the operator reconciles |
+| 3 | Who writes the CR | **Nova** (its ServiceAccount, with a Role limited to `Pipeline` in the namespaces of the user's owner groups) on behalf of an authenticated user; GitOps/`kubectl` for the platform team. Users never need `kubectl` | Spec principle 2: Nova edits CRDs, the operator reconciles |
 | 4 | What the operator does | Validates (CEL), creates/links the run-as principal, mirrors run status into `status`, garbage-collects. It does **not** run tasks | Execution stays in one place (Airflow) |
-| 5 | Identity of a run | `runAs` names a **service principal** (Keycloak client-credentials client, one per Tenant by default, `pipeline-<tenant>`). The creator must belong to the owner group. Grants are given to that principal, like any user | Databricks run-as service principal. A user token cannot be used: it expires and the user may leave |
+| 5 | Identity of a run | `runAs` names a **service principal** (Keycloak client-credentials client, one per owner group by default, `pipeline-<owner-group>`). The creator must belong to the owner group. Grants are given to that principal, like any user | Databricks run-as service principal. A user token cannot be used: it expires and the user may leave |
 | 6 | Execution classes | **Governed:** `sql`, `dbt`, `quality`, `notebook` reach data only through Trino with the run-as token, so catalog policy applies. **Trusted:** `spark-*`, `python`, `container` read object storage directly with an S3 key, so they bypass table policy until vended credentials work | Honest about the architecture: without STS (`sts-enabled: false`) an engine with an S3 key can read any table in that bucket. Trusted tasks are admin-only in v1 |
 | 7 | Spark | Batch jobs: **one `SparkApplication` per run** (kubeflow `spark-operator`, as the plug matrix says), sized per task; Spark Connect stays for notebooks | Per-run isolation, no always-on cost for scheduled work. Needs the Spark operator chart pinned (row 14 is "no repo, no pin" today) |
 | 8 | Notebook tasks | Run the notebook with `papermill` in a pod from the stardelt notebook image, with the run-as token in the environment exactly like the hub injects `TRINO_TOKEN`; the executed notebook is stored as the run output | Reuses the shipped identity mechanism; governed |
@@ -63,7 +63,7 @@ metadata:
   annotations: { stardelt.io/owner-group: analytics }
 spec:
   schedule: { cron: "0 3 * * *", timezone: Europe/Berlin }   # omit for manual only
-  runAs: pipeline-team-analytics          # service principal; must be in the owner group's tenant
+  runAs: pipeline-analytics          # service principal of the owner group
   params: { days: "1" }
   retries: { attempts: 2, backoff: 5m }
   timeout: 2h
@@ -105,7 +105,7 @@ time (not in the CR). Idempotency is the author's job; the docs recommend `MERGE
 
 ```
  Nova (Schedule button, Pipelines page)         GitOps / kubectl (platform team)
-        │ creates/edits Pipeline (Nova SA, tenant namespace)    │
+        │ creates/edits Pipeline (Nova SA, owner-group namespace)    │
         └──────────────────────────┬──────────────────────────────┘
                                    ▼
                        Pipeline CR  ──► operator: validate, run-as link, status mirror
@@ -126,7 +126,7 @@ time (not in the CR). Idempotency is the author's job; the docs recommend `MERGE
 |---|---|---|---|
 | **J0 plumbing** | Remote task logs to SeaweedFS; loader DAG + read-only ServiceAccount; a run-as principal for Trino (client credentials); `sql` task | `kubectl apply` a one-task `Pipeline`; a row appears in a table on schedule; the log survives the pod | spikes J1, J2, J3 |
 | **J1 Nova** | *Schedule* in the SQL editor creates the CR; Pipelines page: list, runs, task states, logs, run now, pause | an analyst schedules a query and sees its runs | J0, Nova Role for `Pipeline`, nova ticket on the audit log |
-| **J2 DAGs** | `tasks[]`/`dependsOn`, retries, params, `dbt`, `quality`, `notebook`, alerts | the example in §4 minus Spark | tenancy RFC ([operator#50](https://github.com/stardelt/stardelt-operator/issues/50)) for per-tenant principals |
+| **J2 DAGs** | `tasks[]`/`dependsOn`, retries, params, `dbt`, `quality`, `notebook`, alerts | the example in §4 minus Spark | decision D21 (no Tenant; owner groups) and the identity wave ([operator#55](https://github.com/stardelt/stardelt-operator/issues/55)) for per-owner-group principals |
 | **J3 Spark** | Pinned Spark operator, `spark-*` tasks as `SparkApplication`, admin-only | a PySpark job on a schedule with its own executors | spike J4; memory (§7) |
 | **J4 triggers and governance** | assets triggers, backfill action, lineage to OpenMetadata, vended credentials to retire the "trusted" class | a table update triggers a downstream pipeline | STS spike, OpenMetadata (spec P1) |
 
@@ -151,6 +151,6 @@ and executors (1 GiB each) fit only when no other heavy job runs; a 16 GB node i
 ## 9. Consequences
 
 - Positive: users define jobs without image builds or Python; one object for jobs and pipelines; every governed task runs under an identity that policy and audit can name; the same CR works from Nova, kubectl and GitOps.
-- Cost: a loader inside Airflow is custom code that must be correct and tested; the run-as principals need the tenancy and identity RFCs; remote logging adds object-store traffic.
+- Cost: a loader inside Airflow is custom code that must be correct and tested; the run-as principals need the identity wave (D20) and the owner-group model (D21); remote logging adds object-store traffic.
 - Risk: the trusted class is a real hole until vended credentials exist, which is why it is admin-only and visible in the UI.
 - Rejected: Dagster/Prefect as a second engine (spec says one); Argo Workflows as the scheduler (no data-aware features, second engine); a stardelt-owned scheduler (large build, no benefit).

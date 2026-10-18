@@ -472,6 +472,15 @@ clients request it as an optional scope.
 - **Token lifetime.** Lakekeeper's guide recommends a token-lifetime policy longer than the
   roughly one-hour default for interactive catalog use.
 
+## One IdP, several platform instances
+
+An organization often runs the platform more than once (staging, test, production) and has **one** IdP, for example a single Entra tenant. This is the `external` mode used several times, not a new object ([decision D20](../design/gap-decisions)):
+
+- **Same issuer, one app registration per instance.** Every instance uses the tenant's issuer (`https://login.microsoftonline.com/<tenant>/v2.0`) but its own registration (`stardelt-staging`, `stardelt-prod`) with its own redirect URIs and its own client secrets, referenced from that instance's `spec.identity`.
+- **Audience separates the stages.** Tokens carry the registration's client id as `aud`; each instance validates its own audience, so a staging token is refused by production.
+- **Map roles or groups per stage.** Define app roles (`stardelt-admins`, `stardelt-users`) on each registration and assign them to stage-specific Entra groups; use the `roles` claim (`groupClaim: roles`), which also avoids the group-overage problem described above. The admin group value and the claim name are per-instance settings.
+- **Keycloak (platform mode) is not shared this way.** One Keycloak per instance suits organizations without an IdP; with an IdP, point every instance at it.
+
 ## Forwarding at a glance
 
 ```text

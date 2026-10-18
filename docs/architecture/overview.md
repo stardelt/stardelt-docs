@@ -30,7 +30,7 @@ default values, installs exactly this:
 - **stardelt Nova** — unified UI: catalog browser, SQL editor, load & transfer, jobs, a platform
   health view that reports the images actually running, and deep-links into every service below.
 - **stardelt Operator** — CRD reconciler / control plane. Plans each component from a small
-  declarative API; `Tenant`, `PlatformInstance` and `Lakehouse` reconcile against a real cluster.
+  declarative API; `PlatformInstance` and `Lakehouse` reconcile against a real cluster.
 - **Apache Trino** — distributed SQL engine; fast interactive queries over Iceberg.
 - **Apache Iceberg** — the table format and the spine every engine reads and writes. Not a service
   you install: it lives in the engines and the catalog.
@@ -109,11 +109,7 @@ stardelt follows the **operator-per-service pattern**: each service is managed b
 
 ## Multi-tenancy
 
-Multi-tenancy primitives exist in v1 even though MVP deployments are single-tenant. This avoids a rewrite later:
-
-- Every stardelt resource carries a `stardelt.io/tenant` label. *Today* only the Namespace a `Tenant` creates has it.
-- Audit events carry `tenant_id`.
-- Tenant namespaces can be isolated by Kubernetes NetworkPolicies. *Today* no NetworkPolicy is installed; treat the namespace as flat ([gap analysis](../design/gap-analysis), §3).
+One `PlatformInstance` per platform. Data domains and compute are segregated by `Catalog` and `SqlWarehouse` resources with owner groups ([decision D21](../design/gap-decisions), [design](https://github.com/stardelt/stardelt-docs/issues/64)); audit events carry the acting identity. No `NetworkPolicy` is installed yet: treat the namespace as flat ([gap analysis](../design/gap-analysis), §3).
 
 ## Sovereignty
 
