@@ -122,7 +122,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** Install on the Hetzner dev cluster (or kind for the core subset) with `PROFILE=demo` + `smoke.sh` passes.
 **Depends.** WP-02 (CI proves it).
 **Size.** M.
-**Status.** Partially done, by a different mechanism: `helm-values/slim/` holds the small-node overrides and `make install-core SLIM=1` is the working cheap-node path, with `install` as the full one. Remaining: the `plugs/<plug>/values-<profile>.yaml` layout, a `PROFILE=` argument, and anyone honouring `PlatformInstance.spec.profile` (WP-23).
+**Status.** Partially done, by a different mechanism. `helm-values/slim/` holds the small-node overrides and `make install-core SLIM=1` is the working cheap-node path, with `install` as the full one, and the umbrella chart now takes the cluster-specific decisions as settings (`platform.baseDomain`, `ingress.*` incl. per-host TLS, `storage.className`, `images.pullSecrets`) — verified by installing a second, independent lakehouse in a fresh namespace and round-tripping a write through its own Trino → Lakekeeper → SeaweedFS. The operator also carries per-plug golden values now (WP-21). Remaining: the `plugs/<plug>/values-<profile>.yaml` layout, a `PROFILE=` argument, one place that owns the values (today the chart and the operator each carry a copy), and anyone honouring `PlatformInstance.spec.profile` (WP-23).
 
 ### WP-16 — Secrets out of version control (S)
 
@@ -199,6 +199,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** Contract-tier CI: apply → wait ready → `smoke.sh` catalog portion passes → delete → gone.
 **Depends.** WP-20, WP-15, WP-14.
 **Size.** L.
+**Status.** Substantially working. The reconciler plans and applies upstream releases from golden values plus per-Lakehouse overrides (`spec.values`, `spec.valuesFrom` for a ConfigMap/Secret document, per-component `spec.set`), with the merge order golden < valuesFrom < values < set, `dryRun: true` by default and an adopt guard. `plan_lakehouse` now covers storage, catalog *and* query. Verified against the live cluster: a second `Lakehouse` in a scratch namespace planned three components, a missing value source produced `Degraded` with the offending reference named while the other components still planned, and the golden values were corrected twice by what that run exposed (cluster-scoped CNPG belongs to `PlatformInstance`; SeaweedFS's migration ClusterRole must stay off). Remaining: a full non-dry-run install of a `Lakehouse` end to end, the warehouse bootstrap step, ownership labels/finalizer teardown, and the values currently duplicated out of `stardelt-platform/helm-values/`.
 
 ### WP-22 — Demo and stage switch to the operator (M)
 
@@ -217,6 +218,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** Integration-tier CI with `profile: demo` (should now be *the* install path).
 **Depends.** WP-21, WP-15.
 **Size.** M.
+**Status.** Partially done. `PlatformInstance` owns the cluster-scoped prerequisites — it plans the CNPG operator, which keeps two Lakehouses from fighting over the same ClusterRole — and `spec.dryRun` is honoured. Remaining: `spec.profile` still does not drive per-plug sizing, and nothing consumes `pillars` yet.
 
 ## 6. Track C — Governed lakehouse (P1; one contract per WP, only after Track A)
 
