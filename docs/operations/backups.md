@@ -14,11 +14,12 @@ backups in stardelt: what is protected, what is not, how to verify it yourself, 
 | Data | Protection | Where it lives |
 |---|---|---|
 | **Catalog metadata** (Lakekeeper's Postgres: warehouses, namespaces, table metadata, permissions) | continuous WAL archiving + a daily base backup, retention 14 days | the platform's object store, `s3://backups/lakekeeper-pg/` |
-| **The data itself** (Iceberg/Parquet files in SeaweedFS or your S3) | **not backed up yet** | — |
+| **The data itself** (Iceberg/Parquet files in SeaweedFS or your S3) | a daily `aws s3 sync` into an archive bucket; deletions are not mirrored | `s3://lakehouse-backup/` |
 
-The second row is the important caveat and it is deliberate: see [the gap](#the-gap-that-remains).
-Everything else in the platform is reproducible from Git — the install is values and charts, not
-state.
+The archive covers the accidents that actually happen — a dropped bucket, a bad lifecycle rule,
+`aws s3 rm --recursive` — and not the loss of the whole cluster, because it lives in the same
+SeaweedFS instance. See [the limits](#what-still-is-not-covered). Everything else in the platform is
+reproducible from Git: an install is values and charts, not state.
 
 ## How it works
 
@@ -28,9 +29,14 @@ object store as it is written and takes a base backup on the schedule in
 Together they give point-in-time recovery: restore to the last base backup and replay the WAL up to
 the moment you choose.
 
-Configuration lives in `manifests/cnpg-postgres.yaml` under `spec.backup`. By default both the
-backup bucket and the credentials come from the in-cluster SeaweedFS — a backup that needs an
-external service is a backup that is not there after a fire.
+The data archive is a CronJob (`manifests/object-store-backup.yaml`): `aws s3 sync` from the
+lakehouse bucket into `s3://lakehouse-backup/` at 03:15, after the catalog's 02:30 base backup — so a
+restore always finds a catalog that describes what is present. No `--delete`: the archive keeps
+objects the live bucket no longer has.
+
+Configuration lives in `manifests/cnpg-postgres.yaml` under `spec.backup`. By default both buckets and
+the credentials come from the in-cluster SeaweedFS — a backup that needs an external service is a
+backup that is not there after a fire.
 
 ## Verify it yourself
 
@@ -94,15 +100,34 @@ tables, the same table names as the source, and identical row counts on `warehou
   during an incident, not a design exercise. Run it against a scratch namespace on a schedule you
   actually keep.
 
-## The gap that remains
+## Restore the data
 
-**The Iceberg data files are not backed up.** The catalog can be fully restored and still point at
-Parquet files that no longer exist — the metadata is the map, not the territory. Closing this needs
-one of:
+The archive is a plain S3 copy, so a restore is a sync in the other direction — per prefix, or the
+whole bucket by dropping the `/smoke`:
 
-- S3 replication from SeaweedFS to a second bucket or a remote cluster (SeaweedFS supports
-  replication and `weed backup`; the chart does not wire it yet), or
-- an object-store-level snapshot/mirror at whatever you use for production storage.
+```bash
+kubectl -n stardelt create job --from=cronjob/lakehouse-backup lakehouse-backup-now   # refresh first
+# then, from any pod with the S3 credentials (or your own host with the same keys):
+aws s3 sync s3://lakehouse-backup/smoke s3://lakehouse/smoke --endpoint-url "$AWS_ENDPOINT_URL"
+```
 
-Until then, treat the object store as the component that needs your own backup policy, and do not
-read this page as saying the platform is fully protected.
+**This was tested, not just written:** an object was deleted from the live bucket and pulled back
+from the archive, byte for byte. Two properties matter in an incident:
+
+- The job never deletes from the archive, so an object that was removed from the live bucket *after*
+  a backup run is still there. Restoring a prefix can therefore bring back more than you expect —
+  check what you are restoring before you sync it over live data.
+- Catalog and data are restored separately, and the catalog must come first: recovering the files
+  without the metadata leaves objects nobody can find.
+
+## What still is not covered
+
+- **Losing the cluster.** The archive is a second bucket in the *same* SeaweedFS instance. It
+  survives a mistake, not a fire. For real off-site protection use SeaweedFS' own replication to a
+  remote cluster, or run the sync from a host that holds off-site credentials.
+- **A tooling gap worth knowing:** `aws s3 sync` speaks to one endpoint with one credential set per
+  invocation, and `rclone` — the obvious tool for a two-endpoint copy — **hangs against this S3
+  endpoint** (a 20-byte PUT never returns; verified in the cluster). The manifest says so rather than
+  leaving the next person to rediscover it.
+- **Per-tenant granularity.** One archive bucket for the whole lakehouse. Once several tenants share
+  a cluster, their archives should be separated too.
