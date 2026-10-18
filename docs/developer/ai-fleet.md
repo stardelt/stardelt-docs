@@ -64,7 +64,8 @@ workers the CLI does.
 - The portal shows conversations; you steer and approve.
 - Mutating actions are gated by approvals; the durable guard is **branch + PR**, not prompt
   text.
-- Agents never push to `main`. Branch protection is the real enforcement.
+- Agents never push to `main`. GitHub branch protection is not enabled yet (see
+  [WP-01](../design/execution-plan)), so for now this is a rule the fleet follows and a human merge enforces.
 
 ## Rules for the fleet
 

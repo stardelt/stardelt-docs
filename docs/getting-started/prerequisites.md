@@ -64,7 +64,7 @@ not what an enterprise workload needs.
 stardelt-platform/dev/install-tools.sh
 
 # provision the dev cluster
-export HCLOUD_TOKEN=...        # or: hcloud context create stardelt
+export HCLOUD_TOKEN=...        # or put it in ~/.config/stardelt/hetzner.env
 cd stardelt-platform && make dev-up
 export KUBECONFIG="$HOME/.kube/stardelt-dev.yaml"
 

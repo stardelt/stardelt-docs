@@ -21,7 +21,7 @@ how the services connect, see the [Overview](./overview); for licensing, [Licens
 ### stardelt Nova
 
 Unified web UI and API gateway: catalog browser over Iceberg tables (preview, columns, details), SQL
-editor, load & transfer (CSV/JSON upload, table copy), jobs, lineage view, dashboards, platform health
+editor, load & transfer (CSV/JSON upload, table copy), jobs, a lineage page (a static illustration of the demo schema until OpenLineage capture lands), a Superset dashboards embed, platform health
 that lists every workload with the image it actually runs, and live app status with deep-links into
 the native UI of each service below. An offline demo mode (`NOVA_DEMO=1`) runs with no cluster. Single
 SSO landing and audit search are planned. TypeScript + React front-end, Rust + axum back-end. Apache 2.0.

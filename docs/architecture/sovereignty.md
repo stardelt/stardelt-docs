@@ -41,7 +41,7 @@ If you can't audit it, you can't trust it.
 ### 3. Air-gap installable
 
 - All stardelt-published container images live at a single prefix (`ghcr.io/stardelt/...`) and are mirrorable to a private registry (Harbor, Zot, vendor-specific).
-- A documented air-gap install profile (`platform.airgap: true`) routes every component to the local mirror.
+- A documented air-gap install profile (`PlatformInstance.spec.profile: airgap`) routes every component to the local mirror.
 - Each release publishes an `images.tar` bundle containing every image required for a complete install.
 - No `latest` tag dependencies. Every image reference is pinned to a digest.
 - Runtime has no outbound DNS requirements.

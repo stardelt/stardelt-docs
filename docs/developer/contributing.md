@@ -12,7 +12,9 @@ the source of truth for what stardelt is, and this page only describes *process*
 
 The two invariants everything else follows from:
 
-1. **`main` is protected. Nothing is pushed to it directly.** Every change arrives as a pull request.
+1. **Nothing is pushed to `main` directly.** Every change arrives as a pull request. (GitHub branch
+   protection is not enabled on the repos yet — see [WP-01](../design/execution-plan) — so today this is a
+   rule you follow and reviewers check, not one the server enforces.)
 2. **`main` is always installable.** If your branch does not build (see [checks](#before-you-open-a-pr)), it does not merge.
 
 ## Branching model
@@ -29,7 +31,8 @@ Branch from an up-to-date `main`, keep the branch short-lived, name it after the
 
 Rules:
 
-- **PR-only.** Branch protection is the enforcement; "never push to `main`" is not etiquette.
+- **PR-only.** "Never push to `main`" is a hard rule, not etiquette; branch protection is the planned
+  enforcement.
 - **Draft PRs are welcome.** Open one as soon as there is something to look at; it is the cheapest
   way to get early feedback and it reserves the branch name.
 - **One work package at a time.** Small PRs get reviewed; mega-changes stall. Split rather than push
@@ -126,8 +129,8 @@ kubectl -n stardelt set image deploy/nova nova=ghcr.io/stardelt/nova@sha256:…
 ```
 
 A mutable tag is not an upgrade path: the kubelet may keep serving a cached layer, so "the tag moved"
-and "the cluster changed" are different events. `make image` in a repo still works for local
-iteration, but nothing in the platform install depends on it.
+and "the cluster changed" are different events. `make image` in `stardelt-nova` (or `make build-superset-image` in
+`stardelt-platform`) still works for local iteration, but nothing in the platform install depends on it.
 
 ## Changelog strategy
 
@@ -194,7 +197,7 @@ If you contribute with a model:
 | `stardelt-docs` | `npm run build` (zero broken links) |
 | `stardelt-nova` | `cargo check`, then `npm --prefix frontend run build` |
 | `stardelt-operator` | `cargo check` |
-| `stardelt-platform` | `helm lint` on changed values, `bash -n` on changed scripts |
+| `stardelt-platform` | `make lint` (`bash -n` + ShellCheck on the scripts); `helm template` / `make chart-template` for changed values or chart |
 | `stardelt-demos` | `make up && make smoke` |
 
 Paste the command and its result in the PR description. That one line is what turns a draft into
