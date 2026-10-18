@@ -28,6 +28,7 @@ const sidebars: SidebarsConfig = {
         'architecture/services',
         'architecture/identity',
         'architecture/identity-integrations',
+        'architecture/permissions-research',
         'architecture/licenses',
         'architecture/sovereignty',
       ],
@@ -36,7 +37,18 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Design',
       collapsed: false,
-      items: ['design/master-spec', 'design/execution-plan', 'design/nova-feature-parity', 'design/gap-decisions', 'design/gap-analysis'],
+      items: [
+        'design/master-spec',
+        'design/execution-plan',
+        'design/nova-feature-parity',
+        'design/gap-decisions',
+        'design/gap-analysis',
+        {
+          type: 'link',
+          label: 'Permission model research (Unity Catalog / Dremio)',
+          href: '/docs/architecture/permissions-research',
+        },
+      ],
     },
     {
       type: 'category',
