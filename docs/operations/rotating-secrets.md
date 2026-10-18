@@ -14,19 +14,20 @@ what depends on it. Namespace `stardelt` is assumed. Never print a Secret value 
 
 | Secret | Keys | Created by | Read by | After a rotation |
 |---|---|---|---|---|
-| `stardelt-s3-creds` | `access-key`, `secret-key`, `endpoint`, `bucket`, `region` | `scripts/secrets-bootstrap.sh` / chart | Trino, Lakekeeper bootstrap, Airflow, CNPG backups | restart Trino; refresh Lakekeeper's warehouse credential; restart the CNPG pod |
+| `stardelt-s3-creds` | `access-key`, `secret-key`, `endpoint`, `bucket`, `region` | `scripts/s3-secrets.sh` / chart (**ticketed**, #100 #101; today a committed dev file) | Trino, Lakekeeper bootstrap, Airflow, CNPG backups | restart Trino; refresh Lakekeeper's warehouse credential; restart the CNPG pod |
 | `seaweedfs-s3-config` | `seaweedfs_s3_config` (JSON, same key pair) | same, derived from the above | SeaweedFS S3 gateway | rolls with the Helm upgrade |
-| `keycloak-admin` | `username`, `password` | `identity-bootstrap.sh` / chart | Keycloak (bootstrap admin) | restart Keycloak; the bootstrap admin is only created on first start, so also change the password in the console |
-| `stardelt-realm-admin` | `username`, `password` | same | realm import (first start only) | change it in the realm; the Secret is not re-read |
-| `stardelt-oidc-clients` | `nova`, `superset`, `airflow`, `jupyterhub` | same | Keycloak realm import (first start only), each app | change the client secret in Keycloak first, then the Secret, then restart the app |
+| `keycloak-admin` | `username`, `password` | `identity-bootstrap.sh` / chart | Keycloak (bootstrap admin) | the bootstrap admin is only created on first start: change the password in the console too |
+| `stardelt-realm-admin` | `username`, `password` | same | realm import and `scripts/sync-realm-admin.sh` | re-run `make install-identity`, it re-applies and verifies it |
+| `stardelt-oidc-clients` | `nova`, `superset`, `airflow`, `jupyterhub` | same | Keycloak clients, each app | `make install-identity` re-applies the client secrets (`scripts/sync-oidc-clients.sh`), then restart the app |
 | `stardelt-nova-session` | `session` | same | Nova | restart Nova; everyone is signed out |
-| `stardelt-superset` | `SUPERSET_SECRET_KEY`, `SUPERSET_ADMIN_PASSWORD` | bootstrap / chart | Superset pods | invalidates sessions and stored DB passwords; reset the admin password inside Superset |
-| `stardelt-airflow` | `fernet-key`, `jwt-secret`, `webserver-secret-key`, `api-secret-key`, `admin-password` | same | Airflow pods | a new Fernet key makes stored connection passwords unreadable: re-enter them |
+| `superset-secret-key` | `secret-key` | `scripts/app-secrets.sh` / chart | Superset pods | invalidates sessions and stored database passwords |
+| `superset-admin` | `username`, `password`, `firstname`, `lastname`, `email` | same | Superset init job | the init job only creates the user once: reset the password inside Superset |
+| `airflow-fernet-key` | `fernet-key` | same | Airflow pods | a new Fernet key makes stored connection passwords unreadable: re-enter them |
+| `airflow-webserver-key`, `airflow-jwt-secret` | `webserver-secret-key`, `api-secret-key`; `jwt-secret` | same | Airflow pods | invalidates sessions and API tokens |
+| `airflow-admin` | `username`, `password` | same | Airflow create-user job | the job only creates the user once: reset it in the Airflow UI |
 | `*-pg-app` (CNPG) | `username`, `password` | CloudNative-PG | Lakekeeper, Keycloak | managed by the operator; rotate with its documentation |
 
-Keycloak imports its realm only on first start: changing `stardelt-oidc-clients` or
-`stardelt-realm-admin` does not change the running realm. Change the value in Keycloak (admin
-console through a port-forward, see [security model](../architecture/security-model)), then align the Secret.
+Keycloak imports its realm only on first start; the identity scripts re-apply the client secrets and the realm admin password on every `make install-identity` and verify them. The master-realm console is not published; use `kcadm.sh` inside the pod (see [security model](../architecture/security-model)).
 
 ## Rotating the S3 key pair
 
@@ -57,6 +58,4 @@ install keeps an existing Secret. Delete it as above to move to a generated one.
 
 ## Status
 
-Generated credentials and the bootstrap script are ticketed under
-[stardelt-platform#53](https://github.com/stardelt/stardelt-platform/issues/53); until they merge, the
-Secrets above that hold fixed defaults can only be changed by editing the values files by hand.
+The Airflow, Superset and Keycloak rows are built. The S3 rows describe the target: until [#100](https://github.com/stardelt/stardelt-platform/issues/100) and [#101](https://github.com/stardelt/stardelt-platform/issues/101) merge, the live key pair is the committed one, and the rotation below is the cutover ticket [#108](https://github.com/stardelt/stardelt-platform/issues/108).

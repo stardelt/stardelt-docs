@@ -6,10 +6,10 @@ slug: /architecture/security-model
 
 # Security model
 
-What stardelt exposes, what it trusts, and where credentials come from. Status of each rule is
-marked **built**, **ticketed** (a ready-to-implement ticket exists) or **open** (decision pending).
+What stardelt exposes, what it trusts, and where credentials come from. Each rule is
+marked **built**, **ticketed** (a ready-to-implement ticket exists) or **open**.
 The gap analysis ([G-C1, G-M3](../design/gap-analysis)) records where `main` still differs; the
-tracking issue is [stardelt-platform#53](https://github.com/stardelt/stardelt-platform/issues/53).
+tracking issue (with current status) is [stardelt-platform#53](https://github.com/stardelt/stardelt-platform/issues/53).
 
 ## Trust boundaries
 
@@ -23,23 +23,21 @@ tracking issue is [stardelt-platform#53](https://github.com/stardelt/stardelt-pl
 
 ## Publishing rules
 
-1. **Default-deny publishing.** A component gets a public Ingress only if it authenticates users
-   against the platform identity. Components without sign-in (Trino, Lakekeeper, today Superset/Airflow/JupyterHub)
-   are reachable by port-forward, or through an explicit opt-in file/value that says why it is unsafe
-   (**ticketed**: [#48](https://github.com/stardelt/stardelt-platform/issues/48), [#49](https://github.com/stardelt/stardelt-platform/issues/49)).
-2. **Keycloak publishes only what a browser or client needs**, following Keycloak's own
-   [reverse-proxy guide](https://www.keycloak.org/server/reverseproxy): `/realms`, `/resources`
-   and `/.well-known` are public; `/`, `/admin`, `/metrics`, `/health` are not; `/realms/master`
-   (the administrative realm) is internal. The admin console is reached through
-   `kubectl port-forward svc/keycloak 8080:8080` with `KC_HOSTNAME_ADMIN=http://localhost:8080`
-   (**ticketed**: [#97](https://github.com/stardelt/stardelt-platform/issues/97),
-   [#98](https://github.com/stardelt/stardelt-platform/issues/98),
-   [#99](https://github.com/stardelt/stardelt-platform/issues/99)). The path layout was exercised on
-   the dev cluster's ingress-nginx: unlisted paths answer 404, `/realms/master` answers 403.
-3. **Trino is never published by default.** Humans use Nova's SQL editor; tools use a port-forward.
-   Native OAuth2 (coordinator TLS, confidential client, token forwarding) is the target for
-   per-user identity (**open**: [RFC #106](https://github.com/stardelt/stardelt-platform/issues/106)).
-   An edge-proxy gate (oauth2-proxy) is rejected: it adds a component for a UI most users do not need.
+1. **A component is published only if it authenticates users against the platform identity.**
+   Built: Nova (OIDC), Superset and Airflow (Keycloak SSO), JupyterHub (Keycloak, group-gated) and
+   Trino (every statement needs a Keycloak token; an unauthenticated `POST /v1/statement` is answered 401).
+   Lakekeeper is not published. The umbrella chart renders an Ingress for a component without sign-in
+   only when asked (`ingress.exposeUnauthenticated`).
+2. **Keycloak publishes an allow-list, not the whole host.** Built in the playground Ingress and in
+   `chart/templates/ingress.yaml` as ingress-nginx regexes, following Keycloak's
+   [reverse-proxy guide](https://www.keycloak.org/server/reverseproxy): `/realms/stardelt`, `/resources`,
+   `/robots.txt`, and the `stardelt` realm's console (`/admin/stardelt`, `/admin/realms/stardelt`,
+   `/admin/serverinfo`) so platform admins can manage users. The master realm (`/realms/master`,
+   `/admin/master`), `/health` and `/metrics` fall through to 404. For master-realm work use
+   `kubectl -n stardelt exec -it deploy/keycloak -- /opt/keycloak/bin/kcadm.sh` (break-glass).
+3. **Service-to-service calls to Trino inside the cluster** still travel over plain HTTP, where
+   Trino only accepts the insecure authenticator. Coordinator TLS is the open item
+   ([#80](https://github.com/stardelt/stardelt-platform/issues/80)).
 
 ## Credentials contract
 
@@ -49,8 +47,9 @@ time, once, and never rotated implicitly.
 | Path | How it is generated | Where |
 |---|---|---|
 | Helm chart | `randAlphaNum` + `lookup` (kept across `helm upgrade`), `helm.sh/resource-policy: keep` | `chart/templates/*.yaml` |
-| Makefile install | `openssl rand`, mode-0600 temp files, never on a command line or in a log, skipped if the Secret exists | `scripts/identity-bootstrap.sh`, `scripts/secrets-bootstrap.sh` |
-| Guard | CI fails when a known default string is committed | `scripts/check-no-default-secrets.sh` (**ticketed**: [#107](https://github.com/stardelt/stardelt-platform/issues/107)) |
+| Makefile install | `openssl rand`, mode-0600 temp files, never on a command line or in a log, skipped if the Secret exists | `scripts/identity-bootstrap.sh` (Keycloak, OIDC clients, Nova session), `scripts/app-secrets.sh` (Airflow, Superset) |
+| **Still committed** | the SeaweedFS S3 key pair (`chart/values.yaml`, `helm-values/seaweedfs.yaml`, `manifests/s3-credentials.dev.yaml`) | generation is ticketed: [#100](https://github.com/stardelt/stardelt-platform/issues/100), [#101](https://github.com/stardelt/stardelt-platform/issues/101), [#102](https://github.com/stardelt/stardelt-platform/issues/102); rotation of the live cluster: [#108](https://github.com/stardelt/stardelt-platform/issues/108) |
+| Guard | CI fails when a known default string is committed | `scripts/check-no-default-secrets.sh`, ticketed: [#107](https://github.com/stardelt/stardelt-platform/issues/107) |
 
 The inventory of every secret (who creates it, who reads it, how it rotates) is in
 [rotating secrets](../operations/rotating-secrets).
@@ -60,6 +59,6 @@ The inventory of every secret (who creates it, who reads it, how it rotates) is 
 - Network isolation: no `NetworkPolicy` exists anywhere; the namespace is flat
   ([tenancy RFC](https://github.com/stardelt/stardelt-operator/issues/50)).
 - Per-user authorization: Lakekeeper runs `allowall` and Trino has no authenticator, so any signed-in user
-  can run any SQL through Nova under Nova's identity ([docs#34](https://github.com/stardelt/stardelt-docs/issues/34)).
+  can run any DDL/DML their token allows (Trino now sees the user, but has no access rules yet) ([docs#34](https://github.com/stardelt/stardelt-docs/issues/34)).
 - A secrets manager (OpenBao / External Secrets) is in the design but in no install path
   ([licenses](./licenses), gap G-M3).
