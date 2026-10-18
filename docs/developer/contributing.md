@@ -176,6 +176,71 @@ Policy:
 - A chart version bump with no behavior change gets a **one-line upgrade note**, not a guide.
 - Never ship an upgrade note that has not been executed against the dev cluster.
 
+## Writing a ticket
+
+A ticket is ready when someone who has never seen the repo — a new contributor, or a small model with
+no memory of earlier discussion — can implement it **without asking a question**. The
+[implementation ticket template](https://github.com/stardelt/.github/blob/main/.github/ISSUE_TEMPLATE/implementation_ticket.md)
+enforces the shape; label a finished one `ready-to-implement`. If you cannot fill a section, the ticket is
+not ready — list the gap under *Open questions* and leave the label off.
+
+Rules that make a ticket implementable:
+
+| Rule | Why |
+|---|---|
+| Name the **file, symbol and line** (`controller.rs`, `reconcile_platform`, a permalink), never "the controller" | An implementer cannot search for what it cannot name |
+| Give **before → after** for any edit under ~15 lines | Removes interpretation |
+| State what **not** to touch, and "no new dependencies" unless needed | Keeps the diff reviewable and the PR small |
+| Give the **exact verify command and the expected output** | "It works" is not checkable |
+| Acceptance criteria are **observable** and testable | Each box maps to a test or a command |
+| Name **generated files** and the command that regenerates them | The most common silent breakage |
+| One ticket = one PR, size S (≤ 30 lines) or M (≤ 150); split an L | Small PRs get merged |
+
+### Worked example
+
+> **operator/crd: make the platform install namespace configurable**
+>
+> **Why.** `PlatformInstance` always installs into the namespace `stardelt`; the value is hard-coded in the
+> reconciler, so a second platform on the same cluster, or a different namespace policy, cannot be expressed.
+> (Master spec §5: every plug is configured from the CRD.)
+>
+> **Current behavior.** `reconcile_platform` passes the literal `"stardelt"` to `apply_plan`
+> (`crates/stardelt-operator/src/controller.rs`, in `reconcile_platform`, the second argument of the
+> `apply_plan(&ctx, "stardelt", …)` call). `PlatformInstanceSpec` (`crd.rs`) has no namespace field.
+>
+> **Required change.**
+>
+> 1. `crd.rs`: add to `PlatformInstanceSpec`
+>    ```rust
+>    /// Namespace the platform's own components are installed into.
+>    #[serde(default = "default_namespace")]
+>    pub namespace: String,
+>    ```
+>    and, next to `default_true`, `fn default_namespace() -> String { "stardelt".into() }`.
+> 2. `controller.rs`, `reconcile_platform`: replace the literal `"stardelt"` with `&instance.spec.namespace`.
+> 3. Regenerate the CRDs: `cargo run --bin crdgen` and commit `chart/crds/stardelt.io_platforminstances.yaml`.
+> 4. `crd.rs` tests: add `platform_instance_namespace_defaults_to_stardelt` — deserialize a `PlatformInstance`
+>    without `spec.namespace` and assert `"stardelt"`; and one that sets `spec.namespace: lab` and asserts `"lab"`.
+>
+> **Do NOT.** Touch `Lakehouse` (it already uses its own `metadata.namespace`); validate or create the
+> namespace (Helm's `--create-namespace` does that); rename the existing fields.
+>
+> **Verify.**
+> ```bash
+> cargo fmt --check && cargo clippy --all-targets -- -D warnings
+> cargo test platform_instance_namespace      # expect: 2 passed
+> git diff --stat chart/crds                  # expect: only stardelt.io_platforminstances.yaml changed
+> ```
+>
+> **Acceptance.** ☐ both tests pass ☐ an unmodified `PlatformInstance` still reconciles into `stardelt`
+> ☐ the generated CRD lists `spec.namespace` with default `stardelt` ☐ the *PlatformInstance* section of the
+> operator README documents the field.
+>
+> **Pitfalls.** `chart/crds/` is generated — never edit it by hand. Helm installs CRDs on `install` only, so
+> an existing cluster needs `kubectl apply --server-side -f chart/crds/`.
+>
+> **Size.** S. Branch `feat/platform-namespace`.
+
 ## AI-assisted contributions
 
 The maintainer runs an [AI development fleet](./ai-fleet) that implements work packages in these same
