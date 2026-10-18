@@ -29,6 +29,7 @@ const sidebars: SidebarsConfig = {
         'architecture/identity',
         'architecture/identity-integrations',
         'architecture/permissions-research',
+        'architecture/security-model',
         'architecture/licenses',
         'architecture/sovereignty',
       ],
@@ -57,6 +58,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'operations/production',
         'operations/backups',
+        'operations/rotating-secrets',
       ],
     },
     'roadmap',
