@@ -100,6 +100,7 @@ own tooling — they are the signals that actually predict trouble here:
 | Trino `query.max-memory` pressure and failed queries in its UI | the first symptom of undersized heaps |
 | Node disk and memory | SeaweedFS and Trino are the consumers; a full disk fails writes |
 | Certificate expiry (`kubectl get certificates -A`) | an expired ingress cert is a silent outage |
+| The `audit` target in Nova's log (`RUST_LOG=audit=info`) | one line per mutating request with the caller — and one per refusal: the only place that answers "who did this?", and the first thing an incident needs |
 | Helm release status (`helm list -A`) | catches a release stuck in `pending-upgrade` before an upgrade does |
 | Writes to a **new** bucket hanging | SeaweedFS' volume server ran out of volume slots: the master cannot create a volume for a new collection and the client just blocks (`failed to find writable volumes … Not enough data nodes found` in the master log). The chart sets `maxVolumes: 100`; the upstream default (0 → auto-configure, **7** on Linux) runs out on a real install |
 
