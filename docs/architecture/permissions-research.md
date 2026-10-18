@@ -12,7 +12,7 @@ slug: /architecture/permissions-research
 
 **How to read it.** Parts 1 and 2 are vendor documentation summaries, every claim linked with the date read. Part 3 is the mapping, and names **one authoritative layer per check**. Part 4 is a proposed minimal v1 grant model and its gaps. Part 5 is the list of things stardelt will not build. Part 6 is the citations; part 7 is what documentation could not settle.
 
-Read alongside: [identity](./identity) (subjects are Keycloak groups), [identity integrations](./identity-integrations) (per-block mechanics, pinned versions, what is *unverified*), [master spec](../design/master-spec) §5–§7, [gap decisions](../design/gap-decisions) (D8–D16), and [roadmap](../roadmap).
+Read alongside: [identity](./identity) (subjects are Keycloak groups), [identity integrations](./identity-integrations) (per-block mechanics, pinned versions, what is *unverified*), [master spec](../design/master-spec) §5–§7, [gap decisions](../design/gap-decisions) (D8–D16), and [roadmap](../roadmap). The same grant model is what bounds the copilot's context — see [Copilot research and proposal](./copilot-research) for the AI surface built on it.
 
 ---
 
