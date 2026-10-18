@@ -142,6 +142,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** The CI double-install job is green.
 **Depends.** WP-02, WP-15.
 **Size.** M.
+**Status.** Partially verified by hand, no CI assertion yet. A second `make install-core SLIM=1` against the live dev cluster exited 0 with every release still `deployed`, no renamed or missing workloads, and all pods healthy — the installer converges instead of duplicating. Two behaviours were measured rather than assumed, and both are now in the production page: each release gains a Helm revision on every re-run even when nothing changed (Helm's behaviour, ten revisions kept by default), and re-applying `manifests/nova-deployment.yaml` resets Nova's image to the mutable `:dev` tag, which is why `make pin` exists. Remaining: a double-install assertion in CI (`kubectl diff`-style, since "exit 0" is weaker than "no changes"), the bootstrap Jobs using a completion pattern rather than relying on Helm's hook semantics, and a real chart-version bump exercised end to end.
 
 ### WP-11 — Nova dashboards through the gateway (M)
 
