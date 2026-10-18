@@ -30,15 +30,31 @@ The [master spec](design/master-spec.md) is the single source of truth for what 
 
 ### Current stage (2026-10)
 
-The design is done, and the platform is no longer paper. A live single-node **dev environment**
-exists — Hetzner **k3s** (`cx33`, ~€10/month) running the **core** stack (**CloudNative-PG,
-SeaweedFS, Lakekeeper, Trino**) plus **Nova** and **JupyterHub**, with Let's Encrypt TLS served
-through the `dev/playground` ingress-nginx. [alpha.dev.stardelt.io](https://alpha.dev.stardelt.io) is Nova; `trino.` and
-`jupyter.` answer on the same domain. **Superset and Airflow are not installed** there — they need
-the `full` profile and a 16 GB node. The operator's CRDs, reconcile planner and controller
-skeleton exist and are unit-tested, but no adapter installs an upstream chart from a CRD yet, and
-nothing proves the stack headlessly. Both are what the
-[execution plan](design/execution-plan.md) queues next.
+The design is done, and the platform is no longer paper. A live single-node **dev environment** exists —
+Hetzner **k3s** (`cx33`, ~€10/month) running the **core** profile (CloudNativePG, SeaweedFS, Lakekeeper,
+Trino) plus **Nova** and **JupyterHub**, with Let's Encrypt TLS served through the `dev/playground`
+ingress-nginx. [alpha.dev.stardelt.io](https://alpha.dev.stardelt.io) is Nova; `trino.` and `jupyter.`
+answer on the same domain. **Superset and Airflow are not installed** there — they need the `full` profile
+and a 16 GB node.
+
+What has moved since this page was first written:
+
+- **The control plane reconciles.** `Tenant`, `PlatformInstance` and `Lakehouse` reconcile against the live
+  cluster: namespaces are created, and each component's upstream Helm release is planned, and applied with
+  `spec.dryRun: false`, behind an adopt guard that refuses to take over a release the operator did not
+  create.
+- **Images are built by CI.** Merge to `main` publishes `ghcr.io/stardelt/*` with an immutable tag plus a
+  digest, which is what deployments pin — no more hand-built images on the node.
+- **The install is values-driven.** The umbrella chart in `stardelt-platform/chart` takes the
+  cluster-specific decisions as settings — domain, ingress class, TLS issuer, storage class, registry pull
+  secrets — so the same chart fits a cluster other than this one. See
+  [Your own cluster](getting-started/your-cluster).
+- **Nova reports the platform it runs on.** Apps are probed live, and Health lists every workload with the
+  image it actually runs, digests included.
+
+Still open, and what the [execution plan](design/execution-plan.md) queues next: nothing proves an install
+headlessly yet (WP-02), SSO has not landed (WP-12/WP-18), and `main` is still not branch-protected, so a
+red CI run can merge (WP-01).
 
 ## Phase 1 — Lakehouse MVP
 

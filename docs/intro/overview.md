@@ -22,11 +22,13 @@ cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
 - **One CRD, not 47 YAMLs.** The stardelt Operator reconciles a small set of
   top-level CRDs into the per-service operators below. That's the gap left by
   the previous generation of Kubernetes data stacks.
-- **Modern stack, no Hadoop heritage.** Apache Iceberg via Lakekeeper, Trino
-  for interactive SQL, Spark Connect for distributed compute, JupyterHub for
-  notebooks, Superset for BI, Apache Kafka (KRaft) for streaming, SeaweedFS
-  for object storage, Airflow for orchestration — composed by the stardelt
-  Operator and surfaced through stardelt Nova.
+- **Modern stack, no Hadoop heritage.** Apache Iceberg via Lakekeeper as the table
+  spine, Trino for interactive SQL, SeaweedFS for object storage, JupyterHub for
+  notebooks, Superset for BI, Airflow for orchestration — composed by the stardelt
+  Operator and surfaced through stardelt Nova. Spark Connect for distributed
+  compute and Apache Kafka (KRaft) for streaming are specified for later phases;
+  [Services](../architecture/services) marks exactly what ships today and
+  [Roadmap](../roadmap) says when the rest lands.
 
 ## Where to go next
 

@@ -14,39 +14,56 @@ This page is the high-level overview. Per-service detail (what each service does
 
 ![stardelt service architecture: Kubernetes platform at the base, the always-installed stardelt core stack of data services, opt-in services that operators can enable, and stardelt Nova and the stardelt Operator on top](/img/architecture-layers.svg)
 
+*The target architecture from the [master spec](../design/master-spec) §6 — it names services that are
+specified but not built yet. [Services](./services) is the honest list of what an install contains
+today; the [roadmap](../roadmap) carries the phasing.*
+
 ### Kubernetes — the platform you bring
 
 stardelt is *not* a Kubernetes distribution. Any conformant cluster works: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, kind, or a sovereign-cloud K8s (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway). Supported versions: current N and N-1.
 
-### stardelt core stack — always installed
+### Core profile — what an install ships today
 
-The opinionated set that defines what stardelt *is*. Every install ships these services:
+The opinionated set that defines what stardelt *is*. `make install-core`, or the umbrella chart's
+default values, installs exactly this:
 
-- **stardelt Nova** — unified UI. SSO landing, catalog browser, lineage view, audit search, platform health, and deep-links into the native UI of every service below.
-- **stardelt Operator** — CRD reconciler / control plane. Composes the services below from a small declarative API.
+- **stardelt Nova** — unified UI: catalog browser, SQL editor, load & transfer, jobs, a platform
+  health view that reports the images actually running, and deep-links into every service below.
+- **stardelt Operator** — CRD reconciler / control plane. Plans each component from a small
+  declarative API; `Tenant`, `PlatformInstance` and `Lakehouse` reconcile against a real cluster.
 - **Apache Trino** — distributed SQL engine; fast interactive queries over Iceberg.
-- **Apache Spark (Spark Connect)** — distributed compute. Spark Connect exposes a persistent remote endpoint so notebooks and other clients connect without spawning their own driver.
-- **Apache Airflow** — workflow orchestration for batch and scheduled jobs.
-- **JupyterHub** — multi-user notebook environment; the front door for interactive analysis.
-- **Apache Superset** — BI and dashboards over Trino.
-- **Apache Iceberg** — open table format; the storage abstraction every engine reads and writes.
+- **Apache Iceberg** — the table format and the spine every engine reads and writes. Not a service
+  you install: it lives in the engines and the catalog.
 - **Lakekeeper** — Iceberg REST catalog; vends table metadata and short-lived object-store credentials.
-- **SeaweedFS** — S3-compatible object storage; the default data plane.
-- **Apache Kafka (KRaft)** — event-streaming backbone for ingest, CDC, and audit events.
+- **SeaweedFS** — S3-compatible object storage; the default data plane. Bring your own S3 instead.
+- **CloudNativePG** — Postgres for the catalog's own metadata.
 
-### Opt-in services — enabled per operator choice
+### Optional components — in the chart, off by default
 
-These extend stardelt but aren't required. Operators often have existing equivalents already in the cluster:
+Enabled per install (`make install`, or `<component>.enabled: true` in your values file):
+
+- **Apache Superset** — BI and dashboards over Trino.
+- **Apache Airflow** — workflow orchestration for batch and scheduled jobs.
+- **JupyterHub** — multi-user notebook environment.
+
+### Planned services — specified, not built yet
+
+These are designed but not in the install path. The [master spec](../design/master-spec) §5 plug
+matrix is the authority on what each one is and the phase it lands in; the [roadmap](../roadmap)
+carries the sequencing. Listing them here is a promise about direction, not about today.
 
 - **Keycloak** — OIDC / SAML / LDAP provider. Skip if your cluster already federates an IdP.
-- **VictoriaMetrics + VictoriaLogs + Perses + Jaeger** — metrics, logs, dashboards and traces. Skip if your cluster already has an observability stack.
-- **OpenCost** — cost attribution per tenant, namespace and workload.
-- **Alertmanager** — alert routing, paired with VictoriaMetrics.
-- **cert-manager** — TLS certificate lifecycle.
-- **Argo CI** — GitOps delivery.
-- **Apache SeaTunnel** — data integration / EL connectors.
-- **Apache Flink** — stream processing for event-driven pipelines and CDC.
-- **Open Policy Agent (OPA)** — fine-grained policy enforcement.
+- **OpenMetadata** — the metadata, lineage and quality spine.
+- **Apache SeaTunnel, Apache NiFi, Debezium** — the three ingestion domains (SaaS, enterprise, CDC).
+- **dbt-core + Soda** — transforms and quality gates.
+- **Apache Spark (Spark Connect)** — distributed compute for heavy jobs.
+- **Apache Kafka (Strimzi) + Apache Flink** — streaming and CDC processing.
+- **MLflow, KServe, vLLM / Ollama** — ML lifecycle, model serving, sovereign LLM inference.
+- **Observability — VictoriaMetrics, VictoriaLogs, Perses, Jaeger, OpenCost, Alertmanager** — metrics,
+  logs, dashboards, traces, cost. Skip whatever your cluster already provides.
+- **Open Policy Agent (OPA)** — fine-grained policy enforcement at the catalog.
+- **Argo CD / Argo Workflows** — GitOps delivery.
+- **OpenBao** — secrets management; **cert-manager** — TLS lifecycle (the dev playground runs it).
 
 See [Services](./services) for the per-service description and upstream links.
 
