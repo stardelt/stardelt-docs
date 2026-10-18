@@ -36,7 +36,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Design',
       collapsed: false,
-      items: ['design/master-spec', 'design/execution-plan', 'design/nova-feature-parity', 'design/gap-decisions'],
+      items: ['design/master-spec', 'design/execution-plan', 'design/nova-feature-parity', 'design/gap-decisions', 'design/gap-analysis'],
     },
     {
       type: 'category',
