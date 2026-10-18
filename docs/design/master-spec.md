@@ -173,6 +173,8 @@ Phases are gated on real usage, and each phase is independently demoable. Full d
 
 **The strategic bet: prove one deep integration (identity + catalog, P0/P1) before any breadth.** A platform with one governance model over two domains beats a platform with four domains and four identity models.
 
+**Proposed, not yet in this spec: multi-tenancy.** Many catalogs (data domains with their own storage, owner and grants) and many SQL warehouses (named compute classes, granted per group) are designed in [Many catalogs and many SQL warehouses](./multitenant-catalogs), which proposes four amendments to §5–§7 there. Until those are ratified through this document's own rule, the wording above stands as written and this spec describes a single-catalog platform.
+
 ## 9. What stardelt is not
 
 - Not a SaaS. Self-hosting is the canonical path; any hosted offering is optional and later.
