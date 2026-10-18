@@ -14,6 +14,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'getting-started/prerequisites',
+        'getting-started/your-cluster',
         'getting-started/hetzner-k3s',
         'getting-started/local-kind'
       ],
