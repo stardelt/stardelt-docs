@@ -196,6 +196,7 @@ Rules that make a ticket implementable:
 | Acceptance criteria are **observable** and testable | Each box maps to a test or a command |
 | Name **generated files** and the command that regenerates them | The most common silent breakage |
 | One ticket = one PR, size S (≤ 30 lines) or M (≤ 150); split an L | Small PRs get merged |
+| **Run every verify command yourself** before filing. Example: `cargo test a b` is rejected by cargo; extra test filters go after `--` (`cargo test -- a b`) | A command that fails as written teaches a small model to improvise |
 
 ### Worked example
 

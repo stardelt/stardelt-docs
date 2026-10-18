@@ -73,7 +73,7 @@ The complete set of domains, their contracts, and the opinionated defaults. "Pha
 | # | Domain | Contract (the plug) | CRD / spec | Default | Alternates | Phase |
 |---|---|---|---|---|---|---|
 | 1 | Table catalog | Iceberg REST spec | `Lakehouse` | **Lakekeeper** | Apache Polaris, Gravitino | P0 |
-| 2 | Object storage | S3 API | `Lakehouse` | **SeaweedFS** (BYO-S3 path) | MinIO, any S3 | P0 |
+| 2 | Object storage | S3 API | `Lakehouse` | **SeaweedFS** (BYO-S3 path) | any S3-compatible store (not MinIO, see [licenses](../architecture/licenses)) | P0 |
 | 3 | Identity | OIDC | `PlatformInstance` | **Keycloak** | any existing IdP | P0 |
 | 4 | Query serving | any Iceberg REST client | — | **Trino** (+ DuckDB embedded) | Spark SQL | P0 |
 | 5 | BI / dashboards | embed & deeplink contract | — | **Apache Superset** | — | P0 |
@@ -130,7 +130,7 @@ flowchart TB
 ```
 
 - **Experience.** Nova is the single entry point: catalog browser, pipelines, lineage, quality, dashboards, workspaces, copilot. Deep-links into native UIs where a tool's own surface is better. One UI does not mean one tool — it means one identity, one audit trail, one place to look.
-- **Control plane.** The operator reconciles the CRDs (§5) into per-service operators and Helm releases using server-side apply. The governance engine maps identity and enforces policy. The metadata spine ingests lineage, schema and quality events.
+- **Control plane.** The operator reconciles the CRDs (§5) into per-service operators and Helm releases using server-side apply. *Today* the operator shells out to the `helm` CLI per component and creates no upstream custom resources yet ([gap analysis](./gap-analysis), G-H1). The governance engine maps identity and enforces policy. The metadata spine ingests lineage, schema and quality events.
 - **Data plane.** Curated upstream services, each owned by its upstream operator. stardelt never vendors a fork.
 - **Lakehouse spine.** Iceberg tables on object storage behind one REST catalog. Every engine above speaks to it; every policy attaches to it.
 - **Foundation.** Bring your own conformant Kubernetes cluster (EKS/GKE/AKS/OpenShift/RKE2/k3s/kind, or sovereign clouds). stardelt is not a distribution.
