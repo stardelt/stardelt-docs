@@ -197,6 +197,9 @@ Rules that make a ticket implementable:
 | Name **generated files** and the command that regenerates them | The most common silent breakage |
 | One ticket = one PR, size S (≤ 30 lines) or M (≤ 150); split an L | Small PRs get merged |
 | **Run every verify command yourself** before filing. Example: `cargo test a b` is rejected by cargo; extra test filters go after `--` (`cargo test -- a b`) | A command that fails as written teaches a small model to improvise |
+| **Paste, don't point**: text that lives in another repo goes into the ticket verbatim; give new tests as code, not as prose | A pointer ("copy the comment from the platform repo") forces a guess or a fetch; prose test descriptions get implemented differently each time |
+| Say **where** an addition goes (file, section or line, indentation) and give **concrete expected output** (`2 passed; 0 failed`), with a fully-qualified test path | A bare filter such as `headers_` also matched an unrelated test and printed `3 passed` |
+| **Dry-run before labelling**: hand the ticket to a small model with no other context, no push rights, and ask it to report every guess it had to make | The first three tickets dry-run this way each hid four to six ambiguities, and one printed the wrong test count |
 
 ### Worked example
 
