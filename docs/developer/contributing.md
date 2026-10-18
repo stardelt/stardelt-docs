@@ -13,8 +13,9 @@ the source of truth for what stardelt is, and this page only describes *process*
 The two invariants everything else follows from:
 
 1. **Nothing is pushed to `main` directly.** Every change arrives as a pull request. (GitHub branch
-   protection is not enabled on the repos yet — see [WP-01](../design/execution-plan) — so today this is a
-   rule you follow and reviewers check, not one the server enforces.)
+   protection enforces it on every product repo: a pull request is required, force-push and deletion are
+   blocked. Required status checks are not set yet — see [WP-01](../design/execution-plan) — so a green
+   CI run is still a convention, not a server rule.)
 2. **`main` is always installable.** If your branch does not build (see [checks](#before-you-open-a-pr)), it does not merge.
 
 ## Branching model
@@ -31,8 +32,8 @@ Branch from an up-to-date `main`, keep the branch short-lived, name it after the
 
 Rules:
 
-- **PR-only.** "Never push to `main`" is a hard rule, not etiquette; branch protection is the planned
-  enforcement.
+- **PR-only.** "Never push to `main`" is a hard rule, not etiquette; branch protection on `main` enforces it
+  (PR required, no force-push or deletion).
 - **Draft PRs are welcome.** Open one as soon as there is something to look at; it is the cheapest
   way to get early feedback and it reserves the branch name.
 - **One work package at a time.** Small PRs get reviewed; mega-changes stall. Split rather than push

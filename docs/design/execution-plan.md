@@ -61,7 +61,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** CI status on every PR.
 **Depends.** —.
 **Size.** M.
-**Status.** Mostly done. `ci.yml` in `stardelt-platform`, `stardelt-nova`, `stardelt-operator` and `stardelt-demos` runs lint/build/test on push and on pull request. `stardelt-docs` builds on pull requests too, and broken links fail that build. Remaining: `main` is not branch-protected in any repo, so red CI still does not block a merge.
+**Status.** Mostly done. `ci.yml` in `stardelt-platform`, `stardelt-nova`, `stardelt-operator` and `stardelt-demos` runs lint/build/test on push and on pull request. `stardelt-docs` builds on pull requests too, and broken links fail that build. `main` is branch-protected in every product repo (pull request required, no force-push, no deletion; zero required approvals so a maintainer or agent can self-merge). Remaining: required status checks are not set, so red CI is not yet a hard block — pick the check names per repo once they are stable.
 
 ### WP-02 — The verification gate (L)
 
@@ -274,7 +274,7 @@ Waves 1 and 5 are partly done: CI exists in every repo (WP-01), the demos are un
 
 ## 9. Human actions (the only things that need you)
 
-1. **Wave 1, once:** review/merge the CI PRs — done, except branch protection on `main`, `AGENTS.md` in `stardelt-docs` and the issue-template pass (WP-03).
+1. **Wave 1, once:** review/merge the CI PRs — done, including branch protection on `main` (PR required, no force-push; required checks still open), except `AGENTS.md` in `stardelt-docs` and the issue-template pass (WP-03).
 2. **Before WP-04:** ~~rent the VPS, point DNS~~ **done** — the dev cluster runs (Hetzner `cx33`, ~€10/mo) with DNS and TLS at `alpha.dev.stardelt.io`. A separate public `demo.stardelt.io` stage with a guest identity is still WP-04.
 3. **Weekly, ~30 min:** triage the board, reorder WPs, review PRs (phone-sized PRs are enforced by convention).
 4. **On scope changes:** edit the master spec via PR — never let the plan and the spec drift.
