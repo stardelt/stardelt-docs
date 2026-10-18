@@ -37,6 +37,14 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: ['design/master-spec', 'design/execution-plan', 'design/nova-feature-parity', 'design/gap-decisions'],
     },
+    {
+      type: 'category',
+      label: 'Operations',
+      collapsed: false,
+      items: [
+        'operations/backups',
+      ],
+    },
     'roadmap',
     {
       type: 'category',
