@@ -9,7 +9,7 @@ slug: /design/scheduled-jobs
 **Status:** proposed design. Covers what Databricks calls Jobs and Workflows: a data engineer or analyst
 defines work (SQL, Spark, a notebook, dbt), a schedule and dependencies, and the platform runs it, retries it,
 shows the runs and alerts on failure. Inputs: master spec §5 rows 6, 7, 12, 14 (`Pipeline`, Airflow 3, dbt,
-Spark), [multi-warehouse design](./multi-warehouse-catalog) (SQL warehouses, grants),
+Spark), [multi-warehouse design](https://github.com/stardelt/stardelt-docs/issues/64) (SQL warehouses, grants),
 [security model](../architecture/security-model), [docs#1](https://github.com/stardelt/stardelt-docs/issues/1)
 (declarative pipelining). Facts about the running system were checked on 2026-10-18.
 
