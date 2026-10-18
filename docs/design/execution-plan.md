@@ -221,7 +221,7 @@ A WP that has been started carries a **Status** line: what exists and what remai
 **Verification.** Integration-tier CI with `profile: demo` (should now be *the* install path).
 **Depends.** WP-21, WP-15.
 **Size.** M.
-**Status.** Partially done. `PlatformInstance` owns the cluster-scoped prerequisites — it plans the CNPG operator, which keeps two Lakehouses from fighting over the same ClusterRole — and `spec.dryRun` is honoured. Remaining: `spec.profile` still does not drive per-plug sizing, and nothing consumes `pillars` yet.
+**Status.** Done for the sizing half. `PlatformInstance` owns the cluster-scoped prerequisites (it plans the CNPG operator, which keeps two Lakehouses from fighting over the same ClusterRole), `spec.dryRun` is honoured, `spec.pillars.notebooks` adds JupyterHub to the plan, and `spec.profile` now drives per-plug sizing: `demo` layers the small-node shape over the golden values (Trino heaps and the per-node memory limit that has to move with them, gigabyte-scale volumes), `full` and `airgap` leave sizing to the charts, and a CR value still wins over the profile. The effective values are logged at debug level and the component status names the profile that shaped it — verified on the dev cluster for both profiles. Remaining: the air-gap profile is a size, not a kit (P4).
 
 ## 6. Track C — Governed lakehouse (P1; one contract per WP, only after Track A)
 
