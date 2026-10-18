@@ -10,7 +10,8 @@ stardelt needs a conformant Kubernetes cluster. There are two development paths:
 
 | Path | Use it for | Where |
 |---|---|---|
-| **Hetzner k3s** (primary) | the core stack on a cheap node; the full stack on 16 GB | [Hetzner k3s](./hetzner-k3s) |
+| **Your own cluster** | a cluster you operate — values-driven, nothing distribution-specific | [Your own cluster](./your-cluster) |
+| **Hetzner k3s** (primary dev path) | the core stack on a cheap node; the full stack on 16 GB | [Hetzner k3s](./hetzner-k3s) |
 | **kind** (fallback) | the core lakehouse slice / laptop work | [Local (kind)](./local-kind) |
 
 ## Cluster requirements
