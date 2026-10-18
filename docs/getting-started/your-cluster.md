@@ -108,9 +108,31 @@ helm upgrade --install stardelt chart -n stardelt -f chart/values-slim.yaml --wa
 ```
 
 Trino enforces its own arithmetic: `query.max-memory-per-node` must fit inside the JVM heap the
-chart gives the coordinator and workers (the slim overlay keeps 1 GB inside a 1.5 GB heap). If you
-lower a heap, lower `trino.server.config.query.maxMemoryPerNode` with it or Trino refuses to start
-with `Error invoking configuration method … setMaxQueryMemoryPerNode`.
+chart gives the coordinator and workers (the slim overlay keeps the chart's 1 GB per node inside a
+1.5 GB heap). The two keys live in different places, which is easy to get wrong:
+
+```yaml
+trino:
+  server:                                   # cluster-wide settings
+    config:
+      query:
+        maxMemory: "900MB"
+  coordinator:                              # per-node settings, per role
+    config:
+      query:
+        maxMemoryPerNode: "900MB"
+    jvm:
+      maxHeapSize: "1500m"
+  worker:
+    config:
+      query:
+        maxMemoryPerNode: "900MB"
+    jvm:
+      maxHeapSize: "1500m"
+```
+
+Lower a heap without lowering `maxMemoryPerNode` and Trino refuses to start with
+`Error invoking configuration method … setMaxQueryMemoryPerNode`.
 
 ## Several lakehouses in one cluster
 
