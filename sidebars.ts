@@ -26,6 +26,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'architecture/overview',
         'architecture/services',
+        'architecture/identity',
         'architecture/licenses',
         'architecture/sovereignty',
       ],
