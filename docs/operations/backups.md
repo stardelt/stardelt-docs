@@ -56,6 +56,23 @@ kubectl -n stardelt run s3ls --rm -it --restart=Never --image=amazon/aws-cli:2.1
 (Set those three environment variables from your S3 credentials; `kubectl run` does not read the
 Secret for you.) You should see a `base/<timestamp>/data.tar.gz` and a growing `wals/` tree.
 
+Those checks are also automated, from a checkout of
+[stardelt-platform](https://github.com/stardelt/stardelt-platform):
+
+```bash
+make verify-backups                # spec.backup + a fresh WAL object + agreement with pg_stat_archiver
+make verify-backups SKIP_OBJECTS=1 # config only, for a machine without S3 access
+```
+
+`make verify-backups` is the check `kubectl get backups` cannot be: it compares the *bucket* against
+the *database*, so it fails when the newest object under `wals/` is older than 15 minutes
+(`MAX_AGE_SECONDS`, default 900) or when `pg_stat_archiver.last_archived_wal` is not present in the
+bucket. That is precisely the state a re-apply without `spec.backup` leaves behind — every
+operator-visible signal green while nothing is uploaded
+([stardelt-platform#59](https://github.com/stardelt/stardelt-platform/issues/59)). Both install
+targets run its config-only half right after applying the Cluster manifest, so the drift fails the
+install instead of surfacing at restore time.
+
 ## Restore
 
 A restore is a **new cluster**, not an in-place operation — the source keeps serving while you
@@ -125,9 +142,13 @@ from the archive, byte for byte. Two properties matter in an incident:
 - **Losing the cluster.** The archive is a second bucket in the *same* SeaweedFS instance. It
   survives a mistake, not a fire. For real off-site protection use SeaweedFS' own replication to a
   remote cluster, or run the sync from a host that holds off-site credentials.
-- **A tooling gap worth knowing:** `aws s3 sync` speaks to one endpoint with one credential set per
-  invocation, and `rclone` — the obvious tool for a two-endpoint copy — **hangs against this S3
-  endpoint** (a 20-byte PUT never returns; verified in the cluster). The manifest says so rather than
-  leaving the next person to rediscover it.
+- **A two-endpoint copy needs a tool that can hold two S3 endpoints at once.** `aws s3 sync` — the
+  tool the shipped job uses — takes one `--endpoint-url` and one credential set per invocation,
+  which is why the default archive stays inside one store. `rclone` can do the two-endpoint copy and
+  is not blocked by this endpoint: a hang reported here earlier was version-specific — re-tested
+  2026-10-18 ([stardelt-docs#61](https://github.com/stardelt/stardelt-docs/issues/61)), **rclone
+  1.68.2 and 1.75.2 both work** against it (small PUTs in 3–5 s, multipart included), while the
+  hanging PUT was observed with **rclone 1.69.1**. The shipped sync job uses `aws s3 sync`, so the
+  question is moot for the default path.
 - **Per-tenant granularity.** One archive bucket for the whole lakehouse. Once several tenants share
   a cluster, their archives should be separated too.
