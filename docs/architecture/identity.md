@@ -95,3 +95,7 @@ that lands, Nova uses its service connection and says so: `/api/me` reports
 | 1 | Keycloak as an optional chart component; realm/client bootstrap; Nova login/logout | this page + the install guide |
 | 2 | Token passthrough to Trino and Lakekeeper, so the catalog sees the user | [execution plan](../design/execution-plan) WP-12 |
 | 3 | Policy at the catalog: OPA row/column rules keyed on the same identity | WP-34/WP-35 |
+
+The vocabulary phase 3 needs — which verbs exist, who owns an object, where row and column policy is
+evaluated, and which layer is authoritative for each check — is in
+[Permission model research](./permissions-research), read off Databricks Unity Catalog and Dremio.
