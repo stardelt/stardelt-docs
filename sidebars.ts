@@ -29,6 +29,7 @@ const sidebars: SidebarsConfig = {
         'architecture/identity',
         'architecture/identity-integrations',
         'architecture/permissions-research',
+        'architecture/copilot-research',
         'architecture/security-model',
         'architecture/licenses',
         'architecture/sovereignty',

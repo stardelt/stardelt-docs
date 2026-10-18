@@ -99,3 +99,8 @@ that lands, Nova uses its service connection and says so: `/api/me` reports
 The vocabulary phase 3 needs — which verbs exist, who owns an object, where row and column policy is
 evaluated, and which layer is authoritative for each check — is in
 [Permission model research](./permissions-research), read off Databricks Unity Catalog and Dremio.
+
+The same rule governs the AI surfaces: the copilot runs under the signed-in user's token, so its
+context can only be what that subject may see, and the SQL it proposes is executed by a human
+through this same path. What that means for the prompt, the model endpoint and the audit record is
+in [Copilot research and proposal](./copilot-research).

@@ -110,6 +110,7 @@ This is the wedge. A single working pillar with the composed control plane prove
 - KServe + vLLM (model + LLM serving)
 - Qdrant (vector DB)
 - Envoy AI Gateway (LLM gateway)
+- Nova: the sovereign copilot (NL→SQL over the governed catalog) — v1 design in [Copilot research and proposal](architecture/copilot-research.md); the [plug matrix](design/master-spec.md) fixes its phase
 - `MLWorkspace` CRD
 - Nova: ML workspace view, model registry, serving endpoints, vector-DB browser
 

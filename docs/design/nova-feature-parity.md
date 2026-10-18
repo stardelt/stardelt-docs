@@ -143,7 +143,7 @@ competitor artifact. This keeps Nova's provenance clean and consistent with
 | Model serving endpoints (scale-to-zero) | B S | `ModelService` + Nova | KServe (+ vLLM) | P3 | ◐ |
 | Feature store / point-in-time joins | B | `FeatureSet` (plug) | Feast | P4 | ○ |
 | Vector store for RAG | B | Nova vector browser | Qdrant | P4 | ○ |
-| **Sovereign AI copilot** (NL→SQL, pipeline authoring) against governed catalog | B D S | Nova copilot + `ModelEndpoint` | **vLLM / Ollama on-prem** | P2→P3 | ◐ **differentiator** |
+| **Sovereign AI copilot** (NL→SQL, pipeline authoring) against governed catalog | B D S | Nova copilot + `ModelEndpoint` | **vLLM / Ollama on-prem** | P2→P3 | ◐ **differentiator** — design in [copilot research](../architecture/copilot-research) |
 | External LLM endpoint (opt-in, operator-configured) | B S | Nova setting | `ModelEndpoint` (external) | P2 | ◐ |
 | MCP server so agents can query the platform | B S | **stardelt MCP server** (proposed) | Nova API surface | P3 | ○ new idea |
 | AI guardrails / personas / prompt controls | S | Nova copilot config | Nova + vLLM policy | P3 | ○ |
