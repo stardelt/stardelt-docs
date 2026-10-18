@@ -22,7 +22,7 @@ The platform is a set of upstream services, so sizing is mostly theirs. Measured
 | SeaweedFS (master, volume, filer, S3) | ~200 MB for an idle cluster | volume replicas, more nodes for more disks |
 | CloudNativePG + Postgres | ~200 MB for one instance | instance count, storage size |
 | Lakekeeper | ~200 MB | replicas (stateless) |
-| Nova | ~80 MB | replicas (stateless) |
+| Nova | ~80 MB | one replica in `oidc` mode (sessions are in memory); replicas only in `static-dev` mode |
 | **Total core** | **~2.6 GB usable on an 8 GB node with room for the OS** | — |
 
 Superset and Airflow are a different class (`full` profile): budget 16 GB together with the core
@@ -40,7 +40,8 @@ another node (node-local `local-path` cannot follow a pod; cloud block storage c
 | Postgres (catalog metadata) | single instance in the default install — a pod or node loss stops catalog writes | raise `instances` (CloudNativePG does streaming replication), and keep the [backups](./backups) working |
 | SeaweedFS volume | single volume server holds the data; losing its disk loses the files | more volume servers + replication, and the object-store backup on the board |
 | Trino coordinator | queries stop; nothing is lost | it is stateless — restart/reschedule; run 2 workers minimum so one can drain |
-| Lakekeeper, Nova | stateless | more replicas + a PodDisruptionBudget |
+| Lakekeeper | stateless | more replicas + a PodDisruptionBudget |
+| Nova | in `oidc` mode a restart signs everyone out (sessions are in memory) | keep one replica until sessions move to a shared store ([gap analysis](../design/gap-analysis), G-M5) |
 | A whole node | everything on it | 3+ nodes, anti-affinity, tested restore |
 
 None of this is wired into the charts as defaults yet; the values are where the knobs are (see

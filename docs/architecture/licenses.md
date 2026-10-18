@@ -40,7 +40,7 @@ The policy is **strict on purpose**. stardelt's "no vendor handcuffs, self-host 
 3. OpenBao is governed under the Linux Foundation, removing single-vendor relicensing risk.
 4. Customers who prefer not to ship OpenBao can use the **External Secrets Operator** (Apache 2.0) to plug into their own Vault / OpenBao / cloud KMS — stardelt does not require shipping OpenBao itself.
 
-**Customers must be told this clearly.** The README, ARCHITECTURE doc, and install docs all surface OpenBao's MPL 2.0 status as the single non-permissive component in the default install.
+**Customers must be told this clearly.** The README, ARCHITECTURE doc, and install docs all surface OpenBao's MPL 2.0 status as the single non-permissive component of the platform design. No install path deploys OpenBao yet ([gap analysis](../design/gap-analysis), G-M3), so today's installs contain none.
 
 ## Hard rejection list
 

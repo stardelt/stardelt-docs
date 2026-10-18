@@ -111,9 +111,9 @@ stardelt follows the **operator-per-service pattern**: each service is managed b
 
 Multi-tenancy primitives exist in v1 even though MVP deployments are single-tenant. This avoids a rewrite later:
 
-- Every stardelt resource carries a `stardelt.io/tenant` label.
+- Every stardelt resource carries a `stardelt.io/tenant` label. *Today* only the Namespace a `Tenant` creates has it.
 - Audit events carry `tenant_id`.
-- Tenant namespaces can be isolated by Kubernetes NetworkPolicies.
+- Tenant namespaces can be isolated by Kubernetes NetworkPolicies. *Today* no NetworkPolicy is installed; treat the namespace as flat ([gap analysis](../design/gap-analysis), §3).
 
 ## Sovereignty
 
