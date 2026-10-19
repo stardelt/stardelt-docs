@@ -21,6 +21,12 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Guides',
+      collapsed: false,
+      items: ['guides/source-to-dashboard'],
+    },
+    {
+      type: 'category',
       label: 'Architecture',
       collapsed: false,
       items: [
