@@ -58,4 +58,4 @@ The inventory of every secret (who creates it, who reads it, how it rotates) is 
 - Per-user authorization: Lakekeeper runs `allowall` and Trino has no authenticator, so any signed-in user
   can run any DDL/DML their token allows (Trino now sees the user, but has no access rules yet) ([docs#34](https://github.com/stardelt/stardelt-docs/issues/34)).
 - A secrets manager (OpenBao / External Secrets) is in the design but in no install path
-  ([licenses](./licenses), gap G-M3).
+  (see [licenses](./licenses)).

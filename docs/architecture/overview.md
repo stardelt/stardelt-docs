@@ -14,7 +14,7 @@ This page is the high-level overview. Per-service detail (what each service does
 
 ![stardelt service architecture: Kubernetes platform at the base, the always-installed stardelt core stack of data services, opt-in services that operators can enable, and stardelt Nova and the stardelt Operator on top](/img/architecture-layers.svg)
 
-*The target architecture from the master spec §6 — it names services that are
+*The target architecture — it names services that are
 specified but not built yet. [Services](./services) is the honest list of what an install contains
 today; the [roadmap](../roadmap) carries the phasing.*
 
@@ -48,9 +48,8 @@ Enabled per install (`make install`, or `<component>.enabled: true` in your valu
 
 ### Planned services — specified, not built yet
 
-These are designed but not in the install path. The master spec §5 plug
-matrix is the authority on what each one is and the phase it lands in; the [roadmap](../roadmap)
-carries the sequencing. Listing them here is a promise about direction, not about today.
+These are designed but not in the install path. The [roadmap](../roadmap)
+carries the sequencing and the phase each one lands in. Listing them here is a promise about direction, not about today.
 
 - **Keycloak** — OIDC / SAML / LDAP provider. Skip if your cluster already federates an IdP.
 - **OpenMetadata** — the metadata, lineage and quality spine.
@@ -109,7 +108,7 @@ stardelt follows the **operator-per-service pattern**: each service is managed b
 
 ## Multi-tenancy
 
-One `PlatformInstance` per platform. Data domains and compute are segregated by `Catalog` and `SqlWarehouse` resources with owner groups (decision D21, [design](https://github.com/stardelt/stardelt-docs/issues/64)); audit events carry the acting identity. No `NetworkPolicy` is installed yet: treat the namespace as flat (gap analysis, §3).
+One `PlatformInstance` per platform. Data domains and compute are segregated by `Catalog` and `SqlWarehouse` resources with owner groups; audit events carry the acting identity. No `NetworkPolicy` is installed yet: treat the namespace as flat.
 
 ## Sovereignty
 
@@ -127,8 +126,7 @@ stardelt is *evidence-gathering infrastructure*, not a certified product. Later 
 ## Out of scope / non-goals
 
 Being explicit about what the core stack will *not* contain saves everyone a design debate later.
-The master spec's §9 "What stardelt is not" is
-authoritative; this is the concrete consequence for service selection.
+What stardelt is not is a deliberate choice; this is the concrete consequence for service selection.
 
 **Hadoop-era services are out of scope for the stardelt core stack:**
 
