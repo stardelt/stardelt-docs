@@ -56,19 +56,19 @@ What has moved since this page was first written:
 
 **Goal**: `kubectl apply -f lakehouse.yaml` → 15 minutes later, you're querying an Iceberg table in Trino through stardelt Nova.
 
-This is the wedge. A single working pillar with the composed control plane proves the differentiator over Stackable.
+This is the wedge. A single working pillar with the composed control plane proves the differentiator.
 
 **Scope** (✅ = running on the dev cluster today, ◐ = partial):
 
 - L1 (substrate, minimum viable): Keycloak, **K8s Secrets** ✅ (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
 - L2 (data foundation): SeaweedFS (+ BYO-S3 path) ✅, Lakekeeper ✅, Apache Iceberg ✅, OPA + OpenFGA bootstrap, OpenLineage emit-only
 - L3 Pillar 1 (Lakehouse SQL only): Trino ✅, DuckDB, Apache Superset (not on the dev node — `full` profile), JupyterHub ✅
-- L4 (stardelt-native): `stardelt-operator` ◐ (CRDs, reconcile planner and a Helm-backed controller for `Tenant`, `PlatformInstance` and `Lakehouse`; no `IngestionSource` / `Pipeline` controller yet), **Nova MVP** ✅ (catalog browser, SQL editor, load & transfer, jobs, platform apps and health, Superset embed, an illustrative lineage page — SSO still pending, WP-18/WP-12), `stardelt` CLI
+- L4 (stardelt-native): `stardelt-operator` ◐ (CRDs, reconcile planner and a Helm-backed controller for `PlatformInstance` and `Lakehouse`; no `IngestionSource` / `Pipeline` controller yet), **Nova MVP** ✅ (catalog browser, SQL editor, load & transfer, jobs, platform apps and health, Superset embed, an illustrative lineage page — SSO in progress), `stardelt` CLI
 
 **Validation** (✅ done today, ◐ partial, — not started):
 
 - Single-cluster, single-tenant. ✅
-- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice. ✅ — the k3s cluster is live; the kind path installs the same `core` profile through the platform Makefile, but nothing runs it automatically yet (WP-02).
+- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice. ✅ — the k3s cluster is live; the kind path installs the same `core` profile through the platform Makefile, and a nightly workflow in the demo repository exercises it.
 - Documented install path for real clusters. ◐ — `make install` / `make install-core` are documented and in use, and `make chart-install` offers the same components as one umbrella Helm chart; the install is bash or Helm, not a CRD.
 - First 5 pilot users. — the dev environment is public at `alpha.dev.stardelt.io`; no pilots yet.
 

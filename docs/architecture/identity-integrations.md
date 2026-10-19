@@ -10,14 +10,14 @@ stardelt supports **two identity modes**, and in both, every building block auth
 against the same OIDC issuer:
 
 - **`platform`**: stardelt deploys Keycloak (Apache-2.0), realm `stardelt`, at `id.<baseDomain>`.
-  This is the master spec's default plug (§5, row 3).
+  This is the default identity provider.
 - **`external`**: the customer's IdP. **Microsoft Entra ID** is the primary target. Any
   standards-compliant OIDC provider (Okta, Auth0, a corporate Keycloak) uses the same knobs.
 
 This page covers the per-block mechanics: what each upstream project supports at the versions
 stardelt pins, the Helm value paths, the claims each block needs, and where the user's token
 can and cannot travel. The Nova-side contract (env vars, flows, rules) is on the *Identity* page
-in this section. When the two pages disagree, the master spec decides.
+in this section. When the two pages disagree, the *Identity* page is authoritative for the contract.
 
 Pinned versions (`stardelt-platform/Makefile`): Trino chart 1.42.2 (Trino 480), Lakekeeper chart
 0.11.0 (Lakekeeper 0.12.2), Superset chart 0.15.5 (Superset 5.0.0, Flask-AppBuilder 4.5.5),
@@ -44,7 +44,7 @@ version. Test it before you depend on it.
 
 Effort: **S** is values only. **M** adds an image change, a bootstrap step or extra components.
 
-**What "one identity enforced at the catalog" (master spec §7) actually looks like on these
+**What "one identity enforced at the catalog" actually looks like on these
 versions.** Trino authenticates the user, then talks to Lakekeeper as one trusted service
 principal. Per-user table policy reaches Trino through Trino's OPA access control plus
 Lakekeeper's **OPA bridge**, which answers Trino's checks from Lakekeeper's permission model. That
@@ -474,7 +474,7 @@ clients request it as an optional scope.
 
 ## One IdP, several platform instances
 
-An organization often runs the platform more than once (staging, test, production) and has **one** IdP, for example a single Entra tenant. This is the `external` mode used several times, not a new object (decision D20):
+An organization often runs the platform more than once (staging, test, production) and has **one** IdP, for example a single Entra tenant. This is the `external` mode used several times, not a new object:
 
 - **Same issuer, one app registration per instance.** Every instance uses the tenant's issuer (`https://login.microsoftonline.com/<tenant>/v2.0`) but its own registration (`stardelt-staging`, `stardelt-prod`) with its own redirect URIs and its own client secrets, referenced from that instance's `spec.identity`.
 - **Audience separates the stages.** Tokens carry the registration's client id as `aud`; each instance validates its own audience, so a staging token is refused by production.

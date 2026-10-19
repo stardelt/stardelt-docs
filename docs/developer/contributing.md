@@ -7,14 +7,14 @@ slug: /developer/contributing
 # Contributing & workflow
 
 How changes get from a branch to `main` in the stardelt repos: branching, commits, review,
-releases, changelog, and upgrades. Read the master spec first — it is
-the source of truth for what stardelt is, and this page only describes *process* around it.
+releases, changelog, and upgrades. Read the [architecture overview](../architecture/overview) first — it describes
+what stardelt is, and this page only describes *process* around it.
 
 The two invariants everything else follows from:
 
 1. **Nothing is pushed to `main` directly.** Every change arrives as a pull request. (GitHub branch
    protection enforces it on every product repo: a pull request is required, force-push and deletion are
-   blocked. Required status checks are not set yet — see WP-01 — so a green
+   blocked. Required status checks are not set yet, so a green
    CI run is still a convention, not a server rule.)
 2. **`main` is always installable.** If your branch does not build (see [checks](#before-you-open-a-pr)), it does not merge.
 
@@ -28,7 +28,7 @@ Branch from an up-to-date `main`, keep the branch short-lived, name it after the
 | `fix/<slug>` | bug fix | `fix/navbar-mobile-sidebar-clip` |
 | `docs/<slug>` | documentation only | `docs/community-and-gaps` |
 | `chore/<slug>` | build, deps, tooling, cleanup | `chore/drop-ozone-refs` |
-| `wp/<id>-slug` | a numbered work package from the execution plan | `wp/13-install-idempotency` |
+| `wp/<id>-slug` | a numbered work package from the project board | `wp/13-install-idempotency` |
 
 Rules:
 
@@ -81,7 +81,7 @@ What a reviewer looks for:
 1. Does it do what the description says — no more, no less?
 2. Does it break behavior a reader or operator can see? If so, is that called out?
 3. Is there evidence it works (a command, a smoke test, a build)?
-4. Does it contradict the master spec or the [license policy](../architecture/licenses)?
+4. Does it contradict the documented architecture or the [license policy](../architecture/licenses)?
 5. Are new dependencies OSI-permissive? (`licenses.md` is authoritative; OpenBao is the single
    documented MPL exception.)
 
@@ -89,8 +89,8 @@ Conventions:
 
 - **No SLA.** Reviews are asynchronous, best-effort. Ping a PR that has gone quiet for a week; that is
   not rude, it is useful.
-- **Spec conflicts are resolved in favor of the master spec.** A change that alters the spec needs a PR
-  against the spec itself and a discussion period — not a silent divergence in code.
+- **Design conflicts are settled in the design, not in code.** A change that alters the documented design
+  needs an issue and a discussion period first — not a silent divergence in code.
 - **Breaking changes are allowed pre-alpha.** Announce them in the PR title/description and in the
   release notes, and update the docs that describe the old behavior in the same PR.
 - Write review comments about the change, never about the contributor. The
@@ -108,8 +108,8 @@ Conventions:
 - **`main` is always deployable.** Nothing merges that fails its repo's build check.
 - **One deliverable, moved together:** the platform repo pins chart versions in its `Makefile`; a
   version bump there is what changes what an operator installs. This is the install-script path — the
-  operator takes over as the control plane in P2 (master spec §8).
-- **Patches flow upstream; no vendored forks** of upstream services (master spec §5). stardelt's own
+  operator takes over as the control plane in a later phase (see the [roadmap](../roadmap)).
+- **Patches flow upstream; no vendored forks** of upstream services. stardelt's own
   images publish to `ghcr.io/stardelt/...`.
 
 ## Container images
@@ -160,7 +160,7 @@ Where upgrade guidance lives, in order of authority:
 2. **The docs page of the affected component** ([Services](../architecture/services),
    [Prerequisites](../getting-started/prerequisites)) when the change alters what an operator must
    provide — a new default StorageClass requirement, an ingress change, a renamed Secret.
-3. **The execution plan** for the work that makes the path trustworthy
+3. **The project board** for the work that makes the path trustworthy
    (idempotent install, upgrade test in CI).
 
 How upgrades work today:
@@ -207,7 +207,7 @@ Rules that make a ticket implementable:
 >
 > **Why.** `PlatformInstance` always installs into the namespace `stardelt`; the value is hard-coded in the
 > reconciler, so a second platform on the same cluster, or a different namespace policy, cannot be expressed.
-> (Master spec §5: every plug is configured from the CRD.)
+> (Every component is meant to be configured from the resource.)
 >
 > **Current behavior.** `reconcile_platform` passes the literal `"stardelt"` to `apply_plan`
 > (`crates/stardelt-operator/src/controller.rs`, in `reconcile_platform`, the second argument of the

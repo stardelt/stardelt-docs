@@ -6,8 +6,8 @@ slug: /architecture/identity
 
 # Identity and access
 
-**One identity, from the login page to the table.** This is the integration the master spec calls the
-moat (§7): the token that authenticates you in Nova is the token your query carries and the catalog
+**One identity, from the login page to the table.** This is the platform's central integration: the
+token that authenticates you in Nova is the token your query carries and the catalog
 enforces. Everything below is the contract the components implement — the values, environment
 variables and flows are stable enough to build against; the implementation lands in phases.
 
@@ -93,12 +93,12 @@ that lands, Nova uses its service connection and says so: `/api/me` reports
 | Phase | What lands | Where |
 |---|---|---|
 | 1 | Keycloak as an optional chart component; realm/client bootstrap; Nova login/logout | this page + the install guide |
-| 2 | Token passthrough to Trino and Lakekeeper, so the catalog sees the user | execution plan WP-12 |
-| 3 | Policy at the catalog: OPA row/column rules keyed on the same identity | WP-34/WP-35 |
+| 2 | Token passthrough to Trino and Lakekeeper, so the catalog sees the user | tracked on the project board |
+| 3 | Policy at the catalog: OPA row/column rules keyed on the same identity | planned |
 
 The vocabulary phase 3 needs — which verbs exist, who owns an object, where row and column policy is
-evaluated, and which layer is authoritative for each check — is in
-Permission model research, read off Databricks Unity Catalog and Dremio.
+evaluated, and which layer is authoritative for each check — is part of the design work for that
+phase and will be documented here when it lands.
 
 The same rule governs the AI surfaces: the copilot runs under the signed-in user's token, so its
 context can only be what that subject may see, and the SQL it proposes is executed by a human

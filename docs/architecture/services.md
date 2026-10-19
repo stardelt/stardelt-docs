@@ -6,8 +6,7 @@ slug: /architecture/services
 
 # stardelt Services
 
-What stardelt installs, what it can install, and what it has specified but not built. The tiers match
-the master spec §5 plug matrix — when the two disagree, the spec wins. For
+What stardelt installs, what it can install, and what it has specified but not built. The tiers describe the design: what is installed, what can be installed, and what is only specified. For
 how the services connect, see the [Overview](./overview); for licensing, [Licenses](./licenses).
 
 | Tier | Meaning |
