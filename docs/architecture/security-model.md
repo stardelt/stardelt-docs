@@ -34,9 +34,7 @@ The tracking issue (with current status) is [stardelt-platform#53](https://githu
    `/admin/serverinfo`) so platform admins can manage users. The master realm (`/realms/master`,
    `/admin/master`), `/health` and `/metrics` fall through to 404. For master-realm work use
    `kubectl -n stardelt exec -it deploy/keycloak -- /opt/keycloak/bin/kcadm.sh` (break-glass).
-3. **Service-to-service calls to Trino inside the cluster** still travel over plain HTTP, where
-   Trino only accepts the insecure authenticator. Coordinator TLS is the open item
-   ([#80](https://github.com/stardelt/stardelt-platform/issues/80)).
+3. **Trino accepts authenticated HTTPS only, inside the cluster too.** The coordinator serves TLS from an internal certificate authority; plain HTTP answers `Authentication over HTTP is not enabled`, so a pod cannot claim another user's name. Clients (Nova, Superset, notebooks) trust the platform CA bundle.
 
 ## Credentials contract
 

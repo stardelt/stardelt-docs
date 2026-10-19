@@ -41,16 +41,16 @@ kubectl -n stardelt delete pod lakekeeper-pg-1     # CNPG reads backup credentia
 
 Why each step: the Lakekeeper warehouse stores the key (encrypted) and only the bootstrap Job's
 credential refresh updates it (`POST /management/v1/warehouse/{id}/storage-credential`);
-Trino and CNPG read the Secret when their pods start. Prove it with a write and a read:
+Trino and CNPG read the Secret when their pods start. Prove it with a write and a read: sign in to Nova as an
+admin and run these statements in the SQL editor, one after the other (Trino accepts authenticated HTTPS only, so
+there is no unauthenticated command-line check):
 
-```bash
-kubectl -n stardelt exec deploy/trino-coordinator -- trino --execute \
-  "CREATE SCHEMA IF NOT EXISTS warehouse.rotation_check"
-kubectl -n stardelt exec deploy/trino-coordinator -- trino --execute \
-  "CREATE TABLE warehouse.rotation_check.t AS SELECT 1 AS x"
-kubectl -n stardelt exec deploy/trino-coordinator -- trino --execute "SELECT x FROM warehouse.rotation_check.t"
-kubectl -n stardelt exec deploy/trino-coordinator -- trino --execute "DROP TABLE warehouse.rotation_check.t"
-kubectl -n stardelt exec deploy/trino-coordinator -- trino --execute "DROP SCHEMA warehouse.rotation_check"
+```sql
+CREATE SCHEMA IF NOT EXISTS warehouse.rotation_check;
+CREATE TABLE warehouse.rotation_check.t AS SELECT 1 AS x;
+SELECT x FROM warehouse.rotation_check.t;      -- expect 1
+DROP TABLE warehouse.rotation_check.t;
+DROP SCHEMA warehouse.rotation_check;
 ```
 
 An already-committed key (the pre-generation default) is **never** rotated automatically: the
