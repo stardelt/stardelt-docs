@@ -95,7 +95,7 @@ The canonical lakehouse read path:
             (read by engine)
 ```
 
-Apache Kafka carries audit events and (when ingest pipelines are wired up) source-of-truth events that Airflow batches or Flink processes into Iceberg tables. JupyterHub talks to Trino for SQL and to Spark Connect for heavier compute; Superset talks to Trino for dashboards.
+When the streaming service (P3) is enabled, Apache Kafka carries event topics that Flink processes into Iceberg tables; the base install needs no Kafka — Airflow writes batch results straight to Iceberg. JupyterHub talks to Trino for SQL and to Spark Connect for heavier compute; Superset talks to Trino for dashboards.
 
 The OIDC-token and vended-credential steps in the diagram are the target design. The dev install
 is identity-less today: Trino reads and writes S3 with the static credentials from the

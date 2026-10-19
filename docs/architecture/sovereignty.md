@@ -68,7 +68,7 @@ stardelt persists data only in open, vendor-neutral formats:
 - **Metrics**: OpenMetrics / Prometheus exposition format.
 - **Traces**: OpenTelemetry / OTLP.
 - **Logs**: structured JSON (no proprietary on-disk format).
-- **Audit events**: structured JSON on Kafka topic `stardelt.audit.v1`; archived to Iceberg.
+- **Audit events**: structured JSON; archived to Iceberg, and fanned out to the `stardelt.audit.v1` topic when the streaming service is enabled.
 
 **Walking away from stardelt means uninstalling our operators.** Your data, dashboards, models, and notebooks remain readable by any compliant engine.
 
@@ -117,7 +117,7 @@ Certifications remain the customer's responsibility. stardelt provides the evide
 
 - **Encryption keys** never leave the customer's KMS / OpenBao. stardelt has no access path to plaintext key material.
 - **Identities** are issued and revoked by the customer's IdP via Keycloak federation. stardelt has no shadow identity store.
-- **Audit logs** are written to the customer's Kafka and Iceberg. stardelt operators do not have privileged read access — operator credentials are scoped to the namespaces they manage.
+- **Audit logs** are written to the customer's own storage — Iceberg, and a Kafka topic when streaming is enabled. stardelt operators do not have privileged read access — operator credentials are scoped to the namespaces they manage.
 
 ## What sovereignty is *not*
 
