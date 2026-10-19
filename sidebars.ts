@@ -52,6 +52,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'developer/index',
         'developer/contributing',
+        'developer/vscode',
       ],
     },
   ],
