@@ -93,14 +93,14 @@ that lands, Nova uses its service connection and says so: `/api/me` reports
 | Phase | What lands | Where |
 |---|---|---|
 | 1 | Keycloak as an optional chart component; realm/client bootstrap; Nova login/logout | this page + the install guide |
-| 2 | Token passthrough to Trino and Lakekeeper, so the catalog sees the user | [execution plan](../design/execution-plan) WP-12 |
+| 2 | Token passthrough to Trino and Lakekeeper, so the catalog sees the user | execution plan WP-12 |
 | 3 | Policy at the catalog: OPA row/column rules keyed on the same identity | WP-34/WP-35 |
 
 The vocabulary phase 3 needs — which verbs exist, who owns an object, where row and column policy is
 evaluated, and which layer is authoritative for each check — is in
-[Permission model research](./permissions-research), read off Databricks Unity Catalog and Dremio.
+Permission model research, read off Databricks Unity Catalog and Dremio.
 
 The same rule governs the AI surfaces: the copilot runs under the signed-in user's token, so its
 context can only be what that subject may see, and the SQL it proposes is executed by a human
 through this same path. What that means for the prompt, the model endpoint and the audit record is
-in [Copilot research and proposal](./copilot-research).
+in Copilot research and proposal.

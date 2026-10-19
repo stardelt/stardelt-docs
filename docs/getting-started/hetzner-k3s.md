@@ -69,4 +69,4 @@ make dev-down
 - Single node, no HA — a development environment, not production.
 - **Do not put real data here.**
 - The build-plane AI fleet runs on the maintainer's laptop, **not** on this cluster. See
-  [AI development fleet](../developer/ai-fleet).
+  AI development fleet.

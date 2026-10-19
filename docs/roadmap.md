@@ -10,7 +10,7 @@ stardelt is a multi-year vision. Each phase produces something demoable and usab
 
 The MVP (Phase 0 + Phase 1) is the only milestone needed to validate the bet. Phases 2–6 are gated on community pull.
 
-The [master spec](design/master-spec.md) is the single source of truth for what stardelt is, the plug matrix (contracts, defaults, alternates per domain), and the build/integrate/never-build boundary. The [execution plan](design/execution-plan.md) chunks the phases into handover-ready work packages — where a phase's component list and the plug matrix disagree, **the plug matrix wins** — a service enters a phase only as a default behind an existing contract.
+Each phase adds components only as a default behind an existing contract (the plug matrix in the architecture overview). Where a phase's component list and the plug matrix disagree, **the plug matrix wins** — a service enters a phase only as a default behind an existing contract.
 
 ## Phase 0 — Done — Research, design, branding
 
@@ -18,12 +18,11 @@ The [master spec](design/master-spec.md) is the single source of truth for what 
 
 **Deliverables (this repository):**
 
-- [x] [Design spec](design/master-spec.md) — product definition, plug matrix, principles, sequencing, decision record
+- [x] Design spec — product definition, plug matrix, principles, sequencing, decision record
 - [x] [Architecture](architecture/overview.md)
 - [x] [Services](architecture/services.md) with license verification
 - [x] [License policy](architecture/licenses.md) — accepted, exception, rejected
 - [x] [Sovereignty commitments](architecture/sovereignty.md)
-- [x] [Execution plan](design/execution-plan.md) — the work packages, and the verified state of each repo
 - [x] Roadmap — this document
 - [x] [README](https://github.com/stardelt) — marketing-ready
 - [x] Brand: logo, wordmark
@@ -52,9 +51,6 @@ What has moved since this page was first written:
 - **Nova reports the platform it runs on.** Apps are probed live, and Health lists every workload with the
   image it actually runs, digests included.
 
-Still open, and what the [execution plan](design/execution-plan.md) queues next: nothing proves an install
-headlessly yet (WP-02), SSO has not landed (WP-12/WP-18), and `main` is still not branch-protected, so a
-red CI run can merge (WP-01).
 
 ## Phase 1 — Lakehouse MVP
 
@@ -67,12 +63,12 @@ This is the wedge. A single working pillar with the composed control plane prove
 - L1 (substrate, minimum viable): Keycloak, **K8s Secrets** ✅ (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
 - L2 (data foundation): SeaweedFS (+ BYO-S3 path) ✅, Lakekeeper ✅, Apache Iceberg ✅, OPA + OpenFGA bootstrap, OpenLineage emit-only
 - L3 Pillar 1 (Lakehouse SQL only): Trino ✅, DuckDB, Apache Superset (not on the dev node — `full` profile), JupyterHub ✅
-- L4 (stardelt-native): `stardelt-operator` ◐ (CRDs, reconcile planner and a Helm-backed controller for `Tenant`, `PlatformInstance` and `Lakehouse`; no `IngestionSource` / `Pipeline` controller yet), **Nova MVP** ✅ (catalog browser, SQL editor, load & transfer, jobs, platform apps and health, Superset embed, an illustrative lineage page — SSO still pending, [WP-18/WP-12](design/execution-plan.md)), `stardelt` CLI
+- L4 (stardelt-native): `stardelt-operator` ◐ (CRDs, reconcile planner and a Helm-backed controller for `Tenant`, `PlatformInstance` and `Lakehouse`; no `IngestionSource` / `Pipeline` controller yet), **Nova MVP** ✅ (catalog browser, SQL editor, load & transfer, jobs, platform apps and health, Superset embed, an illustrative lineage page — SSO still pending, WP-18/WP-12), `stardelt` CLI
 
 **Validation** (✅ done today, ◐ partial, — not started):
 
 - Single-cluster, single-tenant. ✅
-- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice. ✅ — the k3s cluster is live; the kind path installs the same `core` profile through the platform Makefile, but nothing runs it automatically yet ([WP-02](design/execution-plan.md)).
+- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice. ✅ — the k3s cluster is live; the kind path installs the same `core` profile through the platform Makefile, but nothing runs it automatically yet (WP-02).
 - Documented install path for real clusters. ◐ — `make install` / `make install-core` are documented and in use, and `make chart-install` offers the same components as one umbrella Helm chart; the install is bash or Helm, not a CRD.
 - First 5 pilot users. — the dev environment is public at `alpha.dev.stardelt.io`; no pilots yet.
 
@@ -110,7 +106,7 @@ This is the wedge. A single working pillar with the composed control plane prove
 - KServe + vLLM (model + LLM serving)
 - Qdrant (vector DB)
 - Envoy AI Gateway (LLM gateway)
-- Nova: the sovereign copilot (NL→SQL over the governed catalog) — v1 design in [Copilot research and proposal](architecture/copilot-research.md); the [plug matrix](design/master-spec.md) fixes its phase
+- Nova: the sovereign copilot (NL→SQL over the governed catalog) — v1 design in Copilot research and proposal; the plug matrix fixes its phase
 - `MLWorkspace` CRD
 - Nova: ML workspace view, model registry, serving endpoints, vector-DB browser
 

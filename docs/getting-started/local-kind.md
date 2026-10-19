@@ -54,7 +54,7 @@ make down                     # delete the cluster
 ## What `make up` does
 
 The demo repo owns only the kind-specific steps; the install itself is the platform Makefile, so
-the two paths cannot drift ([WP-17](../design/execution-plan.md)):
+the two paths cannot drift (WP-17):
 
 1. Creates the kind cluster from `kind/kind-config.yaml` (host ports 8080/8081/8181), selects its
    kube-context, and creates the `stardelt` namespace.

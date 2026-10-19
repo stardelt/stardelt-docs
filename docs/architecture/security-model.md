@@ -8,8 +8,7 @@ slug: /architecture/security-model
 
 What stardelt exposes, what it trusts, and where credentials come from. Each rule is
 marked **built**, **ticketed** (a ready-to-implement ticket exists) or **open**.
-The gap analysis ([G-C1, G-M3](../design/gap-analysis)) records where `main` still differs; the
-tracking issue (with current status) is [stardelt-platform#53](https://github.com/stardelt/stardelt-platform/issues/53).
+The tracking issue (with current status) is [stardelt-platform#53](https://github.com/stardelt/stardelt-platform/issues/53).
 
 ## Trust boundaries
 

@@ -14,7 +14,7 @@ This page is the high-level overview. Per-service detail (what each service does
 
 ![stardelt service architecture: Kubernetes platform at the base, the always-installed stardelt core stack of data services, opt-in services that operators can enable, and stardelt Nova and the stardelt Operator on top](/img/architecture-layers.svg)
 
-*The target architecture from the [master spec](../design/master-spec) §6 — it names services that are
+*The target architecture from the master spec §6 — it names services that are
 specified but not built yet. [Services](./services) is the honest list of what an install contains
 today; the [roadmap](../roadmap) carries the phasing.*
 
@@ -48,7 +48,7 @@ Enabled per install (`make install`, or `<component>.enabled: true` in your valu
 
 ### Planned services — specified, not built yet
 
-These are designed but not in the install path. The [master spec](../design/master-spec) §5 plug
+These are designed but not in the install path. The master spec §5 plug
 matrix is the authority on what each one is and the phase it lands in; the [roadmap](../roadmap)
 carries the sequencing. Listing them here is a promise about direction, not about today.
 
@@ -109,7 +109,7 @@ stardelt follows the **operator-per-service pattern**: each service is managed b
 
 ## Multi-tenancy
 
-One `PlatformInstance` per platform. Data domains and compute are segregated by `Catalog` and `SqlWarehouse` resources with owner groups ([decision D21](../design/gap-decisions), [design](https://github.com/stardelt/stardelt-docs/issues/64)); audit events carry the acting identity. No `NetworkPolicy` is installed yet: treat the namespace as flat ([gap analysis](../design/gap-analysis), §3).
+One `PlatformInstance` per platform. Data domains and compute are segregated by `Catalog` and `SqlWarehouse` resources with owner groups (decision D21, [design](https://github.com/stardelt/stardelt-docs/issues/64)); audit events carry the acting identity. No `NetworkPolicy` is installed yet: treat the namespace as flat (gap analysis, §3).
 
 ## Sovereignty
 
@@ -127,7 +127,7 @@ stardelt is *evidence-gathering infrastructure*, not a certified product. Later 
 ## Out of scope / non-goals
 
 Being explicit about what the core stack will *not* contain saves everyone a design debate later.
-The master spec's [§9 "What stardelt is not"](../design/master-spec.md#9-what-stardelt-is-not) is
+The master spec's §9 "What stardelt is not" is
 authoritative; this is the concrete consequence for service selection.
 
 **Hadoop-era services are out of scope for the stardelt core stack:**
@@ -135,7 +135,7 @@ authoritative; this is the concrete consequence for service selection.
 | Not included | Instead | Why |
 |---|---|---|
 | **HDFS** | SeaweedFS (S3 API), or your own S3-compatible store | The data plane is object storage behind the S3 API; Iceberg tables live on it. A block-oriented filesystem with NameNode semantics adds a stateful failure domain and a second storage abstraction for no benefit. |
-| **Hive Metastore as the primary catalog** | **Lakekeeper** (Iceberg REST); the plug matrix lists Apache Polaris and Gravitino as alternates | The catalog contract is the Iceberg REST spec. A Hive Metastore-backed catalog is neither the default nor an alternate in the [plug matrix](../design/master-spec.md#5-the-plug-matrix), and nothing in the stack depends on one. |
+| **Hive Metastore as the primary catalog** | **Lakekeeper** (Iceberg REST); the plug matrix lists Apache Polaris and Gravitino as alternates | The catalog contract is the Iceberg REST spec. A Hive Metastore-backed catalog is neither the default nor an alternate in the plug matrix, and nothing in the stack depends on one. |
 | **YARN** | Kubernetes (scheduling), Trino and Spark Connect (execution) | stardelt runs on a cluster you already operate. Adding a second scheduler means two places to enforce policy, quota, and identity — the exact fragmentation the platform exists to remove. |
 | **ZooKeeper** | Kafka in KRaft mode (via Strimzi) | Kafka has not needed ZooKeeper for metadata since KRaft. See [Services](./services). |
 
@@ -145,7 +145,7 @@ Two qualifications, so this is not read as a ban on interoperability:
   metastore, are a customer decision. stardelt does not ship, wire, or support HDFS or a Hive
   Metastore as part of the platform.
 - **Consuming upstream services.** If a legacy system speaks S3 or the Iceberg REST protocol, it can
-  read the lakehouse like any other client. That is a property of the [contracts](../design/master-spec.md#3-the-core-insight-contracts--defaults--glue),
+  read the lakehouse like any other client. That is a property of the contracts,
   not a stardelt feature.
 
 This follows from the two principles that decide service selection: **Iceberg is the spine**, and

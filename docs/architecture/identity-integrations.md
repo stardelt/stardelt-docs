@@ -474,7 +474,7 @@ clients request it as an optional scope.
 
 ## One IdP, several platform instances
 
-An organization often runs the platform more than once (staging, test, production) and has **one** IdP, for example a single Entra tenant. This is the `external` mode used several times, not a new object ([decision D20](../design/gap-decisions)):
+An organization often runs the platform more than once (staging, test, production) and has **one** IdP, for example a single Entra tenant. This is the `external` mode used several times, not a new object (decision D20):
 
 - **Same issuer, one app registration per instance.** Every instance uses the tenant's issuer (`https://login.microsoftonline.com/<tenant>/v2.0`) but its own registration (`stardelt-staging`, `stardelt-prod`) with its own redirect URIs and its own client secrets, referenced from that instance's `spec.identity`.
 - **Audience separates the stages.** Tokens carry the registration's client id as `aud`; each instance validates its own audience, so a staging token is refused by production.

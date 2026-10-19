@@ -41,7 +41,7 @@ another node (node-local `local-path` cannot follow a pod; cloud block storage c
 | SeaweedFS volume | single volume server holds the data; losing its disk loses the files | more volume servers + replication, and the object-store backup on the board |
 | Trino coordinator | queries stop; nothing is lost | it is stateless — restart/reschedule; run 2 workers minimum so one can drain |
 | Lakekeeper | stateless | more replicas + a PodDisruptionBudget |
-| Nova | in `oidc` mode a restart signs everyone out (sessions are in memory) | keep one replica until sessions move to a shared store ([gap analysis](../design/gap-analysis), G-M5) |
+| Nova | in `oidc` mode a restart signs everyone out (sessions are in memory) | keep one replica until sessions move to a shared store (gap analysis, G-M5) |
 | A whole node | everything on it | 3+ nodes, anti-affinity, tested restore |
 
 None of this is wired into the charts as defaults yet; the values are where the knobs are (see
@@ -110,5 +110,5 @@ own tooling — they are the signals that actually predict trouble here:
 Do not run stardelt in production expecting any of these today: high availability defaults, network
 policies, a bundled observability/alerting stack, secrets management, an upgrade/migration framework,
 multi-tenancy with enforced isolation, or an audit trail. Each is tracked in the
-[execution plan](../design/execution-plan) and on the project board — and the ones that matter most
+execution plan and on the project board — and the ones that matter most
 (identity, isolation) are the next work, not a wishlist.

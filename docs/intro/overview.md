@@ -35,7 +35,7 @@ cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
 - **Try it on the dev cluster.** [Hetzner k3s](../getting-started/hetzner-k3s) for the full
   stack, or [kind](../getting-started/local-kind) for the core slice.
 - **Understand the system first.** [Architecture overview](../architecture/overview)
-  or the full [design spec](../design/master-spec).
+  or the full design spec.
 - **See what's planned.** [Roadmap](../roadmap).
 
 :::warning Pre-alpha

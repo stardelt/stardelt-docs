@@ -6,23 +6,15 @@ slug: /developer
 
 # Developer section
 
-Contributor-facing material: how the repos fit together, how to build and verify, and how the
-AI development fleet works.
+Contributor-facing material: how the repos fit together and how to build, verify and contribute.
 
 If you just want to **use** stardelt, start at [Getting Started](/docs/getting-started/prerequisites).
-
-## Start here
-
-- [**AI development fleet**](/docs/developer/ai-fleet) — the build plane: portal, workers, guardrails. Not
-  part of the product.
-- [**Execution plan**](/docs/design/execution-plan) — the work packages an agent or human picks up.
-- [**Master spec**](/docs/design/master-spec) — the source of truth for what stardelt is.
 
 ## Repo map
 
 | Repo | Role | Build |
 |---|---|---|
-| `stardelt-docs` | Docusaurus site + design docs | `npm install && npm run build` |
+| `stardelt-docs` | Docusaurus site (these docs) | `npm install && npm run build` |
 | `stardelt-platform` | Helm values, manifests, umbrella chart, install, Hetzner dev cluster | `make deps`, `make lint`, `helm lint` |
 | `stardelt-nova` | Rust axum backend + React UI | `cargo check`, `npm --prefix frontend run build` |
 | `stardelt-operator` | kube-rs operator: CRDs, reconcile planner, Helm-backed controller (pre-alpha) | `cargo check`, `cargo test` |
