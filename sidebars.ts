@@ -44,7 +44,7 @@ const sidebars: SidebarsConfig = {
         'design/execution-plan',
         'design/nova-feature-parity',
         'design/gap-decisions',
-        'design/gap-analysis', 'design/scheduled-jobs',
+        'design/gap-analysis', 'design/market-gap-analysis', 'design/scheduled-jobs',
         {
           type: 'link',
           label: 'Permission model research (Unity Catalog / Dremio)',
