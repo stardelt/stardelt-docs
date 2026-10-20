@@ -349,8 +349,9 @@ the notice is stored on the group's connection; the audit record carries the adm
 group, the connection, the reason and the outcome, and never a value.
 
 An administrator can create, rotate and delete managed connections, and create and rotate group
-connections of groups they belong to. For a group they do not belong to they can delete only; the
-page still shows **Rotate**, but the request is refused with the sentence in section 2, and the
+connections of groups they belong to. For a group they do not belong to they can delete only: the
+page marks the row **Not your group** and offers **Delete** and **Break-glass read** without
+**Rotate** (a request that sends it anyway is refused with the sentence in section 2), and the
 audit record marks a successful delete as an administrator's action.
 
 ## 8. Not available yet
