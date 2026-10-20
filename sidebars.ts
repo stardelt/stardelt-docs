@@ -32,7 +32,12 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Guides',
       collapsed: false,
-      items: ['guides/source-to-dashboard', 'guides/query-log', 'guides/notebooks-in-git'],
+      items: [
+        'guides/source-to-dashboard',
+        'guides/connections',
+        'guides/query-log',
+        'guides/notebooks-in-git',
+      ],
     },
     {
       type: 'category',

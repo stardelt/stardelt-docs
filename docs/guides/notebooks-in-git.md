@@ -24,6 +24,10 @@ The token is yours and stays in your notebook environment — typed at the promp
 image and is never committed. A private repository stays private the same way: the token that
 clones it is the token that pushes to it.
 
+A database or API credential does not belong in the repository either. Create a connection on
+**Connections** in Nova, then read it by name in the notebook with `stardelt.connection()` — see
+[Connections and secrets](connections). The notebook file holds the name, not the value.
+
 Day to day you never touch the terminal again: the **Git panel** on JupyterLab's left shows
 changed files, diffs, branches and history. Stage, commit, pull and push from there. Pull before
 you start, commit when a result is worth keeping, push when you want review.

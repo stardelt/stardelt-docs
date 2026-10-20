@@ -47,13 +47,12 @@ spark.createDataFrame(df).writeTo("warehouse.bronze_crm.accounts").createOrRepla
 Spark uses the platform's storage credential, so tables it writes are not covered by table permissions yet.
 A governed helper, `stardelt.write_df(df, "bronze_crm.accounts")`, is coming.
 
-**Coming: connections.** You create a *connection* once (type, host, owner group, secret). The definition lives
-in Git; the password lives in the secret store. Pipelines and notebooks refer to the connection by name.
+**Connections.** Create one on **Connections** in Nova: type, settings, owner group and secret. The
+settings stay visible; the password is written once and never shown again. A Python notebook reads
+it with `stardelt.connection("name")`; SQL and pipelines cannot use one yet. See
+[Connections and secrets](connections).
 
-![Secrets flow](/img/guides/secrets-flow.svg)
-
-Secrets follow the same rule as identity: the platform connects to **your company's** secret store (key vault,
-Vault); a sandbox gets a built-in store. Never put a credential in a notebook, an image or Git.
+The value lives in the platform's secret store, not in the notebook, an image or Git.
 
 ## 3. Model: bronze, silver, gold
 
@@ -95,5 +94,5 @@ as a pipeline, and layer tags in the catalog.
 
 ## What is coming
 
-Connections and the secret store · scheduled pipelines and ingestion templates · SQL models with tests ·
-layer tags in the catalog · a Python helper for governed writes · query history and table history in Nova.
+Scheduled pipelines and ingestion templates · SQL models with tests · layer tags in the catalog · a
+Python helper for governed writes · query history and table history in Nova.
