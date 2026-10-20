@@ -35,6 +35,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'guides/source-to-dashboard',
         'guides/connections',
+        'guides/schedule-sql',
         'guides/query-log',
         'guides/notebooks-in-git',
       ],
