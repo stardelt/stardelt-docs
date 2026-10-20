@@ -68,7 +68,7 @@ This is the wedge. A single working pillar with the composed control plane prove
 **Validation** (✅ done today, ◐ partial, — not started):
 
 - Single-cluster, single-tenant. ✅
-- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`); `kind` demo for the core slice. ✅ — the k3s cluster is live; the kind path installs the same `core` profile through the platform Makefile, and a nightly workflow in the demo repository exercises it.
+- Development on the Hetzner k3s cluster (`stardelt-platform/dev/hetzner-k3s`). ✅ — the k3s cluster is live and installs the same `core` profile through the platform Makefile.
 - Documented install path for real clusters. ◐ — `make install` / `make install-core` are documented and in use, and `make chart-install` offers the same components as one umbrella Helm chart; the install is bash or Helm, not a CRD.
 - First 5 pilot users. — the dev environment is public at `alpha.dev.stardelt.io`; no pilots yet.
 

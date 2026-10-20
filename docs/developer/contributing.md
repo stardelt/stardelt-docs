@@ -103,7 +103,7 @@ Conventions:
   `stardelt-nova`, `stardelt-operator`, `stardelt-demos`, `stardelt-docs` version and release
   independently. A docs fix does not bump the operator.
 - **`main` is the delivery channel today.** No release tags have been cut; the project is pre-alpha
-  and installs from `main` (`make install`, `make up` for the kind demo). See the
+  and installs from `main` (`make install`). See the
   [roadmap](../roadmap) for the phase gates.
 - **`main` is always deployable.** Nothing merges that fails its repo's build check.
 - **One deliverable, moved together:** the platform repo pins chart versions in its `Makefile`; a
@@ -167,7 +167,6 @@ How upgrades work today:
 
 - **Platform:** `make upgrade` is `make install` re-run — Helm's `upgrade --install` is idempotent, so
   re-running is the supported path.
-- **kind demo:** `make up` is idempotent and skips steps that already succeeded.
 
 Policy:
 
@@ -274,7 +273,7 @@ CI fails when the committed pages do not match the snapshots.
 | `stardelt-nova` | `cargo check`, then `npm --prefix frontend run build` |
 | `stardelt-operator` | `cargo check` |
 | `stardelt-platform` | `make lint` (`bash -n` + ShellCheck on the scripts); `helm template` / `make chart-template` for changed values or chart |
-| `stardelt-demos` | `make up && make smoke` |
+| `stardelt-demos` | `pytest` |
 
 Paste the command and its result in the PR description. That one line is what turns a draft into
 something a maintainer can merge.

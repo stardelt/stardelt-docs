@@ -57,7 +57,7 @@ stardelt's CI matrix includes **European sovereign-cloud Kubernetes** targets al
 - **Open Telekom Cloud**
 - **Scaleway** Kapsule
 
-For comparison: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, kind. **Sovereign-cloud Kubernetes is a first-class target, not an afterthought.**
+For comparison: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s. **Sovereign-cloud Kubernetes is a first-class target, not an afterthought.**
 
 ### 5. Open formats only at rest
 

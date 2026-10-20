@@ -33,7 +33,7 @@ cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
 ## Where to go next
 
 - **Try it on the dev cluster.** [Hetzner k3s](../getting-started/hetzner-k3s) for the full
-  stack, or [kind](../getting-started/local-kind) for the core slice.
+  stack.
 - **Understand the system first.** [Architecture overview](../architecture/overview)
   or the full design spec.
 - **See what's planned.** [Roadmap](../roadmap).

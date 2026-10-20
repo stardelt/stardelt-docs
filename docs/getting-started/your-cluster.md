@@ -6,7 +6,7 @@ slug: /getting-started/your-cluster
 
 # Install on your own cluster
 
-The dev paths ([Hetzner k3s](./hetzner-k3s), [kind](./local-kind)) install stardelt with
+The dev path ([Hetzner k3s](./hetzner-k3s)) installs stardelt with
 `make install` — a script that walks the components one at a time. That path is optimised for the
 maintainer's workflow, not for yours.
 
@@ -158,7 +158,7 @@ values file per namespace is the honest answer.
 
 | Where you run | What to expect |
 |---|---|
-| **k3s, kind** | the StorageClass comes with the distribution (`local-path`); install an ingress controller yourself if you want one — the dev playground uses ingress-nginx bound to the host network, which is a single-node trick, not a requirement |
+| **k3s** | the StorageClass comes with the distribution (`local-path`); install an ingress controller yourself if you want one — the dev playground uses ingress-nginx bound to the host network, which is a single-node trick, not a requirement |
 | **EKS, GKE, AKS** | set `storage.className` (`gp3`, `standard-rwo`, `managed-csi`); use the cloud load balancer or install an ingress controller; nothing in the chart assumes host networking or hostPath |
 | **OpenShift** | **not verified.** Routes replace ingresses, and security context constraints may reject the upstream charts' `securityContext` blocks (several upstream images assume a fixed UID). Treat it as a porting project and report what you hit |
 | **Air-gapped** | mirror `ghcr.io/stardelt/*` and every upstream image into your registry, then set `images.pullSecrets` and the sub-chart keys above. The published stardelt images are public, so no secret is needed to pull them from the internet |
