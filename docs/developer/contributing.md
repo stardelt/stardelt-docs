@@ -260,6 +260,12 @@ If you contribute with a model:
   not evidence.
 - **Answer the review yourself.** The model does not read the review thread; you do.
 
+## Generated reference
+
+`docs/reference/` is generated from the committed snapshots in `reference-src/`; never edit it by hand.
+To refresh it after an upstream change, run `npm run sync:reference && npm run gen:reference` and commit both the snapshots and the pages.
+CI fails when the committed pages do not match the snapshots.
+
 ## Before you open a PR
 
 | Repo | Check |

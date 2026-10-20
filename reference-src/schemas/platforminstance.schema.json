@@ -1,0 +1,368 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "A stardelt platform instance.",
+  "properties": {
+    "spec": {
+      "description": "Cluster-scoped root resource: declares which pillars and profile are installed.",
+      "properties": {
+        "baseDomain": {
+          "description": "Public DNS name the platform is served under, for example `data.example.com`: Nova answers\non the name itself and every other application on a subdomain (`id`, `trino`, `superset`...).",
+          "maxLength": 253,
+          "minLength": 3,
+          "nullable": true,
+          "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$",
+          "type": "string"
+        },
+        "dryRun": {
+          "default": true,
+          "description": "Plan only (no cluster changes) until explicitly disabled. Safe default.",
+          "type": "boolean"
+        },
+        "identity": {
+          "default": {
+            "adminGroup": "stardelt-admins",
+            "mode": "none",
+            "provider": "oidc"
+          },
+          "description": "How users sign in; see [`IdentitySpec`].",
+          "properties": {
+            "adminGroup": {
+              "default": "stardelt-admins",
+              "description": "Members of this group are platform administrators.",
+              "type": "string"
+            },
+            "apiAudience": {
+              "description": "`external` only: the audience the engine and the catalog accept.",
+              "maxLength": 256,
+              "minLength": 1,
+              "nullable": true,
+              "pattern": "^\\S+$",
+              "type": "string"
+            },
+            "clients": {
+              "additionalProperties": {
+                "description": "One app registration made by the customer in their provider.",
+                "properties": {
+                  "clientId": {
+                    "maxLength": 256,
+                    "minLength": 1,
+                    "pattern": "^\\S+$",
+                    "type": "string"
+                  },
+                  "clientSecretRef": {
+                    "description": "Required for every client except the public `lakekeeper` one. Never the value itself.",
+                    "nullable": true,
+                    "properties": {
+                      "key": {
+                        "default": "client-secret",
+                        "maxLength": 253,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "name": {
+                        "maxLength": 253,
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "clientId"
+                ],
+                "type": "object"
+              },
+              "description": "`external` only: the app registrations the customer made, one entry per client.",
+              "type": "object"
+            },
+            "groupClaim": {
+              "description": "Name of the token claim that carries group (or role) names. Defaults to `roles` for\n`entra` and `groups` otherwise.",
+              "nullable": true,
+              "type": "string"
+            },
+            "issuerUrl": {
+              "description": "OIDC issuer URL, `https://` only. Required for `external`; for `platform` it is derived\nfrom `baseDomain` and must be left out.",
+              "nullable": true,
+              "type": "string"
+            },
+            "mode": {
+              "default": "none",
+              "description": "Where users sign in (decision D20). Two modes besides none: an identity provider the\norganization already runs (`external`, for example Entra or Okta), or one the platform runs\nitself (`platform`, Keycloak). An organization often runs the platform several times against\none external provider; each instance then has its own app registrations and group mapping.",
+              "enum": [
+                "none",
+                "platform",
+                "external"
+              ],
+              "type": "string"
+            },
+            "provider": {
+              "default": "oidc",
+              "description": "`external` only: which kind of provider this instance talks to.",
+              "enum": [
+                "oidc",
+                "entra"
+              ],
+              "type": "string"
+            }
+          },
+          "type": "object",
+          "x-kubernetes-validations": [
+            {
+              "message": "platform mode creates its own clients: leave provider, apiAudience and clients out",
+              "rule": "self.mode == 'external' || (self.provider == 'oidc' && !has(self.apiAudience) && (!has(self.clients) || size(self.clients) == 0))"
+            },
+            {
+              "message": "external mode needs issuerUrl",
+              "rule": "self.mode != 'external' || has(self.issuerUrl)"
+            },
+            {
+              "message": "external mode needs apiAudience",
+              "rule": "self.mode != 'external' || has(self.apiAudience)"
+            },
+            {
+              "message": "external mode needs a nova client",
+              "rule": "self.mode != 'external' || (has(self.clients) && 'nova' in self.clients)"
+            },
+            {
+              "message": "client names are nova, trino, lakekeeper, superset, airflow, jupyterhub and trino-group-sync",
+              "rule": "!has(self.clients) || self.clients.all(k, k in ['nova','trino','lakekeeper','superset','airflow','jupyterhub','trino-group-sync'])"
+            },
+            {
+              "message": "every client except lakekeeper needs a clientSecretRef",
+              "rule": "!has(self.clients) || self.clients.all(k, k == 'lakekeeper' || has(self.clients[k].clientSecretRef))"
+            }
+          ]
+        },
+        "namespace": {
+          "default": "stardelt",
+          "description": "Namespace the platform's own components are installed into.",
+          "type": "string"
+        },
+        "pillars": {
+          "default": {
+            "batch": false,
+            "lakehouse": true,
+            "ml": false,
+            "notebooks": false,
+            "streaming": false
+          },
+          "description": "Which pillars a platform instance enables.",
+          "properties": {
+            "batch": {
+              "default": false,
+              "type": "boolean"
+            },
+            "lakehouse": {
+              "default": true,
+              "type": "boolean"
+            },
+            "ml": {
+              "default": false,
+              "type": "boolean"
+            },
+            "notebooks": {
+              "default": false,
+              "description": "Multi-user notebooks (JupyterHub). Off by default: a notebook stack is\nheavy, and a cluster that only serves queries should not carry it.",
+              "type": "boolean"
+            },
+            "streaming": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "type": "object"
+        },
+        "profile": {
+          "default": "demo",
+          "description": "Deployment size / capability profile.",
+          "enum": [
+            "demo",
+            "full",
+            "airgap"
+          ],
+          "type": "string"
+        },
+        "set": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "description": "`--set` overrides per component: `set.<component>.<helm.key>: \"value\"`.\nHighest precedence — Helm applies `--set` after any values document.",
+          "type": "object"
+        },
+        "values": {
+          "additionalProperties": {
+            "type": "object",
+            "x-kubernetes-preserve-unknown-fields": true
+          },
+          "description": "Free-form Helm values per component, e.g. `values.trino.worker.resources`.\nDeep-merged over the golden defaults, so one key can be pinned without\nrestating the rest.",
+          "type": "object"
+        },
+        "valuesFrom": {
+          "additionalProperties": {
+            "description": "External source of one component's Helm values: set exactly one of\n`configMapRef` or `secretRef`.",
+            "properties": {
+              "configMapRef": {
+                "description": "Read the values document from this ConfigMap key.",
+                "nullable": true,
+                "properties": {
+                  "key": {
+                    "description": "Key holding the YAML values document.",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Name of the ConfigMap or Secret.",
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "description": "Namespace of the referenced object. Defaults to the resource's own\nnamespace; required for cluster-scoped resources (`PlatformInstance`).",
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "name"
+                ],
+                "type": "object"
+              },
+              "secretRef": {
+                "description": "Read the values document from this Secret key (decoded, then parsed as YAML).",
+                "nullable": true,
+                "properties": {
+                  "key": {
+                    "description": "Key holding the YAML values document.",
+                    "type": "string"
+                  },
+                  "name": {
+                    "description": "Name of the ConfigMap or Secret.",
+                    "type": "string"
+                  },
+                  "namespace": {
+                    "description": "Namespace of the referenced object. Defaults to the resource's own\nnamespace; required for cluster-scoped resources (`PlatformInstance`).",
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "name"
+                ],
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "description": "External values documents per component, read from a ConfigMap or Secret key.",
+          "type": "object"
+        }
+      },
+      "type": "object",
+      "x-kubernetes-validations": [
+        {
+          "message": "identity.mode external needs identity.issuerUrl, an https:// URL",
+          "rule": "!has(self.identity) || !has(self.identity.mode) || self.identity.mode != 'external' || (has(self.identity.issuerUrl) && self.identity.issuerUrl.startsWith('https://'))"
+        },
+        {
+          "message": "identity.mode platform derives the issuer from baseDomain; leave identity.issuerUrl out",
+          "rule": "!has(self.identity) || !has(self.identity.mode) || self.identity.mode != 'platform' || !has(self.identity.issuerUrl)"
+        },
+        {
+          "message": "identity needs baseDomain (the application hosts and redirect addresses are built from it)",
+          "rule": "!has(self.identity) || !has(self.identity.mode) || self.identity.mode == 'none' || has(self.baseDomain)"
+        }
+      ]
+    },
+    "status": {
+      "nullable": true,
+      "properties": {
+        "components": {
+          "default": [],
+          "items": {
+            "properties": {
+              "appliedHash": {
+                "description": "Fingerprint (args + values) of the release that was applied last time a\nhash was recorded; lets the next reconcile skip an unchanged component.",
+                "nullable": true,
+                "type": "string"
+              },
+              "message": {
+                "nullable": true,
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "ready": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "ready"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "conditions": {
+          "default": [],
+          "items": {
+            "properties": {
+              "lastTransitionTime": {
+                "nullable": true,
+                "type": "string"
+              },
+              "message": {
+                "nullable": true,
+                "type": "string"
+              },
+              "observedGeneration": {
+                "format": "int64",
+                "nullable": true,
+                "type": "integer"
+              },
+              "reason": {
+                "nullable": true,
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "observedGeneration": {
+          "format": "int64",
+          "nullable": true,
+          "type": "integer"
+        },
+        "phase": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "spec"
+  ],
+  "title": "PlatformInstance",
+  "type": "object"
+}
