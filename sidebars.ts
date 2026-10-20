@@ -1,4 +1,13 @@
 import type { SidebarsConfig } from '@docusaurus/plugin-content-docs';
+import fs from 'node:fs';
+import path from 'node:path';
+
+// A new schema adds a page; the sidebar picks it up without a second edit.
+const referenceResources = fs
+  .readdirSync(path.join(process.cwd(), 'docs', 'reference', 'resources'))
+  .filter((file) => file.endsWith('.md') && file !== 'index.md')
+  .sort()
+  .map((file) => `reference/resources/${file.slice(0, -3)}`);
 
 const sidebars: SidebarsConfig = {
   docs: [
@@ -60,6 +69,12 @@ const sidebars: SidebarsConfig = {
         'developer/contributing',
         'developer/vscode',
       ],
+    },
+    {
+      type: 'category',
+      label: 'Reference',
+      collapsed: true,
+      items: ['reference/resources/index', ...referenceResources, 'reference/api'],
     },
   ],
 };
