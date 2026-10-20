@@ -24,8 +24,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'getting-started/prerequisites',
         'getting-started/your-cluster',
-        'getting-started/hetzner-k3s',
-        'getting-started/local-kind'
+        'getting-started/hetzner-k3s'
       ],
     },
     {

@@ -51,7 +51,7 @@ same environment variables.
 | `NOVA_OIDC_GROUP_CLAIM` | claim carrying groups, default `groups` |
 | `NOVA_OIDC_ADMIN_GROUP` | group that maps to Nova admin, default `stardelt-admins` |
 
-`NOVA_AUTH_MODE=dev` must keep working forever: it is what CI, the kind gate and `make demo` use, and
+`NOVA_AUTH_MODE=dev` must keep working forever: it is what CI and the Nova demo mode (`make demo`) use, and
 a misconfigured IdP must never lock an operator out of their own platform. Switching a running
 install to `oidc` is a values change plus a rollout — no data migration.
 

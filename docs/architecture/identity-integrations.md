@@ -65,7 +65,7 @@ identity:
   adminGroup: stardelt-admins   # Keycloak group name | Entra app-role value, e.g. stardelt.admin
 ```
 
-- `none` is not a third identity mode. It is the dev and CI path (`kind`, `make demo`), with no
+- `none` is not a third identity mode. It is the dev and CI path (`make demo`), with no
   IdP and components on their dev auth, as the Identity page requires.
 - The chart publishes ConfigMap `stardelt-identity` (`issuerUrl`, `groupClaim`, `adminGroup`).
   Every block's values are derived from it. Client IDs and secrets live in Secrets

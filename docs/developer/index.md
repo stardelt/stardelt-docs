@@ -18,7 +18,7 @@ If you just want to **use** stardelt, start at [Getting Started](/docs/getting-s
 | `stardelt-platform` | Helm values, manifests, umbrella chart, install, Hetzner dev cluster | `make deps`, `make lint`, `helm lint` |
 | `stardelt-nova` | Rust axum backend + React UI | `cargo check`, `npm --prefix frontend run build` |
 | `stardelt-operator` | kube-rs operator: CRDs, reconcile planner, Helm-backed controller (pre-alpha) | `cargo check`, `cargo test` |
-| `stardelt-demos` | kind demo (NYC taxi) | `make up`, `make smoke` |
+| `stardelt-demos` | sample pipelines and the Airflow loader image | `pytest` |
 
 ## Conventions
 

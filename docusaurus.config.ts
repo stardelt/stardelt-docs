@@ -58,7 +58,7 @@ const config: Config = {
       logo: { alt: 'stardelt', src: 'img/logo.svg' },
       items: [
         { to: '/docs/intro/overview', label: 'Overview', position: 'left' },
-        { to: '/docs/getting-started/local-kind', label: 'Getting started', position: 'left' },
+        { to: '/docs/getting-started/prerequisites', label: 'Getting started', position: 'left' },
         { to: '/docs/architecture/overview', label: 'Architecture', position: 'left' },
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
         { href: 'https://github.com/stardelt', label: 'GitHub', position: 'right' },
