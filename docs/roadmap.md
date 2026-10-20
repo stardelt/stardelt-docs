@@ -6,7 +6,7 @@ slug: /roadmap
 
 # stardelt Roadmap
 
-stardelt is a multi-year vision. Each phase produces something demoable and usable on its own — not "half-built monolith until v1.0."
+stardelt is a multi-year vision. Each phase produces something demoable and usable on its own — not "half-built monolith until some distant finished release."
 
 The MVP (Phase 0 + Phase 1) is the only milestone needed to validate the bet. Phases 2–6 are gated on community pull.
 
