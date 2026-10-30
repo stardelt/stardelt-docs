@@ -17,18 +17,19 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | --- | --- | --- | --- | --- | --- |
 | `spec.concurrency` | string | No | `Forbid` | What happens when a run is due while the previous one is still running. | `Allow`, `Forbid`, `Replace` |
 | `spec.engine` | string | No | `airflow` | Engine that orchestrates (and for `spark`, executes) the pipeline. | `airflow`, `spark` |
+| `spec.ownerGroup` | string (nullable) | No |  | The group that owns the pipeline: its members see it, run it and pause it in Nova. Optional so that existing pipelines keep working; a pipeline without an owner is visible to administrators only. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.params` | object (map of string) | No |  | Values for `${params.<name>}` in task statements. |  |
 | `spec.retries` | object (nullable) | No |  | Retry policy applied to every task. |  |
 | `spec.retries.attempts` | integer | Yes |  | Extra attempts after the first failure. | min 0, max 10; format `int32` |
 | `spec.retries.backoff` | string (nullable) | No |  | Wait between attempts, for example `5m`. Absent means one minute. |  |
-| `spec.runAs` | string (nullable) | No |  | Service principal the tasks run as. Absent means the platform's default pipeline principal. |  |
+| `spec.runAs` | string (nullable) | No |  | Service principal the tasks run as. Absent means the platform's default pipeline principal. By convention the principal of the owner group, named `pipeline-<ownerGroup>`; Nova's Schedule writes that name. |  |
 | `spec.schedule` | object (nullable) | No |  | Optional schedule; a pipeline without one runs on demand only. |  |
 | `spec.schedule.cron` | string | Yes |  | Five-field cron expression, for example `0 3 * * *`. | min 9, max 100 |
 | `spec.schedule.timezone` | string (nullable) | No |  | IANA time zone name, for example `Europe/Berlin`. Absent means UTC. |  |
 | `spec.tasks` | array of object | Yes |  | Tasks of the pipeline; at least one, at most 30. | min 1, max 30 |
-| `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). |  |
+| `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). | max 32 |
 | `spec.tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first. | max 8 |
-| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql` is the first kind the platform runs (scheduled jobs phase J0); the others are accepted so manifests can be written ahead of their runtimes. | `sql`, `python`, `dbt`, `quality` |
+| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql` is the first kind the platform runs (scheduled jobs phase J0); the others are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality` |
 | `spec.tasks[].name` | string | Yes |  | Unique within the pipeline; becomes the task id in the engine. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
 | `spec.tasks[].sql` | string (nullable) | No |  | The statement of a `sql` task. `${run.date}`, `${run.id}` and `${params.<name>}` are expanded when the task runs, not in the resource. | min 1, max 100000 |
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |
@@ -57,3 +58,6 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - task names must be unique
 - dependsOn must name other tasks of this pipeline
 - a sql task needs a sql statement
+- a notebook task needs config.notebook (a .ipynb file name) and config.objectVersion (the published version)
+- notebook tasks accept only notebook, objectVersion and params
+- notebook params must be a JSON object string of at most 4096 characters
