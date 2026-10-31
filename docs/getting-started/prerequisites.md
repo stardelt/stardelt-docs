@@ -31,6 +31,46 @@ cluster, verify it before `make install`.
 `kubectl config current-context` determines the target cluster — stardelt does not switch contexts for
 you, so check it before installing.
 
+### Host OS, kernel and AppArmor
+
+The node's kernel and its AppArmor policy decide whether containers can signal their own
+processes. PostgreSQL wakes its background workers with `SIGURG`; when the container's
+AppArmor profile refuses that signal, the database never becomes ready — and it looks like a
+database fault, not a host one.
+
+| Combination | Result |
+|---|---|
+| Ubuntu 26.04, kernel **7.0.0-38-generic**, `apparmor` 5.0.2, `containerd.io` 2.4.2 | works — this is the tested dev combination |
+| Ubuntu 26.04, kernel **7.0.0-42-generic**, same packages | **broken**: the container profile denies the signal, CNPG and ingress-nginx hang |
+
+Check before installing — the count must be `0`:
+
+```sh
+sudo journalctl -k --since "-10 min" | grep -c 'apparmor="DENIED" operation="signal"'
+```
+
+:::warning AppArmor denies container-internal signals
+Symptoms on an affected node: the CNPG pods never report ready (`Instance is still down`,
+`could not establish connection`), ingress-nginx restarts in a loop with
+`nginx: [alert] kill(22, 1) failed (13: Permission denied)`, and the kernel log repeats
+
+```text
+apparmor="DENIED" operation="signal" class="signal" profile="cri-containerd.apparmor.d" comm="postgres" signal=urg
+```
+
+Ways out, in the order to try them:
+
+1. **Boot the previous kernel** and hold the new one until a fixed kernel or profile ships —
+   the least invasive, and it keeps container confinement intact.
+2. **Disable AppArmor for container workloads** (a k3s containerd `config.toml.tmpl` with
+   `disable_apparmor = true`, then restart k3s). Works, but weakens confinement for every
+   container on the node.
+3. **Per-workload `securityContext.appArmorProfile: Unconfined`** for the pods that signal each
+   other (PostgreSQL, ingress-nginx). Many pods, easy to miss one; not recommended.
+
+This is a host decision, not a chart value: stardelt cannot fix it from inside the cluster.
+:::
+
 ### Node sizing
 
 Rough, measured against the Hetzner dev cluster — the shape matters more than the provider:
