@@ -115,7 +115,7 @@ run, tasks = runs.start(nova, "etl", "nyc_taxi", wait=True)     # run["state"] i
 
 ## Long-running SQL: statements
 
-`stardelt sql` holds one request open until the query ends and returns at most 50 000 rows. For longer queries, or when you need
+`stardelt sql` holds one request open until the query ends and returns at most 50 000 rows or about 64 MiB of data. For longer queries, or when you need
 to cancel one from another process, submit a *statement*: you get a handle at once, poll it, read the rows in chunks of 1 000 and
 cancel it by its id.
 
@@ -132,6 +132,13 @@ statement = nova.ops.statements.submit(body={"sql": "select * from warehouse.dem
 while statement["state"] in ("PENDING", "RUNNING"):
     statement = nova.ops.statements.get(id=statement["statementId"], waitSeconds=10)
 rows = nova.ops.statements.chunk_get(id=statement["statementId"], n=0)["rows"]
+```
+
+Over plain HTTP a chunk can also come as CSV, for a spreadsheet or a script: ask for it with `Accept: text/csv`. Chunk 0 starts with a row of the column
+names and the other chunks have none, so the chunks joined in order are one file; an empty cell is a null.
+
+```bash
+curl -s -H "Authorization: Bearer $STARDELT_TOKEN" -H 'Accept: text/csv' "$STARDELT_NOVA_URL/api/statements/STATEMENT_ID/chunks/0"
 ```
 
 When you just want the rows at the end, let the command or the notebook method do the submitting, polling and cancelling for you:
