@@ -3985,7 +3985,7 @@
         "tags": [
           "public"
         ],
-        "description": "Run one SQL statement as the caller and return the whole result. Synchronous: the call returns when the query ends. At most 50 000 rows are returned; past that `truncated` is true and the rows are a prefix.",
+        "description": "Run one SQL statement as the caller and return the whole result. Synchronous: the call returns when the query ends. At most 50 000 rows or about 64 MiB of data are returned; past that `truncated` is true and the rows are a prefix.",
         "operationId": "query_run",
         "requestBody": {
           "content": {
@@ -4665,7 +4665,7 @@
         "tags": [
           "public"
         ],
-        "description": "One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0. A chunk exists once it is full or the statement has ended; the call does not wait.",
+        "description": "One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0. A chunk exists once it is full or the statement has ended; the call does not wait. With `Accept: text/csv` the rows come as CSV (RFC 4180, lines end with CRLF) instead of JSON: chunk 0 starts with a row of the column names, the other chunks have none, so the chunks joined in order are one file; null is an empty cell and an array or an object is written as its JSON text.",
         "operationId": "statements_chunk_get",
         "parameters": [
           {
@@ -4695,6 +4695,11 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ChunkView"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -6780,7 +6785,7 @@
           },
           "truncated": {
             "type": "boolean",
-            "description": "True when rows were cut at [`MAX_ROWS`]: the result is a prefix, not the\nwhole answer. The UI says so instead of showing a silent partial table."
+            "description": "True when rows were cut at [`MAX_ROWS`] or [`MAX_BYTES`]: the result is a prefix, not the\nwhole answer. The UI says so instead of showing a silent partial table."
           }
         }
       },
@@ -7196,7 +7201,7 @@
           },
           "truncated": {
             "type": "boolean",
-            "description": "True when the rows were cut at 100 000: they are a prefix, not the whole answer."
+            "description": "True when the rows were cut (at 100 000 rows or at about 64 MiB of data): they are a prefix, not the whole answer."
           }
         }
       },
