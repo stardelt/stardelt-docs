@@ -40,6 +40,7 @@ by Nova from your groups, exactly as in the interface.
 
 ```bash
 stardelt sql "select * from warehouse.demo.trips limit 5"          # a table; --format json or csv
+stardelt sql -f report.sql --format csv                          # the statement from a file; -f - reads standard input
 stardelt pipelines list --format table                             # RESOURCE VERB
 stardelt pipelines get etl nyc_taxi                                # the values of the path follow the verb
 stardelt table history demo trips --format table
@@ -92,6 +93,10 @@ schedule:
 `would-create` or `would-update` as the other actions. An update replaces what the file says: `params` and `options` left out of
 the file go back to their defaults. The group of an existing pipeline cannot change, and you can only apply to a group you
 belong to.
+
+`-f` can also name a directory: every `.json`, `.yaml` and `.yml` file directly inside it is applied in name order, one answer line per file, so a
+folder of pipelines in your repository deploys with one command (`stardelt apply -f pipelines/`). All files are read before anything is applied: a
+file that is not a pipeline (the message names it), a folder without any pipeline file, or two files with one pipeline name write nothing.
 
 ## Run a pipeline and wait for it
 
