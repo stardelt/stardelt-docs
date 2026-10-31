@@ -17,14 +17,19 @@ pip install stardelt
 
 ## Sign in
 
-In a notebook on the platform, the helper already knows who you are; nothing to set up. Outside a notebook, give the command
-line Nova's address and a bearer access token from your identity provider (it must carry the audience Nova accepts):
+In a notebook on the platform, the helper already knows who you are; nothing to set up. Outside a notebook, sign in once with a
+code you approve in a browser (the device flow of your identity provider):
 
 ```bash
 export STARDELT_NOVA_URL=https://nova.example.com
-export STARDELT_TOKEN=...      # a bearer access token; a `stardelt login` command will replace this step
+stardelt login --issuer https://id.example.com/realms/stardelt
 stardelt whoami
 ```
+
+`stardelt login` prints a link and a short code; open the link on any device, check the code and approve. The command keeps the
+sign-in in `~/.config/stardelt/credentials.json` (readable only by you), renews it shortly before it expires and remembers the
+Nova address you gave. `stardelt logout` deletes the file. In CI, where nobody can approve a code, set `STARDELT_TOKEN` to a
+bearer access token instead (it must carry the audience Nova accepts); when it is set it wins over the stored sign-in.
 
 The token is only ever sent to Nova, in the `Authorization` header. It is never printed or logged. What you may do is decided
 by Nova from your groups, exactly as in the interface.
@@ -63,6 +68,18 @@ nova.call("pipelines_run_trigger", path={"namespace": "etl", "name": "nyc_taxi"}
 
 `call` takes the operation id, the values of the path, the query parameters and the JSON body, and returns the parsed answer.
 A missing or unexpected path value is an error before any request is sent.
+
+Every operation is also a method, grouped by resource, so a notebook can complete the names with the Tab key:
+
+```python
+nova.ops.pipelines.list()
+nova.ops.pipelines.get(namespace="etl", name="nyc_taxi")
+nova.ops.query.log_list(scope="mine", state="FAILED", limit=20)
+dir(nova.ops)                    # the resources; dir(nova.ops.pipelines) lists the verbs
+```
+
+The keyword arguments are the path and query parameters of the operation, `body=` is the JSON body, and a wrong name is an
+error that lists the accepted ones before any request is sent.
 
 ## For AI assistants (MCP)
 
