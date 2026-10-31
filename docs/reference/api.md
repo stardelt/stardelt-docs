@@ -15,25 +15,82 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 
 ## /api/catalog
 
-### GET /api/catalog/namespaces
+### GET /api/catalog/catalogs
 
-List catalog namespaces (schemas). Each namespace is a list of levels.
+Operation id `catalogs_list`: in Python `client.call("catalogs_list", …)`, on the command line `stardelt api catalogs_list`.
+
+The catalogs the caller may browse, each with its Lakekeeper warehouse id and its medallion layer when it has one, plus the catalog a request without `?catalog=` uses. The order is bronze, silver, gold first (in that order), then the rest alphabetically; `layer` is `stardelt.io/layer` from the catalog's `Catalog` resource, else the catalog's own name when that is `bronze`, `silver` or `gold`, and absent otherwise. The list is what the engine's `SHOW CATALOGS` shows the caller (through the caller's own token), minus the engine's own catalogs (`system`, `information_schema`, `memory`, `tpch`, `tpcds`, `jmx`); it is cached for 30 s (the layer for 60 s). Every other `/api/catalog/*` route takes the same `?catalog=`; a catalog the caller may not browse answers 403 there and is never proxied. Empty when no catalog is open to the caller. `demo` in demo mode.
 
 **Responses**
 
 | Code | Description |
 | --- | --- |
-| `200` | Namespaces in the warehouse |
-| `500` | The catalog is not reachable |
+| `200` | The browsable catalogs and the default one |
+| `502` | The query engine or the catalog is not reachable |
+| `503` | A catalog the engine lists has no warehouse |
 
-### GET /api/catalog/namespaces/\{ns\}/tables
+### GET /api/catalog/metrics
 
-List tables in one namespace.
+Operation id `catalog_metrics_get`: in Python `client.call("catalog_metrics_get", …)`, on the command line `stardelt api catalog_metrics_get`.
+
+What is in each catalog the caller may browse: schemas, tables, rows, bytes on the object store and the newest commit, plus the sums. Rows are ordered bronze, silver, gold first, then by name, and carry `layer` when the catalog is one of the three (the `stardelt.io/layer` label, else the catalog's own name). The catalog list is the caller's own `SHOW CATALOGS` (`GET /api/catalog/catalogs`); a catalog the caller may not browse is never read and never appears. The numbers come from the catalog's Iceberg metadata (the current snapshot's `total-records` and `total-files-size`), so the endpoint runs no query, and they are read in the background every five minutes (`NOVA_METRICS_REFRESH_SECS`): a request answers from the last numbers at once, whatever their age, and `updatedAt` says when they were read. A catalog with no numbers yet is answered with zeros and `pending: true` while one background scan reads it; `totals` leave pending rows out. At most 200 tables per catalog are loaded: `truncated` says the rows and bytes are a sample while `tables` stays exact. A catalog whose scan failed keeps its last numbers and carries an `error` sentence (zeros for one that never answered); only an unreachable engine or catalog fails the request with 502. 403 when no catalog is open to the caller. Never cached by the client.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | One entry per browsable catalog, medallion layers first, then by name, with the totals |
+| `403` | No catalog is open to the caller |
+| `502` | The query engine is not reachable, so the catalogs cannot be named |
+
+### POST /api/catalog/metrics/refresh
+
+Operation id `catalog_metrics_refresh`: in Python `client.call("catalog_metrics_refresh", …)`, on the command line `stardelt api catalog_metrics_refresh`.
+
+Read every catalog again now, instead of waiting for the next background round (every five minutes). Administrator only: it is an operator action on the whole warehouse, and `main` puts the same `require_admin` in front of it as `/api/apps`, so a non-administrator answers 403. Answers 202 — the round runs in the background, one at a time, and the page reads the new numbers with its next `GET /api/catalog/metrics`. At most one per minute: a second call answers 429 with the sentence `the numbers were refreshed less than a minute ago`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `202` | The round is running; the numbers follow on the next read |
+| `403` | Not an administrator |
+| `429` | The numbers were refreshed less than a minute ago |
+
+### GET /api/catalog/namespaces
+
+Operation id `namespaces_list`: in Python `client.call("namespaces_list", …)`, on the command line `stardelt api namespaces_list`.
+
+List one catalog's namespaces (schemas). Each namespace is a list of levels. `?catalog=` picks the catalog; omitted, the default one is used. A catalog the caller may not browse answers 403, a name no catalog knows 404.
 
 **Parameters**
 
 | Name | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | Namespaces in the catalog |
+| `400` | The catalog name is not lower-case letters and digits |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog |
+| `502` | The catalog or the engine is not reachable |
+| `503` | The configured warehouse does not exist |
+
+### GET /api/catalog/namespaces/\{ns\}/tables
+
+Operation id `tables_list`: in Python `client.call("tables_list", …)`, on the command line `stardelt api tables_list`.
+
+List tables in one namespace of one catalog. `?catalog=` picks the catalog; omitted, the default one is used.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
 | `ns` | path | string | Yes | Namespace (schema) name |
 
 **Responses**
@@ -41,17 +98,22 @@ List tables in one namespace.
 | Code | Description |
 | --- | --- |
 | `200` | Table identifiers in the namespace |
-| `400` | The name is not a single path segment |
-| `500` | The catalog is not reachable |
+| `400` | The name is not a single path segment, or the catalog name is invalid |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog |
+| `502` | The catalog or the engine is not reachable |
 
 ### GET /api/catalog/tables/\{ns\}/\{tbl\}
 
-Iceberg metadata for one table (metadata location plus the metadata document).
+Operation id `table_metadata`: in Python `client.call("table_metadata", …)`, on the command line `stardelt api table_metadata`.
+
+Iceberg metadata for one table (metadata location plus the metadata document). `?catalog=` picks the catalog; omitted, the default one is used.
 
 **Parameters**
 
 | Name | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
 | `ns` | path | string | Yes | Namespace (schema) name |
 | `tbl` | path | string | Yes | Table name |
 
@@ -60,10 +122,159 @@ Iceberg metadata for one table (metadata location plus the metadata document).
 | Code | Description |
 | --- | --- |
 | `200` | The table metadata document |
-| `400` | A name is not a single path segment |
-| `404` | No such table |
+| `400` | A name is not a single path segment, or the catalog name is invalid |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog or no such table |
+| `502` | The catalog or the engine is not reachable |
+
+### PUT /api/catalog/tables/\{ns\}/\{tbl\}/columns/\{column\}/description
+
+Operation id `column_description_update`: in Python `client.call("column_description_update", …)`, on the command line `stardelt api column_description_update`.
+
+Set or remove one column's description. The column must be a field of the current schema, matched exactly. Nova runs `COMMENT ON COLUMN <catalog>.<ns>.<tbl>.<column>` through Trino **as the caller** (source `nova-catalog`), because a column description lives in a new Iceberg schema and only the engine writes it. `?catalog=` picks the catalog. Same 4,000-character limit and null rule as the table description. The interim rule is enforced by Nova; the catalog does not enforce it yet. Demo mode answers 503.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `column` | path | string | Yes | Column name, exactly as the current schema spells it |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `description` | string (nullable) | No |  | New column description (`null` removes it). |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The table's documentation after the change, freshly loaded |
+| `400` | The body is invalid, or the catalog name is invalid |
+| `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
+| `404` | No such catalog, no such table or no such column in the current schema |
+| `502` | The catalog or the engine is not reachable |
+| `503` | Demo mode |
+
+### GET /api/catalog/tables/\{ns\}/\{tbl\}/documentation
+
+Operation id `table_documentation_get`: in Python `client.call("table_documentation_get", …)`, on the command line `stardelt api table_documentation_get`.
+
+A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain` custom properties, and the description and type of every column of the **current** schema. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers 503.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The table's documentation |
+| `400` | A name is not a single path segment, or the catalog name is invalid |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | Demo mode |
+
+### PUT /api/catalog/tables/\{ns\}/\{tbl\}/documentation
+
+Operation id `table_documentation_update`: in Python `client.call("table_documentation_update", …)`, on the command line `stardelt api table_documentation_update`.
+
+Set or remove a table's description, tags, owner and domain in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`. Demo mode answers 503.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `description` | string (nullable) | No |  | New table description (`null` removes it). |  |
+| `domain` | string (nullable) | No |  | New domain (`null` removes it). |  |
+| `owner` | string (nullable) | No |  | New owner group (`null` removes it). |  |
+| `tags` | array of string (nullable) | No |  | New tag list (`null` or `[]` removes them). |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The documentation after the change, freshly loaded |
+| `400` | The body is invalid, the catalog name is invalid, or the table has no owner and this request does not claim it |
+| `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable, did not answer, or stayed busy |
+| `503` | Demo mode |
+
+### GET /api/catalog/tables/\{ns\}/\{tbl\}/history
+
+Operation id `table_history`: in Python `client.call("table_history", …)`, on the command line `stardelt api table_history`.
+
+The table's last 100 snapshots, newest first: `committed_at`, `snapshot_id`, `parent_id`, `operation`, `summary`. Snapshot and parent ids are strings so that all 64 bits survive JSON in a browser.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | One row per snapshot |
+| `400` | A name is not a single path segment, or the engine refused the statement |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog |
+| `502` | The catalog or the engine is not reachable |
+
+### POST /api/catalog/tables/\{ns\}/\{tbl\}/rollback
+
+Operation id `table_rollback`: in Python `client.call("table_rollback", …)`, on the command line `stardelt api table_rollback`.
+
+Move the table's current pointer back to an earlier snapshot (`ALTER TABLE … EXECUTE rollback_to_snapshot`), run as the caller, so the engine's permissions decide. Nothing is deleted: the newer snapshots stay until they are expired.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `snapshot_id` | string | Yes |  | The snapshot to return to, as a string of digits (an Iceberg id has 64 bits; a JSON number is accepted too but a browser rounds it). |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The engine's answer to the statement |
+| `400` | A name or the body is not valid, the snapshot is unknown, or the engine refused the statement |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog |
+| `502` | The catalog or the engine is not reachable |
 
 ### GET /api/catalog/warehouse
+
+Operation id `warehouse_info`: in Python `client.call("warehouse_info", …)`, on the command line `stardelt api warehouse_info`.
 
 The resolved warehouse name and id (`demo` in demo mode).
 
@@ -72,11 +283,335 @@ The resolved warehouse name and id (`demo` in demo mode).
 | Code | Description |
 | --- | --- |
 | `200` | Warehouse name and id |
-| `500` | The catalog is not reachable or has no such warehouse |
+| `502` | The catalog is not reachable |
+| `503` | The configured warehouse does not exist |
+
+## /api/connections
+
+### GET /api/connections
+
+Operation id `connections_list`: in Python `client.call("connections_list", …)`, on the command line `stardelt api connections_list`.
+
+The caller's connections: their own, their groups', and — for administrators — the managed ones. Values are never part of an answer, only the field names.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | Personal, then group, then managed connections, each sorted by name |
+| `401` | No token to sign in to the secret store with |
+| `502` | The secret store or the cluster did not answer |
+| `503` | The secret store is not configured |
+
+### POST /api/connections
+
+Operation id `connections_create`: in Python `client.call("connections_create", …)`, on the command line `stardelt api connections_create`.
+
+Create a connection. The values in `secret` are written to the platform's secret store with the caller's own token and are never returned by any route.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `config` | object (map of string) | No |  |  |  |
+| `name` | string | Yes |  |  |  |
+| `ownerGroup` | string (nullable) | No |  |  |  |
+| `refreshInterval` | string (nullable) | No |  |  |  |
+| `scope` | string | Yes |  |  | `personal`, `group`, `managed` |
+| `secret` | object (map of string) | Yes |  | The secret field values. Write-only: Nova stores them and never reads them back. |  |
+| `type` | string | Yes |  |  |  |
+| `usableBy` | array of string | No |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The created connection, without values |
+| `400` | A sentence from the connection rules; never a value |
+| `401` | No token to sign in to the secret store with |
+| `403` | Not allowed for this scope |
+| `409` | A connection with this name already exists |
+| `502` | The secret store or the cluster did not answer |
+| `503` | The secret store is not configured, or no cluster connection |
+
+### GET /api/connections/break-glass-log
+
+Operation id `connections_break_glass_log`: in Python `client.call("connections_break_glass_log", …)`, on the command line `stardelt api connections_break_glass_log`.
+
+The last 200 break-glass reads and refusals, newest first, for administrators. The rows carry the administrator, group, connection, reason and outcome — never a value. `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The most recent events, newest first |
+| `403` | Not an administrator |
+| `503` | The state store is not configured |
+
+### DELETE /api/connections/group/\{group\}/\{name\}
+
+Operation id `connections_group_delete`: in Python `client.call("connections_group_delete", …)`, on the command line `stardelt api connections_group_delete`.
+
+Delete one of a group's connections. The value goes first, then the resource; if the resource delete fails the entry stays visible as not-ready and the delete can be retried.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | Owner group |
+| `name` | path | string | Yes | Connection name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Deleted |
+| `401` | No token to sign in to the secret store with |
+| `403` | Not a member of the group |
+| `404` | No such connection |
+| `502` | The secret store or the cluster did not answer |
+| `503` | The secret store is not configured, or no cluster connection |
+
+### POST /api/connections/group/\{group\}/\{name\}/break-glass
+
+Operation id `connections_group_break_glass`: in Python `client.call("connections_group_break_glass", …)`, on the command line `stardelt api connections_group_break_glass`.
+
+Emergency read of a group connection by an administrator: a written reason, a notice on the Connection for the owner group, an audit row, and the values returned **once**. The answer is never stored and carries `Cache-Control: no-store` and `Pragma: no-cache`. Personal and managed connections are never readable.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | Owner group |
+| `name` | path | string | Yes | Connection name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `reason` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The connection's fields, returned once and never stored; the owner group's notice is already written |
+| `400` | The reason is shorter than 20 characters; never a value |
+| `401` | No token to sign in to the secret store with |
+| `403` | Not an administrator, or the store refused the break-glass sign-in |
+| `404` | No such connection |
+| `429` | More than five break-glass reads by this administrator in ten minutes |
+| `502` | The secret store did not answer, or the notice on the Connection could not be written (nothing is returned then) |
+| `503` | The secret store is not configured |
+
+### PUT /api/connections/group/\{group\}/\{name\}/secret
+
+Operation id `connections_group_rotate`: in Python `client.call("connections_group_rotate", …)`, on the command line `stardelt api connections_group_rotate`.
+
+Rotate some fields of one of a group's connections. Asked to write the fields that are sent; the others keep their value.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | Owner group |
+| `name` | path | string | Yes | Connection name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `secret` | object (map of string) | Yes |  | The fields to rotate; a managed connection sends every field. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The connection after the rotation, without values |
+| `400` | A sentence from the connection rules; never a value |
+| `401` | No token to sign in to the secret store with |
+| `403` | Not a member of the group |
+| `404` | No such connection |
+| `502` | The secret store or the cluster did not answer |
+| `503` | The secret store is not configured, or no cluster connection |
+
+### DELETE /api/connections/managed/\{name\}
+
+Operation id `connections_managed_delete`: in Python `client.call("connections_managed_delete", …)`, on the command line `stardelt api connections_managed_delete`.
+
+Delete an administrator-managed connection. The value goes first, then the resource; if the resource delete fails the entry stays visible as not-ready and the delete can be retried.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Connection name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Deleted |
+| `401` | No token to sign in to the secret store with |
+| `403` | Managed connections are administrators' business |
+| `404` | No such connection |
+| `502` | The secret store or the cluster did not answer |
+| `503` | The secret store is not configured, or no cluster connection |
+
+### POST /api/connections/managed/\{name\}/break-glass
+
+Operation id `connections_managed_break_glass`: in Python `client.call("connections_managed_break_glass", …)`, on the command line `stardelt api connections_managed_break_glass`.
+
+Always refused: break-glass covers group connections only. An administrator gets a 403 and an audit row; nothing is read.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Connection name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `reason` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `401` | No token to sign in to the secret store with |
+| `403` | Break-glass covers group connections only, or the caller is not an administrator |
+| `503` | The secret store is not configured |
+
+### PUT /api/connections/managed/\{name\}/secret
+
+Operation id `connections_managed_rotate`: in Python `client.call("connections_managed_rotate", …)`, on the command line `stardelt api connections_managed_rotate`.
+
+Rotate an administrator-managed connection. Nobody can read it back, so every field must be sent.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Connection name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `secret` | object (map of string) | Yes |  | The fields to rotate; a managed connection sends every field. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The connection after the rotation, without values |
+| `400` | A sentence from the connection rules; never a value |
+| `401` | No token to sign in to the secret store with |
+| `403` | Managed connections are administrators' business |
+| `404` | No such connection |
+| `502` | The secret store or the cluster did not answer |
+| `503` | The secret store is not configured, or no cluster connection |
+
+### DELETE /api/connections/personal/\{name\}
+
+Operation id `connections_personal_delete`: in Python `client.call("connections_personal_delete", …)`, on the command line `stardelt api connections_personal_delete`.
+
+Delete one of the caller's own connections.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Connection name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Deleted |
+| `401` | No token to sign in to the secret store with |
+| `404` | No such connection |
+| `502` | The secret store did not answer |
+| `503` | The secret store is not configured |
+
+### POST /api/connections/personal/\{name\}/break-glass
+
+Operation id `connections_personal_break_glass`: in Python `client.call("connections_personal_break_glass", …)`, on the command line `stardelt api connections_personal_break_glass`.
+
+Always refused: break-glass covers group connections only. An administrator gets a 403 and an audit row; nothing is read.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Connection name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `reason` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `401` | No token to sign in to the secret store with |
+| `403` | Break-glass covers group connections only, or the caller is not an administrator |
+| `503` | The secret store is not configured |
+
+### PUT /api/connections/personal/\{name\}/secret
+
+Operation id `connections_personal_rotate`: in Python `client.call("connections_personal_rotate", …)`, on the command line `stardelt api connections_personal_rotate`.
+
+Rotate some fields of one of the caller's own connections; the fields that are not sent keep their value.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Connection name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `secret` | object (map of string) | Yes |  | The fields to rotate; a managed connection sends every field. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The connection after the rotation, without values |
+| `400` | A sentence from the connection rules; never a value |
+| `401` | No token to sign in to the secret store with |
+| `404` | No such connection |
+| `502` | The secret store did not answer |
+| `503` | The secret store is not configured |
+
+## /api/health
+
+### GET /api/health
+
+Operation id `health`: in Python `client.call("health", …)`, on the command line `stardelt api health`.
+
+Always `200`: the kubelet's readiness probe must not take Trino queries offline because the state store is down. The body says what is wrong: `db` is `up`, `down` or `disabled`.
+
+The readiness probe. It answers 200 without sign-in whenever the process is up, so a state store that is down never takes Trino queries offline; `db` says what is wrong.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The process is up; `db` is the state store's state |
 
 ## /api/me
 
 ### GET /api/me
+
+Operation id `me`: in Python `client.call("me", …)`, on the command line `stardelt api me`.
 
 The caller: static user in `dev` mode, verified claims (never tokens) in `oidc` mode. The `oidc` shape is the documented `OidcMe` superset of this one.
 
@@ -85,3 +620,634 @@ The caller: static user in `dev` mode, verified claims (never tokens) in `oidc` 
 | Code | Description |
 | --- | --- |
 | `200` | Current user, auth mode, demo flag and warehouse |
+
+## /api/notebooks
+
+### GET /api/notebooks
+
+Operation id `notebooks_list`: in Python `client.call("notebooks_list", …)`, on the command line `stardelt api notebooks_list`.
+
+`GET /api/notebooks`: the latest version of every notebook in the caller's groups, newest first. Administrators see their own groups only.
+
+The latest published version of every notebook in the caller's groups, newest first. Each row carries the group, the name, the latest `objectVersion`, its size, `uploadedAt` as an RFC 3339 timestamp in UTC (SeaweedFS's RFC 1123 `LastModified` normalised) and the publisher's `uploadedBy` display name. An administrator gets no wider view than their own groups. Unset `NOVA_S3_*` is 503; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | One row per notebook |
+| `401` | Not signed in |
+| `502` | The notebook store did not answer |
+| `503` | Notebook storage is not configured |
+
+### PUT /api/notebooks/\{group\}/\{name\}
+
+Operation id `notebooks_publish`: in Python `client.call("notebooks_publish", …)`, on the command line `stardelt api notebooks_publish`.
+
+`PUT /api/notebooks/{group}/{name}`: validate, strip, store one immutable version.
+
+Publish a notebook as a new immutable object version in the `notebooks` bucket. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). `{name}` must match `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` and the body must be an nbformat 4 notebook of at most 5 MiB. Every cell's `outputs` and `execution_count` and the notebook's widget metadata are removed before storing — no cell output reaches the object store. `sha256` is of the stored (stripped) bytes. `parameters` are the `name = literal` lines of the first cell tagged `parameters`, at most 32; defaults are text and are never evaluated. A 61st publish by one person in an hour is 429. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Each publish writes one audit line with group, name, version and size, never content.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | One of the caller's groups |
+| `name` | path | string | Yes | Notebook file name, ending in.ipynb |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The stored version and its parsed parameters |
+| `400` | Bad name or not an nbformat 4 notebook |
+| `401` | Not signed in |
+| `403` | Not a member of the group |
+| `413` | Larger than 5 MiB |
+| `429` | More than 60 publishes in an hour |
+| `502` | The notebook store did not answer |
+| `503` | Notebook storage is not configured |
+
+### GET /api/notebooks/\{group\}/\{name\}/parameters
+
+Operation id `notebooks_parameters`: in Python `client.call("notebooks_parameters", …)`, on the command line `stardelt api notebooks_parameters`.
+
+`GET /api/notebooks/{group}/{name}/parameters`: the parameters of one version, so the Schedule dialog can offer the form the notebook declares (stardelt-nova#237).
+
+The parameters of one published version of a notebook, read from the stored bytes: the `name = literal` lines of the first cell tagged `parameters`, in order, at most 32, defaults as text and never evaluated. `?version=<id>` names the immutable version; omitted, the latest is read and its id answered. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. The answer carries `parameters` and the `objectVersion` it describes — a schedule pins that id. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | One of the caller's groups |
+| `name` | path | string | Yes | Notebook file name, ending in.ipynb |
+| `version` | query | string | No |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The parameters and the version they belong to |
+| `400` | Bad name |
+| `401` | Not signed in |
+| `403` | Not a member of the group |
+| `404` | No such notebook version |
+| `502` | The notebook store did not answer |
+| `503` | Notebook storage is not configured |
+
+### GET /api/notebooks/\{group\}/\{name\}/versions
+
+Operation id `notebooks_versions`: in Python `client.call("notebooks_versions", …)`, on the command line `stardelt api notebooks_versions`.
+
+`GET /api/notebooks/{group}/{name}/versions`: the versions of one notebook, newest first, at most 50.
+
+The published versions of one notebook, newest first, at most 50. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). Each row carries the immutable `objectVersion`, its size, `uploadedAt` as an RFC 3339 timestamp in UTC (SeaweedFS's RFC 1123 `LastModified` normalised), the publisher's `uploadedBy` and the `sha256` of the stored bytes. A group with no such notebook answers an empty list. Unset `NOVA_S3_*` is 503; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | One of the caller's groups |
+| `name` | path | string | Yes | Notebook file name, ending in.ipynb |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The versions, newest first |
+| `400` | Bad name |
+| `401` | Not signed in |
+| `403` | Not a member of the group |
+| `502` | The notebook store did not answer |
+| `503` | Notebook storage is not configured |
+
+## /api/openapi.json
+
+### GET /api/openapi.json
+
+Operation id `openapi_document`: in Python `client.call("openapi_document", …)`, on the command line `stardelt api openapi_document`.
+
+Serve the document. Deliberately outside sign-in (wired next to `/api/health` in `main`): it carries shapes, not data.
+
+This document. It answers without sign-in and carries shapes, not data.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The OpenAPI 3.1 document |
+
+## /api/pipelines
+
+### GET /api/pipelines
+
+Operation id `pipelines_list`: in Python `client.call("pipelines_list", …)`, on the command line `stardelt api pipelines_list`.
+
+The pipelines the caller may see: their groups' pipelines, and every pipeline for an administrator. A pipeline without `spec.ownerGroup` is administrators-only. `state` is one of `loading`, `paused`, `running`, `failed`, `succeeded`, `idle`; `loaded` is false while Airflow has no DAG for a new pipeline yet. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The visible pipelines, sorted by name |
+| `401` | No token to sign in with |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+### POST /api/pipelines
+
+Operation id `pipelines_create`: in Python `client.call("pipelines_create", …)`, on the command line `stardelt api pipelines_create`.
+
+Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`, #237) — both or neither is 400 `give a statement or a notebook`. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: "loading"`. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `name` | string | Yes |  |  |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
+| `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
+| `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
+| `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
+| `options` | object | No |  | Retries, the wait between them, the time limit and the run mode; omitted fields keep the defaults. |  |
+| `options.backoffMinutes` | integer (nullable) | No |  | The wait between attempts, 1 to 60 minutes. | format `int64` |
+| `options.concurrency` | string (nullable) | No |  | `Forbid` (one run at a time, the default) or `Allow` (runs side by side). |  |
+| `options.retries` | integer (nullable) | No |  | Extra attempts after a failure, 0 to 5. | format `int64` |
+| `options.timeoutMinutes` | integer (nullable) | No |  | The longest a whole run may take, 1 to 720 minutes. | format `int64` |
+| `ownerGroup` | string | Yes |  |  |  |
+| `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
+| `schedule` | object | No |  | A cron expression and its IANA zone; both required when a `schedule` object is sent. |  |
+| `schedule.cron` | string | Yes |  |  |  |
+| `schedule.timezone` | string | Yes |  |  |  |
+| `sql` | string | No |  | The statement to run; exactly one of this and `notebook` is given. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The resource as written |
+| `400` | The name, the statement, the cron or the timezone is invalid |
+| `401` | No token to sign in with |
+| `403` | The caller is not a member of the owner group |
+| `409` | No ready principal for the group, or the name is taken |
+| `429` | More than ten creations in the last hour |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### POST /api/pipelines/check
+
+Operation id `pipelines_check`: in Python `client.call("pipelines_check", …)`, on the command line `stardelt api pipelines_check`.
+
+What the engine says about a statement, without running it: Nova fills the statement's `${run.date}` (today, UTC), `${run.id}` (`check`) and `${params.<name>}` placeholders and sends `EXPLAIN <statement>` to the engine as the caller, under the source `nova-schedule-check`. It never sends `EXPLAIN ANALYZE` and never the statement itself. `checked: false` means this kind of statement cannot be checked here (only `select`, `with`, `insert`, `merge`, `delete`, `update`, `values` and `create … as …` are). A refused statement answers 200 with `ok: false` and the engine's sentence; an engine that does not answer is 502. Refusals before the engine: an empty, over-20,000-character or NUL-carrying statement 400, a parameter table or a placeholder as on create 400. Answers `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `params` | object (map of string) | No |  | The parameters the statement's `${params.<name>}` placeholders are filled with. |  |
+| `sql` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The engine's verdict, or that this statement cannot be checked |
+| `400` | The statement, a parameter or a placeholder is invalid |
+| `401` | No token to sign in with |
+| `502` | The query engine is not reachable |
+
+### POST /api/pipelines/preview-schedule
+
+Operation id `pipelines_preview_schedule`: in Python `client.call("pipelines_preview_schedule", …)`, on the command line `stardelt api pipelines_preview_schedule`.
+
+The next fire times of a cron in its zone, RFC 3339 with that zone's offset (for example `2026-10-21T03:00:00+02:00`), so the Schedule dialog can show what a cadence means before it is saved. A field or a zone as on create (400 with the same sentences); `count` is 1 to 10, 5 when omitted. Like croniter, a day matches when both day fields are restricted and either matches, and when one is unrestricted and the other matches. A wall-clock time the zone skips at a DST jump is not a run; a time that happens twice is answered with its first occurrence. A cron that can never fire answers fewer runs (at most 366 days are searched), not an error. Answers `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `count` | integer (nullable) | No |  | How many runs to list, 1 to 10; 5 when omitted. | min 0 |
+| `cron` | string | Yes |  |  |  |
+| `timezone` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The next runs in the schedule's zone |
+| `400` | The cron, the timezone or the count is invalid |
+| `401` | No token to sign in with |
+
+### GET /api/pipelines/principals
+
+Operation id `pipelines_principals`: in Python `client.call("pipelines_principals", …)`, on the command line `stardelt api pipelines_principals`.
+
+The caller's own groups and the pipeline principal of each. `principal` is `pipeline-<group>` when a `ServicePrincipal` of that name with `spec.ownerGroup` equal to the group exists; `ready` is its `status.ready`. `message` is `null` when it is ready, otherwise the `Ready` condition's message (or `no status yet`), and for a group without a principal the `make sync-principal NAME=pipeline-<group> GROUP=<group>` command that creates one. A group without a ready principal cannot schedule. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | One entry per group of the caller, sorted by group |
+| `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### GET /api/pipelines/\{namespace\}/\{name\}
+
+Operation id `pipelines_get`: in Python `client.call("pipelines_get", …)`, on the command line `stardelt api pipelines_get`.
+
+One pipeline: the list fields, the latest 20 runs, and the resource's `params`, `retries` and `options` (defaults filled in when a field is absent, so the edit dialog can prefill). A pipeline whose DAG does not exist yet answers 200 with `loaded: false` and `state: "loading"`. A pipeline of another group answers 404. History of a deleted pipeline is not offered in this version: without the resource the answer is 404.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The pipeline, its latest runs, params, retries and options |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+### PUT /api/pipelines/\{namespace\}/\{name\}
+
+Operation id `pipelines_update`: in Python `client.call("pipelines_update", …)`, on the command line `stardelt api pipelines_update`.
+
+Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller may not act on 404; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `notebook` | object | No |  | The notebook, its version and its parameters for a notebook pipeline; a statement pipeline refuses it. |  |
+| `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
+| `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
+| `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
+| `options` | object | No |  | The whole option set; omitted means the defaults. |  |
+| `options.backoffMinutes` | integer (nullable) | No |  | The wait between attempts, 1 to 60 minutes. | format `int64` |
+| `options.concurrency` | string (nullable) | No |  | `Forbid` (one run at a time, the default) or `Allow` (runs side by side). |  |
+| `options.retries` | integer (nullable) | No |  | Extra attempts after a failure, 0 to 5. | format `int64` |
+| `options.timeoutMinutes` | integer (nullable) | No |  | The longest a whole run may take, 1 to 720 minutes. | format `int64` |
+| `params` | object (map of string) | No |  | The whole parameter table; omitted means none. |  |
+| `schedule` | object | No |  | Omitted means no schedule: the pipeline then runs on demand only. |  |
+| `schedule.cron` | string | Yes |  |  |  |
+| `schedule.timezone` | string | Yes |  |  |  |
+| `sql` | string | No |  | The statement of a statement pipeline; a notebook pipeline refuses it. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The resource as written |
+| `400` | The statement, the cron or the timezone is invalid |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `409` | Managed outside Nova, an uneditable shape, no ready principal, or a conflict |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### DELETE /api/pipelines/\{namespace\}/\{name\}
+
+Operation id `pipelines_delete`: in Python `client.call("pipelines_delete", …)`, on the command line `stardelt api pipelines_delete`.
+
+Delete a pipeline Nova created. Only a pipeline the caller may act on and that carries `app.kubernetes.io/managed-by: stardelt-nova` may be deleted: a `kubectl` or GitOps pipeline answers 409 instead. Airflow is not called — the resource is the source of truth; the DAG leaves the scheduler's default list after about 90 seconds while its history stays readable. Answers 204 with `Cache-Control: no-store`; the attempt is audited.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Deleted (or already gone) |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `409` | The pipeline is managed outside Nova |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### POST /api/pipelines/\{namespace\}/\{name\}/pause
+
+Operation id `pipelines_pause`: in Python `client.call("pipelines_pause", …)`, on the command line `stardelt api pipelines_pause`.
+
+Pause a pipeline. Idempotent: pausing a paused pipeline answers 200. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The pipeline, now paused |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `409` | The scheduler has not loaded this pipeline yet |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+### POST /api/pipelines/\{namespace\}/\{name\}/resume
+
+Operation id `pipelines_resume`: in Python `client.call("pipelines_resume", …)`, on the command line `stardelt api pipelines_resume`.
+
+Resume a pipeline. Idempotent: resuming a running pipeline answers 200. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The pipeline, now unpaused |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `409` | The scheduler has not loaded this pipeline yet |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+### POST /api/pipelines/\{namespace\}/\{name\}/runs
+
+Operation id `pipelines_run_trigger`: in Python `client.call("pipelines_run_trigger", …)`, on the command line `stardelt api pipelines_run_trigger`.
+
+Start a run now. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). `logicalDate` is always now, UTC, whole seconds, so the run has tasks; the note is `Started from Nova by <display name>`. Every attempt, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The new run, queued |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `409` | The pipeline is not loaded, is paused, or already has an active run |
+| `429` | More than ten runs were started in the last minute |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+### GET /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}
+
+Operation id `pipelines_run_get`: in Python `client.call("pipelines_run_get", …)`, on the command line `stardelt api pipelines_run_get`.
+
+One run of a pipeline with its task instances. The run id is looked up through this pipeline's DAG id, so a run id of another pipeline answers 404. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+| `run_id` | path | string | Yes | Airflow's run id, for example `manual__2026-10-20T07:23:50.608876+00:00` |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The run and its tasks |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller, or no such run |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+### POST /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/stop
+
+Operation id `pipelines_run_stop`: in Python `client.call("pipelines_run_stop", …)`, on the command line `stardelt api pipelines_run_stop`.
+
+Stop a run: mark it failed. This is **not a cancel** — work already in flight can finish and commit its side effects (stardelt-nova#255), so the answer promises only that the run is marked failed. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and is never patched. A run that is not `queued` or `running` answers 409 and is not patched. Answers the fresh `RunView` and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+| `run_id` | path | string | Yes | Airflow's run id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The run, now failed |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller, or no such run |
+| `409` | The run is not active |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+### GET /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/tasks/\{task_id\}/logs
+
+Operation id `pipelines_run_task_logs`: in Python `client.call("pipelines_run_task_logs", …)`, on the command line `stardelt api pipelines_run_task_logs`.
+
+One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, the `::group::` source marker dropped (it names internal object-store paths and is never returned). `try` defaults to the task's last attempt; `token` is the `nextToken` of the previous answer. Every read writes one audit line with user, pipeline, run and task — never the content. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+| `run_id` | path | string | Yes | Airflow's run id |
+| `task_id` | path | string | Yes | Task id |
+| `token` | query | string | No | Continuation token from a previous answer |
+| `try` | query | integer | No | Attempt number; defaults to the task's last try |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The log page |
+| `400` | `try` is not a positive number |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller, no such run, or no such task |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+## /api/query
+
+### POST /api/query
+
+Operation id `query_run`: in Python `client.call("query_run", …)`, on the command line `stardelt api query_run`.
+
+Run one SQL statement as the caller and return the whole result. Synchronous: the call returns when the query ends. At most 50 000 rows are returned; past that `truncated` is true and the rows are a prefix.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `sql` | string | Yes |  | One SQL statement, run with the caller's identity. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The columns, the rows and the engine's query id |
+| `400` | The statement is empty, was refused or failed in the engine |
+| `502` | The query engine is not reachable |
+
+## /api/query-log
+
+### GET /api/query-log
+
+Operation id `query_log_list`: in Python `client.call("query_log_list", …)`, on the command line `stardelt api query_log_list`.
+
+`GET /api/query-log?scope=mine|team|all&state=&warehouse=&q=&from=&to=&limit=&cursor=`
+
+The statements run on the engine, newest first, a page at a time. A person sees their own; an administrator may ask for everyone's with scope=all. Times are epoch milliseconds.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `cursor` | query | string | No | The nextCursor of the previous page |
+| `from` | query | integer | No | Created at or after this time |
+| `limit` | query | integer | No | Page size from 1 to 200; 50 by default |
+| `q` | query | string | No | Text inside the statement, or an exact query id; at most 200 characters |
+| `scope` | query | string | No | mine (default), team or all. all is for administrators; team stays empty until ownership is recorded |
+| `state` | query | string | No | QUEUED, FINISHED, FAILED or CANCELED, in any case |
+| `to` | query | integer | No | Created at or before this time |
+| `warehouse` | query | string | No | Only queries that ran on this warehouse |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | One page of the log |
+| `400` | A parameter is not valid; the message names it |
+| `403` | scope=all by somebody who is not an administrator |
+| `503` | The state store is not configured |
+
+### GET /api/query-log/\{id\}
+
+Operation id `query_log_detail`: in Python `client.call("query_log_detail", …)`, on the command line `stardelt api query_log_detail`.
+
+`GET /api/query-log/{id}` — everything stored about one query the caller may see.
+
+One query with its whole statement. Somebody else's query answers 404, exactly like a missing one; an administrator who opens another person's query is audited.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | string | Yes | The engine's query id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The stored query |
+| `404` | No such query, or it is not the caller's to see |
+| `503` | The state store is not configured |
+
+## /api/saved-queries
+
+### GET /api/saved-queries
+
+Operation id `saved_queries_list`: in Python `client.call("saved_queries_list", …)`, on the command line `stardelt api saved_queries_list`.
+
+`GET /api/saved-queries` — the caller's own, newest first.
+
+The caller's own saved queries, most recently changed first. Times are epoch milliseconds.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The caller's saved queries |
+| `503` | The state store is not configured |
+
+### POST /api/saved-queries
+
+Operation id `saved_queries_create`: in Python `client.call("saved_queries_create", …)`, on the command line `stardelt api saved_queries_create`.
+
+`POST /api/saved-queries` — `201` with the stored row.
+
+Save a query for the caller. The title is at most 200 characters and the SQL at most 100 000.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `sql` | string | Yes |  |  |  |
+| `title` | string | Yes |  |  |  |
+| `warehouse` | string | No |  | The warehouse the query was written for; free text, may be empty. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The stored row |
+| `400` | The title or the SQL is empty or too long |
+| `503` | The state store is not configured |
+
+### DELETE /api/saved-queries/\{id\}
+
+Operation id `saved_queries_remove`: in Python `client.call("saved_queries_remove", …)`, on the command line `stardelt api saved_queries_remove`.
+
+`DELETE /api/saved-queries/{id}` — `204`; `404` when the id is not the caller's.
+
+Delete one of the caller's saved queries.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | The saved query's id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Deleted |
+| `404` | No such saved query, or it is not the caller's |
+| `503` | The state store is not configured |
+
+## /api/warehouses
+
+### GET /api/warehouses
+
+Operation id `warehouses_list`: in Python `client.call("warehouses_list", …)`, on the command line `stardelt api warehouses_list`.
+
+`GET /api/warehouses`: the compute classes of the platform, which one this caller may use and which one a query will land in.
+
+Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `medium`, `small`, `xs`; name order inside one size), each row carrying the class `size`, the numbers the resource group is rendered with (`running`, `queued`, `memoryShare`: the class defaults, overridden by `spec.concurrency`), `default`, `canUse` (one of the caller's groups is in `spec.grants`) and `yours` (the first usable row — the class the engine's first matching selector picks — or the default class when nothing is granted). An administrator gets one synthetic row first (`name: "admin"`, `displayName: "Administrators"`, `size: null`, 50/100/100 %: the `admin` root group access-sync renders) with `yours` on it and `yours: false` on every other row. Non-authoritative: the engine selects by identity, Nova only shows it. Without a cluster connection (demo mode, a local run) the answer is the one `small` class. A cluster that refuses or fails is a 502. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | One row per class, largest first, the administrator's row first of all |
+| `401` | Not signed in |
+| `502` | The cluster did not answer, or Nova may not list sqlwarehouses |
