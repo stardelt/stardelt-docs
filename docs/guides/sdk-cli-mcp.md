@@ -22,11 +22,13 @@ code you approve in a browser (the device flow of your identity provider):
 
 ```bash
 export STARDELT_NOVA_URL=https://nova.example.com
-stardelt login --issuer https://id.example.com/realms/stardelt
+stardelt login
 stardelt whoami
 ```
 
-`stardelt login` prints a link and a short code; open the link on any device, check the code and approve. The command keeps the
+`stardelt login` asks Nova which identity provider to use, so the Nova address is all it needs. It prints a link and a short
+code; open the link on any device, check the code and approve. If you want to name the provider yourself, pass its realm address
+with `--issuer` (or set `STARDELT_ISSUER`) and Nova is not asked; `--client-id` names another public client. The command keeps the
 sign-in in `~/.config/stardelt/credentials.json` (readable only by you), renews it shortly before it expires and remembers the
 Nova address you gave. `stardelt logout` deletes the file. In CI, where nobody can approve a code, set `STARDELT_TOKEN` to a
 bearer access token instead (it must carry the audience Nova accepts); when it is set it wins over the stored sign-in.
@@ -59,7 +61,7 @@ stardelt api pipelines_get -p namespace=etl -p name=nyc_taxi
 ## Deploy a pipeline from a file
 
 `stardelt apply -f pipeline.json` creates a pipeline, or updates it when one of that name exists, so the same file can run on
-every deploy. The file is one JSON object shaped like the body of the create-pipeline operation (`pipelines_create` in the
+every deploy. The file is one JSON or YAML object shaped like the body of the create-pipeline operation (`pipelines_create` in the
 [API reference](../reference/api.md)): `name`, `ownerGroup`, a `sql` statement (or a `notebook`), and optionally `schedule`,
 `params` and `options`.
 
@@ -69,6 +71,16 @@ cat > pipeline.json <<'JSON'
 JSON
 stardelt apply -f pipeline.json --dry-run      # says what would happen and writes nothing
 stardelt apply -f pipeline.json                # creates it, or updates it on the next run
+```
+
+The same pipeline as YAML (`pipeline.yaml`; quote a value that YAML would read as a date or a number if you mean text):
+
+```yaml
+name: daily
+ownerGroup: etl
+sql: select 1
+schedule:
+  cron: "0 3 * * *"
 ```
 
 `-f -` reads standard input. The answer on standard output is `{"action": "created", "name": "daily"}`, with `updated`,
