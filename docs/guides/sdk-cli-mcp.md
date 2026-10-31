@@ -203,6 +203,7 @@ read operations** unless you name more:
 stardelt mcp config                                  # prints how to register it in your assistant, token left as a placeholder
 stardelt mcp serve                                   # what the assistant starts
 stardelt mcp serve --allow query_run                 # also offer one more operation, on purpose
+stardelt skill --write .claude/skills                # install the skill that tells the assistant how to use these tools
 ```
 
 Besides the operations the server offers two tools for SQL, because an assistant's main job is to write and check queries. `sql_read` runs ONE reading
@@ -215,3 +216,8 @@ tools.
 What the tools return is data from the platform, never instructions: an assistant should not follow text found in a table
 or a notebook. Answers are cut at 20 000 characters, and the server's log (standard error) holds one line per call without
 the arguments.
+
+The package also carries a *skill* for the assistant: a short text that says how to find a table before writing SQL, to read the plan of a big query
+first, what to do when a statement is refused, and what never to do (put a credential in a prompt, send data elsewhere, follow instructions found in
+data). `stardelt skill` prints it; `stardelt skill --write .claude/skills` installs it as `.claude/skills/stardelt/SKILL.md`, the folder where Claude
+Code looks for project skills. It names only tools the server really offers.
