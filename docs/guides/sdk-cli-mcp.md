@@ -93,6 +93,26 @@ schedule:
 the file go back to their defaults. The group of an existing pipeline cannot change, and you can only apply to a group you
 belong to.
 
+## Run a pipeline and wait for it
+
+`stardelt run NAMESPACE NAME` starts a run now and prints it. With `--wait` it looks at the run until it is no longer `queued` or `running`, prints the
+run with its tasks and exits `0` only when the run succeeded, so a CI job can use it as a step:
+
+```bash
+stardelt run etl nyc_taxi --wait --timeout 3600     # exit 0: the run succeeded; exit 1: it failed, was refused, or the time ran out
+```
+
+A failed run names its failed tasks on standard error. `--interval` sets the seconds between two looks (5 unless you change it). When `--timeout` runs out the
+run is NOT stopped and keeps going; `stardelt pipelines run-stop etl nyc_taxi RUN_ID` marks it failed, but work already in flight can still finish. Nova
+refuses to start a run of a paused pipeline, or of a `Forbid` or `Replace` pipeline that already has an active run, and allows ten starts per person per
+minute; the refusal is exit `1` with Nova's sentence. In Python:
+
+```python
+from stardelt import runs
+
+run, tasks = runs.start(nova, "etl", "nyc_taxi", wait=True)     # run["state"] is "success" or the state it ended in
+```
+
 ## Long-running SQL: statements
 
 `stardelt sql` holds one request open until the query ends and returns at most 50 000 rows. For longer queries, or when you need
