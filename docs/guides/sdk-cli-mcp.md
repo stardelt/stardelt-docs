@@ -56,6 +56,26 @@ stardelt api query_log_list -q scope=mine -q state=FAILED -q limit=20 --format t
 stardelt api pipelines_get -p namespace=etl -p name=nyc_taxi
 ```
 
+## Deploy a pipeline from a file
+
+`stardelt apply -f pipeline.json` creates a pipeline, or updates it when one of that name exists, so the same file can run on
+every deploy. The file is one JSON object shaped like the body of the create-pipeline operation (`pipelines_create` in the
+[API reference](../reference/api.md)): `name`, `ownerGroup`, a `sql` statement (or a `notebook`), and optionally `schedule`,
+`params` and `options`.
+
+```bash
+cat > pipeline.json <<'JSON'
+{"name": "daily", "ownerGroup": "etl", "sql": "select 1", "schedule": {"cron": "0 3 * * *"}}
+JSON
+stardelt apply -f pipeline.json --dry-run      # says what would happen and writes nothing
+stardelt apply -f pipeline.json                # creates it, or updates it on the next run
+```
+
+`-f -` reads standard input. The answer on standard output is `{"action": "created", "name": "daily"}`, with `updated`,
+`would-create` or `would-update` as the other actions. An update replaces what the file says: `params` and `options` left out of
+the file go back to their defaults. The group of an existing pipeline cannot change, and you can only apply to a group you
+belong to.
+
 ## Python
 
 ```python
