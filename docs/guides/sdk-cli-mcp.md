@@ -129,9 +129,10 @@ when you want the handle yourself.
 
 The states are `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED` (with an `error` sentence) and `CANCELED`. `waitSeconds` (0 to 30, default 5 on
 submit) is how long the call waits for the statement to end: when it ends in that time the answer already holds the first chunk in
-`rows`, so a short query needs one call. A statement keeps at most 100 000 rows; past that it ends `SUCCEEDED` with `truncated: true`.
+`rows`, so a short query needs one call. A statement keeps at most 100 000 rows or about 64 MiB of data, whichever comes first; past that it ends `SUCCEEDED` with `truncated: true`.
 
-Only you can read or cancel your statements, and you can hold ten at a time. Results are kept for one hour after you last asked for
+Only you can read or cancel your statements, and you can hold ten at a time. While Nova holds a great many results for all people together, a new
+statement is refused with `429`: read or cancel one, or try again in a few minutes. Results are kept for one hour after you last asked for
 them, and Nova restarts forget them. Poll at least every five minutes: the query engine cancels a query nobody asks about, and the
 statement then reads `CANCELED`.
 
