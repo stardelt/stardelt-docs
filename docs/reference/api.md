@@ -1168,7 +1168,7 @@ One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, 
 
 Operation id `query_run`: in Python `client.call("query_run", …)`, on the command line `stardelt api query_run`.
 
-Run one SQL statement as the caller and return the whole result. Synchronous: the call returns when the query ends. At most 50 000 rows are returned; past that `truncated` is true and the rows are a prefix.
+Run one SQL statement as the caller and return the whole result. Synchronous: the call returns when the query ends. At most 50 000 rows or about 64 MiB of data are returned; past that `truncated` is true and the rows are a prefix.
 
 **Request body**
 
@@ -1371,7 +1371,7 @@ Cancel one of the caller's statements in the engine and forget it. Idempotent: i
 
 Operation id `statements_chunk_get`: in Python `client.call("statements_chunk_get", …)`, on the command line `stardelt api statements_chunk_get`.
 
-One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0. A chunk exists once it is full or the statement has ended; the call does not wait.
+One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0. A chunk exists once it is full or the statement has ended; the call does not wait. With `Accept: text/csv` the rows come as CSV (RFC 4180, lines end with CRLF) instead of JSON: chunk 0 starts with a row of the column names, the other chunks have none, so the chunks joined in order are one file; null is an empty cell and an array or an object is written as its JSON text.
 
 **Parameters**
 
