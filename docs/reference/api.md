@@ -119,6 +119,30 @@ List tables in one namespace of one catalog. `?catalog=` picks the catalog; omit
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
 
+### GET /api/catalog/search
+
+Operation id `catalog_search`: in Python `client.call("catalog_search", …)`, on the command line `stardelt api catalog_search`.
+
+Find tables by name in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case. The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only names are searched (single-level namespaces), not comments or tags. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to search (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `limit` | query | integer | No | Most matches to return, 1 to 100; 20 when omitted. |
+| `q` | query | string | No | Words to look for in `namespace.table`, separated by spaces; every word must be there. 1 to 100 characters. |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The matching tables |
+| `400` | `q` is missing or longer than 100 characters, or the catalog name is invalid |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog |
+| `502` | The catalog or the engine is not reachable |
+
 ### GET /api/catalog/tables/\{ns\}/\{tbl\}
 
 Operation id `table_metadata`: in Python `client.call("table_metadata", …)`, on the command line `stardelt api table_metadata`.
