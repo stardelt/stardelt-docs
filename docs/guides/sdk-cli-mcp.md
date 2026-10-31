@@ -76,6 +76,35 @@ stardelt apply -f pipeline.json                # creates it, or updates it on th
 the file go back to their defaults. The group of an existing pipeline cannot change, and you can only apply to a group you
 belong to.
 
+## Long-running SQL: statements
+
+`stardelt sql` holds one request open until the query ends and returns at most 50 000 rows. For longer queries, or when you need
+to cancel one from another process, submit a *statement*: you get a handle at once, poll it, read the rows in chunks of 1 000 and
+cancel it by its id.
+
+```bash
+stardelt statements submit --body '{"sql": "select * from warehouse.demo.trips", "waitSeconds": 0}'   # answers with a statementId
+stardelt statements get STATEMENT_ID -q waitSeconds=10     # waits up to 10 seconds for it to end, then answers with its state
+stardelt statements chunk-get STATEMENT_ID 0               # rows 0 to 999; the next chunk is 1
+stardelt statements cancel STATEMENT_ID                    # stops it in the query engine and forgets it
+```
+
+```python
+nova = stardelt.api.Client()
+statement = nova.ops.statements.submit(body={"sql": "select * from warehouse.demo.trips", "waitSeconds": 0})
+while statement["state"] in ("PENDING", "RUNNING"):
+    statement = nova.ops.statements.get(id=statement["statementId"], waitSeconds=10)
+rows = nova.ops.statements.chunk_get(id=statement["statementId"], n=0)["rows"]
+```
+
+The states are `PENDING`, `RUNNING`, `SUCCEEDED`, `FAILED` (with an `error` sentence) and `CANCELED`. `waitSeconds` (0 to 30, default 5 on
+submit) is how long the call waits for the statement to end: when it ends in that time the answer already holds the first chunk in
+`rows`, so a short query needs one call. A statement keeps at most 100 000 rows; past that it ends `SUCCEEDED` with `truncated: true`.
+
+Only you can read or cancel your statements, and you can hold ten at a time. Results are kept for one hour after you last asked for
+them, and Nova restarts forget them. Poll at least every five minutes: the query engine cancels a query nobody asks about, and the
+statement then reads `CANCELED`.
+
 ## Python
 
 ```python
