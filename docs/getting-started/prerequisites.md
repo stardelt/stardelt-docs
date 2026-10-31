@@ -38,10 +38,15 @@ processes. PostgreSQL wakes its background workers with `SIGURG`; when the conta
 AppArmor profile refuses that signal, the database never becomes ready — and it looks like a
 database fault, not a host one.
 
+The kernel version alone does not decide it: the same kernel works when containerd does not
+apply the container profile. What matters is whether `cri-containerd.apparmor.d` is loaded
+and whether its signal rule matches the container's label.
+
 | Combination | Result |
 |---|---|
-| Ubuntu 26.04, kernel **7.0.0-38-generic**, `apparmor` 5.0.2, `containerd.io` 2.4.2 | works — this is the tested dev combination |
-| Ubuntu 26.04, kernel **7.0.0-42-generic**, same packages | **broken**: the container profile denies the signal, CNPG and ingress-nginx hang |
+| Ubuntu 26.04, kernel **7.0.0-38-generic**, `apparmor` 5.0.2, `containerd.io` 2.4.2, default container profile | works |
+| Ubuntu 26.04, kernel **7.0.0-42-generic**, same packages, default container profile | **broken**: the profile denies the signal, CNPG and ingress-nginx hang |
+| Ubuntu 26.04, kernel **7.0.0-42-generic**, `disable_apparmor = true` for containerd | works — containers run unconfined, which is what the dev host does today |
 
 Check before installing — the count must be `0`:
 
