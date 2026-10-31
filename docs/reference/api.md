@@ -13,6 +13,22 @@ The operations Nova tags `public`: the stable surface for tools and scripts. Gen
 
 Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 
+## /api/auth
+
+### GET /api/auth/config
+
+Operation id `auth_config`: in Python `client.call("auth_config", …)`, on the command line `stardelt api auth_config`.
+
+How to sign in from a command line. Outside sign-in like the rest of `/api/auth/*`: it names the identity provider and the public client, never a secret.
+
+How to sign in from a command line: the identity provider's address and the public client for the device flow. It answers without sign-in and carries no secret.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The sign-in mode and, in `oidc` mode, the issuer and the device client |
+
 ## /api/catalog
 
 ### GET /api/catalog/catalogs
@@ -1260,6 +1276,92 @@ Delete one of the caller's saved queries.
 | `204` | Deleted |
 | `404` | No such saved query, or it is not the caller's |
 | `503` | The state store is not configured |
+
+## /api/statements
+
+### POST /api/statements
+
+Operation id `statements_submit`: in Python `client.call("statements_submit", …)`, on the command line `stardelt api statements_submit`.
+
+Submit one SQL statement as the caller and get a handle to it. The call waits up to `waitSeconds` (0 to 30, default 5): when the statement ends in that time the answer is `200` and carries the first chunk of rows, otherwise it is `202` and the caller polls `statements_get`. A statement that fails in the engine is still `200` with `state: FAILED` and `error`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `sql` | string | Yes |  | One SQL statement, run with the caller's identity. |  |
+| `waitSeconds` | integer (nullable) | No |  | How long the call waits for the statement to end before it answers `202`; 0 to 30, default 5. | min 0; format `int64` |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The statement ended within the wait |
+| `202` | The statement is still running; poll it |
+| `400` | The statement is empty |
+| `429` | The caller already holds ten statements; read or cancel one |
+| `502` | The query engine is not reachable |
+| `503` | Not available in demo mode |
+
+### GET /api/statements/\{id\}
+
+Operation id `statements_get`: in Python `client.call("statements_get", …)`, on the command line `stardelt api statements_get`.
+
+The state of one of the caller's statements. Each call reads the engine's next pages with the caller's current token, for up to `waitSeconds` (0 to 30, default 0); the rows are read with `statements_chunk_get`. A statement that nobody polls for the engine's client timeout (5 minutes by default) is cancelled by the engine.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | string | Yes | The statement id from `statements_submit` |
+| `waitSeconds` | query | integer | No | Wait up to this many seconds (0 to 30) for the statement to end |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The statement |
+| `401` | The engine refused the caller's token |
+| `404` | No such statement of the caller's |
+| `502` | The query engine is not reachable |
+
+### DELETE /api/statements/\{id\}
+
+Operation id `statements_cancel`: in Python `client.call("statements_cancel", …)`, on the command line `stardelt api statements_cancel`.
+
+Cancel one of the caller's statements in the engine and forget it. Idempotent: it answers `204` whether or not the statement exists or is the caller's (it cancels only the caller's own).
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | string | Yes | The statement id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Cancelled, or nothing to cancel |
+
+### GET /api/statements/\{id\}/chunks/\{n\}
+
+Operation id `statements_chunk_get`: in Python `client.call("statements_chunk_get", …)`, on the command line `stardelt api statements_chunk_get`.
+
+One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0. A chunk exists once it is full or the statement has ended; the call does not wait.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | string | Yes | The statement id |
+| `n` | path | integer | Yes | The chunk number, from 0 |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The rows of the chunk |
+| `404` | No such statement of the caller's, or no such chunk (yet) |
 
 ## /api/warehouses
 
