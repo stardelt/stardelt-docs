@@ -392,6 +392,12 @@ function renderApi(document) {
     for (const { path, method, operation, pathItem } of groups.get(prefix)) {
       sections.push(`### ${method.toUpperCase()} ${mdText(path)}`);
 
+      if (operation.operationId) {
+        sections.push(
+          `Operation id \`${operation.operationId}\`: in Python \`client.call("${operation.operationId}", …)\`, on the command line \`stardelt api ${operation.operationId}\`.`,
+        );
+      }
+
       const summary = proseText(operation.summary);
       const description = proseText(operation.description);
       if (summary && summary !== description) sections.push(mdText(summary));
