@@ -668,6 +668,33 @@ Publish a notebook as a new immutable object version in the `notebooks` bucket. 
 | `502` | The notebook store did not answer |
 | `503` | Notebook storage is not configured |
 
+### DELETE /api/notebooks/\{group\}/\{name\}
+
+Operation id `notebooks_delete`: in Python `client.call("notebooks_delete", …)`, on the command line `stardelt api notebooks_delete`.
+
+`DELETE /api/notebooks/{group}/{name}`: the notebook and every version of it (#298).
+
+Delete a published notebook and every version of it from the `notebooks` bucket; the bucket is versioned, so each version is removed by its id and the bytes are gone, not hidden. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). A notebook with no version is 404 `no such notebook`. The answer carries the number of versions removed. A schedule that pinned a deleted version fails its next run. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502 (a retry removes what is left). Each delete writes one audit line with group, name and the number of versions, never content. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | One of the caller's groups |
+| `name` | path | string | Yes | Notebook file name, ending in.ipynb |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The notebook and the number of versions removed |
+| `400` | Bad name |
+| `401` | Not signed in |
+| `403` | Not a member of the group |
+| `404` | No such notebook |
+| `502` | The notebook store did not answer |
+| `503` | Notebook storage is not configured |
+
 ### GET /api/notebooks/\{group\}/\{name\}/parameters
 
 Operation id `notebooks_parameters`: in Python `client.call("notebooks_parameters", …)`, on the command line `stardelt api notebooks_parameters`.
