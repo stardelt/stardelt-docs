@@ -554,6 +554,97 @@
         }
       }
     },
+    "/api/catalog/search": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "Find tables by name in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case. The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only names are searched (single-level namespaces), not comments or tags. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.",
+        "operationId": "catalog_search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Words to look for in `namespace.table`, separated by spaces; every word must be there. 1 to 100 characters.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to search (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Most matches to return, 1 to 100; 20 when omitted.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The matching tables",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`q` is missing or longer than 100 characters, or the catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog or the engine is not reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/catalog/tables/{ns}/{tbl}": {
       "get": {
         "tags": [
@@ -5263,11 +5354,11 @@
           "breakGlass": {
             "oneOf": [
               {
-                "type": "null"
-              },
-              {
                 "$ref": "#/components/schemas/BreakGlassNotice",
                 "description": "The last break-glass read of a group connection; absent for personal and managed rows."
+              },
+              {
+                "type": "null"
               }
             ]
           },
@@ -5312,11 +5403,11 @@
           "sync": {
             "oneOf": [
               {
-                "type": "null"
-              },
-              {
                 "$ref": "#/components/schemas/SyncView",
                 "description": "`Ready` and its reason from the resource's status; absent for a personal connection."
+              },
+              {
+                "type": "null"
               }
             ]
           },
@@ -5389,22 +5480,22 @@
           "notebook": {
             "oneOf": [
               {
-                "type": "null"
-              },
-              {
                 "$ref": "#/components/schemas/NotebookRequest",
                 "description": "A published notebook version to run instead of a statement (#237)."
+              },
+              {
+                "type": "null"
               }
             ]
           },
           "options": {
             "oneOf": [
               {
-                "type": "null"
-              },
-              {
                 "$ref": "#/components/schemas/PipelineOptions",
                 "description": "Retries, the wait between them, the time limit and the run mode; omitted fields keep the\ndefaults."
+              },
+              {
+                "type": "null"
               }
             ]
           },
@@ -5424,10 +5515,10 @@
           "schedule": {
             "oneOf": [
               {
-                "type": "null"
+                "$ref": "#/components/schemas/ScheduleRequest"
               },
               {
-                "$ref": "#/components/schemas/ScheduleRequest"
+                "type": "null"
               }
             ]
           },
@@ -6042,10 +6133,10 @@
               "retries": {
                 "oneOf": [
                   {
-                    "type": "null"
+                    "$ref": "#/components/schemas/RetriesView"
                   },
                   {
-                    "$ref": "#/components/schemas/RetriesView"
+                    "type": "null"
                   }
                 ]
               },
@@ -6166,10 +6257,10 @@
           "lastRun": {
             "oneOf": [
               {
-                "type": "null"
+                "$ref": "#/components/schemas/RunView"
               },
               {
-                "$ref": "#/components/schemas/RunView"
+                "type": "null"
               }
             ]
           },
@@ -6467,10 +6558,10 @@
           "error": {
             "oneOf": [
               {
-                "type": "null"
+                "$ref": "#/components/schemas/QueryFailure"
               },
               {
-                "$ref": "#/components/schemas/QueryFailure"
+                "type": "null"
               }
             ]
           },
@@ -6934,6 +7025,50 @@
           "managed"
         ]
       },
+      "SearchMatch": {
+        "type": "object",
+        "required": [
+          "catalog",
+          "namespace",
+          "table"
+        ],
+        "properties": {
+          "catalog": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "table": {
+            "type": "string"
+          }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "required": [
+          "query",
+          "matches",
+          "truncated"
+        ],
+        "properties": {
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchMatch"
+            },
+            "description": "Matches in order of namespace, then table."
+          },
+          "query": {
+            "type": "string",
+            "description": "The words searched, trimmed."
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "True when more tables match than were returned, or when the catalog has more namespaces than one\nrequest reads (100): the answer is then a prefix, so narrow the words or name the catalog."
+          }
+        }
+      },
       "SqlWarehouse": {
         "type": "object",
         "description": "One warehouse a caller may use, as the UI shows it.",
@@ -7330,22 +7465,22 @@
           "notebook": {
             "oneOf": [
               {
-                "type": "null"
-              },
-              {
                 "$ref": "#/components/schemas/NotebookRequest",
                 "description": "The notebook, its version and its parameters for a notebook pipeline; a statement\npipeline refuses it."
+              },
+              {
+                "type": "null"
               }
             ]
           },
           "options": {
             "oneOf": [
               {
-                "type": "null"
-              },
-              {
                 "$ref": "#/components/schemas/PipelineOptions",
                 "description": "The whole option set; omitted means the defaults."
+              },
+              {
+                "type": "null"
               }
             ]
           },
@@ -7362,11 +7497,11 @@
           "schedule": {
             "oneOf": [
               {
-                "type": "null"
-              },
-              {
                 "$ref": "#/components/schemas/ScheduleRequest",
                 "description": "Omitted means no schedule: the pipeline then runs on demand only."
+              },
+              {
+                "type": "null"
               }
             ]
           },
