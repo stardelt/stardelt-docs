@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 1490" width="1320" height="1490" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
+<title id="title">How stardelt works</title>
+<desc id="desc">One picture of the whole platform. People, scripts, notebooks and AI assistants sign in once with Keycloak and talk to one front door, stardelt Nova, which has a user interface and a public API. Nova asks the Trino SQL engine, the Lakekeeper catalog and Airflow on behalf of the signed-in person. Table files live in SeaweedFS object storage. The stardelt Operator, CloudNativePG, ingress and cert-manager run on Kubernetes underneath.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0d1130"/><stop offset="100%" stop-color="#0b0e1f"/></linearGradient>
+  <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 Z" fill="#7d8bff"/></marker>
+</defs>
+<style>
+  .t { fill: #f1f3ff; font-weight: 700; }
+  .d { fill: #b4bbdc; font-size: 14px; }
+  .band { font-size: 12.5px; font-weight: 700; letter-spacing: 0.16em; }
+  .chip { fill: #f1f3ff; font-size: 13.5px; font-weight: 600; }
+  .lbl { fill: #b4bbdc; font-size: 13px; font-style: italic; }
+  .bn { fill: #0b0e1f; font-size: 14px; font-weight: 800; }
+  .h1 { fill: #f1f3ff; font-size: 30px; font-weight: 800; }
+  .h2 { fill: #b4bbdc; font-size: 16px; }
+  .fl { fill: #f1f3ff; font-size: 15px; font-weight: 700; }
+  .fd { fill: #b4bbdc; font-size: 14px; }
+</style>
+<rect width="1320" height="1490" rx="20" fill="url(#bg)"/>
+<text x="36" y="52" class="h1">How stardelt works</text>
+<text x="36" y="80" class="h2">One sign-in, one front door, one catalog. Everything else is a plug you can swap.</text>
+<rect x="1146" y="104" width="150" height="716" rx="14" fill="#141b40" stroke="#fcd34d" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="1146" y="104" width="6" height="716" rx="3" fill="#fcd34d"/>
+<text x="1166" y="136" class="t" style="font-size:18px">Keycloak</text>
+<text x="1166" y="157" class="d" style="fill:#fcd34d">one sign-in</text>
+<text x="1166" y="190" class="d" style="font-size:13px">Users and groups live</text>
+<text x="1166" y="209" class="d" style="font-size:13px">here. Nova, Trino and</text>
+<text x="1166" y="228" class="d" style="font-size:13px">the catalog all trust</text>
+<text x="1166" y="247" class="d" style="font-size:13px">the same token.</text>
+<text x="1166" y="285" class="d" style="font-size:13px">Browser: sign-in page</text>
+<text x="1166" y="304" class="d" style="font-size:13px">with PKCE.</text>
+<text x="1166" y="342" class="d" style="font-size:13px">CLI and agents:</text>
+<text x="1166" y="361" class="d" style="font-size:13px">device code flow</text>
+<text x="1166" y="380" class="d" style="font-size:13px">(stardelt login).</text>
+<text x="1166" y="418" class="d" style="font-size:13px">Or bring your own</text>
+<text x="1166" y="437" class="d" style="font-size:13px">OIDC provider (Entra,</text>
+<text x="1166" y="456" class="d" style="font-size:13px">Okta, your Keycloak).</text>
+<rect x="24" y="100" width="1104" height="132" rx="16" fill="#10163a" fill-opacity="0.55" stroke="#c4b5fd" stroke-opacity="0.28"/>
+<text x="40" y="122" class="band" fill="#c4b5fd">YOU AND YOUR TOOLS</text>
+<rect x="34" y="130" width="253" height="92" rx="12" fill="#141b40" stroke="#c4b5fd" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="34" y="130" width="6" height="92" rx="3" fill="#c4b5fd"/>
+<text x="54" y="157" class="t" style="font-size:17px">Browser</text>
+<text x="54" y="176" class="d">Nova user interface: catalog,</text>
+<text x="54" y="195" class="d">SQL editor, pipelines, query log</text>
+<rect x="311" y="130" width="253" height="92" rx="12" fill="#141b40" stroke="#c4b5fd" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="311" y="130" width="6" height="92" rx="3" fill="#c4b5fd"/>
+<text x="331" y="157" class="t" style="font-size:17px">Terminal and CI</text>
+<text x="331" y="176" class="d">stardelt CLI + Python SDK:</text>
+<text x="331" y="195" class="d">login, sql, apply, run, api</text>
+<rect x="588" y="130" width="253" height="92" rx="12" fill="#141b40" stroke="#c4b5fd" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="588" y="130" width="6" height="92" rx="3" fill="#c4b5fd"/>
+<text x="608" y="157" class="t" style="font-size:17px">AI assistants</text>
+<text x="608" y="176" class="d">stardelt MCP server + skill:</text>
+<text x="608" y="195" class="d">read tools, guarded SQL</text>
+<rect x="865" y="130" width="253" height="92" rx="12" fill="#141b40" stroke="#c4b5fd" stroke-opacity="0.9" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="865" y="130" width="6" height="92" rx="3" fill="#c4b5fd"/>
+<text x="885" y="157" class="t" style="font-size:17px">Notebooks</text>
+<text x="885" y="176" class="d">JupyterHub: import stardelt,</text>
+<text x="885" y="195" class="d">SQL and Spark, publish</text>
+<rect x="24" y="262" width="1104" height="188" rx="16" fill="#10163a" fill-opacity="0.55" stroke="#8da0ff" stroke-opacity="0.28"/>
+<text x="40" y="284" class="band" fill="#8da0ff">ONE FRONT DOOR</text>
+<rect x="34" y="290" width="820" height="150" rx="14" fill="#141b40" stroke="#8da0ff" stroke-width="2.2"/>
+<rect x="34" y="290" width="6" height="150" rx="3" fill="#8da0ff"/>
+<text x="54" y="320" class="t" style="font-size:20px">stardelt Nova</text>
+<text x="196" y="320" class="d" style="fill:#8da0ff">user interface + the public API (one OpenAPI contract)</text>
+<text x="54" y="344" class="d">UI, CLI, SDK and MCP tools all call one API. With sign-in on, it acts as you (your token goes on to Trino).</text>
+<rect x="54" y="360" width="190" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="149.0" y="380" class="chip" text-anchor="middle">Statements and SQL</text>
+<rect x="254" y="360" width="230" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="369.0" y="380" class="chip" text-anchor="middle">Catalog browse and search</text>
+<rect x="494" y="360" width="170" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="579.0" y="380" class="chip" text-anchor="middle">Pipelines and runs</text>
+<rect x="674" y="360" width="162" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="755.0" y="380" class="chip" text-anchor="middle">Notebook publish</text>
+<rect x="54" y="398" width="190" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="149.0" y="418" class="chip" text-anchor="middle">Query log, saved queries</text>
+<rect x="254" y="398" width="150" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="329.0" y="418" class="chip" text-anchor="middle">Your settings</text>
+<rect x="414" y="398" width="210" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="519.0" y="418" class="chip" text-anchor="middle">State in Postgres (nova-pg)</text>
+<rect x="634" y="398" width="202" height="30" rx="15" fill="#1b2352" stroke="#8da0ff" stroke-opacity="0.7"/>
+<text x="735.0" y="418" class="chip" text-anchor="middle">Limits: rows and bytes</text>
+<rect x="24" y="480" width="1104" height="150" rx="16" fill="#10163a" fill-opacity="0.55" stroke="#7dd3fc" stroke-opacity="0.28"/>
+<text x="40" y="502" class="band" fill="#7dd3fc">ENGINES AND APPS</text>
+<rect x="34" y="508" width="230" height="112" rx="12" fill="#141b40" stroke="#7dd3fc" stroke-opacity="0.9" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="34" y="508" width="6" height="112" rx="3" fill="#7dd3fc"/>
+<text x="54" y="535" class="t" style="font-size:17px">Apache Airflow</text>
+<text x="54" y="554" class="d">Runs scheduled pipelines;</text>
+<text x="54" y="573" class="d">their SQL tasks go to Trino</text>
+<rect x="274" y="508" width="230" height="112" rx="12" fill="#141b40" stroke="#7dd3fc" stroke-opacity="0.9" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="274" y="508" width="6" height="112" rx="3" fill="#7dd3fc"/>
+<text x="294" y="535" class="t" style="font-size:17px">Spark Connect</text>
+<text x="294" y="554" class="d">Heavy jobs and notebooks;</text>
+<text x="294" y="573" class="d">same catalog, same files</text>
+<rect x="514" y="508" width="230" height="112" rx="12" fill="#141b40" stroke="#7dd3fc" stroke-opacity="0.9" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="514" y="508" width="6" height="112" rx="3" fill="#7dd3fc"/>
+<text x="534" y="535" class="t" style="font-size:17px">Apache Superset</text>
+<text x="534" y="554" class="d">Dashboards on top of</text>
+<text x="534" y="573" class="d">Trino</text>
+<rect x="754" y="508" width="364" height="112" rx="12" fill="#141b40" stroke="#7dd3fc" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="754" y="508" width="6" height="112" rx="3" fill="#7dd3fc"/>
+<text x="774" y="535" class="t" style="font-size:17px">Trino</text>
+<text x="774" y="554" class="d">The SQL engine. Coordinator + workers.</text>
+<text x="774" y="573" class="d">Reads and writes Iceberg tables,</text>
+<text x="774" y="592" class="d">asks the catalog first.</text>
+<rect x="24" y="660" width="1104" height="130" rx="16" fill="#10163a" fill-opacity="0.55" stroke="#6ee7b7" stroke-opacity="0.28"/>
+<text x="40" y="682" class="band" fill="#6ee7b7">CATALOG AND ACCESS</text>
+<rect x="34" y="688" width="640" height="92" rx="12" fill="#141b40" stroke="#6ee7b7" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="34" y="688" width="6" height="92" rx="3" fill="#6ee7b7"/>
+<text x="54" y="715" class="t" style="font-size:17px">Lakekeeper</text>
+<text x="54" y="734" class="d">Iceberg REST catalog: which tables exist and which files belong</text>
+<text x="54" y="753" class="d">to them. Every engine asks it first.</text>
+<rect x="684" y="688" width="236" height="92" rx="12" fill="#141b40" stroke="#6ee7b7" stroke-opacity="0.9" stroke-width="1.6" stroke-dasharray="7 5"/>
+<rect x="684" y="688" width="6" height="92" rx="3" fill="#6ee7b7"/>
+<text x="704" y="715" class="t" style="font-size:17px">OpenFGA</text>
+<text x="704" y="734" class="d">Who may see which table.</text>
+<text x="704" y="753" class="d">Optional; without it the</text>
+<text x="704" y="772" class="d">catalog allows everyone.</text>
+<rect x="24" y="820" width="1104" height="108" rx="16" fill="#10163a" fill-opacity="0.55" stroke="#f9a8d4" stroke-opacity="0.28"/>
+<text x="40" y="842" class="band" fill="#f9a8d4">STORAGE</text>
+<rect x="34" y="846" width="1084" height="70" rx="12" fill="#141b40" stroke="#f9a8d4" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="34" y="846" width="6" height="70" rx="3" fill="#f9a8d4"/>
+<text x="54" y="873" class="t" style="font-size:17px">SeaweedFS (or your own S3)</text>
+<text x="54" y="893" class="d">The Iceberg data files (Parquet) and the published notebook versions.</text>
+<rect x="24" y="958" width="1104" height="150" rx="16" fill="#10163a" fill-opacity="0.55" stroke="#fdba74" stroke-opacity="0.28"/>
+<text x="40" y="980" class="band" fill="#fdba74">CONTROL PLANE</text>
+<rect x="34" y="986" width="360" height="112" rx="12" fill="#141b40" stroke="#fdba74" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="34" y="986" width="6" height="112" rx="3" fill="#fdba74"/>
+<text x="54" y="1013" class="t" style="font-size:17px">stardelt Operator</text>
+<text x="54" y="1031" class="d">Reads small resources (PlatformInstance,</text>
+<text x="54" y="1049" class="d">Lakehouse, Catalog, SqlWarehouse, Pipeline,</text>
+<text x="54" y="1067" class="d">ServicePrincipal ...) and installs and</text>
+<text x="54" y="1085" class="d">wires everything above.</text>
+<rect x="404" y="986" width="330" height="112" rx="12" fill="#141b40" stroke="#fdba74" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="404" y="986" width="6" height="112" rx="3" fill="#fdba74"/>
+<text x="424" y="1013" class="t" style="font-size:17px">CloudNativePG</text>
+<text x="424" y="1032" class="d">Postgres for Keycloak, Lakekeeper,</text>
+<text x="424" y="1051" class="d">OpenFGA and Nova's own state.</text>
+<rect x="744" y="986" width="374" height="112" rx="12" fill="#141b40" stroke="#fdba74" stroke-opacity="0.9" stroke-width="1.6"/>
+<rect x="744" y="986" width="6" height="112" rx="3" fill="#fdba74"/>
+<text x="764" y="1013" class="t" style="font-size:17px">Ingress and TLS</text>
+<text x="764" y="1032" class="d">ingress-nginx and cert-manager:</text>
+<text x="764" y="1051" class="d">one HTTPS name per service,</text>
+<text x="764" y="1070" class="d">certificates renew by themselves.</text>
+<rect x="24" y="1124" width="1104" height="40" rx="12" fill="#10163a" stroke="#94a3b8" stroke-opacity="0.6" stroke-width="1.6"/>
+<text x="576" y="1150" class="d" text-anchor="middle" style="fill:#94a3b8;font-size:14.5px">Kubernetes: you bring the cluster (k3s, EKS, GKE, AKS, a sovereign cloud). stardelt is not a Kubernetes distribution.</text>
+<path d="M220.5,224 L220.5,288" fill="none" stroke="#7d8bff" stroke-width="2.4" marker-end="url(#ah)"/>
+<path d="M497.5,224 L497.5,288" fill="none" stroke="#7d8bff" stroke-width="2.4" marker-end="url(#ah)"/>
+<path d="M774.5,224 L774.5,288" fill="none" stroke="#7d8bff" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="230.5" y="252" class="lbl" text-anchor="start">HTTPS + token</text>
+<path d="M1040,224 L1040,506" fill="none" stroke="#7dd3fc" stroke-width="2.4" marker-end="url(#ah)"/>
+<circle cx="1040" cy="440" r="13" fill="#7dd3fc"/>
+<text x="1040" y="445.5" class="bn" text-anchor="middle">5</text>
+<text x="1020" y="372" class="lbl" text-anchor="end">SQL and Spark go straight</text>
+<text x="1020" y="389" class="lbl" text-anchor="end">to the engines with your</text>
+<text x="1020" y="406" class="lbl" text-anchor="end">token</text>
+<path d="M1118,160 L1144,160" fill="none" stroke="#fcd34d" stroke-width="2.4" marker-end="url(#ah)"/>
+<circle cx="1136" cy="160" r="13" fill="#fcd34d"/>
+<text x="1136" y="165.5" class="bn" text-anchor="middle">1</text>
+<path d="M856,330 L1144,330" fill="none" stroke="#fcd34d" stroke-width="2.4" stroke-dasharray="6 5" marker-end="url(#ah)"/>
+<text x="868" y="322" class="lbl" text-anchor="start">checks the token</text>
+<path d="M1120,566 L1144,566" fill="none" stroke="#fcd34d" stroke-width="2.4" stroke-dasharray="6 5" marker-end="url(#ah)"/>
+<path d="M790,442 L790,506" fill="none" stroke="#7d8bff" stroke-width="2.4" marker-end="url(#ah)"/>
+<circle cx="790" cy="474" r="13" fill="#7d8bff"/>
+<text x="790" y="479.5" class="bn" text-anchor="middle">2</text>
+<path d="M240,442 L240,506" fill="none" stroke="#7d8bff" stroke-width="2.4" marker-end="url(#ah)"/>
+<circle cx="240" cy="474" r="13" fill="#7d8bff"/>
+<text x="240" y="479.5" class="bn" text-anchor="middle">4</text>
+<text x="258" y="478" class="lbl" text-anchor="start">a Pipeline resource</text>
+<path d="M744,566 L752,566" fill="none" stroke="#7d8bff" stroke-width="2.2" marker-end="url(#ah)"/>
+<path d="M34,360 L14,360 L14,722 L32,722" fill="none" stroke="#7d8bff" stroke-width="2.4" marker-end="url(#ah)"/>
+<circle cx="14" cy="440" r="13" fill="#7d8bff"/>
+<text x="14" y="445.5" class="bn" text-anchor="middle">3</text>
+<path d="M860,622 L860,640 L560,640 L560,686" fill="none" stroke="#7d8bff" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="870" y="640" class="lbl" text-anchor="start">asks first</text>
+<path d="M676,734 L682,734" fill="none" stroke="#7d8bff" stroke-width="2.2" marker-end="url(#ah)"/>
+<path d="M1060,622 L1060,844" fill="none" stroke="#f9a8d4" stroke-width="2.4" marker-end="url(#ah)"/>
+<text x="1048" y="700" class="lbl" text-anchor="end">reads and writes</text>
+<text x="1048" y="717" class="lbl" text-anchor="end">the Parquet files</text>
+<text x="36" y="1206" class="band" fill="#7d8bff">HOW IT FLOWS</text>
+<circle cx="49" cy="1236" r="13" fill="#fcd34d"/>
+<text x="49" y="1241.5" class="bn" text-anchor="middle">1</text>
+<text x="70" y="1233" class="fl">Sign in</text>
+<text x="70" y="1252" class="fd">The browser, stardelt login and the MCP server get a token from</text>
+<text x="70" y="1268" class="fd">Keycloak. One token works everywhere.</text>
+<circle cx="641" cy="1236" r="13" fill="#7d8bff"/>
+<text x="641" y="1241.5" class="bn" text-anchor="middle">2</text>
+<text x="662" y="1233" class="fl">Run a query</text>
+<text x="662" y="1252" class="fd">Client → Nova statement API → Trino with your token → Lakekeeper</text>
+<text x="662" y="1268" class="fd">(which tables, which files) → SeaweedFS (Parquet).</text>
+<circle cx="49" cy="1310" r="13" fill="#7d8bff"/>
+<text x="49" y="1315.5" class="bn" text-anchor="middle">3</text>
+<text x="70" y="1307" class="fl">Browse and search</text>
+<text x="70" y="1326" class="fd">Nova asks Lakekeeper on your behalf: namespaces, tables, search by</text>
+<text x="70" y="1342" class="fd">name. UI, CLI and MCP tools call the same API.</text>
+<circle cx="641" cy="1310" r="13" fill="#7d8bff"/>
+<text x="641" y="1315.5" class="bn" text-anchor="middle">4</text>
+<text x="662" y="1307" class="fl">Schedule</text>
+<text x="662" y="1326" class="fd">Nova writes a Pipeline resource; Airflow loads it and runs its SQL</text>
+<text x="662" y="1342" class="fd">on Trino. Nova shows runs and logs.</text>
+<circle cx="49" cy="1384" r="13" fill="#7dd3fc"/>
+<text x="49" y="1389.5" class="bn" text-anchor="middle">5</text>
+<text x="70" y="1381" class="fl">Notebooks</text>
+<text x="70" y="1400" class="fd">Your notebook gets your token: SQL and Spark go straight to the</text>
+<text x="70" y="1416" class="fd">engines; publish stores a version via Nova.</text>
+<text x="36" y="1468" class="lbl">Solid boxes are the core install. Dashed boxes are optional or switch on per install (Airflow, Spark Connect, Superset, JupyterHub, OpenFGA, Keycloak).</text>
+</svg>

@@ -34,6 +34,8 @@ cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
 
 - **Try it on the dev cluster.** [Hetzner k3s](../getting-started/hetzner-k3s) for the full
   stack.
+- **See the whole picture.** [How stardelt works](../architecture/how-it-works): one diagram
+  of the platform and how its parts connect.
 - **Understand the system first.** [Architecture overview](../architecture/overview)
   or the full design spec.
 - **See what's planned.** [Roadmap](../roadmap).

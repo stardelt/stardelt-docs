@@ -45,6 +45,7 @@ const sidebars: SidebarsConfig = {
       label: 'Architecture',
       collapsed: false,
       items: [
+        'architecture/how-it-works',
         'architecture/overview',
         'architecture/services',
         'architecture/identity',

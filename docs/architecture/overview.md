@@ -8,7 +8,7 @@ slug: /architecture/overview
 
 **stardelt is an opinionated collection of open-source services, shipped together as a Kubernetes-native data platform.** You bring the Kubernetes cluster; stardelt installs and wires the services that turn it into a lakehouse, a streaming platform, a notebook environment, and a BI surface — under a single UI.
 
-This page is the high-level overview. Per-service detail (what each service does, upstream link, license) lives in [Services](./services).
+This page is the high-level overview. For one picture of how everything connects, start with [How stardelt works](./how-it-works.md). Per-service detail (what each service does, upstream link, license) lives in [Services](./services).
 
 ## What's in the box
 
@@ -42,6 +42,7 @@ default values, installs exactly this:
 
 Enabled per install (`make install`, or `<component>.enabled: true` in your values file):
 
+- **Keycloak** — the default OIDC provider (`identity.mode: platform`); or point the platform at your own OIDC provider (`external`). See [Identity](./identity.md).
 - **Apache Superset** — BI and dashboards over Trino.
 - **Apache Airflow** — workflow orchestration for batch and scheduled jobs.
 - **JupyterHub** — multi-user notebook environment.
@@ -51,7 +52,6 @@ Enabled per install (`make install`, or `<component>.enabled: true` in your valu
 These are designed but not in the install path. The [roadmap](../roadmap)
 carries the sequencing and the phase each one lands in. Listing them here is a promise about direction, not about today.
 
-- **Keycloak** — OIDC / SAML / LDAP provider. Skip if your cluster already federates an IdP.
 - **OpenMetadata** — the metadata, lineage and quality spine.
 - **Apache SeaTunnel, Apache NiFi, Debezium** — the three ingestion domains (SaaS, enterprise, CDC).
 - **dbt-core + Soda** — transforms and quality gates.
@@ -97,10 +97,7 @@ The canonical lakehouse read path:
 
 When the streaming service (P3) is enabled, Apache Kafka carries event topics that Flink processes into Iceberg tables; the base install needs no Kafka — Airflow writes batch results straight to Iceberg. JupyterHub talks to Trino for SQL and to Spark Connect for heavier compute; Superset talks to Trino for dashboards.
 
-The OIDC-token and vended-credential steps in the diagram are the target design. The dev install
-is identity-less today: Trino reads and writes S3 with the static credentials from the
-`stardelt-s3-creds` Secret (`vended-credentials-enabled=false` in `helm-values/trino.yaml`) and
-Nova runs with a static dev user (`auth_mode: static-dev`).
+Sign-in is a plug per install. With `identity.mode: platform` the chart deploys Keycloak and Nova and Trino sign people in through it; `external` points them at your own OIDC provider; `none` (the chart default) keeps the development authentication. The vended-credential step in the diagram is the target design: today Trino reads and writes S3 with the static credentials from the `stardelt-s3-creds` Secret (`vended-credentials-enabled=false` in `helm-values/trino.yaml`).
 
 ## Operating model
 
