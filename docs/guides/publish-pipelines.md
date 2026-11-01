@@ -65,6 +65,10 @@ schedule:
   timezone: UTC
 ```
 
+A pipeline can run a notebook instead of SQL: give `notebook: {file: notebooks/explore.ipynb}` (a file named under `files`), and
+`deploy` publishes it and pins the version; [Bundle reference](bundle-reference.md#a-notebook-that-is-a-file-of-the-bundle) has the
+details.
+
 `validate` prints one sentence per problem and exits `2`: an unknown key, a variable without a value in some target, a pipeline file
 that is not a pipeline or has none (or two) of `sql`, `sqlFile` and `notebook`, a `sqlFile` that is not among the bundle's files, a
 `schedule` without both `cron` and `timezone`, a `production` target without `runAs: pipeline-<group>`, a path that leaves the
@@ -180,7 +184,6 @@ in the bundle if it is right, and pass `--accept-drift` to overwrite what is lef
 
 ## What is not there yet
 
-- A notebook that is a file of the bundle: publish the notebook and name its version in the pipeline file.
 - A record of what was deployed when, and a rollback button: the stamp on each pipeline says which commit it runs; to go back,
   deploy the earlier commit.
 - A temporary stage per pull request.

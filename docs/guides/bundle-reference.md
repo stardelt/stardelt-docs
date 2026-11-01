@@ -86,9 +86,25 @@ schedule:
 - `name` is required and must be unique among the pipeline files of the bundle.
 - `ownerGroup` is optional; when it is there it must be the bundle's group.
 - **Exactly one** of `sql` (the statement), `sqlFile` (a file named under `files`; its text is read into `sql` when you plan or
-  deploy) and `notebook` (a published notebook and its version). A `notebook` given as a file of the bundle cannot be deployed yet.
+  deploy) and `notebook` (a published notebook and its version, or a file of the bundle: see below).
 - `schedule` needs both `cron` and `timezone` (an IANA zone such as `Europe/Berlin`); leave it out for an on-demand pipeline.
 - `params` and `options` are the pipeline's parameters and advanced options, as in `stardelt apply`.
+
+### A notebook that is a file of the bundle
+
+```yaml
+name: explore
+notebook:
+  file: notebooks/explore.ipynb   # a file named under `files`
+  params:
+    rows: "5"
+```
+
+`file` must be among the bundle's `files`, be valid JSON (a Jupyter notebook) and have a name that ends in `.ipynb`, starts with a
+letter or a digit and uses only letters, digits, `.`, `_`, `-` and spaces (at most 128 characters before `.ipynb`). Give no `name` or `objectVersion`
+beside it: `deploy` publishes the file to the bundle's group under its file name and pins the version Nova answers. Publishing bytes
+that equal the newest version stores nothing, so a repeated deploy does not create versions. A notebook is never deleted by `prune`
+or `destroy`: its versions are immutable.
 
 ## The commands
 
@@ -117,6 +133,10 @@ Results are JSON lines on standard output; messages, warnings and problems go to
   `would-delete` (a plan) or `created`, `updated`, `deleted` (a deploy). An update lists `changes` (which of `statement`,
   `schedule`, `params`, `options` and `deployment` change), a scheduled pipeline lists `nextRuns`, and `"modified": true` marks a
   pipeline someone changed after its last deploy (one warning per such pipeline goes to standard error).
+- A pipeline whose notebook is a file adds one thing to this: when the file differs from the newest published version, `plan` prints
+  `{"action": "would-publish", "name": ..., "notebook": "<group>/<file name>"}` instead of `would-create` or `would-update` (Nova can
+  check the pipeline only after the new version exists), and `deploy` prints `{"action": "published", "name": ..., "notebook": ...,
+  "objectVersion": ...}` before the pipeline's own line. A refusal after the publish keeps the published version.
 - With `--diff`, `plan` and `deploy` also print, on standard error after the JSON lines, a unified diff for every update: one per
   field Nova names in `changes` (`statement` is compared line by line, `schedule`, `params` and `options` as YAML), headed
   `--- load sql (deployed)` and `+++ load sql (bundle)`. A change of the stamp alone (`deployment`) shows nothing, and a deployed
