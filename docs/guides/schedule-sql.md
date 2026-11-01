@@ -70,10 +70,15 @@ Open the pipeline under **Pipelines**:
 - **Pause** and **Resume** stop and restart the schedule.
 - **Stop run** cancels the running statement and skips what follows. A change the engine already committed is not undone.
 - **Edit schedule** changes the statement and the schedule (the name and the group cannot change).
+- **Show definition** shows the pipeline as the document that creates it, in YAML: the name, the group, the statement, the
+  schedule, the parameters and the options with their defaults filled in. It is read only when you press the button, and it is
+  read-only on the page. To keep a pipeline in Git, export it: `stardelt export NAMESPACE NAME > pipeline.yaml` writes the same
+  document as a file that `stardelt apply -f` accepts (see [Python, command line and agents](sdk-cli-mcp.md)).
 - **Delete pipeline** removes the pipeline; past runs disappear from the page.
 
 Members of the owning group see and manage the pipeline; people outside it do not see it. Pipelines that were written in YAML
-(not created from the dialog) can be run, paused and stopped here but must be changed where they came from.
+(not created from the dialog) can be run, paused and stopped here and their definition can be read, but they must be changed
+where they came from; **Show definition** says so.
 
 ## Limits
 
