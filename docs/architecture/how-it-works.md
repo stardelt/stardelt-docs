@@ -35,9 +35,11 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 |---|---|
 | Install it on a cluster | [Hetzner k3s](../getting-started/hetzner-k3s.md) |
 | Go from a source to a dashboard | [Source to dashboard](../guides/source-to-dashboard.md) |
+| Keep source credentials out of pipelines | [Connections](../guides/connections.md) |
 | Run SQL on a schedule | [Schedule SQL](../guides/schedule-sql.md) |
+| Keep notebooks and pipelines in Git | [Notebooks and pipelines in git](../guides/notebooks-in-git.md) |
+| Publish pipelines from Git to a stage | [Publish pipelines from Git](../guides/publish-pipelines.md) |
 | See what was run and why it failed | [Query log](../guides/query-log.md) |
 | Use it from a script, CI or an AI assistant | [Python, command line and agents](../guides/sdk-cli-mcp.md) |
-| Keep source credentials out of pipelines | [Connections](../guides/connections.md) |
 | Know what is installed and what is only planned | [Services](./services.md) |
 | Understand who may do what | [Security model](./security-model.md) |
