@@ -37,6 +37,7 @@ const sidebars: SidebarsConfig = {
         'guides/schedule-sql',
         'guides/notebooks-in-git',
         'guides/publish-pipelines',
+        'guides/bundle-reference',
         'guides/query-log',
         'guides/sdk-cli-mcp',
       ],
