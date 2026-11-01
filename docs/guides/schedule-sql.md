@@ -70,6 +70,8 @@ Open the pipeline under **Pipelines**:
 - **Pause** and **Resume** stop and restart the schedule.
 - **Stop run** cancels the running statement and skips what follows. A change the engine already committed is not undone.
 - **Edit schedule** changes the statement and the schedule (the name and the group cannot change).
+- **Deployed from** (in the facts at the top) appears for a pipeline that `stardelt bundle deploy` published: the bundle, the
+  target and the Git commit it came from, who deployed it and when. A pipeline made here has none.
 - **Show definition** shows the pipeline as the document that creates it, in YAML: the name, the group, the statement, the
   schedule, the parameters and the options with their defaults filled in. It is read only when you press the button, and it is
   read-only on the page. To keep a pipeline in Git, export it: `stardelt export NAMESPACE NAME > pipeline.yaml` writes the same
