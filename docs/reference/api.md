@@ -1198,6 +1198,29 @@ One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, 
 | `502` | The scheduler or the cluster did not answer |
 | `503` | No cluster connection, or the scheduler is not configured |
 
+### GET /api/pipelines/\{namespace\}/\{name\}/spec
+
+Operation id `pipelines_spec`: in Python `client.call("pipelines_spec", …)`, on the command line `stardelt api pipelines_spec`.
+
+The editable document of one pipeline, in the shape of the body of `pipelines_create`: `name`, `ownerGroup`, a `sql` statement or a `notebook` (file name, pinned object version, parameters), a `schedule` (`cron` and `timezone`; a resource without a zone is `UTC`), the `params` table (left out when empty) and the `options` with their defaults filled in. It is built from the resource alone, so it answers while the scheduler is down. `resourceVersion` is the resource's version; `managedBy` is `nova` or `other` (kubectl or GitOps); `editable` is true only for a pipeline Nova wrote that has one `run` task of kind `sql` or `notebook`. A pipeline that is not editable is still readable: its document then leaves out what the form cannot show. The document never holds status, annotations, a connection's secret or a token. A pipeline of another group answers 404. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The document, its resource version, who manages it, and whether it is editable |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
 ## /api/query
 
 ### POST /api/query
