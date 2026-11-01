@@ -98,7 +98,8 @@ stardelt bundle plan pipelines/ -t prod        # STARDELT_NOVA_URL and STARDELT_
 
 `plan` prints one line per pipeline, the same lines as `stardelt apply --dry-run`: `would-create` or `would-update`, with
 `changes` (which of `statement`, `schedule`, `params`, `options` and `deployment` would change) and, for a scheduled pipeline, the
-next runs. If Nova refuses any pipeline, **nothing would be written**: the sentences are shown
+next runs. A pipeline someone changed by hand after its last deploy also carries `"modified": true`, with one warning on standard
+error, so the reviewer sees that the deploy would overwrite that change. If Nova refuses any pipeline, **nothing would be written**: the sentences are shown
 (`prod: daily: you are not a member of the group shop`), what passed is still listed, and the command exits `2`, so the job fails.
 The token is one Nova accepts for a member of the bundle's owner group; keep it in the CI system's secret store, never in a file
 of the repository.
@@ -140,7 +141,8 @@ bundle, `stardelt export NAMESPACE NAME` prints it as a file that `stardelt appl
 
 **See what was changed by hand.** When someone changes a deployed pipeline after its deploy, with the form, the YAML editor or
 `kubectl`, its page says **Changed since the last deploy** under **Deployed from**. The next deploy of the bundle overwrites that
-change, so the page tells you whether a deploy would lose work. It compares the statement or notebook, the schedule, the
+change, so the page tells you whether a deploy would lose work; `bundle plan` and `bundle deploy` say the same with `"modified": true`
+and a warning on standard error, and `deploy` still goes ahead. It compares the statement or notebook, the schedule, the
 parameters and the options; the pause state and the group are not part of it. A pipeline that was deployed before this check
 existed shows nothing until its next deploy.
 
@@ -149,4 +151,4 @@ existed shows nothing until its next deploy.
 - A notebook that is a file of the bundle: publish the notebook and name its version in the pipeline file.
 - A record of what was deployed when, and a rollback button: the stamp on each pipeline says which commit it runs; to go back,
   deploy the earlier commit.
-- A temporary stage per pull request, and a warning from `bundle plan` before a deploy overwrites a change made by hand.
+- A temporary stage per pull request, and a way to make a deploy stop instead of overwriting a change made by hand.
