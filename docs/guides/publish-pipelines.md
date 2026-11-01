@@ -130,6 +130,11 @@ target stamped and the bundle no longer names: `plan` lists them as `would-delet
 after every create and update succeeded. A pipeline made by hand, or stamped by another bundle or target, is never touched, and a
 development target removes only your own `dev-<your name>-` pipelines.
 
+**Empty a stage.** `stardelt bundle destroy shop -t dev` lists, as `would-delete`, every pipeline an earlier deploy of this bundle
+target put on the stage, and `--yes` removes them (`deleted`). In a development target it removes only your own
+`dev-<your name>-` pipelines, so you can clean up after a finished branch without touching a colleague's; in `prod` it removes what
+the bundle published there. Pipelines made by hand or stamped by another bundle or target stay, and so do the files of the bundle.
+
 **Bring in what was made in the interface.** `stardelt bundle generate NAMESPACE NAME shop` writes a pipeline made on the
 Pipelines page into the bundle in `shop`: `resources/<name>.yaml`, and for a statement `sql/<name>.sql` with `sqlFile` pointing at
 it (the bundle's group stands in for `ownerGroup`). It never overwrites a file, and when it writes nothing it says why in one
