@@ -118,6 +118,7 @@ sign-in; the others talk to Nova.
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | asks Nova what deploying the target would do | no |
 | `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | checks every pipeline with Nova, then creates or updates them; `--dry-run` is `plan` | yes |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage | no |
+| `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
 | `bundle destroy [DIR] -t TARGET [--yes]` | lists, and with `--yes` removes, what a deploy of the target left on the stage | with `--yes` |
 | `bundle generate NAMESPACE NAME [DIR]` | writes a pipeline made in the interface into the bundle (its file and its SQL file); never overwrites | no |
 
@@ -141,6 +142,10 @@ Results are JSON lines on standard output; messages, warnings and problems go to
   field Nova names in `changes` (`statement` is compared line by line, `schedule`, `params` and `options` as YAML), headed
   `--- load sql (deployed)` and `+++ load sql (bundle)`. A change of the stamp alone (`deployment`) shows nothing, and a deployed
   document that cannot be read is one sentence instead of a diff.
+- `run` prints one line per run, `{"action": "ran", "name": ..., "runId": ..., "state": ...}`, with `failedTasks` (the ids of the failed
+  tasks) when tasks failed. It runs what `summary` lists, in name order, and stops at the first run that does not end `success`
+  (exit code `1`); `--only NAME` runs one pipeline (in a `development` target without the `dev-<your name>-` prefix), and
+  `--timeout` stops waiting after that many seconds without stopping the run (a problem sentence, exit code `2`). It deploys nothing.
 - `destroy` prints `would-delete` or `deleted` lines; `summary` prints one line per pipeline with `name` and, when Nova knows them,
   `revision`, `deployedBy`, `deployedAt` and `modified`.
 - If Nova refuses any pipeline, nothing is written, the sentences are shown (`prod: daily: you are not a member of the group
@@ -150,7 +155,7 @@ Results are JSON lines on standard output; messages, warnings and problems go to
 | Exit code | Meaning |
 |---|---|
 | `0` | success |
-| `1` | an error, for example the platform cannot be reached |
+| `1` | an error, for example the platform cannot be reached, or a run started by `bundle run` did not succeed |
 | `2` | wrong usage, a problem in the bundle, a refusal by Nova, or `drift: block` |
 | `3` | authentication is needed: run `stardelt login` or set `STARDELT_TOKEN` |
 
