@@ -153,6 +153,27 @@ that is not a pipeline or has none (or two) of `sql`, `sqlFile` and `notebook`, 
 bundle, a symbolic link, a file over 5 MiB. It checks
 what needs no cluster; whether the group's principal is ready or a notebook version exists is for the server to say when you deploy.
 
+### Publish a bundle: plan and deploy
+
+Two more commands talk to Nova, so they need a host and a sign-in (`stardelt login`, or `STARDELT_TOKEN` in a CI job). Both work on
+one target:
+
+```bash
+stardelt bundle plan shop -t prod       # what would happen; writes nothing
+stardelt bundle deploy shop -t prod     # Nova checks every pipeline, then they are created or updated
+```
+
+Each pipeline file gets the target's variables, its `sqlFile` is read into `sql`, and the bundle's group is its `ownerGroup` when
+the file names none. Then Nova checks every pipeline with the rules of a create (your group, the group's pipeline identity, the
+statement, the schedule) and the answer lines are those of `stardelt apply --dry-run`: `would-create` or `would-update`, with
+`changes` and the next runs. If Nova refuses any pipeline, **nothing is written**: the sentences are shown (`prod: load: you are not
+a member of the group sales`), what passed is still listed, and the command exits `2`. `deploy --dry-run` is the same as `plan`.
+
+A `development` target deploys under `dev-<your sign-in name>-<pipeline>` and without a schedule (start it with
+`stardelt run`), so two people can deploy one bundle side by side; a `production` target deploys as written. Not yet: a notebook
+that is a file of the bundle (publish the notebook and name its version), removing a pipeline the bundle no longer names, and a
+record of what was deployed when.
+
 ## Run a pipeline and wait for it
 
 `stardelt run NAMESPACE NAME` starts a run now and prints it. With `--wait` it looks at the run until it is no longer `queued` or `running`, prints the
