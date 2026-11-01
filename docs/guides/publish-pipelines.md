@@ -123,6 +123,11 @@ is appended when files are uncommitted; outside a Git checkout there is no commi
 pipeline page shows it under **Deployed from**, with who deployed it and when. A pipeline made in the interface or with
 `stardelt apply` has no such stamp. To go back to an earlier state, check out the earlier commit and deploy again.
 
+To read it for the whole bundle at once, `stardelt bundle summary shop -t prod` prints one line per pipeline the target left on the
+stage: its `name`, the Git `revision` it was deployed from, `deployedBy`, `deployedAt` and `"modified": true` when someone changed
+it after the deploy. A release job can compare the revision with the commit it just deployed. The command only reads, and a
+development target shows only your own pipelines.
+
 ## 5. Keep Git and the stage in step
 
 **Remove what the bundle dropped.** `--prune` (on `plan` and `deploy`) also handles the pipelines an earlier deploy of this bundle
