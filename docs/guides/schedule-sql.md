@@ -74,6 +74,12 @@ Open the pipeline under **Pipelines**:
   schedule, the parameters and the options with their defaults filled in. It is read only when you press the button, and it is
   read-only on the page. To keep a pipeline in Git, export it: `stardelt export NAMESPACE NAME > pipeline.yaml` writes the same
   document as a file that `stardelt apply -f` accepts (see [Python, command line and agents](sdk-cli-mcp.md)).
+- **Edit definition** (next to it, for a pipeline created in Nova) turns the YAML into text you can change. While you type, the
+  page tells you what is wrong with the text (a line number for a syntax error, an unknown key, a name or group that cannot
+  change here) and, once the text is valid, asks Nova to check it: Nova's own sentence when it refuses, "Nothing changed." or
+  "This changes: the schedule, the options." with the next runs. Nothing is saved until you press **Apply changes**, which is
+  possible only when something would change. If somebody else changed the pipeline after you opened the definition, Apply is
+  refused with a sentence and **Reload the definition** shows the current version (your text is discarded).
 - **Delete pipeline** removes the pipeline; past runs disappear from the page.
 
 Members of the owning group see and manage the pipeline; people outside it do not see it. Pipelines that were written in YAML
@@ -100,3 +106,4 @@ where they came from; **Show definition** says so.
 | `the pipeline is paused: resume it first` | **Run now** on a paused pipeline |
 | `a run is already active: wait for it or stop it` | one run at a time |
 | `this pipeline is managed outside Nova (kubectl or Git); change it there` | it was not created from the dialog |
+| `the pipeline changed while you edited it: reload` | somebody changed it after you opened the definition: reload it and make your change again |
