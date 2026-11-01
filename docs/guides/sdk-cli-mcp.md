@@ -149,7 +149,8 @@ targets:
 
 `validate` prints one sentence per problem and exits `2`: an unknown key, a variable without a value in some target, a pipeline file
 that is not a pipeline or has none (or two) of `sql`, `sqlFile` and `notebook`, a `sqlFile` that is not among the bundle's files, a
-`production` target without `runAs: pipeline-<group>`, a path that leaves the bundle, a symbolic link, a file over 5 MiB. It checks
+`schedule` without both `cron` and `timezone`, a `production` target without `runAs: pipeline-<group>`, a path that leaves the
+bundle, a symbolic link, a file over 5 MiB. It checks
 what needs no cluster; whether the group's principal is ready or a notebook version exists is for the server to say when you deploy.
 
 ## Run a pipeline and wait for it
