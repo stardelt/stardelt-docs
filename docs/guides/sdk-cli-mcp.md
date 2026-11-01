@@ -99,6 +99,41 @@ belong to.
 folder of pipelines in your repository deploys with one command (`stardelt apply -f pipelines/`). All files are read before anything is applied: a
 file that is not a pipeline (the message names it), a folder without any pipeline file, or two files with one pipeline name write nothing.
 
+## Describe what you publish: a bundle
+
+A *bundle* is a directory in Git that says what a team publishes: the pipeline files, the notebooks and SQL they run, and one
+target per stage (`dev`, `test`, `prod`). The first two commands need no host and no sign-in, so a pull request can run them:
+
+```bash
+stardelt bundle init shop --name shop-etl --group shop       # writes bundle.yaml, resources/daily.yaml, sql/daily.sql
+stardelt bundle validate shop                                # checks every target
+stardelt bundle validate shop -t prod                        # checks one
+```
+
+```text
+dev (development): daily
+prod (production): daily
+```
+
+`bundle.yaml` names the bundle and its owner group, the variables (`${var.catalog}` in a pipeline file is replaced per target),
+the pipeline files (`include`), the files they read (`files`), the connections the stage must have (names only, never values) and
+the targets:
+
+```yaml
+bundle: {name: shop-etl, ownerGroup: shop}
+variables: {catalog: {default: warehouse}}
+include: [resources/*.yaml]       # one pipeline per file, the shape `stardelt apply -f` reads
+files: [sql/*.sql]
+targets:
+  dev:  {mode: development, variables: {catalog: warehouse}}
+  prod: {mode: production,  variables: {catalog: warehouse}, runAs: pipeline-shop}
+```
+
+`validate` prints one sentence per problem and exits `2`: an unknown key, a variable without a value in some target, a pipeline file
+that is not a pipeline or has none (or two) of `sql`, `sqlFile` and `notebook`, a `sqlFile` that is not among the bundle's files, a
+`production` target without `runAs: pipeline-<group>`, a path that leaves the bundle, a symbolic link, a file over 5 MiB. It checks
+what needs no cluster; whether the group's principal is ready or a notebook version exists is for the server to say when you deploy.
+
 ## Run a pipeline and wait for it
 
 `stardelt run NAMESPACE NAME` starts a run now and prints it. With `--wait` it looks at the run until it is no longer `queued` or `running`, prints the
