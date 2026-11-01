@@ -117,73 +117,11 @@ that was written outside Nova, or has a shape the form does not edit, is still e
 folder of pipelines in your repository deploys with one command (`stardelt apply -f pipelines/`). All files are read before anything is applied: a
 file that is not a pipeline (the message names it), a folder without any pipeline file, or two files with one pipeline name write nothing.
 
-## Describe what you publish: a bundle
+## Publish a bundle from Git
 
-A *bundle* is a directory in Git that says what a team publishes: the pipeline files, the notebooks and SQL they run, and one
-target per stage (`dev`, `test`, `prod`). The first two commands need no host and no sign-in, so a pull request can run them:
-
-```bash
-stardelt bundle init shop --name shop-etl --group shop       # writes bundle.yaml, resources/daily.yaml, sql/daily.sql
-stardelt bundle validate shop                                # checks every target
-stardelt bundle validate shop -t prod                        # checks one
-```
-
-```text
-dev (development): daily
-prod (production): daily
-```
-
-`bundle.yaml` names the bundle and its owner group, the variables (`${var.catalog}` in a pipeline file is replaced per target),
-the pipeline files (`include`), the files they read (`files`), the connections the stage must have (names only, never values) and
-the targets:
-
-```yaml
-bundle: {name: shop-etl, ownerGroup: shop}
-variables: {catalog: {default: warehouse}}
-include: [resources/*.yaml]       # one pipeline per file, the shape `stardelt apply -f` reads
-files: [sql/*.sql]
-targets:
-  dev:  {mode: development, variables: {catalog: warehouse}}
-  prod: {mode: production,  variables: {catalog: warehouse}, runAs: pipeline-shop}
-```
-
-`validate` prints one sentence per problem and exits `2`: an unknown key, a variable without a value in some target, a pipeline file
-that is not a pipeline or has none (or two) of `sql`, `sqlFile` and `notebook`, a `sqlFile` that is not among the bundle's files, a
-`schedule` without both `cron` and `timezone`, a `production` target without `runAs: pipeline-<group>`, a path that leaves the
-bundle, a symbolic link, a file over 5 MiB. It checks
-what needs no cluster; whether the group's principal is ready or a notebook version exists is for the server to say when you deploy.
-
-### Publish a bundle: plan and deploy
-
-Two more commands talk to Nova, so they need a host and a sign-in (`stardelt login`, or `STARDELT_TOKEN` in a CI job). Both work on
-one target:
-
-```bash
-stardelt bundle plan shop -t prod       # what would happen; writes nothing
-stardelt bundle deploy shop -t prod     # Nova checks every pipeline, then they are created or updated
-```
-
-Each pipeline file gets the target's variables, its `sqlFile` is read into `sql`, and the bundle's group is its `ownerGroup` when
-the file names none. Then Nova checks every pipeline with the rules of a create (your group, the group's pipeline identity, the
-statement, the schedule) and the answer lines are those of `stardelt apply --dry-run`: `would-create` or `would-update`, with
-`changes` and the next runs. If Nova refuses any pipeline, **nothing is written**: the sentences are shown (`prod: load: you are not
-a member of the group sales`), what passed is still listed, and the command exits `2`. `deploy --dry-run` is the same as `plan`.
-
-A `development` target deploys under `dev-<your sign-in name>-<pipeline>` and without a schedule (start it with
-`stardelt run`), so two people can deploy one bundle side by side; a `production` target deploys as written.
-
-Every pipeline is sent with where it came from: the bundle's name, the target and the Git commit of the bundle directory
-(`-dirty` is appended when files are uncommitted; outside a Git checkout there is no commit). Nova stamps that on the pipeline
-and the pipeline page shows it under **Deployed from**, with who deployed it and when. A pipeline made in the interface or with
-`stardelt apply` has no such stamp.
-
-`--prune` (on `plan` and `deploy`) also handles the pipelines an earlier deploy of this bundle target stamped and the bundle no
-longer names: `plan` lists them as `would-delete`, and `deploy` removes them (`deleted`) only after every create and update
-succeeded. A pipeline made by hand, or stamped by another bundle or target, is never touched, and a development target removes
-only your own `dev-<your name>-` pipelines.
-
-Not yet: a notebook that is a file of the bundle (publish the notebook and name its version) and a record of what was deployed
-when.
+`stardelt bundle init`, `validate`, `plan` and `deploy` publish a directory of pipeline files to a stage, the way a team ships
+code, and stamp each pipeline with the commit it came from. The whole path, with an example, is its own guide:
+[Publish pipelines from Git](publish-pipelines.md).
 
 ## Run a pipeline and wait for it
 
