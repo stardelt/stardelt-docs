@@ -1303,6 +1303,18 @@ Delete one of the caller's saved queries.
 
 ## /api/statements
 
+### GET /api/statements
+
+Operation id `statements_list`: in Python `client.call("statements_list", …)`, on the command line `stardelt api statements_list`.
+
+The statements the caller holds (at most ten), in order of their ids: state, rows read, whether the rows were cut and the seconds since the last request that named each. It answers "which ones do I hold?" when a submit says the caller already holds ten. Only the caller's own are listed. A statement another request is advancing at that moment is listed as `RUNNING` with `rowCount` 0.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The caller's statements |
+
 ### POST /api/statements
 
 Operation id `statements_submit`: in Python `client.call("statements_submit", …)`, on the command line `stardelt api statements_submit`.
@@ -1313,6 +1325,7 @@ Submit one SQL statement as the caller and get a handle to it. The call waits up
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `maxRows` | integer (nullable) | No |  | The most rows to keep, 1 to 100 000 (the default and the cap). A longer result is cut here, the query is cancelled in the engine and the statement ends `SUCCEEDED` with `truncated: true`. | min 0 |
 | `sql` | string | Yes |  | One SQL statement, run with the caller's identity. |  |
 | `waitSeconds` | integer (nullable) | No |  | How long the call waits for the statement to end before it answers `202`; 0 to 30, default 5. | min 0; format `int64` |
 
