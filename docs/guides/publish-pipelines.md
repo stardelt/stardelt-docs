@@ -129,9 +129,14 @@ target stamped and the bundle no longer names: `plan` lists them as `would-delet
 after every create and update succeeded. A pipeline made by hand, or stamped by another bundle or target, is never touched, and a
 development target removes only your own `dev-<your name>-` pipelines.
 
-**Bring in what was made in the interface.** `stardelt export NAMESPACE NAME > resources/daily.yaml` writes a pipeline made on the
-Pipelines page as a file that `stardelt apply -f` and a bundle accept (see [Python, command line and agents](sdk-cli-mcp.md)).
-Commit it, and the next change goes through Git.
+**Bring in what was made in the interface.** `stardelt bundle generate NAMESPACE NAME shop` writes a pipeline made on the
+Pipelines page into the bundle in `shop`: `resources/<name>.yaml`, and for a statement `sql/<name>.sql` with `sqlFile` pointing at
+it (the bundle's group stands in for `ownerGroup`). It never overwrites a file, and when it writes nothing it says why in one
+sentence: the pipeline belongs to another group than the bundle, cannot be changed from a file, or the bundle's `include`
+or `files` would not pick the new file up. Run `stardelt bundle validate shop`, commit, and the next `deploy -t prod` updates that pipeline
+and stamps it, so **Deployed from** appears and the next change goes through Git. To look at a pipeline without putting it in a
+bundle, `stardelt export NAMESPACE NAME` prints it as a file that `stardelt apply -f` accepts (see
+[Python, command line and agents](sdk-cli-mcp.md)).
 
 **See what was changed by hand.** When someone changes a deployed pipeline after its deploy, with the form, the YAML editor or
 `kubectl`, its page says **Changed since the last deploy** under **Deployed from**. The next deploy of the bundle overwrites that
