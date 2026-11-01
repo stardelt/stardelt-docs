@@ -160,9 +160,15 @@ and a warning on standard error, and `deploy` still goes ahead. It compares the 
 parameters and the options; the pause state and the group are not part of it. A pipeline that was deployed before this check
 existed shows nothing until its next deploy.
 
+For a production stage you usually want more than a warning. Put `drift: block` on the target in `bundle.yaml`
+(`prod: {mode: production, runAs: pipeline-shop, drift: block}`; the default is `drift: warn`): then `bundle plan` and
+`bundle deploy` exit with `2` and name every pipeline that was changed after its deploy, a deploy writes nothing, and the plan
+still lists everything it would do, so a pull request check shows the whole picture before it fails. Look at the change, keep it
+in the bundle if it is right, and pass `--accept-drift` to overwrite what is left.
+
 ## What is not there yet
 
 - A notebook that is a file of the bundle: publish the notebook and name its version in the pipeline file.
 - A record of what was deployed when, and a rollback button: the stamp on each pipeline says which commit it runs; to go back,
   deploy the earlier commit.
-- A temporary stage per pull request, and a way to make a deploy stop instead of overwriting a change made by hand.
+- A temporary stage per pull request.
