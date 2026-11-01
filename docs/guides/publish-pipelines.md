@@ -106,6 +106,10 @@ error, so the reviewer sees that the deploy would overwrite that change. If Nova
 The token is one Nova accepts for a member of the bundle's owner group; keep it in the CI system's secret store, never in a file
 of the repository.
 
+`plan` names the field that changes; add `--diff` to see the change itself. For every update it prints, on standard error after
+the JSON lines, a unified diff of each changed field (the statement line by line, a schedule or parameters as YAML), so the
+pull request log shows what a reviewer reviews. The JSON lines on standard output stay as they are.
+
 ## 4. Publish to production
 
 ```bash
