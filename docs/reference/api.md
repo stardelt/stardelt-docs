@@ -921,6 +921,42 @@ The caller's own groups and the pipeline principal of each. `principal` is `pipe
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
 
+### POST /api/pipelines/validate
+
+Operation id `pipelines_validate`: in Python `client.call("pipelines_validate", …)`, on the command line `stardelt api pipelines_validate`.
+
+Check a pipeline document without writing it: the body is the body of `pipelines_create` (the document `stardelt apply` reads). It runs every rule a create runs (the name, the caller's own group, the group's ready principal, exactly one of a statement and a notebook with the rules of its kind, the options, the schedule) and then looks at the name: free means `create`; a pipeline Nova wrote that the caller may act on, in the same group, means `update`; a pipeline written outside Nova, someone else's, or in another group is a problem. A rule that refuses is an answer, `ok: false` with one sentence in `errors`, status 200; nothing is written and no creation slot is taken. An accepted document with a schedule lists its next five fire times. A cluster or notebook store that does not answer is 502 or 503 as on create. Answers `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `name` | string | Yes |  |  |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
+| `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
+| `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
+| `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
+| `options` | object | No |  | Retries, the wait between them, the time limit and the run mode; omitted fields keep the defaults. |  |
+| `options.backoffMinutes` | integer (nullable) | No |  | The wait between attempts, 1 to 60 minutes. | format `int64` |
+| `options.concurrency` | string (nullable) | No |  | `Forbid` (one run at a time, the default) or `Allow` (runs side by side). |  |
+| `options.retries` | integer (nullable) | No |  | Extra attempts after a failure, 0 to 5. | format `int64` |
+| `options.timeoutMinutes` | integer (nullable) | No |  | The longest a whole run may take, 1 to 720 minutes. | format `int64` |
+| `ownerGroup` | string | Yes |  |  |  |
+| `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
+| `schedule` | object | No |  | A cron expression and its IANA zone; both required when a `schedule` object is sent. |  |
+| `schedule.cron` | string | Yes |  |  |  |
+| `schedule.timezone` | string | Yes |  |  |  |
+| `sql` | string | No |  | The statement to run; exactly one of this and `notebook` is given. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The verdict: accepted (with the action) or the reason it is not |
+| `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
 ### GET /api/pipelines/\{namespace\}/\{name\}
 
 Operation id `pipelines_get`: in Python `client.call("pipelines_get", …)`, on the command line `stardelt api pipelines_get`.
