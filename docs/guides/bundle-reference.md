@@ -99,8 +99,8 @@ sign-in; the others talk to Nova.
 |---|---|---|
 | `bundle init [DIR] --name NAME --group GROUP` | writes a small bundle that passes `validate` | no |
 | `bundle validate [DIR] [-t TARGET]` | checks the bundle offline (every target, or one) | no |
-| `bundle plan [DIR] -t TARGET [--prune] [--accept-drift]` | asks Nova what deploying the target would do | no |
-| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift]` | checks every pipeline with Nova, then creates or updates them; `--dry-run` is `plan` | yes |
+| `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | asks Nova what deploying the target would do | no |
+| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | checks every pipeline with Nova, then creates or updates them; `--dry-run` is `plan` | yes |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage | no |
 | `bundle destroy [DIR] -t TARGET [--yes]` | lists, and with `--yes` removes, what a deploy of the target left on the stage | with `--yes` |
 | `bundle generate NAMESPACE NAME [DIR]` | writes a pipeline made in the interface into the bundle (its file and its SQL file); never overwrites | no |
@@ -117,6 +117,10 @@ Results are JSON lines on standard output; messages, warnings and problems go to
   `would-delete` (a plan) or `created`, `updated`, `deleted` (a deploy). An update lists `changes` (which of `statement`,
   `schedule`, `params`, `options` and `deployment` change), a scheduled pipeline lists `nextRuns`, and `"modified": true` marks a
   pipeline someone changed after its last deploy (one warning per such pipeline goes to standard error).
+- With `--diff`, `plan` and `deploy` also print, on standard error after the JSON lines, a unified diff for every update: one per
+  field Nova names in `changes` (`statement` is compared line by line, `schedule`, `params` and `options` as YAML), headed
+  `--- load sql (deployed)` and `+++ load sql (bundle)`. A change of the stamp alone (`deployment`) shows nothing, and a deployed
+  document that cannot be read is one sentence instead of a diff.
 - `destroy` prints `would-delete` or `deleted` lines; `summary` prints one line per pipeline with `name` and, when Nova knows them,
   `revision`, `deployedBy`, `deployedAt` and `modified`.
 - If Nova refuses any pipeline, nothing is written, the sentences are shown (`prod: daily: you are not a member of the group
