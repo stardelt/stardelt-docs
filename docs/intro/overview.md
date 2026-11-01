@@ -32,13 +32,21 @@ cloud or on-prem cluster, under your own sovereignty, without vendor lock-in.
 
 ## Where to go next
 
-- **Try it on the dev cluster.** [Hetzner k3s](../getting-started/hetzner-k3s) for the full
-  stack.
-- **See the whole picture.** [How stardelt works](../architecture/how-it-works): one diagram
-  of the platform and how its parts connect.
-- **Understand the system first.** [Architecture overview](../architecture/overview)
-  or the full design spec.
-- **See what's planned.** [Roadmap](../roadmap).
+The pages follow the order a person works. Start at the top, or jump to the step you need.
+
+1. **Install it.** [Hetzner k3s](../getting-started/hetzner-k3s) for the full stack.
+2. **See the whole picture.** [How stardelt works](../architecture/how-it-works): one diagram
+   of the platform and how its parts connect.
+3. **Get a first result.** [From source to dashboard](../guides/source-to-dashboard).
+4. **Connect a system.** [Connections and secrets](../guides/connections): a database, an API or
+   a token, without its secret in code.
+5. **Run it on a schedule.** [Schedule a SQL statement](../guides/schedule-sql).
+6. **Keep your work in Git.** [Notebooks and pipelines in git](../guides/notebooks-in-git).
+7. **Ship it to a stage.** [Publish pipelines from Git](../guides/publish-pipelines).
+8. **See what ran.** [The query log](../guides/query-log).
+9. **Automate it.** [Python, command line and agents](../guides/sdk-cli-mcp).
+10. **Understand or plan.** [Architecture overview](../architecture/overview) and the
+    [Roadmap](../roadmap).
 
 :::warning Pre-alpha
 stardelt is in an MVP / vibecoding phase. APIs, manifests, and chart versions
