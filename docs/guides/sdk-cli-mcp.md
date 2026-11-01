@@ -170,9 +170,20 @@ statement, the schedule) and the answer lines are those of `stardelt apply --dry
 a member of the group sales`), what passed is still listed, and the command exits `2`. `deploy --dry-run` is the same as `plan`.
 
 A `development` target deploys under `dev-<your sign-in name>-<pipeline>` and without a schedule (start it with
-`stardelt run`), so two people can deploy one bundle side by side; a `production` target deploys as written. Not yet: a notebook
-that is a file of the bundle (publish the notebook and name its version), removing a pipeline the bundle no longer names, and a
-record of what was deployed when.
+`stardelt run`), so two people can deploy one bundle side by side; a `production` target deploys as written.
+
+Every pipeline is sent with where it came from: the bundle's name, the target and the Git commit of the bundle directory
+(`-dirty` is appended when files are uncommitted; outside a Git checkout there is no commit). Nova stamps that on the pipeline
+and the pipeline page shows it under **Deployed from**, with who deployed it and when. A pipeline made in the interface or with
+`stardelt apply` has no such stamp.
+
+`--prune` (on `plan` and `deploy`) also handles the pipelines an earlier deploy of this bundle target stamped and the bundle no
+longer names: `plan` lists them as `would-delete`, and `deploy` removes them (`deleted`) only after every create and update
+succeeded. A pipeline made by hand, or stamped by another bundle or target, is never touched, and a development target removes
+only your own `dev-<your name>-` pipelines.
+
+Not yet: a notebook that is a file of the bundle (publish the notebook and name its version) and a record of what was deployed
+when.
 
 ## Run a pipeline and wait for it
 
