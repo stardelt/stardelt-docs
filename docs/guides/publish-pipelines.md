@@ -128,6 +128,10 @@ stage: its `name`, the Git `revision` it was deployed from, `deployedBy`, `deplo
 it after the deploy. A release job can compare the revision with the commit it just deployed. The command only reads, and a
 development target shows only your own pipelines.
 
+The same view is in Nova under **Build**, **Deployments**: one block per bundle and stage with the commit, who deployed each
+pipeline and when, and a **Changed since deploy** badge on a pipeline someone changed afterwards. A pipeline deployed before that
+check existed shows a dash there, not "unchanged".
+
 ## 5. Keep Git and the stage in step
 
 **Remove what the bundle dropped.** `--prune` (on `plan` and `deploy`) also handles the pipelines an earlier deploy of this bundle
