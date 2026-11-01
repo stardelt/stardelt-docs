@@ -109,6 +109,10 @@ change; an empty list means nothing would change. `nextRuns` lists the next fire
 refuses ends the command with Nova's own sentence and exit code 2, so a check on a pull request can run
 `stardelt apply -f pipelines/ --dry-run` and fail on a file that a real run would refuse.
 
+To start from a pipeline that was made in the interface, export it: `stardelt export NAMESPACE NAME > pipeline.yaml` writes its
+document (the same one **Show definition** shows) as a file `stardelt apply -f` accepts; `--format json` writes JSON. A pipeline
+that was written outside Nova, or has a shape the form does not edit, is still exported, with a note that `apply` cannot change it.
+
 `-f` can also name a directory: every `.json`, `.yaml` and `.yml` file directly inside it is applied in name order, one answer line per file, so a
 folder of pipelines in your repository deploys with one command (`stardelt apply -f pipelines/`). All files are read before anything is applied: a
 file that is not a pipeline (the message names it), a folder without any pipeline file, or two files with one pipeline name write nothing.
