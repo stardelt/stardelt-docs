@@ -133,9 +133,15 @@ development target removes only your own `dev-<your name>-` pipelines.
 Pipelines page as a file that `stardelt apply -f` and a bundle accept (see [Python, command line and agents](sdk-cli-mcp.md)).
 Commit it, and the next change goes through Git.
 
+**See what was changed by hand.** When someone changes a deployed pipeline after its deploy, with the form, the YAML editor or
+`kubectl`, its page says **Changed since the last deploy** under **Deployed from**. The next deploy of the bundle overwrites that
+change, so the page tells you whether a deploy would lose work. It compares the statement or notebook, the schedule, the
+parameters and the options; the pause state and the group are not part of it. A pipeline that was deployed before this check
+existed shows nothing until its next deploy.
+
 ## What is not there yet
 
 - A notebook that is a file of the bundle: publish the notebook and name its version in the pipeline file.
 - A record of what was deployed when, and a rollback button: the stamp on each pipeline says which commit it runs; to go back,
   deploy the earlier commit.
-- A temporary stage per pull request, and a check that tells you a pipeline was changed in the interface after the deploy.
+- A temporary stage per pull request, and a warning from `bundle plan` before a deploy overwrites a change made by hand.
