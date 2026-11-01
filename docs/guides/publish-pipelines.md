@@ -92,12 +92,20 @@ stardelt bundle deploy shop -t dev
 Each pipeline file gets the target's variables, its `sqlFile` is read into `sql`, and the bundle's group is its `ownerGroup` when the
 file names none. Then Nova checks every pipeline with the rules of a create (your group, the group's pipeline identity, the
 statement, the schedule). A `development` target deploys under `dev-<your sign-in name>-<pipeline>` and without a schedule, so two
-people can deploy one bundle side by side and nothing runs on its own. Start it yourself and wait for it
-([Run a pipeline and wait for it](sdk-cli-mcp.md#run-a-pipeline-and-wait-for-it)):
+people can deploy one bundle side by side and nothing runs on its own. Start it yourself and wait for it:
 
 ```bash
-stardelt run NAMESPACE dev-alice-daily --wait
+stardelt bundle run shop -t dev
 ```
+
+```text
+{"action": "ran", "name": "dev-alice-daily", "runId": "manual__2026-11-01T08:00:00.000000+00:00", "state": "success"}
+```
+
+`bundle run` starts every pipeline the deploy left in your stage, one after the other, and stops at the first that does not succeed
+(exit code `1`, with the failed tasks in the line); `--only daily` runs one, written without the `dev-alice-` prefix. To start any
+single pipeline by its namespace and name, see
+[Run a pipeline and wait for it](sdk-cli-mcp.md#run-a-pipeline-and-wait-for-it).
 
 ## 3. Check a change in a pull request
 
