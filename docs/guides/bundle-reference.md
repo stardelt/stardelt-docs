@@ -124,7 +124,8 @@ Results are JSON lines on standard output; messages, warnings and problems go to
 - `destroy` prints `would-delete` or `deleted` lines; `summary` prints one line per pipeline with `name` and, when Nova knows them,
   `revision`, `deployedBy`, `deployedAt` and `modified`.
 - If Nova refuses any pipeline, nothing is written, the sentences are shown (`prod: daily: you are not a member of the group
-  shop`), the pipelines that passed are still listed, and the command exits `2`.
+  shop`, or `prod: daily: No principal for this group yet: …` when the group has no ready pipeline identity), the pipelines that
+  passed are still listed, and the command exits `2`.
 
 | Exit code | Meaning |
 |---|---|
