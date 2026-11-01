@@ -74,9 +74,9 @@ every deploy. The file is one JSON or YAML object shaped like the body of the cr
 
 ```bash
 cat > pipeline.json <<'JSON'
-{"name": "daily", "ownerGroup": "etl", "sql": "select 1", "schedule": {"cron": "0 3 * * *"}}
+{"name": "daily", "ownerGroup": "etl", "sql": "select 1", "schedule": {"cron": "0 3 * * *", "timezone": "Europe/Berlin"}}
 JSON
-stardelt apply -f pipeline.json --dry-run      # says what would happen and writes nothing
+stardelt apply -f pipeline.json --dry-run      # asks Nova to check the file and writes nothing
 stardelt apply -f pipeline.json                # creates it, or updates it on the next run
 ```
 
@@ -88,12 +88,26 @@ ownerGroup: etl
 sql: select 1
 schedule:
   cron: "0 3 * * *"
+  timezone: Europe/Berlin
 ```
 
-`-f -` reads standard input. The answer on standard output is `{"action": "created", "name": "daily"}`, with `updated`,
+A `schedule` needs both `cron` and `timezone` (an IANA zone name such as `Europe/Berlin`). `-f -` reads standard input. The answer on standard output is `{"action": "created", "name": "daily"}`, with `updated`,
 `would-create` or `would-update` as the other actions. An update replaces what the file says: `params` and `options` left out of
 the file go back to their defaults. The group of an existing pipeline cannot change, and you can only apply to a group you
 belong to.
+
+With `--dry-run` Nova checks the file with every rule a create runs (the name, your group, the group's pipeline principal, the
+statement or notebook, the options and the schedule) and then looks at the name; nothing is written. The answer says what a real run
+would do and what it would change:
+
+```json
+{"action": "would-update", "name": "daily", "changes": ["schedule"], "nextRuns": ["2026-11-02T03:00:00+01:00", "2026-11-03T03:00:00+01:00"]}
+```
+
+`changes` appears for an update and lists which of `statement` (or `notebook`), `schedule`, `params` and `options` the file would
+change; an empty list means nothing would change. `nextRuns` lists the next fire times of a file with a schedule. A rule that
+refuses ends the command with Nova's own sentence and exit code 2, so a check on a pull request can run
+`stardelt apply -f pipelines/ --dry-run` and fail on a file that a real run would refuse.
 
 `-f` can also name a directory: every `.json`, `.yaml` and `.yml` file directly inside it is applied in name order, one answer line per file, so a
 folder of pipelines in your repository deploys with one command (`stardelt apply -f pipelines/`). All files are read before anything is applied: a
