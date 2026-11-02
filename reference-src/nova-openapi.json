@@ -166,6 +166,147 @@
         }
       }
     },
+    "/api/apps": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "description": "Every service of the platform (`nova`, `trino`, `lakekeeper`, `superset`, `airflow`, `jupyterhub`) with its category, the address a browser opens (empty without a base domain and for an app with no browsable surface), `browsable`, the liveness `status` (`up`, `unreachable`, `unknown` or `not-installed`) and the images its workloads run, read from the cluster (empty in demo mode or when the app is not installed). Administrator-only: anybody else gets 403. Field names are snake_case.",
+        "operationId": "apps_list",
+        "responses": {
+          "200": {
+            "description": "One row per service, in the order the service catalog declares them",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlatformApp"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/links": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`GET /api/apps/links` — the header's app switcher, for every signed-in user.",
+        "description": "The apps the caller may open from the header's app switcher: `id`, `name`, `category` and the address a browser opens (`external_url`). For every signed-in user. No status and no workload data: liveness is operator information (`GET /api/apps`). Left out: Nova itself, apps with no browsable surface, apps whose address cannot be built because no base domain is configured, and the engine's own UI for everybody who is not an administrator. Field names are snake_case.",
+        "operationId": "apps_links",
+        "responses": {
+          "200": {
+            "description": "One entry per app the caller may open, in the order the service catalog declares them",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AppLink"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/apps/{id}": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "description": "Everything Nova can say about one service: the `app` row, the in-cluster `probe` address Nova checks for liveness, the ready and desired `replicas`, its `workloads`, `facts` read from the service's own API (an unreachable service contributes none), `links` into its UI and, for an app Nova frames, the `embed` report. Administrator-only: anybody else gets 403. An id that is not a service answers 404 with `error` and the list of `known` ids. Field names are snake_case.",
+        "operationId": "apps_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The service's id: `nova`, `trino`, `lakekeeper`, `superset`, `airflow` or `jupyterhub`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The service",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such service; the body also carries `known`, the list of ids",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/config": {
       "get": {
         "tags": [
@@ -2248,6 +2389,40 @@
         }
       }
     },
+    "/api/embeds": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "description": "The apps Nova frames in its own pages (dashboards, notebooks), for every signed-in user: `id`, `name`, the address a browser opens, the liveness `status` and an `embed` report saying whether the app's own headers allow framing (`allowed`, `blocked` or `unknown`, with the header that blocks it). No workloads, images or replica counts: those stay behind the administrator-only `GET /api/apps`. Field names are snake_case.",
+        "operationId": "apps_embeds",
+        "responses": {
+          "200": {
+            "description": "One entry per app Nova can frame",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmbedApp"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "tags": [
@@ -2263,6 +2438,91 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ingest/upload": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "description": "Load a CSV or JSON text into the table `namespace.table` of the `warehouse` catalog: the whole file is the string `content` of the request. `format` is `csv` (the default; any value except `json` is read as CSV) or `json` (an array of objects). Column types are inferred from the values. The rows are built in a staging table first and then replace the target, so an existing table of that name is replaced, not appended to. The statements run with the caller's own identity, so the engine's permissions apply. Every call is recorded as a job (`job_id`, listed by `GET /api/jobs`). A file that cannot be read or a statement the engine refuses is a 400 with a sentence, and the job is recorded as failed. In demo mode the rows go into an in-memory lakehouse.",
+        "operationId": "ingest_upload",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The table was loaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The file could not be read or the engine refused a statement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "description": "The loads (`ingest_upload`) and copies (`tables_transfer`) this Nova process has run, newest first, at most the newest 200. They are kept in memory only, so a restart of Nova empties the list. A person sees their own jobs; an administrator sees all. `kind` is `load` or `transfer`, `status` is `succeeded` or `failed`, `started_at` is milliseconds since the Unix epoch, `detail` is a sentence (the row count, or why it failed) and `rows` the rows loaded. Field names are snake_case. These are not the scheduled pipelines: those are under `/api/pipelines`.",
+        "operationId": "jobs_list",
+        "responses": {
+          "200": {
+            "description": "The caller's jobs, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Job"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -2352,7 +2612,7 @@
           "public"
         ],
         "summary": "`PUT /api/notebooks/{group}/{name}`: validate, strip, store one immutable version.",
-        "description": "Publish a notebook as a new immutable object version in the `notebooks` bucket. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). `{name}` must match `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` and the body must be an nbformat 4 notebook of at most 5 MiB. Every cell's `outputs` and `execution_count` and the notebook's widget metadata are removed before storing — no cell output reaches the object store. `sha256` is of the stored (stripped) bytes. `parameters` are the `name = literal` lines of the first cell tagged `parameters`, at most 32; defaults are text and are never evaluated. A 61st publish by one person in an hour is 429. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Each publish writes one audit line with group, name, version and size, never content.",
+        "description": "Publish a notebook as a new immutable object version in the `notebooks` bucket. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). `{name}` must match `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` and the body must be an nbformat 4 notebook of at most 5 MiB. Every code cell's `outputs` is emptied and its `execution_count` set to null, and the notebook's widget metadata is removed, before storing — no cell output reaches the object store. A cell of an nbformat 4.5 notebook without an `id` gets one (`cell-<position>`), so the stored notebook stays valid nbformat. `sha256` is of the stored (stripped) bytes. `parameters` are the `name = literal` lines of the first cell tagged `parameters`, at most 32; defaults are text and are never evaluated. A 61st publish by one person in an hour is 429. Publishing bytes the newest version already holds stores nothing, uses no slot and writes no audit line: the answer names that version with `unchanged: true`. With `?dryRun=true` the same checks run and nothing is stored, no slot is used and no audit line is written: the answer says `unchanged: true` with the newest version, or `unchanged: false` with an empty `objectVersion` when a publish would store a new one. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Each publish that stores a version writes one audit line with group, name, version and size, never content.",
         "operationId": "notebooks_publish",
         "parameters": [
           {
@@ -2372,6 +2632,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "dryRun",
+            "in": "query",
+            "description": "`true`: validate the notebook and say whether the newest version already holds these\nbytes, without storing a version, using a publish slot or writing an audit line.",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "requestBody": {
@@ -2384,7 +2653,7 @@
         },
         "responses": {
           "200": {
-            "description": "The stored version and its parsed parameters",
+            "description": "The stored version and its parsed parameters; `unchanged: true` when the newest version already held these bytes; an empty `objectVersion` only on a dry run that would store a new version",
             "content": {
               "application/json": {
                 "schema": {
@@ -3251,7 +3520,7 @@
         "tags": [
           "public"
         ],
-        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller may not act on 404; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
+        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller may not act on 404; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_update",
         "parameters": [
           {
@@ -4878,6 +5147,108 @@
         }
       }
     },
+    "/api/transfer": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "description": "Copy one table of the `warehouse` catalog into another. `source` and `target` are `namespace.table`. `mode` is `overwrite` (the default: the target is dropped and rebuilt from the source) or `append` (rows are added to the target). Overwriting a table with itself is refused, because the copy would read from a table that no longer exists; appending to itself is allowed. The statements run with the caller's own identity, so the engine's permissions apply. The answer counts the rows now in the target. Every call is recorded as a job (`job_id`, listed by `GET /api/jobs`). A refusal or an engine error is a 400 with a sentence, and the job is recorded as failed.",
+        "operationId": "tables_transfer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The table was copied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The mode, a table name or the copy was refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trino/cluster": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "description": "The query engine coordinator's own status page (`/v1/info`), passed through as the engine answers it: an object with `nodeVersion.version`, `environment`, `coordinator`, `starting` and `uptime`. The fields are the engine's and may change with its version; Nova adds nothing. In demo mode the answer is the fixed `{\"nodeVersion\": {\"version\": \"demo\"}, \"state\": \"ACTIVE\", \"demo\": true}`. The engine's own status code is passed through; when the engine cannot be reached the answer is 502 with a sentence. Administrator-only: anybody else gets 403.",
+        "operationId": "trino_cluster",
+        "responses": {
+          "200": {
+            "description": "The coordinator's status object, as the engine answers it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The engine could not be reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/warehouses": {
       "get": {
         "tags": [
@@ -4912,6 +5283,48 @@
           },
           "502": {
             "description": "The cluster did not answer, or Nova may not list sqlwarehouses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workloads": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`GET /api/workloads` — every workload Nova can see, with the image it runs.",
+        "description": "Every Deployment and StatefulSet of Nova's namespace, flattened to `name`, `kind`, the `image` exactly as the cluster has it (tag or digest) and the `ready` and `desired` replica counts, ordered by name. The answer says how far to trust the list: `state` is `ok` (just read), `stale` (the last read failed, so `workloads` is the last good one, `error` says why and `age_seconds` how old it is) or `unreachable` (the read failed and there never was a good one: an empty list then does NOT mean nothing runs). Reads are cached for a few seconds. Administrator-only: anybody else gets 403. Without a cluster connection (demo mode, a local run) the list is empty or the demo set. Field names are snake_case.",
+        "operationId": "workloads_list",
+        "responses": {
+          "200": {
+            "description": "The workloads and how fresh they are",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
             "content": {
               "application/json": {
                 "schema": {
@@ -5027,6 +5440,86 @@
               "null"
             ],
             "description": "`status.warehouseId`: the Lakekeeper warehouse, as the access-sync job wrote it."
+          }
+        }
+      },
+      "AppDetail": {
+        "type": "object",
+        "description": "`GET /api/apps/:id` — everything Nova can say about one service.",
+        "required": [
+          "app",
+          "probe",
+          "replicas",
+          "workloads",
+          "facts",
+          "links"
+        ],
+        "properties": {
+          "app": {
+            "$ref": "#/components/schemas/PlatformApp"
+          },
+          "embed": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Embed",
+                "description": "Whether a browser will let Nova frame the app's UI. Absent for apps Nova\ndoes not embed anywhere."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "facts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            }
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Link"
+            },
+            "description": "Deep links into the app's UI; empty when it has none or Nova has no base\ndomain to build them from."
+          },
+          "probe": {
+            "type": "string",
+            "description": "In-cluster URL Nova probes for liveness, shown verbatim: it is the reason\nthe status is what it is."
+          },
+          "replicas": {
+            "$ref": "#/components/schemas/Replicas",
+            "description": "Ready/desired replicas across the app's workloads — a scale-to-zero\nworkload contributes `0/0`, which is a fact, not a failure."
+          },
+          "workloads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workload"
+            },
+            "description": "The app's workloads in Nova's namespace, with their images and replicas."
+          }
+        }
+      },
+      "AppLink": {
+        "type": "object",
+        "description": "One entry of the header's app switcher: enough to open the app, and nothing else.",
+        "required": [
+          "id",
+          "name",
+          "category",
+          "external_url"
+        ],
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "external_url": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
           }
         }
       },
@@ -5678,6 +6171,17 @@
               "type": "string"
             }
           },
+          "provenance": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Provenance",
+                "description": "Which bundle, target and commit this pipeline is deployed from (`stardelt bundle deploy`)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "schedule": {
             "oneOf": [
               {
@@ -5724,6 +6228,47 @@
           }
         }
       },
+      "DeploymentView": {
+        "type": "object",
+        "description": "What `view_of` shows of a [`Provenance`], with who deployed and when.",
+        "required": [
+          "bundle",
+          "target"
+        ],
+        "properties": {
+          "bundle": {
+            "type": "string"
+          },
+          "deployedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deployedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "modified": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "`true` when the run, the schedule, the parameters or the options differ from what the last\ndeploy wrote: someone used the form, the YAML editor or `kubectl` since. Left out when they\nmatch, and for a pipeline stamped before the digest existed."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
       "DocumentationUpdate": {
         "type": "object",
         "description": "`PUT /api/catalog/tables/{ns}/{tbl}/documentation` body.\n\nEvery key is optional. Absent changes nothing; `null` removes the property; an empty tag\nlist and a blank description also remove. A field whose value equals what the table\nalready stores is not a change.",
@@ -5761,6 +6306,80 @@
           }
         }
       },
+      "Embed": {
+        "type": "object",
+        "description": "Whether Nova can frame an app, as observed from the app's own headers.",
+        "required": [
+          "url",
+          "state"
+        ],
+        "properties": {
+          "blocked_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The header that refuses framing, e.g. `content-security-policy`."
+          },
+          "checked": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The in-cluster page Nova read the headers from."
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "That header's value, verbatim — what the operator has to change."
+          },
+          "sign_in_host": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Host a visitor without a session is sent to for sign-in, when the app's\nown page redirects off its hosts before it renders. That page (Keycloak\non this platform) refuses framing, so the frame stays empty until the\nvisitor signs in in a top-level tab; the UI turns this into a call to\naction. `None` when the app answers for itself — a login form on its own\nhost is part of the app and frames fine."
+          },
+          "state": {
+            "type": "string",
+            "description": "allowed | blocked | unknown"
+          },
+          "url": {
+            "type": "string",
+            "description": "The page a browser loads in the frame (external URL, empty without a base domain)."
+          }
+        }
+      },
+      "EmbedApp": {
+        "type": "object",
+        "description": "What the embedded pages (Dashboards, Notebooks) need, readable by every signed-in user:\nthe apps Nova frames, their address, liveness and framing state. No workloads, images or\nreplica counts; those stay behind the admin-only `/api/apps`.\n\nDeliberately not an admin route and deliberately not a filtered `/api/apps`: an ordinary\nuser needs to open the notebook and the dashboard, and nothing else on that payload.",
+        "required": [
+          "id",
+          "name",
+          "external_url",
+          "status",
+          "embed"
+        ],
+        "properties": {
+          "embed": {
+            "$ref": "#/components/schemas/Embed"
+          },
+          "external_url": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
       "ErrorResponse": {
         "type": "object",
         "description": "Every non-2xx answer under `/api/` is this envelope (see README \"HTTP\nconventions\"), so every error response in the document points here.",
@@ -5771,6 +6390,36 @@
           "error": {
             "type": "string",
             "description": "Human-readable sentence. Never contains tokens, URLs or stack traces."
+          }
+        }
+      },
+      "Fact": {
+        "type": "object",
+        "description": "One label/value pair about an app, as Nova can honestly observe it.",
+        "required": [
+          "label",
+          "value"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Where the value comes from, e.g. `Trino /v1/info`. Facts without a source\nare those Nova knows from its own configuration."
+          },
+          "tone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`ok` | `bad` when the value is a health judgement; absent otherwise."
+          },
+          "value": {
+            "type": "string"
           }
         }
       },
@@ -5788,6 +6437,67 @@
           "status": {
             "type": "string",
             "description": "Always `ok`."
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "status",
+          "started_at"
+        ],
+        "properties": {
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "rows": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "started_at": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string"
+          }
+        }
+      },
+      "Link": {
+        "type": "object",
+        "description": "A deep link into an app's own UI.",
+        "required": [
+          "label",
+          "url"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
           }
         }
       },
@@ -6510,6 +7220,17 @@
             ],
             "description": "`metadata.creationTimestamp` as the cluster wrote it (RFC 3339); `None` for a malformed\nresource."
           },
+          "deployment": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DeploymentView",
+                "description": "The bundle, target and commit a deploy stamped on the pipeline; absent for one that was\nmade in the interface or with `stardelt apply`."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "lastRun": {
             "oneOf": [
               {
@@ -6568,6 +7289,52 @@
             "items": {
               "$ref": "#/components/schemas/TaskSpecView"
             }
+          }
+        }
+      },
+      "PlatformApp": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "category",
+          "external_url",
+          "browsable",
+          "status",
+          "images"
+        ],
+        "properties": {
+          "browsable": {
+            "type": "boolean",
+            "description": "Whether a browser has somewhere to go for this app. False for an app with\nno browsable surface of its own (an API-only catalog, say), which is\nindependent of whether the app is installed or reachable."
+          },
+          "category": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "external_url": {
+            "type": "string",
+            "description": "Reachable-from-the-browser URL. Empty when no base domain is configured,\nand empty for an app with no browsable surface (nothing serves its host —\nsee `public_url`)."
+          },
+          "id": {
+            "type": "string"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Images the app's workloads actually run, read from the cluster. Empty when\nthere is no cluster to read (demo mode, local run) or the app is not installed."
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "up | unreachable | unknown | not-installed"
           }
         }
       },
@@ -6656,6 +7423,31 @@
           }
         }
       },
+      "Provenance": {
+        "type": "object",
+        "description": "Where a pipeline came from when `stardelt bundle deploy` published it. It names things and\ndecides nothing: it is shown on the pipeline page and lets a later deploy find what a bundle\nowns. Written as the labels `stardelt.io/bundle` and `stardelt.io/target` and the annotation\n`stardelt.io/revision`, plus who deployed and when.",
+        "required": [
+          "bundle",
+          "target"
+        ],
+        "properties": {
+          "bundle": {
+            "type": "string",
+            "description": "The bundle's name: 3 to 40 lower-case letters, digits and dashes."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the\nworking tree had uncommitted changes. Omitted when the bundle is not in a Git checkout."
+          },
+          "target": {
+            "type": "string",
+            "description": "The target of the bundle: 1 to 32 lower-case letters, digits and dashes."
+          }
+        }
+      },
       "PublishedNotebook": {
         "type": "object",
         "required": [
@@ -6664,6 +7456,7 @@
           "objectVersion",
           "sha256",
           "size",
+          "unchanged",
           "parameters"
         ],
         "properties": {
@@ -6691,6 +7484,10 @@
             "type": "integer",
             "format": "int64",
             "minimum": 0
+          },
+          "unchanged": {
+            "type": "boolean",
+            "description": "`true` when the newest version already holds these exact bytes: nothing was stored and\n`objectVersion` is that version."
           }
         }
       },
@@ -7094,6 +7891,23 @@
           }
         }
       },
+      "Replicas": {
+        "type": "object",
+        "required": [
+          "ready",
+          "desired"
+        ],
+        "properties": {
+          "desired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ready": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "RetriesView": {
         "type": "object",
         "description": "The retry policy of a pipeline.",
@@ -7322,6 +8136,42 @@
           "truncated": {
             "type": "boolean",
             "description": "True when more tables match than were returned, or when the catalog has more namespaces than one\nrequest reads (100): the answer is then a prefix, so narrow the words or name the catalog."
+          }
+        }
+      },
+      "Snapshot": {
+        "type": "object",
+        "description": "What Nova knows about the namespace, and how it knows it.\n\nThe list alone is not enough: an empty list means \"nothing is there\" *or* \"the cluster\ndid not answer\", and those are very different things to show a person. `error` plus\n`age_seconds` (time since the last successful read) let the UI say which.",
+        "required": [
+          "workloads",
+          "state"
+        ],
+        "properties": {
+          "age_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Seconds since the last successful read. `None` when there never was one.",
+            "minimum": 0
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Set when the most recent read failed; the workloads above are then the last known\ngood state, not the current one."
+          },
+          "state": {
+            "type": "string",
+            "description": "`ok` | `stale` | `unreachable` — computed here rather than by the client, so the\nUI and the API cannot disagree about what an empty list means."
+          },
+          "workloads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workload"
+            }
           }
         }
       },
@@ -7772,6 +8622,48 @@
           }
         }
       },
+      "TransferRequest": {
+        "type": "object",
+        "required": [
+          "source",
+          "target"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
+      "TransferResult": {
+        "type": "object",
+        "required": [
+          "source",
+          "target",
+          "rows",
+          "job_id"
+        ],
+        "properties": {
+          "job_id": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
       "UpdatePipelineRequest": {
         "type": "object",
         "description": "`PUT /api/pipelines/{namespace}/{name}`: change the statement, the schedule, the parameters\nand the options — or, for a notebook pipeline, the notebook, its version and its parameters.\nEvery other field of the resource stays as it is, and what the pipeline runs never changes\nkind.",
@@ -7808,6 +8700,24 @@
               "type": "string"
             }
           },
+          "provenance": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Provenance",
+                "description": "Which bundle, target and commit this update deploys. Omitted leaves what the pipeline\nalready says untouched; given, it replaces it."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "resourceVersion": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `resourceVersion` the caller read (`pipelines_spec`). When it is given and is not the\nstored one, somebody changed the pipeline in between: 409 `the pipeline changed while you\nedited it: reload`, and nothing is written. Omitted keeps the old behaviour (the update\nthen only fails if the resource changes while the update itself runs)."
+          },
           "schedule": {
             "oneOf": [
               {
@@ -7822,6 +8732,52 @@
           "sql": {
             "type": "string",
             "description": "The statement of a statement pipeline; a notebook pipeline refuses it."
+          }
+        }
+      },
+      "UploadRequest": {
+        "type": "object",
+        "required": [
+          "namespace",
+          "table",
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "table": {
+            "type": "string"
+          }
+        }
+      },
+      "UploadResult": {
+        "type": "object",
+        "required": [
+          "namespace",
+          "table",
+          "rows_loaded",
+          "job_id"
+        ],
+        "properties": {
+          "job_id": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "rows_loaded": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "table": {
+            "type": "string"
           }
         }
       },
@@ -7855,6 +8811,13 @@
               "$ref": "#/components/schemas/ValidationIssue"
             },
             "description": "Why not: one sentence per problem (today the first rule that refuses)."
+          },
+          "modified": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "`true` for an `update` of a pipeline that was changed after its last deploy\n(`deployment.modified` of the pipeline view): applying this document overwrites that\nchange. Absent otherwise."
           },
           "nextRuns": {
             "type": "array",
@@ -7895,6 +8858,38 @@
           "name": {
             "type": "string",
             "description": "The configured warehouse name (`NOVA_WAREHOUSE_NAME`)."
+          }
+        }
+      },
+      "Workload": {
+        "type": "object",
+        "description": "One workload in the namespace, flattened to what a human wants to see.",
+        "required": [
+          "name",
+          "kind",
+          "image",
+          "ready",
+          "desired"
+        ],
+        "properties": {
+          "desired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "image": {
+            "type": "string",
+            "description": "Image reference as the cluster has it — tag or digest, verbatim."
+          },
+          "kind": {
+            "type": "string",
+            "description": "Deployment | StatefulSet"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ready": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       }

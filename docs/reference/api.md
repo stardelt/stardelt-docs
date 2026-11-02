@@ -686,12 +686,13 @@ Operation id `notebooks_publish`: in Python `client.call("notebooks_publish", �
 
 `PUT /api/notebooks/{group}/{name}`: validate, strip, store one immutable version.
 
-Publish a notebook as a new immutable object version in the `notebooks` bucket. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). `{name}` must match `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` and the body must be an nbformat 4 notebook of at most 5 MiB. Every cell's `outputs` and `execution_count` and the notebook's widget metadata are removed before storing — no cell output reaches the object store. `sha256` is of the stored (stripped) bytes. `parameters` are the `name = literal` lines of the first cell tagged `parameters`, at most 32; defaults are text and are never evaluated. A 61st publish by one person in an hour is 429. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Each publish writes one audit line with group, name, version and size, never content.
+Publish a notebook as a new immutable object version in the `notebooks` bucket. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). `{name}` must match `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` and the body must be an nbformat 4 notebook of at most 5 MiB. Every code cell's `outputs` is emptied and its `execution_count` set to null, and the notebook's widget metadata is removed, before storing — no cell output reaches the object store. A cell of an nbformat 4.5 notebook without an `id` gets one (`cell-<position>`), so the stored notebook stays valid nbformat. `sha256` is of the stored (stripped) bytes. `parameters` are the `name = literal` lines of the first cell tagged `parameters`, at most 32; defaults are text and are never evaluated. A 61st publish by one person in an hour is 429. Publishing bytes the newest version already holds stores nothing, uses no slot and writes no audit line: the answer names that version with `unchanged: true`. With `?dryRun=true` the same checks run and nothing is stored, no slot is used and no audit line is written: the answer says `unchanged: true` with the newest version, or `unchanged: false` with an empty `objectVersion` when a publish would store a new one. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Each publish that stores a version writes one audit line with group, name, version and size, never content.
 
 **Parameters**
 
 | Name | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
+| `dryRun` | query | boolean | No | `true`: validate the notebook and say whether the newest version already holds these bytes, without storing a version, using a publish slot or writing an audit line. |
 | `group` | path | string | Yes | One of the caller's groups |
 | `name` | path | string | Yes | Notebook file name, ending in.ipynb |
 
@@ -699,7 +700,7 @@ Publish a notebook as a new immutable object version in the `notebooks` bucket. 
 
 | Code | Description |
 | --- | --- |
-| `200` | The stored version and its parsed parameters |
+| `200` | The stored version and its parsed parameters; `unchanged: true` when the newest version already held these bytes; an empty `objectVersion` only on a dry run that would store a new version |
 | `400` | Bad name or not an nbformat 4 notebook |
 | `401` | Not signed in |
 | `403` | Not a member of the group |
@@ -844,6 +845,10 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | `options.timeoutMinutes` | integer (nullable) | No |  | The longest a whole run may take, 1 to 720 minutes. | format `int64` |
 | `ownerGroup` | string | Yes |  |  |  |
 | `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
+| `provenance` | object | No |  | Which bundle, target and commit this pipeline is deployed from (`stardelt bundle deploy`). |  |
+| `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
+| `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
 | `schedule` | object | No |  | A cron expression and its IANA zone; both required when a `schedule` object is sent. |  |
 | `schedule.cron` | string | Yes |  |  |  |
 | `schedule.timezone` | string | Yes |  |  |  |
@@ -943,6 +948,10 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | `options.timeoutMinutes` | integer (nullable) | No |  | The longest a whole run may take, 1 to 720 minutes. | format `int64` |
 | `ownerGroup` | string | Yes |  |  |  |
 | `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
+| `provenance` | object | No |  | Which bundle, target and commit this pipeline is deployed from (`stardelt bundle deploy`). |  |
+| `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
+| `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
 | `schedule` | object | No |  | A cron expression and its IANA zone; both required when a `schedule` object is sent. |  |
 | `schedule.cron` | string | Yes |  |  |  |
 | `schedule.timezone` | string | Yes |  |  |  |
@@ -984,7 +993,7 @@ One pipeline: the list fields, the latest 20 runs, and the resource's `params`, 
 
 Operation id `pipelines_update`: in Python `client.call("pipelines_update", …)`, on the command line `stardelt api pipelines_update`.
 
-Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller may not act on 404; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
+Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller may not act on 404; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1007,6 +1016,11 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 | `options.retries` | integer (nullable) | No |  | Extra attempts after a failure, 0 to 5. | format `int64` |
 | `options.timeoutMinutes` | integer (nullable) | No |  | The longest a whole run may take, 1 to 720 minutes. | format `int64` |
 | `params` | object (map of string) | No |  | The whole parameter table; omitted means none. |  |
+| `provenance` | object | No |  | Which bundle, target and commit this update deploys. Omitted leaves what the pipeline already says untouched; given, it replaces it. |  |
+| `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
+| `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
+| `resourceVersion` | string (nullable) | No |  | The `resourceVersion` the caller read (`pipelines_spec`). When it is given and is not the stored one, somebody changed the pipeline in between: 409 `the pipeline changed while you edited it: reload`, and nothing is written. Omitted keeps the old behaviour (the update then only fails if the resource changes while the update itself runs). |  |
 | `schedule` | object | No |  | Omitted means no schedule: the pipeline then runs on demand only. |  |
 | `schedule.cron` | string | Yes |  |  |  |
 | `schedule.timezone` | string | Yes |  |  |  |
