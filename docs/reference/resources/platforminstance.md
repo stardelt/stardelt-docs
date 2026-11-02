@@ -29,6 +29,13 @@ A stardelt platform instance.
 | `spec.identity.issuerUrl` | string (nullable) | No |  | OIDC issuer URL, `https://` only. Required for `external`; for `platform` it is derived from `baseDomain` and must be left out. |  |
 | `spec.identity.mode` | string | No | `none` | Where users sign in. Two modes besides none: an identity provider the organization already runs (`external`, for example Entra or Okta), or one the platform runs itself (`platform`, Keycloak). An organization often runs the platform several times against one external provider; each instance then has its own app registrations and group mapping. | `none`, `platform`, `external` |
 | `spec.identity.provider` | string | No | `oidc` | `external` only: which kind of provider this instance talks to. | `oidc`, `entra` |
+| `spec.ingress` | object | No | `{"enabled":false,"tls":{"enabled":false,"secretNameTemplate":"{host}-tls"}}` | How the applications are reached from outside the cluster; see [`IngressSettings`]. |  |
+| `spec.ingress.className` | string (nullable) | No |  | IngressClass name, for example `nginx` or `traefik`. Absent: the cluster default. | min 1, max 253 |
+| `spec.ingress.enabled` | boolean | No | `false` | Create an Ingress for Nova (on `baseDomain` itself) and, with `identity.mode: platform`, for the identity provider (`id.<baseDomain>`). |  |
+| `spec.ingress.tls` | object | No | `{"enabled":false,"secretNameTemplate":"{host}-tls"}` | TLS through cert-manager. |  |
+| `spec.ingress.tls.enabled` | boolean | No | `false` | Requires cert-manager. Leave off when TLS ends elsewhere (a cloud load balancer, an edge proxy). |  |
+| `spec.ingress.tls.issuer` | string (nullable) | No |  | Name of a cert-manager ClusterIssuer; written as the `cert-manager.io/cluster-issuer` annotation of every Ingress. | min 1, max 253 |
+| `spec.ingress.tls.secretNameTemplate` | string | No | `{host}-tls` | Name of the Secret that holds the certificate; `{host}` becomes the host name with the dots turned into dashes. | min 1, max 253 |
 | `spec.namespace` | string | No | `stardelt` | Namespace the platform's own components are installed into. |  |
 | `spec.pillars` | object | No | `{"batch":false,"lakehouse":true,"ml":false,"notebooks":false,"streaming":false}` | Which pillars a platform instance enables. |  |
 | `spec.pillars.batch` | boolean | No | `false` |  |  |
@@ -73,9 +80,11 @@ A stardelt platform instance.
 - identity.mode external needs identity.issuerUrl, an https:// URL
 - identity.mode platform derives the issuer from baseDomain; leave identity.issuerUrl out
 - identity needs baseDomain (the application hosts and redirect addresses are built from it)
+- ingress needs baseDomain (the hosts are built from it)
 - platform mode creates its own clients: leave provider, apiAudience and clients out
 - external mode needs issuerUrl
 - external mode needs apiAudience
 - external mode needs a nova client
 - client names are nova, trino, lakekeeper, superset, airflow, jupyterhub and trino-group-sync
 - every client except lakekeeper needs a clientSecretRef
+- ingress.tls.enabled needs ingress.tls.issuer, the name of a cert-manager ClusterIssuer
