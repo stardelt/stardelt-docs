@@ -15,7 +15,7 @@ A non-human identity (client credentials) for pipelines, maintenance and collect
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
-| `spec.audiences` | array of string | No | `["trino"]` | What the principal's tokens are valid for; at least one, `trino` by default. | min 1, max 2 |
+| `spec.audiences` | array of string | No | `["trino","lakekeeper"]` | What the principal's tokens are valid for; at least one, both engines by default (`trino` for SQL, `lakekeeper` for `stardelt.spark()` in a notebook). | min 1, max 2 |
 | `spec.existingSecretRef` | object (nullable) | No |  | Only with an external identity provider: the Secret that holds the app registration's credentials. |  |
 | `spec.existingSecretRef.name` | string | Yes |  |  | min 1, max 253; pattern `^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$` |
 | `spec.ownerGroup` | string | Yes |  | The group whose members may use the principal. Members never read its credentials. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
