@@ -37,11 +37,12 @@ A stardelt platform instance.
 | `spec.ingress.tls.issuer` | string (nullable) | No |  | Name of a cert-manager ClusterIssuer; written as the `cert-manager.io/cluster-issuer` annotation of every Ingress. | min 1, max 253 |
 | `spec.ingress.tls.secretNameTemplate` | string | No | `{host}-tls` | Name of the Secret that holds the certificate; `{host}` becomes the host name with the dots turned into dashes. | min 1, max 253 |
 | `spec.namespace` | string | No | `stardelt` | Namespace the platform's own components are installed into. |  |
-| `spec.pillars` | object | No | `{"batch":false,"lakehouse":true,"ml":false,"notebooks":false,"streaming":false}` | Which pillars a platform instance enables. |  |
+| `spec.pillars` | object | No | `{"batch":false,"lakehouse":true,"ml":false,"notebooks":false,"pipelines":false,"streaming":false}` | Which pillars a platform instance enables. |  |
 | `spec.pillars.batch` | boolean | No | `false` |  |  |
 | `spec.pillars.lakehouse` | boolean | No | `true` |  |  |
 | `spec.pillars.ml` | boolean | No | `false` |  |  |
 | `spec.pillars.notebooks` | boolean | No | `false` | Multi-user notebooks (JupyterHub). Off by default: a notebook stack is heavy, and a cluster that only serves queries should not carry it. |  |
+| `spec.pillars.pipelines` | boolean | No | `false` | Scheduled pipelines and jobs (Airflow, run as `KubernetesExecutor`). Off by default: it brings a metadata database and four long-running pods, and a cluster that only serves queries does not need them. Nova's Pipelines page and `stardelt bundle run` need it. |  |
 | `spec.pillars.streaming` | boolean | No | `false` |  |  |
 | `spec.profile` | string | No | `demo` | Deployment size / capability profile. | `demo`, `full`, `airgap` |
 | `spec.set` | object (map of object (map of string)) | No |  | `--set` overrides per component: `set.<component>.<helm.key>: "value"`. Highest precedence — Helm applies `--set` after any values document. |  |
