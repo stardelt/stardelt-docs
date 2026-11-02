@@ -12,8 +12,11 @@ AI assistant can use the platform as you. All three read the same list of operat
 all of them as soon as the package is refreshed.
 
 ```bash
-pip install stardelt
+pip install "stardelt @ git+https://github.com/stardelt/stardelt-python@v0.2.0"
 ```
+
+The package is not on PyPI: this installs the release `v0.2.0`, the first one that contains the `stardelt` command, straight from
+its repository. A newer release has a newer tag.
 
 ## Sign in
 
