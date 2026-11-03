@@ -21,7 +21,10 @@ How you work with data on the platform, in five steps. Each step says what works
 | A SQL server (SQL Server, Oracle, PostgreSQL, MySQL) | A *connection* plus a database-to-bronze pipeline | coming |
 | Files arriving in a bucket | File-drop ingestion | coming |
 
-Write raw data into a **bronze** schema, for example `bronze_crm`. Never change raw data in place.
+Write raw data into the **bronze** schema of your domain catalog, for example `mobility.bronze`.
+Never change raw data in place. **Load data** writes to the first catalog you may write — your
+group's catalog, otherwise `shared`; `warehouse` is the platform's technical catalog and
+administrators only.
 
 ## 2. Connect a source system
 
@@ -41,7 +44,7 @@ Write the DataFrame with Spark (needs Spark installed on your platform):
 import os
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.remote(os.environ["SPARK_REMOTE"]).getOrCreate()
-spark.createDataFrame(df).writeTo("warehouse.bronze_crm.accounts").createOrReplace()
+spark.createDataFrame(df).writeTo("mobility.bronze.accounts").createOrReplace()
 ```
 
 Spark uses the platform's storage credential, so tables it writes are not covered by table permissions yet.
@@ -58,29 +61,35 @@ The value lives in the platform's secret store, not in the notebook, an image or
 
 ![Layers](/img/guides/medallion-layers.svg)
 
-Build each layer from the one before, in SQL:
+The three layers are **schemas inside your domain catalog** — there are no default `bronze`,
+`silver` or `gold` catalogs. Build each layer from the one before, in SQL:
 
 ```sql
-CREATE SCHEMA IF NOT EXISTS warehouse.silver_crm;
-CREATE TABLE warehouse.silver_crm.accounts AS
+CREATE SCHEMA IF NOT EXISTS mobility.silver;
+CREATE TABLE mobility.silver.accounts AS
 SELECT id, lower(email) AS email, max(_ingested_at) AS updated_at
-FROM warehouse.bronze_crm.accounts
+FROM mobility.bronze.accounts
 GROUP BY id, lower(email);
 
-CREATE SCHEMA IF NOT EXISTS warehouse.gold_sales;
-CREATE TABLE warehouse.gold_sales.accounts_per_domain AS
+CREATE SCHEMA IF NOT EXISTS mobility.gold;
+CREATE TABLE mobility.gold.accounts_per_domain AS
 SELECT split_part(email, '@', 2) AS domain, count(*) AS accounts
-FROM warehouse.silver_crm.accounts GROUP BY 1;
+FROM mobility.silver.accounts GROUP BY 1;
 ```
 
-Run these in Nova's SQL editor or a notebook. **Coming:** SQL models in Git with tests (dbt), run on a schedule
-as a pipeline, and layer tags in the catalog.
+Run these in Nova's SQL editor or a notebook. The catalog is yours because your group owns it; a
+colleague in another group cannot read or write it. **Coming:** SQL models in Git with tests (dbt)
+and layer tags in the catalog.
 
 ## 4. Show it
 
 1. Open Superset (Nova → **Dashboards**) and sign in with your platform account.
-2. **Datasets → New**: database *Trino Warehouse*, schema `gold_sales`, table `accounts_per_domain`.
-3. Build a chart, add it to a dashboard. Point dashboards at `gold_*` tables only.
+2. **Datasets → New**: database *Trino Mobility* (each catalog gets its own Superset database),
+   schema `gold`, table `accounts_per_domain`.
+3. Build a chart, add it to a dashboard. Point dashboards at the `gold` schema only.
+
+A **published** dashboard is visible only to the groups whose catalogs its charts use (and to
+administrators). A dashboard that spans two catalogs is administrators-only until it is split.
 
 ## 5. Work every day
 
@@ -90,9 +99,11 @@ as a pipeline, and layer tags in the catalog.
 
 ![Trino or Spark](/img/guides/compute-choice.svg)
 
-- **Schedule it:** pipelines on a schedule are coming; until then ask your platform admin to run a job for you.
+- **Schedule it:** publish the notebook or SQL as a pipeline (Nova → **Pipelines**); the schedule runs
+  in Airflow, and **Open in Airflow** takes you to the run, task and log view. Group members may run
+  and pause their group's DAGs there.
 
 ## What is coming
 
-Scheduled pipelines and ingestion templates · SQL models with tests · layer tags in the catalog · a
-Python helper for governed writes · query history and table history in Nova.
+Ingestion templates · SQL models with tests · layer tags in the catalog · a Python helper for
+governed writes.
