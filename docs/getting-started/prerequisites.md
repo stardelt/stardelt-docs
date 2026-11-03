@@ -67,9 +67,15 @@ Ways out, in the order to try them:
 
 1. **Boot the previous kernel** and hold the new one until a fixed kernel or profile ships —
    the least invasive, and it keeps container confinement intact.
-2. **Disable AppArmor for container workloads** (a k3s containerd `config.toml.tmpl` with
-   `disable_apparmor = true`, then restart k3s). Works, but weakens confinement for every
-   container on the node.
+2. **Disable AppArmor for container workloads** — run
+   `sudo scripts/enable-apparmor.sh --apply --restart` in the stardelt-platform checkout. The
+   script writes the k3s containerd `config.toml.tmpl` with `disable_apparmor = true`
+   (idempotent, backs up an existing template) and restarts k3s only with `--restart`. Works,
+   but weakens confinement for every container on the node; the host's AppArmor service stays
+   on. The profile itself cannot be fixed through configuration: it is embedded in k3s's
+   containerd, and its "signals amongst themselves" rule matches the exact profile name but not
+   the `//&unconfined` child PostgreSQL's workers use. A fixed containerd/k3s profile is the
+   upstream fix; until it ships, this is the supported enable.
 3. **Per-workload `securityContext.appArmorProfile: Unconfined`** for the pods that signal each
    other (PostgreSQL, ingress-nginx). Many pods, easy to miss one; not recommended.
 
