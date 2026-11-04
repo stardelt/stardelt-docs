@@ -245,6 +245,24 @@ Rules that make a ticket implementable:
 >
 > **Size.** S. Branch `feat/platform-namespace`.
 
+## Design discussion and feature pages
+
+This site describes what the platform does and how to use it. It is not a record of how the
+platform was designed: design discussion, options, decision records and comparisons of
+alternatives live in the maintainers' private design notes, and a public page never cites them.
+
+Three rules follow:
+
+- **Describe behavior, not reasoning.** If a page needs a fact that only a design note has,
+  state the fact in the page. Do not link to the note and do not write "see the design".
+- **A feature's page ships with the feature.** Write it in the pull request that ships the
+  behavior (or immediately after), and update it in the same pull request when the behavior
+  changes. A page for something that is not built yet belongs on the [roadmap](../roadmap) as a
+  "Planned" entry, never as a guide.
+- **No research or comparisons in a product pull request.** A page does not argue why a component
+  was chosen or what a comparable product does. It says what the platform does and how to use it.
+
+
 ## AI-assisted contributions
 
 The maintainer runs an AI development fleet that implements work packages in these same
