@@ -26,6 +26,7 @@ the native UI of each service below. An offline demo mode (`NOVA_DEMO=1`) runs w
 SSO landing and audit search are planned. TypeScript + React front-end, Rust + axum back-end. Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-nova](https://github.com/stardelt/stardelt-nova)
+Full page: [stardelt Nova](../services/nova).
 
 ### stardelt Operator
 
@@ -36,6 +37,7 @@ releases. `Tenant` creates its namespace, `PlatformInstance` owns the cluster-sc
 `adopt` guard refuses to take over a release the operator did not create. Rust + `kube-rs`. Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-operator](https://github.com/stardelt/stardelt-operator)
+Full page: [stardelt Operator](../services/operator).
 
 ### Apache Trino
 
@@ -44,6 +46,7 @@ Superset speak to. Apache 2.0.
 
 - Site: [trino.io](https://trino.io)
 - Repo: [github.com/trinodb/trino](https://github.com/trinodb/trino)
+Full page: [Trino](../services/trino).
 
 ### Apache Iceberg
 
@@ -61,6 +64,7 @@ alternates behind the same contract. Apache 2.0.
 
 - Site: [lakekeeper.io](https://lakekeeper.io)
 - Repo: [github.com/lakekeeper/lakekeeper](https://github.com/lakekeeper/lakekeeper)
+Full page: [Lakekeeper](../services/lakekeeper).
 
 ### SeaweedFS
 
@@ -69,6 +73,7 @@ S3-compatible storage instead (AWS S3, GCS via S3 interop, Azure Blob, Ceph, Net
 [your-cluster](../getting-started/your-cluster) page covers the settings. Apache 2.0.
 
 - Repo: [github.com/seaweedfs/seaweedfs](https://github.com/seaweedfs/seaweedfs)
+Full page: [SeaweedFS](../services/seaweedfs).
 
 ### CloudNativePG
 
@@ -87,6 +92,7 @@ BI and dashboards over Trino; Nova deep-links into it and can embed it. Apache 2
 
 - Site: [superset.apache.org](https://superset.apache.org)
 - Repo: [github.com/apache/superset](https://github.com/apache/superset)
+Full page: [Superset](../services/superset).
 
 ### Apache Airflow
 
@@ -95,6 +101,7 @@ its own pod. Apache 2.0.
 
 - Site: [airflow.apache.org](https://airflow.apache.org)
 - Repo: [github.com/apache/airflow](https://github.com/apache/airflow)
+Full page: [Airflow](../services/airflow).
 
 ### JupyterHub
 
@@ -104,6 +111,7 @@ roadmap, which places workspaces in P2.
 
 - Site: [jupyter.org/hub](https://jupyter.org/hub)
 - Repo: [github.com/jupyterhub/jupyterhub](https://github.com/jupyterhub/jupyterhub)
+Full page: [JupyterHub](../services/jupyterhub).
 
 ### OpenFGA
 
