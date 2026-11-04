@@ -119,6 +119,7 @@ BI and dashboards over Trino; Nova deep-links into it and can embed it. Apache 2
 
 - Site: [superset.apache.org](https://superset.apache.org)
 - Repo: [github.com/apache/superset](https://github.com/apache/superset)
+- Full page: [Superset](../services/superset).
 
 ### Apache Airflow
 
@@ -127,6 +128,7 @@ its own pod. Apache 2.0.
 
 - Site: [airflow.apache.org](https://airflow.apache.org)
 - Repo: [github.com/apache/airflow](https://github.com/apache/airflow)
+- Full page: [Airflow](../services/airflow).
 
 ### JupyterHub
 
@@ -136,6 +138,7 @@ roadmap, which places workspaces in P2.
 
 - Site: [jupyter.org/hub](https://jupyter.org/hub)
 - Repo: [github.com/jupyterhub/jupyterhub](https://github.com/jupyterhub/jupyterhub)
+- Full page: [JupyterHub](../services/jupyterhub).
 
 ### Apache Spark (Spark Connect) — P2
 
