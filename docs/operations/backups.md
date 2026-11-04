@@ -73,6 +73,39 @@ operator-visible signal green while nothing is uploaded
 targets run its config-only half right after applying the Cluster manifest, so the drift fails the
 install instead of surfacing at restore time.
 
+### Is everything backed up?
+
+`make verify-backups` checks one cluster's WAL. The coverage question is separate:
+
+```bash
+make verify-backups-all            # every volume, its mechanism and the age of its newest backup
+MAX_AGE_HOURS=72 make verify-backups-all   # after a quiet week
+```
+
+The command lists every PVC in the namespace, maps it to the mechanism that protects it, and
+reads the newest backup's age:
+
+| Verdict | Meaning |
+| --- | --- |
+| `PASS` | the mechanism exists and its newest backup is younger than `MAX_AGE_HOURS` (default 36) |
+| `FAIL` | no mechanism is mapped, a mapped mechanism is missing, or the backup is older than the limit |
+| `ACCEPTED` | no mechanism by design, with the issue that records the reason (printed below the table) |
+| `UNVERIFIED` | the backup source could not be read (for example the listing pod failed), so the run proved nothing about that volume |
+
+It exits `0` when nothing failed, `1` when a volume is `FAIL`, and `3` when any volume is
+`UNVERIFIED` — a run that could not see the bucket must not report success. The last line is
+the off-cluster copy: `NOT CONFIGURED` when Secret `backup-offsite` is absent, which is a
+documented state and does not fail the run.
+
+The table is a contract: a new volume makes the command fail until someone adds its mechanism
+or an accepted exception with an issue. Run it after the nightly window — a fresh install
+fails until each mechanism has completed one run.
+
+The four accepted gaps today are the SeaweedFS filer and master metadata
+([stardelt-platform#3](https://github.com/stardelt/stardelt-platform/issues/3)), the
+JupyterHub session store (same issue) and the secret store
+([stardelt-platform#368](https://github.com/stardelt/stardelt-platform/issues/368)).
+
 ## Restore
 
 A restore is a **new cluster**, not an in-place operation — the source keeps serving while you
