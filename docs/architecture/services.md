@@ -26,6 +26,7 @@ the native UI of each service below. An offline demo mode (`NOVA_DEMO=1`) runs w
 SSO landing and audit search are planned. TypeScript + React front-end, Rust + axum back-end. Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-nova](https://github.com/stardelt/stardelt-nova)
+Full page: [Nova](../services/nova).
 
 ### stardelt Operator
 
@@ -37,6 +38,7 @@ and the identity settings, `Lakehouse` plans storage + catalog per instance, `Ca
 and an `adopt` guard refuses to take over a release the operator did not create. Rust + `kube-rs`. Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-operator](https://github.com/stardelt/stardelt-operator)
+Full page: [Operator](../services/operator).
 
 ### Apache Trino
 
