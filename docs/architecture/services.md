@@ -11,8 +11,8 @@ how the services connect, see the [Overview](./overview); for licensing, [Licens
 
 | Tier | Meaning |
 |---|---|
-| **Core profile** | installed by `make install`, or the umbrella chart's default values |
-| **Optional** | off by default — enable it per install with a `make` target or a values flag |
+| **Core profile** | installed by `make install-core`, or the umbrella chart's default values |
+| **Optional** | in the chart, off by default — enable per install |
 | **Planned** | specified with a phase in the plug matrix; not in the install path |
 
 ## Core profile
@@ -26,19 +26,16 @@ the native UI of each service below. An offline demo mode (`NOVA_DEMO=1`) runs w
 SSO landing and audit search are planned. TypeScript + React front-end, Rust + axum back-end. Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-nova](https://github.com/stardelt/stardelt-nova)
-Full page: [Nova](../services/nova).
 
 ### stardelt Operator
 
-The control plane: it watches the stardelt CRDs (`PlatformInstance`, `Lakehouse`, `Catalog`,
-`SqlWarehouse`, `Connection`, `ServicePrincipal`, `IngestionSource`, `Pipeline`, `Volume`) and
-reconciles them into upstream Helm releases. `PlatformInstance` owns the cluster-scoped prerequisites
-and the identity settings, `Lakehouse` plans storage + catalog per instance, `Catalog` and
-`SqlWarehouse` describe the data domains and the compute. New resources default to `spec.dryRun: true`,
-and an `adopt` guard refuses to take over a release the operator did not create. Rust + `kube-rs`. Apache 2.0.
+The control plane: it watches the stardelt CRDs (`PlatformInstance`, `Tenant`, `Lakehouse`,
+`IngestionSource`, `Pipeline`; `StreamApp` planned at P3) and reconciles them into upstream Helm
+releases. `Tenant` creates its namespace, `PlatformInstance` owns the cluster-scoped prerequisites,
+`Lakehouse` plans storage + catalog per instance. New resources default to `spec.dryRun: true`, and an
+`adopt` guard refuses to take over a release the operator did not create. Rust + `kube-rs`. Apache 2.0.
 
 - Repo: [github.com/stardelt/stardelt-operator](https://github.com/stardelt/stardelt-operator)
-Full page: [Operator](../services/operator).
 
 ### Apache Trino
 
@@ -47,7 +44,6 @@ Superset speak to. Apache 2.0.
 
 - Site: [trino.io](https://trino.io)
 - Repo: [github.com/trinodb/trino](https://github.com/trinodb/trino)
-Full page: [Trino](../services/trino).
 
 ### Apache Iceberg
 
@@ -65,7 +61,6 @@ alternates behind the same contract. Apache 2.0.
 
 - Site: [lakekeeper.io](https://lakekeeper.io)
 - Repo: [github.com/lakekeeper/lakekeeper](https://github.com/lakekeeper/lakekeeper)
-Full page: [Lakekeeper](../services/lakekeeper).
 
 ### SeaweedFS
 
@@ -74,7 +69,6 @@ S3-compatible storage instead (AWS S3, GCS via S3 interop, Azure Blob, Ceph, Net
 [your-cluster](../getting-started/your-cluster) page covers the settings. Apache 2.0.
 
 - Repo: [github.com/seaweedfs/seaweedfs](https://github.com/seaweedfs/seaweedfs)
-Full page: [SeaweedFS](../services/seaweedfs).
 
 ### CloudNativePG
 
@@ -85,35 +79,7 @@ Apache 2.0.
 - Site: [cloudnative-pg.io](https://cloudnative-pg.io)
 - Repo: [github.com/cloudnative-pg/cloudnative-pg](https://github.com/cloudnative-pg/cloudnative-pg)
 
-### Keycloak
-
-The identity provider the platform runs itself (`identity.mode: platform`): one realm, the clients the
-applications sign in with, and the group claim every component authorizes on. Nova, Superset, Airflow,
-JupyterHub, Trino and the catalog all accept the same token, so one sign-in reaches every service. An
-organization that already runs an OIDC provider uses `identity.mode: external` instead — the contract
-is the protocol, not the product. Installed by `make install-identity`, or by the chart with
-`identity.mode: platform`. Apache 2.0.
-
-- Site: [keycloak.org](https://www.keycloak.org)
-
-### OpenFGA
-
-The permission store behind the catalog's grants: Lakekeeper asks it whether a caller may see or use a
-catalog, warehouse or table, and refuses the request when the store cannot answer (fail-closed). It
-runs with its own Postgres cluster and a daily backup. Apache 2.0.
-
-- Site: [openfga.dev](https://openfga.dev)
-- Repo: [github.com/openfga/openfga](https://github.com/openfga/openfga)
-
-### Open Policy Agent
-
-The catalog's policy sidecar (`Service lakekeeper-opa`): it answers the engine's authorization
-questions on port 8282, so the same grants decide what a dashboard, a pipeline and a notebook may
-read. Apache 2.0.
-
-- Site: [openpolicyagent.org](https://www.openpolicyagent.org)
-
-## Optional components — off by default
+## Optional components — in the chart, off by default
 
 ### Apache Superset
 
@@ -121,7 +87,6 @@ BI and dashboards over Trino; Nova deep-links into it and can embed it. Apache 2
 
 - Site: [superset.apache.org](https://superset.apache.org)
 - Repo: [github.com/apache/superset](https://github.com/apache/superset)
-- Full page: [Superset](../services/superset).
 
 ### Apache Airflow
 
@@ -130,7 +95,6 @@ its own pod. Apache 2.0.
 
 - Site: [airflow.apache.org](https://airflow.apache.org)
 - Repo: [github.com/apache/airflow](https://github.com/apache/airflow)
-- Full page: [Airflow](../services/airflow).
 
 ### JupyterHub
 
@@ -140,39 +104,35 @@ roadmap, which places workspaces in P2.
 
 - Site: [jupyter.org/hub](https://jupyter.org/hub)
 - Repo: [github.com/jupyterhub/jupyterhub](https://github.com/jupyterhub/jupyterhub)
-- Full page: [JupyterHub](../services/jupyterhub).
 
-### Apache Spark (Spark Connect) — P2
+### OpenFGA
 
-Distributed compute for jobs that outgrow Trino, installed from `manifests/spark.yaml`
-(`make install-spark`). Spark Connect keeps one long-running driver and exposes a remote endpoint
-(`sc://spark-connect:15002`) so notebooks and clients connect without starting a driver of their own;
-it is reachable in-cluster only, and it reads the lakehouse's object-store credentials. Apache 2.0.
-Shipped ahead of the roadmap, which places heavy compute in P2.
+Fine-grained authorization store used by Lakekeeper to decide table and catalog access. It answers
+relationship checks and is consulted on every protected catalog request. Apache 2.0.
 
-- Site: [spark.apache.org](https://spark.apache.org)
-
-### OpenBao — sandbox secret store
-
-The store behind user connections in a sandbox install (`make openbao`): KV v2, JWT sign-in with the
-platform's identity provider, and one policy per owner group. Production installs use the customer's
-own store through External Secrets instead. MPL-2.0 — the one documented exception in the
-[license policy](./licenses).
-
-- Site: [openbao.org](https://openbao.org)
-
-### External Secrets Operator
-
-Syncs a `Connection`'s secret fields from a secret store into a Kubernetes Secret (`make
-external-secrets`). It is the bridge between the store an organization already runs and the
-`Connection` objects users create. Apache 2.0.
-
-- Site: [external-secrets.io](https://external-secrets.io)
+- Site: [openfga.dev](https://openfga.dev)
+- Repo: [github.com/openfga/openfga](https://github.com/openfga/openfga)
+Full page: [OpenFGA](../services/openfga).
 
 ## Planned services
 
-Each entry names the phase from the plug matrix. None of these is installed by a profile today;
-cert-manager is the exception below, because the development cluster installs it.
+Each entry names the phase from the plug matrix. None of these are installed by any profile today.
+
+### Keycloak — P0
+
+OIDC / SAML / LDAP identity provider, federating an upstream corporate IdP into stardelt. Skip it if
+your cluster already has an OIDC provider: the contract is the protocol, not the product. Apache 2.0.
+
+- Site: [keycloak.org](https://www.keycloak.org)
+Full page: [Keycloak](../services/keycloak).
+
+### Open Policy Agent — P0/P1
+
+Policy enforcement for row/column security and platform resources, evaluated at the catalog so the
+same rules apply to a dashboard, a pipeline and a notebook. Apache 2.0.
+
+- Site: [openpolicyagent.org](https://www.openpolicyagent.org)
+Full page: [Open Policy Agent](../services/open-policy-agent).
 
 ### OpenMetadata — P1
 
@@ -195,6 +155,13 @@ dbt models as the transform step of a `Pipeline`, with Soda and dbt tests as the
 into a `DataContract`. Apache 2.0 / Apache 2.0.
 
 - [getdbt.com](https://www.getdbt.com) · [soda.io](https://soda.io)
+
+### Apache Spark (Spark Connect) — P2
+
+Distributed compute for jobs that outgrow Trino. Spark Connect exposes a persistent remote endpoint
+(`sc://spark-connect-svc:15002`) so notebooks and clients connect without spawning a driver. Apache 2.0.
+
+- Site: [spark.apache.org](https://spark.apache.org)
 
 ### Streaming — Apache Kafka (Strimzi) + Apache Flink — P3
 
@@ -225,6 +192,13 @@ GitOps delivery and workflow pipelines, so an installation is driven from a Git 
 than out-of-band `kubectl`. Apache 2.0.
 
 - [argoproj.github.io](https://argoproj.github.io)
+
+### OpenBao — P4
+
+Secrets management for the platform's own credentials. MPL-2.0 — the one documented exception in the
+[license policy](./licenses).
+
+- Site: [openbao.org](https://openbao.org)
 
 ### cert-manager — development prerequisite
 
