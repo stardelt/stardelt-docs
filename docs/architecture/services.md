@@ -12,7 +12,7 @@ how the services connect, see the [Overview](./overview); for licensing, [Licens
 | Tier | Meaning |
 |---|---|
 | **Core profile** | installed by `make install-core`, or the umbrella chart's default values |
-| **Optional** | in the chart, off by default — enable per install |
+| **Optional** | built, off by default — enable per install (`make install-identity`, `make openbao`, `make install-spark`); OPA ships with Lakekeeper |
 | **Planned** | specified with a phase in the plug matrix; not in the install path |
 
 ## Core profile
@@ -84,7 +84,9 @@ Apache 2.0.
 - Site: [cloudnative-pg.io](https://cloudnative-pg.io)
 - Repo: [github.com/cloudnative-pg/cloudnative-pg](https://github.com/cloudnative-pg/cloudnative-pg)
 
-## Optional components — in the chart, off by default
+## Optional components — built, off by default
+
+Each of these is installable today; none is part of the core profile.
 
 ### Apache Superset
 
@@ -122,25 +124,52 @@ relationship checks and is consulted on every protected catalog request. Apache 
 - Repo: [github.com/openfga/openfga](https://github.com/openfga/openfga)
 Full page: [OpenFGA](../services/openfga).
 
-## Planned services
-
-Each entry names the phase from the plug matrix. None of these are installed by any profile today.
-
-### Keycloak — P0
+### Keycloak
 
 OIDC / SAML / LDAP identity provider, federating an upstream corporate IdP into stardelt. Skip it if
 your cluster already has an OIDC provider: the contract is the protocol, not the product. Apache 2.0.
 
 - Site: [keycloak.org](https://www.keycloak.org)
+- Install: `make install-identity` (Keycloak at `id.<baseDomain>`), or the operator's `identity.mode: platform`.
 Full page: [Keycloak](../services/keycloak).
 
-### Open Policy Agent — P0/P1
+### Open Policy Agent
 
 Policy enforcement for row/column security and platform resources, evaluated at the catalog so the
 same rules apply to a dashboard, a pipeline and a notebook. Apache 2.0.
 
 - Site: [openpolicyagent.org](https://www.openpolicyagent.org)
+- Install: it is the `opa` container of the Lakekeeper Deployment — `helm-values/lakekeeper.yaml` sets `OPABridge.enabled: true`.
 Full page: [Open Policy Agent](../services/open-policy-agent).
+
+### Apache Spark (Spark Connect)
+
+Distributed compute for jobs that outgrow Trino. Spark Connect exposes a persistent remote endpoint
+(`sc://spark-connect-svc:15002`) so notebooks and clients connect without spawning a driver. Apache 2.0.
+
+- Site: [spark.apache.org](https://spark.apache.org)
+- Install: `make install-spark` (`manifests/spark.yaml`).
+
+### OpenBao
+
+Secrets management for the platform's own credentials. MPL-2.0 — the one documented exception in the
+[license policy](./licenses).
+
+- Site: [openbao.org](https://openbao.org)
+- Install: `make openbao` (the sandbox store, `helm-values/openbao.yaml`).
+
+### cert-manager
+
+TLS certificate lifecycle. The dev playground installs it; a production cluster usually already has
+it, and the platform's charts only need a `ClusterIssuer` if you want their TLS annotations. Apache 2.0.
+
+- Site: [cert-manager.io](https://cert-manager.io)
+- Install: a cluster prerequisite — the identity install uses it to issue Trino's coordinator certificate (`dev/home-k3s/README.md` shows the Helm command).
+
+
+## Planned services
+
+Each entry names the phase from the plug matrix. None of these are installed by any profile today.
 
 ### OpenMetadata — P1
 
@@ -163,13 +192,6 @@ dbt models as the transform step of a `Pipeline`, with Soda and dbt tests as the
 into a `DataContract`. Apache 2.0 / Apache 2.0.
 
 - [getdbt.com](https://www.getdbt.com) · [soda.io](https://soda.io)
-
-### Apache Spark (Spark Connect) — P2
-
-Distributed compute for jobs that outgrow Trino. Spark Connect exposes a persistent remote endpoint
-(`sc://spark-connect-svc:15002`) so notebooks and clients connect without spawning a driver. Apache 2.0.
-
-- Site: [spark.apache.org](https://spark.apache.org)
 
 ### Streaming — Apache Kafka (Strimzi) + Apache Flink — P3
 
@@ -201,19 +223,6 @@ than out-of-band `kubectl`. Apache 2.0.
 
 - [argoproj.github.io](https://argoproj.github.io)
 
-### OpenBao — P4
-
-Secrets management for the platform's own credentials. MPL-2.0 — the one documented exception in the
-[license policy](./licenses).
-
-- Site: [openbao.org](https://openbao.org)
-
-### cert-manager — development prerequisite
-
-TLS certificate lifecycle. The dev playground installs it; a production cluster usually already has
-it, and the platform's charts only need a `ClusterIssuer` if you want their TLS annotations. Apache 2.0.
-
-- Site: [cert-manager.io](https://cert-manager.io)
 
 ## Service selection criteria
 
