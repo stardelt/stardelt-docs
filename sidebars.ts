@@ -9,6 +9,13 @@ const referenceResources = fs
   .sort()
   .map((file) => `reference/resources/${file.slice(0, -3)}`);
 
+// One page per service; adding a page adds it to the sidebar (stardelt-docs#4).
+const servicePages = fs
+  .readdirSync(path.join(process.cwd(), 'docs', 'services'))
+  .filter((file) => file.endsWith('.md'))
+  .sort()
+  .map((file) => `services/${file.slice(0, -3)}`);
+
 const sidebars: SidebarsConfig = {
   docs: [
     {
@@ -57,6 +64,12 @@ const sidebars: SidebarsConfig = {
         'architecture/licenses',
         'architecture/sovereignty',
       ],
+    },
+    {
+      type: 'category',
+      label: 'Services',
+      collapsed: true,
+      items: servicePages,
     },
     {
       type: 'category',

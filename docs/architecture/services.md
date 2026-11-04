@@ -45,6 +45,7 @@ Superset speak to. Apache 2.0.
 
 - Site: [trino.io](https://trino.io)
 - Repo: [github.com/trinodb/trino](https://github.com/trinodb/trino)
+Full page: [Trino](../services/trino).
 
 ### Apache Iceberg
 
@@ -62,6 +63,7 @@ alternates behind the same contract. Apache 2.0.
 
 - Site: [lakekeeper.io](https://lakekeeper.io)
 - Repo: [github.com/lakekeeper/lakekeeper](https://github.com/lakekeeper/lakekeeper)
+Full page: [Lakekeeper](../services/lakekeeper).
 
 ### SeaweedFS
 
@@ -70,6 +72,7 @@ S3-compatible storage instead (AWS S3, GCS via S3 interop, Azure Blob, Ceph, Net
 [your-cluster](../getting-started/your-cluster) page covers the settings. Apache 2.0.
 
 - Repo: [github.com/seaweedfs/seaweedfs](https://github.com/seaweedfs/seaweedfs)
+Full page: [SeaweedFS](../services/seaweedfs).
 
 ### CloudNativePG
 
