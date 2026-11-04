@@ -38,7 +38,9 @@ default values, installs exactly this:
 - **SeaweedFS** — S3-compatible object storage; the default data plane. Bring your own S3 instead.
 - **CloudNativePG** — Postgres for the catalog's own metadata.
 
-### Optional components — in the chart, off by default
+### Optional components — built, off by default
+
+Each of these is installable today; none is part of the core profile.
 
 Enabled per install (`make install`, or `<component>.enabled: true` in your values file):
 
@@ -46,6 +48,10 @@ Enabled per install (`make install`, or `<component>.enabled: true` in your valu
 - **Apache Superset** — BI and dashboards over Trino.
 - **Apache Airflow** — workflow orchestration for batch and scheduled jobs.
 - **JupyterHub** — multi-user notebook environment.
+- **Apache Spark (Spark Connect)** — distributed compute for jobs that outgrow Trino. `make install-spark`.
+- **Open Policy Agent (OPA)** — fine-grained policy enforcement at the catalog; it is the `opa` container of the Lakekeeper Deployment, so it arrives with `make install-lakekeeper`'s values.
+- **OpenBao** — secrets management for the sandbox secret store. `make openbao`.
+- **cert-manager** — TLS lifecycle; a cluster prerequisite, not a platform component (`dev/home-k3s/README.md` has the Helm command).
 
 ### Planned services — specified, not built yet
 
@@ -55,14 +61,11 @@ carries the sequencing and the phase each one lands in. Listing them here is a p
 - **OpenMetadata** — the metadata, lineage and quality spine.
 - **Apache SeaTunnel, Apache NiFi, Debezium** — the three ingestion domains (SaaS, enterprise, CDC).
 - **dbt-core + Soda** — transforms and quality gates.
-- **Apache Spark (Spark Connect)** — distributed compute for heavy jobs.
 - **Apache Kafka (Strimzi) + Apache Flink** — streaming and CDC processing.
 - **MLflow, KServe, vLLM / Ollama** — ML lifecycle, model serving, sovereign LLM inference.
 - **Observability — VictoriaMetrics, VictoriaLogs, Perses, Jaeger, OpenCost, Alertmanager** — metrics,
   logs, dashboards, traces, cost. Skip whatever your cluster already provides.
-- **Open Policy Agent (OPA)** — fine-grained policy enforcement at the catalog.
 - **Argo CD / Argo Workflows** — GitOps delivery.
-- **OpenBao** — secrets management; **cert-manager** — TLS lifecycle (the dev playground runs it).
 
 See [Services](./services) for the per-service description and upstream links.
 
