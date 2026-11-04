@@ -157,6 +157,7 @@ Secrets management for the platform's own credentials. MPL-2.0 — the one docum
 
 - Site: [openbao.org](https://openbao.org)
 - Install: `make openbao` (the sandbox store, `helm-values/openbao.yaml`).
+Full page: [OpenBao](../services/openbao).
 
 ### cert-manager
 
