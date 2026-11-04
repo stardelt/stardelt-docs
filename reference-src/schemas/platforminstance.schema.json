@@ -157,7 +157,7 @@
             },
             "enabled": {
               "default": false,
-              "description": "Create an Ingress for Nova (on `baseDomain` itself) and, with `identity.mode: platform`,\nfor the identity provider (`id.<baseDomain>`).",
+              "description": "Create an Ingress for Nova (on `baseDomain` itself); the identity provider\non `id.` with `identity.mode: platform`; Airflow on `airflow.` with the `pipelines` pillar;\nJupyterHub on `jupyter.` with `notebooks`.",
               "type": "boolean"
             },
             "tls": {
@@ -206,6 +206,7 @@
         "pillars": {
           "default": {
             "batch": false,
+            "dashboards": false,
             "lakehouse": true,
             "ml": false,
             "notebooks": false,
@@ -216,6 +217,11 @@
           "properties": {
             "batch": {
               "default": false,
+              "type": "boolean"
+            },
+            "dashboards": {
+              "default": false,
+              "description": "BI dashboards (Superset). Off by default: it brings a metadata database, Redis and\nthree long-running pods. People sign in through the platform IdP, with the local\nadministrator kept as break-glass; each group sees the dashboards its catalog role allows.",
               "type": "boolean"
             },
             "lakehouse": {

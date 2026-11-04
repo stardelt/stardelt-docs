@@ -286,7 +286,7 @@ The table's last 100 snapshots, newest first: `committed_at`, `snapshot_id`, `pa
 
 Operation id `table_rollback`: in Python `client.call("table_rollback", …)`, on the command line `stardelt api table_rollback`.
 
-Move the table's current pointer back to an earlier snapshot (`ALTER TABLE … EXECUTE rollback_to_snapshot`), run as the caller, so the engine's permissions decide. Nothing is deleted: the newer snapshots stay until they are expired.
+Move the table's current pointer back to an earlier snapshot (`ALTER TABLE … EXECUTE rollback_to_snapshot`), run as the caller, so the engine's permissions decide. Nothing is deleted: the newer snapshots stay until they are expired. Only the catalog owner group or an administrator may roll back; others are refused with that sentence before the engine is called.
 
 **Parameters**
 
@@ -308,7 +308,7 @@ Move the table's current pointer back to an earlier snapshot (`ALTER TABLE … E
 | --- | --- |
 | `200` | The engine's answer to the statement |
 | `400` | A name or the body is not valid, the snapshot is unknown, or the engine refused the statement |
-| `403` | The caller may not browse that catalog |
+| `403` | Only the catalog owner group or administrators may roll back |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
 

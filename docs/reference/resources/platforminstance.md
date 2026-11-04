@@ -31,14 +31,15 @@ A stardelt platform instance.
 | `spec.identity.provider` | string | No | `oidc` | `external` only: which kind of provider this instance talks to. | `oidc`, `entra` |
 | `spec.ingress` | object | No | `{"enabled":false,"tls":{"enabled":false,"secretNameTemplate":"{host}-tls"}}` | How the applications are reached from outside the cluster; see [`IngressSettings`]. |  |
 | `spec.ingress.className` | string (nullable) | No |  | IngressClass name, for example `nginx` or `traefik`. Absent: the cluster default. | min 1, max 253 |
-| `spec.ingress.enabled` | boolean | No | `false` | Create an Ingress for Nova (on `baseDomain` itself) and, with `identity.mode: platform`, for the identity provider (`id.<baseDomain>`). |  |
+| `spec.ingress.enabled` | boolean | No | `false` | Create an Ingress for Nova (on `baseDomain` itself); the identity provider on `id.` with `identity.mode: platform`; Airflow on `airflow.` with the `pipelines` pillar; JupyterHub on `jupyter.` with `notebooks`. |  |
 | `spec.ingress.tls` | object | No | `{"enabled":false,"secretNameTemplate":"{host}-tls"}` | TLS through cert-manager. |  |
 | `spec.ingress.tls.enabled` | boolean | No | `false` | Requires cert-manager. Leave off when TLS ends elsewhere (a cloud load balancer, an edge proxy). |  |
 | `spec.ingress.tls.issuer` | string (nullable) | No |  | Name of a cert-manager ClusterIssuer; written as the `cert-manager.io/cluster-issuer` annotation of every Ingress. | min 1, max 253 |
 | `spec.ingress.tls.secretNameTemplate` | string | No | `{host}-tls` | Name of the Secret that holds the certificate; `{host}` becomes the host name with the dots turned into dashes. | min 1, max 253 |
 | `spec.namespace` | string | No | `stardelt` | Namespace the platform's own components are installed into. |  |
-| `spec.pillars` | object | No | `{"batch":false,"lakehouse":true,"ml":false,"notebooks":false,"pipelines":false,"streaming":false}` | Which pillars a platform instance enables. |  |
+| `spec.pillars` | object | No | `{"batch":false,"dashboards":false,"lakehouse":true,"ml":false,"notebooks":false,"pipelines":false,"streaming":false}` | Which pillars a platform instance enables. |  |
 | `spec.pillars.batch` | boolean | No | `false` |  |  |
+| `spec.pillars.dashboards` | boolean | No | `false` | BI dashboards (Superset). Off by default: it brings a metadata database, Redis and three long-running pods. People sign in through the platform IdP, with the local administrator kept as break-glass; each group sees the dashboards its catalog role allows. |  |
 | `spec.pillars.lakehouse` | boolean | No | `true` |  |  |
 | `spec.pillars.ml` | boolean | No | `false` |  |  |
 | `spec.pillars.notebooks` | boolean | No | `false` | Multi-user notebooks (JupyterHub). Off by default: a notebook stack is heavy, and a cluster that only serves queries should not carry it. |  |
