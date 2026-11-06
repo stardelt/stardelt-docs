@@ -6,109 +6,85 @@ slug: /operations/production
 
 # Running stardelt in production
 
-**Start here: stardelt is pre-alpha.** This page is not a promise that it is ready for your
-regulated workload — it is the honest list of what an operator has to provide, what the platform
-gives you, and what is still missing. The install itself is [documented](../getting-started/your-cluster);
-this page is what happens after.
+:::warning stardelt is pre-alpha
+It is not ready for regulated or business-critical workloads. There are no tagged releases and no
+upgrade guarantee. This page lists what you must provide, what the platform gives you, and what is
+missing.
+:::
 
 ## Sizing
 
-The platform is a set of upstream services, so sizing is mostly theirs. Measured on the dev cluster
-(single node, 8 GB) with the **core** profile:
+Measured on a single node:
 
-| Component | Observed footprint | Scales by |
+| Component | Footprint | Scales by |
 |---|---|---|
-| Trino coordinator + 1 worker | ~1.9 GB together (with the slim heap settings) | adding workers, raising `maxHeapSize` **and** `query.maxMemoryPerNode` together |
-| SeaweedFS (master, volume, filer, S3) | ~200 MB for an idle cluster | volume replicas, more nodes for more disks |
-| CloudNativePG + Postgres | ~200 MB for one instance | instance count, storage size |
-| Lakekeeper | ~200 MB | replicas (stateless) |
-| Nova | ~80 MB | one replica in `oidc` mode (sessions are in memory); replicas only in `static-dev` mode |
-| **Total core** | **~2.6 GB usable on an 8 GB node with room for the OS** | — |
+| Trino coordinator and one worker | about 1.9 GB together, with the slim settings | adding workers; raise the heap and `query.maxMemoryPerNode` together |
+| SeaweedFS | about 200 MB when idle | more volume servers and disks |
+| CloudNativePG and one PostgreSQL | about 200 MB | more instances, more storage |
+| Lakekeeper | about 200 MB | more replicas (stateless) |
+| Nova | about 80 MB | one replica only with sign-in on, because sessions live in memory |
 
-Superset and Airflow are a different class (`full` profile): budget 16 GB together with the core
-stack, and expect Airflow's scheduler/workers to be the largest consumer. The dev cluster does not
-run them — that is why `make install-core` exists.
+The core fits an 8 GB node. The whole platform needs about 16 GB, and Airflow is the largest consumer.
 
-A single node is a development shape. For anything real, run at least **three** nodes so a node
-failure is a reschedule rather than an outage, and make sure your StorageClass can bind volumes on
-another node (node-local `local-path` cannot follow a pod; cloud block storage can).
+A single node is for trying things out. For anything real, run at least **three** nodes and use a
+StorageClass whose volumes can follow a pod to another node. `local-path` cannot.
 
-## Availability: what fails today
+## What happens when something fails
 
-| Component | Failure mode | What to do |
+| Component | When it fails | What to do |
 |---|---|---|
-| Postgres (catalog metadata) | single instance in the default install — a pod or node loss stops catalog writes | raise `instances` (CloudNativePG does streaming replication), and keep the [backups](./backups) working |
-| SeaweedFS volume | single volume server holds the data; losing its disk loses the files | more volume servers + replication, and the object-store backup on the board |
-| Trino coordinator | queries stop; nothing is lost | it is stateless — restart/reschedule; run 2 workers minimum so one can drain |
-| Lakekeeper | stateless | more replicas + a PodDisruptionBudget |
-| Nova | in `oidc` mode a restart signs everyone out (sessions are in memory) | keep one replica until sessions move to a shared store (planned) |
-| A whole node | everything on it | 3+ nodes, anti-affinity, tested restore |
+| PostgreSQL | One instance by default: catalog writes stop | Raise `instances` and keep [backups](./backups) working |
+| OpenFGA | Permission checks fail closed: reads of real tables answer 503 until it is back | Run more than one replica and give it room; it depends on its own PostgreSQL |
+| SeaweedFS volume | One volume server holds the data: losing its disk loses the files | More volume servers with replication, or your own S3 |
+| Trino coordinator | Queries stop, and nothing is lost | It reschedules; run two workers so one can drain |
+| Lakekeeper | Engines cannot resolve tables | More replicas and a PodDisruptionBudget |
+| Nova | With sign-in on, a restart signs everyone out | Keep one replica |
+| A whole node | Everything on it | Three or more nodes, anti-affinity, a tested restore |
 
-None of this is wired into the charts as defaults yet; the values are where the knobs are (see
-[Your own cluster](../getting-started/your-cluster)), and this table is the honest map.
+The charts do not set these up by default. The settings are in
+[Install on your own cluster](../getting-started/your-cluster).
 
 ## Upgrades
 
-The platform is installed from **pinned chart versions in one place** (`Makefile` for the script
-path, `Chart.yaml` + `values.yaml` for the chart path), plus container images that CI builds and
-deployments that pin **digests**.
-
-The procedure that works:
-
 ```bash
-git -C stardelt-platform pull            # the pins moved
-make install-core SLIM=1                 # or: helm upgrade --install stardelt chart -n stardelt -f my-values.yaml
-make pin APP=nova                        # re-resolve and re-pin the image digest
-kubectl -n stardelt get pods             # wait for rollouts, then look
+git -C stardelt-platform pull
+make upgrade              # moves pins, runs migrations, runs the verify targets
 ```
 
-Two things to know before you run it, both measured rather than assumed:
+With the umbrella chart, run `helm upgrade --install stardelt chart -n stardelt -f my-values.yaml`.
 
-- **Re-running the installer is safe but not a no-op.** Every release gets a new Helm revision even
-  when nothing changed (Helm's behaviour, and it keeps ten by default), so a cluster that is
-  re-installed daily accumulates release history. That is noise, not drift: the objects themselves
-  are unchanged.
-- **A mutable tag can silently serve an old image.** `manifests/nova-deployment.yaml` uses `:dev`,
-  and a node that already has layers for that tag may keep using them after a rollout — the reason
-  `make pin` exists, and why production installs should put a digest in their values.
+- **Running it twice is safe.** `make platform-idempotence` proves that for your cluster.
+- **Helm does not upgrade CRDs.** Apply `chart/crds/` from the operator repository yourself.
+- **Put digests in your values.** A moving tag can serve an old image.
 
-There is no migration framework yet, because nothing has been released. When CRD fields change,
-`chart/crds/` must be applied explicitly: Helm installs CRDs on `install`, never on `upgrade`.
+There is no migration guide or compatibility promise before the first tagged release, so try each
+upgrade on a copy first.
 
-## Security posture
+## Security
 
-- **Images**: published by CI to `ghcr.io/stardelt/*`, pinned by digest in deployments. Mirror them
-  into your own registry and set the pull secrets for an air-gapped install.
-- **Secrets**: the install needs S3 credentials, and a registry pull secret for private mirrors.
-  They are Kubernetes Secrets; there is no secrets manager yet (OpenBao is Phase 4).
-- **Network**: everything is in-cluster ClusterIP by default; the ingress is opt-in and TLS comes
-  from cert-manager. **There is no NetworkPolicy yet** — treat the namespace as flat.
-- **Identity**: [the SSO work](../architecture/identity) is what turns the platform from
-  "no login" into "one identity from the browser to the catalog". Until it lands, do not expose Nova
-  to a network you do not trust.
-- **Least privilege**: Nova holds a namespaced, read-only role (deployments/statefulsets) and nothing
-  else; the operator holds cluster-wide apply rights because installing charts requires them.
+Read the [security model](../architecture/security-model), and its known limits in particular.
 
-## Monitoring: what to watch
+- **Turn sign-in on.** Without it there is no access control, so never expose such an install.
+- **Images:** mirror `ghcr.io/stardelt/*` into your own registry and pin digests.
+- **Secrets:** generated at install as Kubernetes Secrets, so encrypt etcd. OpenBao is optional and
+  holds connection secrets. See [Rotating secrets](./rotating-secrets).
+- **Network:** add NetworkPolicies for your own cluster, because only some components have one.
 
-There is no bundled observability stack yet (Phase 5). Until then, watch these by hand or with your
-own tooling — they are the signals that actually predict trouble here:
+## What to watch
+
+stardelt has no bundled monitoring. Watch these with your own tools:
 
 | Signal | Why it matters |
 |---|---|
-| `kubectl get pods` for anything not `Running`/`Completed` | the blunt one, catches most breakage |
-| `kubectl get backups` age | a backup that stopped running looks exactly like one that works |
-| Trino `query.max-memory` pressure and failed queries in its UI | the first symptom of undersized heaps |
-| Node disk and memory | SeaweedFS and Trino are the consumers; a full disk fails writes |
-| Certificate expiry (`kubectl get certificates -A`) | an expired ingress cert is a silent outage |
-| The `audit` target in Nova's log (`RUST_LOG=audit=info`) | one line per mutating request with the caller — and one per refusal: the only place that answers "who did this?", and the first thing an incident needs |
-| Helm release status (`helm list -A`) | catches a release stuck in `pending-upgrade` before an upgrade does |
-| Writes to a **new** bucket hanging | SeaweedFS' volume server ran out of volume slots: the master cannot create a volume for a new collection and the client just blocks (`failed to find writable volumes … Not enough data nodes found` in the master log). The chart sets `maxVolumes: 100`; the upstream default (0 → auto-configure, **7** on Linux) runs out on a real install |
+| Pods not `Running` or `Completed` | Catches most breakage |
+| `make verify-backups-all` | A backup that stopped looks exactly like one that works |
+| Failed queries and memory pressure in Trino | The first sign of undersized heaps |
+| Node disk and memory | SeaweedFS and Trino are the main consumers; a full disk fails writes |
+| Certificate expiry (`kubectl get certificates -A`) | An expired certificate is a silent outage |
+| The `audit` target in Nova's log (`RUST_LOG=audit=info`) | One line per changing request and per refusal, with the caller |
+| `helm list -A` | Shows a release stuck in `pending-upgrade` |
 
-## The honest "not yet" list
+## Not available yet
 
-Do not run stardelt in production expecting any of these today: high availability defaults, network
-policies, a bundled observability/alerting stack, secrets management, an upgrade/migration framework,
-multi-tenancy with enforced isolation, or an audit trail. Each is tracked on the
-project board — and the ones that matter most
-(identity, isolation) are the next work, not a wishlist.
+Do not count on these today: high-availability defaults, NetworkPolicies for every component, a
+monitoring and alerting stack, an upgrade and migration framework, or strict isolation between tenants.

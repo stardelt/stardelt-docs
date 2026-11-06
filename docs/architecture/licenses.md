@@ -4,90 +4,59 @@ sidebar_label: "Licenses"
 slug: /architecture/licenses
 ---
 
-# stardelt License Policy
+# License policy
 
-stardelt is licensed **Apache License 2.0**. The platform composes upstream OSS projects; their respective licenses apply to those binaries when stardelt installs them on your cluster.
-
-This document is the source of truth for:
-
-1. The license policy itself (what licenses stardelt will and will not ship).
-2. The documented exception (OpenBao).
-3. The hard rejection list (license-disqualified components, with reasons).
-4. The verification process before any stardelt release.
+stardelt's own code is licensed under **Apache 2.0**. The platform installs upstream open-source
+projects, and their own licenses apply to them.
 
 ## Policy
 
-| Decision | Licenses | Examples |
+| Decision | Licenses |
+|---|---|
+| **Accepted** | OSI-approved permissive licenses: Apache 2.0, MIT, BSD-2-Clause, BSD-3-Clause |
+| **Documented exception** | MPL 2.0, for OpenBao only |
+| **Rejected** | AGPL, GPL, BSL, SSPL, ELv2, FSL, Confluent Community License, proprietary, and anything source-available that is not OSI-approved |
+
+The policy is strict because "self-host forever" only holds if nothing in the default install can
+be relicensed out from under you. It applies to everything stardelt ships or installs, and to the
+dependencies of stardelt's own code.
+
+## The exception: OpenBao
+
+OpenBao stores secrets for connections. It is licensed under MPL 2.0, which is OSI-approved but
+copyleft per file, so it is not purely permissive. It is accepted as the one exception because:
+
+- no permissive secrets manager with comparable features exists;
+- MPL 2.0 applies per file and has no network-use obligations;
+- OpenBao is governed by the Linux Foundation, so no single vendor can relicense it.
+
+OpenBao is **optional**. It is installed only if you run `make openbao` or turn it on in your
+`PlatformInstance`. Without it, the install contains nothing under MPL 2.0.
+
+## Common questions
+
+Components people often ask about that the policy excludes, and what stardelt uses instead:
+
+| Component | License | stardelt uses |
 |---|---|---|
-| **Accepted** | OSI permissive: Apache 2.0, MIT, BSD-2-Clause, BSD-3-Clause | Most upstream picks |
-| **Documented exception** | MPL 2.0 | **OpenBao only** — see below |
-| **Rejected** | AGPL, GPL (any), BSL, SSPL, ELv2, Confluent Community License, FSL, proprietary, source-available-but-not-OSI | See rejection list |
+| MinIO, Garage | AGPL-3.0 | SeaweedFS, or your own S3-compatible store |
+| Metabase (community edition) | AGPL-3.0 | Apache Superset |
+| HashiCorp Vault | BSL 1.1 | OpenBao |
+| Grafana | AGPL-3.0 | Nothing bundled; bring your own monitoring |
+| Airbyte (platform) | ELv2 | Nothing bundled yet: see the [roadmap](../roadmap) |
 
-The policy is **strict on purpose**. stardelt's "no vendor handcuffs, self-host forever" claim only holds if every component in the default install is provably free of relicensing risk.
+A license can change. Check the upstream license for the version you run if this matters to you.
 
-## Documented license exceptions
+## Checking a component
 
-### OpenBao — MPL 2.0
+Before stardelt adds or upgrades a component:
 
-**Context**: stardelt needs an HA-grade secrets and PKI backend. HashiCorp Vault relicensed from MPL 2.0 to BSL 1.1 in August 2023. **OpenBao** is the Linux Foundation–governed fork of Vault from its pre-BSL days, contributed to by IBM and a wider community. Its license is **MPL 2.0**, an OSI-approved license, but weak-copyleft *per file* — not a pure permissive license like Apache 2.0.
+1. Read its `LICENSE` file for the exact version, not just the repository's front page.
+2. Confirm that the license is on the [OSI list](https://opensource.org/licenses) and accepted above.
+3. If a component has moved outside the policy, stay on the last compliant version and replace it.
 
-**Decision**: Accept MPL 2.0 for OpenBao as a single documented exception.
+## Reporting a license problem
 
-**Reasoning**:
-
-1. There is no Apache/MIT/BSD HA-grade secrets manager in 2026. The alternatives are: Kubernetes Sealed Secrets (no dynamic credentials, no PKI, no rotation), or proprietary cloud-KMS services (defeats the sovereignty story).
-2. MPL 2.0 is materially weaker copyleft than AGPL or GPL. It applies per-file, allows linking with proprietary or differently-licensed code, and does not impose network-use obligations. Most corporate legal teams approve MPL without escalation.
-3. OpenBao is governed under the Linux Foundation, removing single-vendor relicensing risk.
-4. Customers who prefer not to ship OpenBao can use the **External Secrets Operator** (Apache 2.0) to plug into their own Vault / OpenBao / cloud KMS — stardelt does not require shipping OpenBao itself.
-
-**Customers must be told this clearly.** The README, ARCHITECTURE doc, and install docs all surface OpenBao's MPL 2.0 status as the single non-permissive component of the platform design. No install path deploys OpenBao yet, so today's installs contain none.
-
-## Hard rejection list
-
-Components that look attractive and are frequently asked about, but **cannot be shipped** under stardelt's policy:
-
-| Component | License | Status / notes |
-|---|---|---|
-| **MinIO** | AGPL-3.0 | Relicensed from Apache 2.0 in 2021. Repository **archived April 25, 2026**; community edition "no longer maintained". Pushed users to commercial AIStor ($96k/yr for 400TB). Replacement: **SeaweedFS**. |
-| **Grafana** | AGPL-3.0 | Since 2021. Replacement: **Perses** (CNCF Sandbox). |
-| **Grafana Loki** | AGPL-3.0 | Since 2024. Replacement: **VictoriaLogs**. |
-| **Grafana Tempo** | AGPL-3.0 | Since 2024. Replacement: **Jaeger**. |
-| **Grafana Mimir** | AGPL-3.0 | AGPL from inception. Replacement: **VictoriaMetrics**. |
-| **HashiCorp Vault** | BSL 1.1 | Since August 2023. Replacement: **OpenBao** (documented MPL exception). |
-| **HashiCorp Terraform / Consul / Nomad / Boundary / Packer** | BSL 1.1 | Same relicense. Use **OpenTofu** for Terraform (MPL 2.0 — also a documented case if needed). |
-| **Elasticsearch / Kibana** | ELv2 / SSPL / AGPL hybrid | Triple-licensed; none are OSI-permissive. Replacement: **OpenSearch**. |
-| **Redpanda** | BSL 1.1 | Replacement: **Apache Kafka** via **Strimzi** operator. |
-| **Materialize** | BSL 1.1 | Replacement: **RisingWave** (Apache 2.0, verified). |
-| **Confluent Platform / ksqlDB / Confluent Schema Registry** | Confluent Community License | Source-available, not OSI. Replacement: **Apicurio Registry** + **Flink SQL**. |
-| **Airbyte (platform)** | ELv2 | Connectors are MIT but platform isn't. Replacement: **Apache SeaTunnel**. |
-| **Seldon Core v2** | BSL | Since 2024. Replacement: **KServe**. |
-| **Metabase (Community)** | AGPL-3.0 | Replacement: **Apache Superset**. |
-| **Sentry** | FSL ("Functional Source License") | Since 2023. Replacement: **GlitchTip** (verify Apache 2.0 at release time). |
-| **Kubecost Enterprise** | open-core, Enterprise proprietary | Use the underlying engine **OpenCost** directly. |
-| **Weights & Biases** | proprietary SaaS | Replacement: **MLflow** + Aim. |
-| **Dagster Cloud / Prefect Cloud / Astronomer** | proprietary SaaS | Replacement: **Apache Airflow** + **Argo Workflows**. |
-| **Garage (object store)** | AGPL-3.0 | Replacement: **SeaweedFS**, CubeFS. |
-| **CockroachDB self-hosted core** | BSL 1.1 | Replacement: **PostgreSQL** via CloudNative-PG. |
-| **MongoDB** | SSPL | Replacement: **PostgreSQL**. |
-| **Tecton, Featureform (commercial)** | proprietary / open-core | Replacement: **Feast**. |
-| **Pinecone, Weaviate Enterprise** | proprietary / open-core | Replacement: **Qdrant** + **pgvector**. |
-
-## Pre-release verification process
-
-Before any stardelt release:
-
-1. Fetch the live `LICENSE` file for every primary component listed in [Services](./services) from `github.com/<org>/<repo>/blob/main/LICENSE`.
-2. Confirm exact license name; cross-reference with the OSI list (https://opensource.org/licenses).
-3. For projects flagged in the *Pre-release license verifications* section of COMPONENTS.md, re-read the LICENSE in full — these are projects with known license-drift risk.
-4. If a primary has drifted to an unacceptable license, demote to the listed alternative and update services.md.
-5. Record the verification in a `LICENSE-VERIFICATION-<release>.md` artifact alongside the release tag.
-
-## Reporting license issues
-
-If you believe a component listed in services.md is not under the license stated here, open an issue with:
-
-- Component name and version.
-- Link to the offending LICENSE file or relicense announcement.
-- The OSI status of the new license.
-
-License accuracy is non-negotiable for stardelt. We will demote or replace any component whose license has drifted out of policy.
+If a component is not under the license stated in these docs,
+[open an issue](https://github.com/stardelt/stardelt-docs/issues) with the component and version, a
+link to the license file or announcement, and the new license's OSI status.

@@ -4,239 +4,59 @@ sidebar_label: "Services"
 slug: /architecture/services
 ---
 
-# stardelt Services
+# Services
 
-What stardelt installs, what it can install, and what it has specified but not built. The tiers describe the design: what is installed, what can be installed, and what is only specified. For
-how the services connect, see the [Overview](./overview); for licensing, [Licenses](./licenses).
+What a stardelt install contains. For how the services connect, see
+[How it works](./how-it-works). Each service has its own page with settings and operating notes.
 
-| Tier | Meaning |
-|---|---|
-| **Core profile** | installed by `make install-core`, or the umbrella chart's default values |
-| **Optional** | built, off by default — enable per install (`make install-identity`, `make openbao`, `make install-spark`); OPA ships with Lakekeeper |
-| **Planned** | specified with a phase in the plug matrix; not in the install path |
+## Always installed
 
-## Core profile
+These form the core: `make install-core`, or the umbrella chart's default values.
 
-### stardelt Nova
+| Service | What it does | License |
+|---|---|---|
+| [stardelt Nova](../services/nova) | The web interface and the API: catalog, SQL editor, loads, connections, pipelines, query log, lineage, health | Apache 2.0 |
+| [Apache Trino](../services/trino) | The SQL engine for interactive queries, the SQL editor and dashboards | Apache 2.0 |
+| [Lakekeeper](../services/lakekeeper) | The Iceberg REST catalog: which tables exist and which files belong to them | Apache 2.0 |
+| [SeaweedFS](../services/seaweedfs) | S3-compatible object storage, or bring your own S3-compatible store | Apache 2.0 |
+| [CloudNativePG](https://cloudnative-pg.io) | Runs the PostgreSQL databases of the platform's services | Apache 2.0 |
 
-Unified web UI and API gateway: catalog browser over Iceberg tables (preview, columns, details), SQL
-editor, load & transfer (CSV/JSON upload, table copy), jobs, a lineage page (a static illustration of the demo schema until OpenLineage capture lands), a Superset dashboards embed, platform health
-that lists every workload with the image it actually runs, and live app status with deep-links into
-the native UI of each service below. An offline demo mode (`NOVA_DEMO=1`) runs with no cluster. Single
-SSO landing and audit search are planned. TypeScript + React front-end, Rust + axum back-end. Apache 2.0.
+[Apache Iceberg](https://iceberg.apache.org) (Apache 2.0) is the open table format every engine reads
+and writes. It is not a service you install: it lives inside the engines and the catalog.
 
-- Repo: [github.com/stardelt/stardelt-nova](https://github.com/stardelt/stardelt-nova)
-Full page: [stardelt Nova](../services/nova).
+## Optional
 
-### stardelt Operator
+Each of these is built and off by default in the core. `make platform` installs them too, except where
+the table says otherwise.
 
-The control plane: it watches the stardelt CRDs (`PlatformInstance`, `Tenant`, `Lakehouse`,
-`IngestionSource`, `Pipeline`; `StreamApp` planned at P3) and reconciles them into upstream Helm
-releases. `Tenant` creates its namespace, `PlatformInstance` owns the cluster-scoped prerequisites,
-`Lakehouse` plans storage + catalog per instance. New resources default to `spec.dryRun: true`, and an
-`adopt` guard refuses to take over a release the operator did not create. Rust + `kube-rs`. Apache 2.0.
+| Service | What it does | Turn it on | License |
+|---|---|---|---|
+| [Keycloak](../services/keycloak) | Sign-in, or use your own OIDC provider | `IDENTITY=1`, or `identity.mode` in the chart | Apache 2.0 |
+| [OpenFGA](../services/openfga) | Stores who may do what on which table | with `make platform` | Apache 2.0 |
+| [Open Policy Agent](../services/open-policy-agent) | Answers Trino's permission questions, next to Lakekeeper | with `make platform` | Apache 2.0 |
+| [Apache Airflow](../services/airflow) | Runs scheduled pipelines | `make install` | Apache 2.0 |
+| [Apache Superset](../services/superset) | Dashboards over Trino | `make install` | Apache 2.0 |
+| [JupyterHub](../services/jupyterhub) | Notebooks for each person | `make install-notebooks` | BSD-3-Clause |
+| [Apache Spark (Spark Connect)](../services/spark) | Distributed compute for jobs that outgrow Trino | `make install-spark` | Apache 2.0 |
+| [OpenBao](../services/openbao) | Stores connection secrets. Not installed by `make platform` | `make openbao` | MPL 2.0, the one [license exception](./licenses) |
+| [cert-manager](https://cert-manager.io) | Issues TLS certificates. A cluster prerequisite for sign-in, not installed by stardelt | [Prerequisites](../getting-started/prerequisites) | Apache 2.0 |
 
-- Repo: [github.com/stardelt/stardelt-operator](https://github.com/stardelt/stardelt-operator)
-Full page: [stardelt Operator](../services/operator).
+## stardelt's own control plane
 
-### Apache Trino
+The [stardelt Operator](../services/operator) (Apache 2.0) turns small resources, such as
+`PlatformInstance`, `Lakehouse`, `Catalog` and `Pipeline`, into running services. It installs
+separately with `make install-operator`. Resources are described in the
+[resource reference](../reference/resources).
 
-Distributed MPP SQL engine — fast interactive queries over Iceberg, and what Nova's SQL editor and
-Superset speak to. Apache 2.0.
+## How a service gets in {#service-selection-criteria}
 
-- Site: [trino.io](https://trino.io)
-- Repo: [github.com/trinodb/trino](https://github.com/trinodb/trino)
-Full page: [Trino](../services/trino).
+A service joins the platform only if it meets all of these:
 
-### Apache Iceberg
+1. **License:** accepted by the [license policy](./licenses).
+2. **Maturity:** real users, active commits, recent releases.
+3. **Kubernetes:** deploys cleanly, ideally with a maintained operator or chart.
+4. **Sovereignty:** no required outbound calls at runtime.
+5. **Open contract:** it sits behind a published interface (SQL, Iceberg REST, S3, OIDC), so it can be
+   replaced.
 
-The open table format and the spine of the platform: every engine reads and writes the same tables
-through the catalog below. It is not a service you install — it lives inside the engines. Apache 2.0.
-
-- Site: [iceberg.apache.org](https://iceberg.apache.org)
-- Repo: [github.com/apache/iceberg](https://github.com/apache/iceberg)
-
-### Lakekeeper
-
-Iceberg REST catalog. Vends table metadata and short-lived object-store credentials to engines, which
-is where row/column policy and the single audit point attach. Apache Polaris and Gravitino are the
-alternates behind the same contract. Apache 2.0.
-
-- Site: [lakekeeper.io](https://lakekeeper.io)
-- Repo: [github.com/lakekeeper/lakekeeper](https://github.com/lakekeeper/lakekeeper)
-Full page: [Lakekeeper](../services/lakekeeper).
-
-### SeaweedFS
-
-S3-compatible distributed object store; the default data plane for Iceberg files. Bring your own
-S3-compatible storage instead (AWS S3, GCS via S3 interop, Azure Blob, Ceph, NetApp) — the
-[your-cluster](../getting-started/your-cluster) page covers the settings. Apache 2.0.
-
-- Repo: [github.com/seaweedfs/seaweedfs](https://github.com/seaweedfs/seaweedfs)
-Full page: [SeaweedFS](../services/seaweedfs).
-
-### CloudNativePG
-
-Postgres operator and the cluster that holds Lakekeeper's own metadata. It is a platform prerequisite
-rather than per-lakehouse component: the operator is cluster-scoped, so several lakehouses share one.
-Apache 2.0.
-
-- Site: [cloudnative-pg.io](https://cloudnative-pg.io)
-- Repo: [github.com/cloudnative-pg/cloudnative-pg](https://github.com/cloudnative-pg/cloudnative-pg)
-
-## Optional components — built, off by default
-
-Each of these is installable today; none is part of the core profile.
-
-### Apache Superset
-
-BI and dashboards over Trino; Nova deep-links into it and can embed it. Apache 2.0.
-
-- Site: [superset.apache.org](https://superset.apache.org)
-- Repo: [github.com/apache/superset](https://github.com/apache/superset)
-Full page: [Superset](../services/superset).
-
-### Apache Airflow
-
-Workflow orchestration for batch and scheduled jobs, with the KubernetesExecutor so each task runs as
-its own pod. Apache 2.0.
-
-- Site: [airflow.apache.org](https://airflow.apache.org)
-- Repo: [github.com/apache/airflow](https://github.com/apache/airflow)
-Full page: [Airflow](../services/airflow).
-
-### JupyterHub
-
-Multi-user notebook environment: the front door for interactive analysis. Notebooks reach Trino
-directly and, once heavy compute lands, Spark through Spark Connect. BSD-3. Shipped ahead of the
-roadmap, which places workspaces in P2.
-
-- Site: [jupyter.org/hub](https://jupyter.org/hub)
-- Repo: [github.com/jupyterhub/jupyterhub](https://github.com/jupyterhub/jupyterhub)
-Full page: [JupyterHub](../services/jupyterhub).
-
-### OpenFGA
-
-Fine-grained authorization store used by Lakekeeper to decide table and catalog access. It answers
-relationship checks and is consulted on every protected catalog request. Apache 2.0.
-
-- Site: [openfga.dev](https://openfga.dev)
-- Repo: [github.com/openfga/openfga](https://github.com/openfga/openfga)
-Full page: [OpenFGA](../services/openfga).
-
-### Keycloak
-
-OIDC / SAML / LDAP identity provider, federating an upstream corporate IdP into stardelt. Skip it if
-your cluster already has an OIDC provider: the contract is the protocol, not the product. Apache 2.0.
-
-- Site: [keycloak.org](https://www.keycloak.org)
-- Install: `make install-identity` (Keycloak at `id.<baseDomain>`), or the operator's `identity.mode: platform`.
-Full page: [Keycloak](../services/keycloak).
-
-### Open Policy Agent
-
-Policy enforcement for row/column security and platform resources, evaluated at the catalog so the
-same rules apply to a dashboard, a pipeline and a notebook. Apache 2.0.
-
-- Site: [openpolicyagent.org](https://www.openpolicyagent.org)
-- Install: it is the `opa` container of the Lakekeeper Deployment — `helm-values/lakekeeper.yaml` sets `OPABridge.enabled: true`.
-Full page: [Open Policy Agent](../services/open-policy-agent).
-
-### Apache Spark (Spark Connect)
-
-Distributed compute for jobs that outgrow Trino. Spark Connect exposes a persistent remote endpoint
-(`sc://spark-connect-svc:15002`) so notebooks and clients connect without spawning a driver. Apache 2.0.
-
-- Site: [spark.apache.org](https://spark.apache.org)
-- Install: `make install-spark` (`manifests/spark.yaml`).
-Full page: [Spark Connect](../services/spark).
-
-### OpenBao
-
-Secrets management for the platform's own credentials. MPL-2.0 — the one documented exception in the
-[license policy](./licenses).
-
-- Site: [openbao.org](https://openbao.org)
-- Install: `make openbao` (the sandbox store, `helm-values/openbao.yaml`).
-Full page: [OpenBao](../services/openbao).
-
-### cert-manager
-
-TLS certificate lifecycle. The dev playground installs it; a production cluster usually already has
-it, and the platform's charts only need a `ClusterIssuer` if you want their TLS annotations. Apache 2.0.
-
-- Site: [cert-manager.io](https://cert-manager.io)
-- Install: a cluster prerequisite — the identity install uses it to issue Trino's coordinator certificate (`dev/home-k3s/README.md` shows the Helm command).
-
-
-## Planned services
-
-Each entry names the phase from the plug matrix. None of these are installed by any profile today.
-
-### OpenMetadata — P1
-
-The metadata, lineage, glossary and quality spine. Lineage is *captured* from pipelines rather than
-declared by hand, which is why it belongs in the control plane. Apache 2.0. DataHub is the alternate.
-
-- Site: [open-metadata.org](https://open-metadata.org)
-
-### Ingestion — Apache SeaTunnel, Apache NiFi, Debezium — P1
-
-Three domains behind one `IngestionSource` contract: SaaS connectors (SeaTunnel), enterprise and edge
-integration (NiFi), and change data capture (Debezium). Apache 2.0 for all three.
-
-- [seatunnel.apache.org](https://seatunnel.apache.org) · [nifi.apache.org](https://nifi.apache.org) ·
-  [debezium.io](https://debezium.io)
-
-### Transforms and quality — dbt-core, Soda — P1
-
-dbt models as the transform step of a `Pipeline`, with Soda and dbt tests as the quality gate, wired
-into a `DataContract`. Apache 2.0 / Apache 2.0.
-
-- [getdbt.com](https://www.getdbt.com) · [soda.io](https://soda.io)
-
-### Streaming — Apache Kafka (Strimzi) + Apache Flink — P3
-
-Kafka as the event backbone (KRaft mode, no ZooKeeper), Flink for event-driven pipelines and CDC off
-those topics, behind a `StreamApp` contract. RisingWave is the alternate. Apache 2.0.
-
-- [kafka.apache.org](https://kafka.apache.org) · [strimzi.io](https://strimzi.io) ·
-  [flink.apache.org](https://flink.apache.org)
-
-### ML and sovereign AI — MLflow, KServe, vLLM/Ollama — P3
-
-Model registry (`ModelRegistry`), model serving (`ModelService`, KServe-native) and on-prem LLM
-inference for the Nova copilot (`ModelEndpoint`). AI runs on-prem by default; an external API is an
-explicit operator choice. Apache 2.0.
-
-- [mlflow.org](https://mlflow.org) · [kserve.github.io](https://kserve.github.io) ·
-  [docs.vllm.ai](https://docs.vllm.ai)
-
-### Observability — VictoriaMetrics, VictoriaLogs, Perses, Jaeger, OpenCost, Alertmanager — P5
-
-Metrics, logs, dashboards, traces and cost attribution, so a self-hosted platform can be operated
-without a SaaS. Apache 2.0. **Grafana is not used** — AGPL-3.0, rejected by the
-[license policy](./licenses); Perses covers dashboards. Skip whatever your cluster already provides.
-
-### Argo CD and Argo Workflows — P2
-
-GitOps delivery and workflow pipelines, so an installation is driven from a Git repository rather
-than out-of-band `kubectl`. Apache 2.0.
-
-- [argoproj.github.io](https://argoproj.github.io)
-
-
-## Service selection criteria
-
-stardelt picks services by:
-
-1. **License**: OSI permissive (Apache 2.0 / MIT / BSD). No BSL / SSPL / ELv2 / AGPL.
-2. **Production maturity in 2026**: real users, active commits, recent releases.
-3. **Kubernetes nativeness**: clean K8s deployment, ideally with a maintained operator.
-4. **Modern architecture**: 2020+ design choices, not Hadoop/HDFS heritage.
-5. **Sovereignty compatibility**: no required outbound calls at runtime.
-6. **Integration with the rest of the stack**: e.g., Lakekeeper + Iceberg + Trino is a known-good combination.
-
-When two candidates score equally, stardelt prefers CNCF or ASF projects over vendor-led ones, Rust or
-Go services over JVM where the K8s controller pattern fits, and projects with a cloud-agnostic posture
-over those tightly coupled to one hyperscaler.
+What may come later is on the [roadmap](../roadmap).

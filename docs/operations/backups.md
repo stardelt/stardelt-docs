@@ -6,8 +6,7 @@ slug: /operations/backups
 
 # Backups and restore
 
-A self-hosted platform is only yours if you can get it back. This page is the honest state of
-backups in stardelt: what is protected, what is not, how to verify it yourself, and how to restore.
+What is protected, what is not, how to verify it yourself, and how to restore.
 
 ## What is protected
 
@@ -67,11 +66,9 @@ make verify-backups SKIP_OBJECTS=1 # config only, for a machine without S3 acces
 `make verify-backups` is the check `kubectl get backups` cannot be: it compares the *bucket* against
 the *database*, so it fails when the newest object under `wals/` is older than 15 minutes
 (`MAX_AGE_SECONDS`, default 900) or when `pg_stat_archiver.last_archived_wal` is not present in the
-bucket. That is precisely the state a re-apply without `spec.backup` leaves behind — every
-operator-visible signal green while nothing is uploaded
-([stardelt-platform#59](https://github.com/stardelt/stardelt-platform/issues/59)). Both install
-targets run its config-only half right after applying the Cluster manifest, so the drift fails the
-install instead of surfacing at restore time.
+bucket. That catches a re-apply without `spec.backup`, where every other signal stays green while
+nothing is uploaded. Both install targets run its config-only half right after applying the Cluster
+manifest.
 
 ### Is everything backed up?
 
@@ -89,7 +86,7 @@ reads the newest backup's age:
 | --- | --- |
 | `PASS` | the mechanism exists and its newest backup is younger than `MAX_AGE_HOURS` (default 36) |
 | `FAIL` | no mechanism is mapped, a mapped mechanism is missing, or the backup is older than the limit |
-| `ACCEPTED` | no mechanism by design, with the issue that records the reason (printed below the table) |
+| `ACCEPTED` | no mechanism by design; the reason is printed below the table |
 | `UNVERIFIED` | the backup source could not be read (for example the listing pod failed), so the run proved nothing about that volume |
 
 It exits `0` when nothing failed, `1` when a volume is `FAIL`, and `3` when any volume is
@@ -97,14 +94,11 @@ It exits `0` when nothing failed, `1` when a volume is `FAIL`, and `3` when any 
 the off-cluster copy: `NOT CONFIGURED` when Secret `backup-offsite` is absent, which is a
 documented state and does not fail the run.
 
-The table is a contract: a new volume makes the command fail until someone adds its mechanism
-or an accepted exception with an issue. Run it after the nightly window — a fresh install
-fails until each mechanism has completed one run.
+A new volume makes the command fail until it has a mechanism or an accepted exception. Run it after the
+nightly window: a fresh install fails until each mechanism has completed one run.
 
-The four accepted gaps today are the SeaweedFS filer and master metadata
-([stardelt-platform#3](https://github.com/stardelt/stardelt-platform/issues/3)), the
-JupyterHub session store (same issue) and the secret store
-([stardelt-platform#368](https://github.com/stardelt/stardelt-platform/issues/368)).
+**Not backed up today:** the SeaweedFS filer and master metadata, the JupyterHub session store and the
+secret store.
 
 ## Restore
 
@@ -129,9 +123,6 @@ Three details that silently matter:
   automatically. Cutting over means updating `lakekeeper`'s database connection (or renaming the
   cluster), and it is a deliberate, visible step on purpose.
 
-**This was tested, not just written down.** A restore into a scratch namespace came up with 44
-tables, the same table names as the source, and identical row counts on `warehouse` and `namespace`.
-
 ## Production notes
 
 - **Use your own bucket.** Point `spec.backup.barmanObjectStore.endpointURL` and `destinationPath` at
@@ -147,7 +138,7 @@ tables, the same table names as the source, and identical row counts on `warehou
 - **Retention is a policy, not a number.** `retentionPolicy: "14d"` in the manifest is a starting
   point: what matters is the longest outage or the slowest mistake you have to survive.
 - **Test the restore.** The manifest in this repo exists so a restore is a command someone can run
-  during an incident, not a design exercise. Run it against a scratch namespace on a schedule you
+  during an incident. Run it against a scratch namespace on a schedule you
   actually keep.
 
 ## Restore the data
@@ -161,8 +152,7 @@ kubectl -n stardelt create job --from=cronjob/lakehouse-backup lakehouse-backup-
 aws s3 sync s3://lakehouse-backup/smoke s3://lakehouse/smoke --endpoint-url "$AWS_ENDPOINT_URL"
 ```
 
-**This was tested, not just written:** an object was deleted from the live bucket and pulled back
-from the archive, byte for byte. Two properties matter in an incident:
+Two properties matter in an incident:
 
 - The job never deletes from the archive, so an object that was removed from the live bucket *after*
   a backup run is still there. Restoring a prefix can therefore bring back more than you expect —
@@ -175,13 +165,7 @@ from the archive, byte for byte. Two properties matter in an incident:
 - **Losing the cluster.** The archive is a second bucket in the *same* SeaweedFS instance. It
   survives a mistake, not a fire. For real off-site protection use SeaweedFS' own replication to a
   remote cluster, or run the sync from a host that holds off-site credentials.
-- **A two-endpoint copy needs a tool that can hold two S3 endpoints at once.** `aws s3 sync` — the
-  tool the shipped job uses — takes one `--endpoint-url` and one credential set per invocation,
-  which is why the default archive stays inside one store. `rclone` can do the two-endpoint copy and
-  is not blocked by this endpoint: a hang reported here earlier was version-specific — re-tested
-  2026-10-18 ([stardelt-docs#61](https://github.com/stardelt/stardelt-docs/issues/61)), **rclone
-  1.68.2 and 1.75.2 both work** against it (small PUTs in 3–5 s, multipart included), while the
-  hanging PUT was observed with **rclone 1.69.1**. The shipped sync job uses `aws s3 sync`, so the
-  question is moot for the default path.
-- **Per-tenant granularity.** One archive bucket for the whole lakehouse. Once several tenants share
-  a cluster, their archives should be separated too.
+- **A copy to a second endpoint needs another tool.** `aws s3 sync` takes one endpoint per run, which
+  is why the default archive stays inside one store. `rclone` can copy between two endpoints: 1.68.2
+  and 1.75.2 work against SeaweedFS, and 1.69.1 hangs on PUT.
+- **Separate archives per tenant.** There is one archive bucket for the whole lakehouse.

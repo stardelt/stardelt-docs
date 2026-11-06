@@ -17,7 +17,7 @@ slug: /services/operator
 | Setting | Where | Key | Default | What it changes |
 |---|---|---|---|---|
 | Image repository | `helm-values/operator.yaml` | `image.repository` | `ghcr.io/stardelt/stardelt-operator` | Container image repository for the operator. |
-| Image tag/digest | `helm-values/operator.yaml` | `image.tag` | `dev@sha256:f99ae16c68876679c259d7555ea328ee1d4ed6e81696f3bfc6d919c287d49484` | Pinned image reference (tag may include digest). |
+| Image tag/digest | `helm-values/operator.yaml` | `image.tag` | a digest, moved by the install | Pinned image reference (tag may include digest). |
 | Image pull policy | `helm-values/operator.yaml` | `image.pullPolicy` | `IfNotPresent` | Image pull policy. |
 | Dry run mode | `docs/reference/resources/platforminstance.md` | `spec.dryRun` | `true` | Plan only by default; set to `false` to apply changes. |
 | Platform namespace | `docs/reference/resources/platforminstance.md` | `spec.namespace` | `stardelt` | Namespace the platform's components are installed into. |

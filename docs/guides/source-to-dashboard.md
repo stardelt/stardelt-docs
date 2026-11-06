@@ -6,29 +6,28 @@ slug: /guides/source-to-dashboard
 
 # From source to dashboard
 
-How you work with data on the platform, in five steps. Each step says what works **today** and what is
-**coming**. Screenshots will follow; the diagrams show the idea.
+How you work with data on the platform, in five steps. You need a platform with sign-in, Airflow and
+Superset: see [Prerequisites](../getting-started/prerequisites).
 
 ![From source to dashboard](/img/guides/workflow-overview.svg)
 
 ## 1. Get data in
 
-| You have | Do this | Status |
-|---|---|---|
-| A CSV or JSON file | Nova → **Load data** → choose file, schema and table | today |
-| Data already in the platform | `CREATE TABLE AS SELECT` or `INSERT INTO … SELECT` in the SQL editor or a notebook | today |
-| A REST API | Python in a notebook (`requests` → DataFrame), then write the table (step 2) | today; scheduled runs coming |
-| A SQL server (SQL Server, Oracle, PostgreSQL, MySQL) | A *connection* plus a database-to-bronze pipeline | coming |
-| Files arriving in a bucket | File-drop ingestion | coming |
+| You have | Do this |
+|---|---|
+| A CSV or JSON file | Nova → **Load & transfer** → choose file, schema and table |
+| Data already in the platform | `CREATE TABLE AS SELECT` or `INSERT INTO … SELECT` in the SQL editor or a notebook |
+| A REST API | Python in a notebook (`requests` → DataFrame), then write the table (step 2) |
+| A database | Read it from a notebook with a [connection](connections), then write the table |
 
 Write raw data into the **bronze** schema of your domain catalog, for example `mobility.bronze`.
-Never change raw data in place. **Load data** writes to the first catalog you may write — your
+Never change raw data in place. **Load & transfer** writes to the first catalog you may write — your
 group's catalog, otherwise `shared`; `warehouse` is the platform's technical catalog and
 administrators only.
 
 ## 2. Connect a source system
 
-**Today:** keep credentials out of the notebook file. Ask for them at run time:
+Keep credentials out of the notebook file. The simplest way is to ask for them at run time:
 
 ```python
 import getpass, requests, pandas as pd
@@ -38,17 +37,16 @@ rows = requests.get("https://api.example.com/accounts",
 df = pd.DataFrame(rows)
 ```
 
-Write the DataFrame with Spark (needs Spark installed on your platform):
+Write the DataFrame with the `stardelt` package. It writes as you, so your table permissions apply:
 
 ```python
-import os
-from pyspark.sql import SparkSession
-spark = SparkSession.builder.remote(os.environ["SPARK_REMOTE"]).getOrCreate()
-spark.createDataFrame(df).writeTo("mobility.bronze.accounts").createOrReplace()
+import stardelt
+stardelt.write_df(df, "mobility.bronze.accounts", bronze=True)   # adds _ingested_at, _source, _batch_id
 ```
 
-Spark uses the platform's storage credential, so tables it writes are not covered by table permissions yet.
-A governed helper, `stardelt.write_df(df, "bronze_crm.accounts")`, is coming.
+Above 200,000 rows it refuses and points you to `stardelt.spark()`, which needs Spark on your platform.
+Spark checks your catalog permissions with your token, but row and column masks apply only in Trino, and
+it writes files with the platform's storage key. See [Known limits](../architecture/security-model#known-limits).
 
 **Connections.** Create one on **Connections** in Nova: type, settings, owner group and secret. The
 settings stay visible; the password is written once and never shown again. A Python notebook reads
@@ -78,8 +76,7 @@ FROM mobility.silver.accounts GROUP BY 1;
 ```
 
 Run these in Nova's SQL editor or a notebook. The catalog is yours because your group owns it; a
-colleague in another group cannot read or write it. **Coming:** SQL models in Git with tests (dbt)
-and layer tags in the catalog.
+colleague in another group cannot read or write it.
 
 ## 4. Show it
 
@@ -103,7 +100,6 @@ administrators). A dashboard that spans two catalogs is administrators-only unti
   in Airflow, and **Open in Airflow** takes you to the run, task and log view. Group members may run
   and pause their group's DAGs there.
 
-## What is coming
+## Not available yet
 
-Ingestion templates · SQL models with tests · layer tags in the catalog · a Python helper for
-governed writes.
+Ingestion templates, SQL models with tests, and layer tags in the catalog.

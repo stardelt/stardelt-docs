@@ -752,7 +752,7 @@ Publish a notebook as a new immutable object version in the `notebooks` bucket. 
 
 Operation id `notebooks_delete`: in Python `client.call("notebooks_delete", …)`, on the command line `stardelt api notebooks_delete`.
 
-`DELETE /api/notebooks/{group}/{name}`: the notebook and every version of it (#298).
+`DELETE /api/notebooks/{group}/{name}`: the notebook and every version of it.
 
 Delete a published notebook and every version of it from the `notebooks` bucket; the bucket is versioned, so each version is removed by its id and the bytes are gone, not hidden. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). A notebook with no version is 404 `no such notebook`. The answer carries the number of versions removed. A schedule that pinned a deleted version fails its next run. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502 (a retry removes what is left). Each delete writes one audit line with group, name and the number of versions, never content. Answers `Cache-Control: no-store`.
 
@@ -779,7 +779,7 @@ Delete a published notebook and every version of it from the `notebooks` bucket;
 
 Operation id `notebooks_parameters`: in Python `client.call("notebooks_parameters", …)`, on the command line `stardelt api notebooks_parameters`.
 
-`GET /api/notebooks/{group}/{name}/parameters`: the parameters of one version, so the Schedule dialog can offer the form the notebook declares (stardelt-nova#237).
+`GET /api/notebooks/{group}/{name}/parameters`: the parameters of one version, so the Schedule dialog can offer the form the notebook declares.
 
 The parameters of one published version of a notebook, read from the stored bytes: the `name = literal` lines of the first cell tagged `parameters`, in order, at most 32, defaults as text and never evaluated. `?version=<id>` names the immutable version; omitted, the latest is read and its id answered. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. The answer carries `parameters` and the `objectVersion` it describes — a schedule pins that id. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.
 
@@ -873,7 +873,7 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
-| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
@@ -976,7 +976,7 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
-| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
@@ -1202,7 +1202,7 @@ One run of a pipeline with its task instances. The run id is looked up through t
 
 Operation id `pipelines_run_stop`: in Python `client.call("pipelines_run_stop", …)`, on the command line `stardelt api pipelines_run_stop`.
 
-Stop a run: mark it failed. This is **not a cancel** — work already in flight can finish and commit its side effects (stardelt-nova#255), so the answer promises only that the run is marked failed. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and is never patched. A run that is not `queued` or `running` answers 409 and is not patched. Answers the fresh `RunView` and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+Stop a run: mark it failed. This is **not a cancel** — work already in flight can finish and commit its side effects, so the answer promises only that the run is marked failed. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and is never patched. A run that is not `queued` or `running` answers 409 and is not patched. Answers the fresh `RunView` and `Cache-Control: no-store`. The attempt is audited, including a refusal.
 
 **Parameters**
 

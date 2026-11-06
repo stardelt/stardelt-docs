@@ -94,7 +94,5 @@ a schema check (for example `kubeconform` with the CRD schemas from the operator
 typo fails the pull request, not the nightly run.
 
 Merging to `main` is what deploys: CI applies the manifests, or a GitOps controller syncs the
-directory, and `kubectl get pipelines` shows what the cluster has. Scheduled execution arrives
-with the engine adapters — today the operator plans from these resources and reports status;
-Airflow running the steps on the schedule is the next milestone. The git discipline does not
-wait for it: review, history and rollback work from the first manifest.
+directory, and `kubectl get pipelines` shows what the cluster has. Airflow runs each pipeline on its
+schedule. See [Publish pipelines from Git](publish-pipelines).

@@ -6,56 +6,69 @@ slug: /architecture/security-model
 
 # Security model
 
-What stardelt exposes, what it trusts, and where credentials come from. Each rule is
-marked **built**, **ticketed** (a ready-to-implement ticket exists) or **open**.
-The tracking issue (with current status) is [stardelt-platform#53](https://github.com/stardelt/stardelt-platform/issues/53).
+What stardelt exposes, what it trusts, and where credentials come from. [Known limits](#known-limits)
+says what is not protected yet, so read it before you put real data on the platform.
+
+To report a vulnerability, follow [the security policy](https://github.com/stardelt/.github/blob/main/SECURITY.md).
 
 ## Trust boundaries
 
 | Zone | Contains | Rule |
 |---|---|---|
-| **Edge** (internet) | Ingress controller, TLS | Publishes only components that authenticate users. Default: Nova and the identity provider |
-| **Identity plane** | Keycloak (platform IdP) or an external IdP | One realm/tenant; every block validates tokens issued by it ([identity](./identity), [per-block SSO](./identity-integrations)) |
-| **Application plane** | Nova, Superset, Airflow, JupyterHub | Sign in through the IdP; never published without it |
-| **Data plane** | Trino, Lakekeeper, SeaweedFS, Postgres | Cluster-internal. Reached through Nova or a port-forward |
-| **Control plane** | Operator, Helm releases | Cluster-admin-equivalent today ([operator RBAC RFC](https://github.com/stardelt/stardelt-operator/issues/48)) |
+| **Edge** | Ingress controller, TLS | Publishes only components that sign users in |
+| **Identity** | Keycloak or your own OIDC provider | Every component validates tokens from one issuer ([Identity](./identity)) |
+| **Applications** | Nova, Superset, Airflow, JupyterHub | Sign in through the identity provider; never published without it |
+| **Data** | Trino, Lakekeeper, SeaweedFS, PostgreSQL | Inside the cluster. Trino can be published because it requires a token; the others are reached through Nova or a port-forward |
+| **Control** | Operator, Helm releases | Holds cluster-wide rights, because installing charts requires them |
 
 ## Publishing rules
 
-1. **A component is published only if it authenticates users against the platform identity.**
-   Built: Nova (OIDC), Superset and Airflow (Keycloak SSO), JupyterHub (Keycloak, group-gated) and
-   Trino (every statement needs a Keycloak token; an unauthenticated `POST /v1/statement` is answered 401).
-   Lakekeeper is not published. The umbrella chart renders an Ingress for a component without sign-in
-   only when asked (`ingress.exposeUnauthenticated`).
-2. **Keycloak publishes an allow-list, not the whole host.** Built in the playground Ingress and in
-   `chart/templates/ingress.yaml` as ingress-nginx regexes, following Keycloak's
-   [reverse-proxy guide](https://www.keycloak.org/server/reverseproxy): `/realms/stardelt`, `/resources`,
-   `/robots.txt`, and the `stardelt` realm's console (`/admin/stardelt`, `/admin/realms/stardelt`,
-   `/admin/serverinfo`) so platform admins can manage users. The master realm (`/realms/master`,
-   `/admin/master`), `/health` and `/metrics` fall through to 404. For master-realm work use
-   `kubectl -n stardelt exec -it deploy/keycloak -- /opt/keycloak/bin/kcadm.sh` (break-glass).
-3. **Trino accepts authenticated HTTPS only, inside the cluster too.** The coordinator serves TLS from an internal certificate authority; plain HTTP answers `Authentication over HTTP is not enabled`, so a pod cannot claim another user's name. Clients (Nova, Superset, notebooks) trust the platform CA bundle.
+1. **A component is published only if it authenticates users against the platform's identity
+   provider.** That covers Nova, Superset, Airflow, JupyterHub and Trino. Lakekeeper is not published.
+   The umbrella chart renders an Ingress for a component without sign-in only if you ask for it with
+   `ingress.exposeUnauthenticated`.
+2. **Keycloak publishes an allow-list, not the whole host.** `/realms/stardelt`, `/resources`,
+   `/robots.txt` and the `stardelt` realm's console are reachable. The master realm, `/health` and
+   `/metrics` answer 404. For master-realm work, use
+   `kubectl -n stardelt exec -it deploy/keycloak -- /opt/keycloak/bin/kcadm.sh`.
+3. **With sign-in on, Trino accepts authenticated HTTPS only, inside the cluster too.** A pod cannot
+   claim another user's name. Clients trust the platform's CA bundle.
 
-## Credentials contract
+## Who may read what
 
-**No credential is committed, and none is a fixed default.** Every secret is generated at install
-time, once, and never rotated implicitly.
+Groups in the identity provider are the only source of roles. What enforces them depends on how you
+installed:
 
-| Path | How it is generated | Where |
+| | `make platform` with `IDENTITY=1` | Umbrella chart or `make install-core`, defaults |
 |---|---|---|
-| Helm chart | `randAlphaNum` + `lookup` (kept across `helm upgrade`), `helm.sh/resource-policy: keep` | `chart/templates/*.yaml` |
-| Makefile install | `openssl rand`, mode-0600 temp files, never on a command line or in a log, skipped if the Secret exists | `scripts/identity-bootstrap.sh` (Keycloak, OIDC clients, Nova session), `scripts/app-secrets.sh` (Airflow, Superset) |
-| **Still committed** | the SeaweedFS S3 key pair (`chart/values.yaml`, `helm-values/seaweedfs.yaml`, `manifests/s3-credentials.dev.yaml`) | generation is ticketed: [#100](https://github.com/stardelt/stardelt-platform/issues/100), [#101](https://github.com/stardelt/stardelt-platform/issues/101), [#102](https://github.com/stardelt/stardelt-platform/issues/102); rotation of the live cluster: [#108](https://github.com/stardelt/stardelt-platform/issues/108) |
-| Guard | CI fails when a known default string is committed | `scripts/check-no-default-secrets.sh`, ticketed: [#107](https://github.com/stardelt/stardelt-platform/issues/107) |
+| Sign-in | Keycloak | none (development mode) |
+| SQL as the signed-in person | yes | no |
+| Table permissions | OpenFGA, through Lakekeeper and its OPA bridge | none (`allowall`): everyone can do everything |
 
-The inventory of every secret (who creates it, who reads it, how it rotates) is in
-[rotating secrets](../operations/rotating-secrets).
+:::danger Without sign-in there is no access control
+The default chart and core installs have no sign-in and no permissions. Use them only behind a
+port-forward, with data you do not mind everyone on the cluster reading.
+:::
 
-## Open items
+## Credentials
 
-- Network isolation: no `NetworkPolicy` exists anywhere; the namespace is flat
-  ([tenancy RFC](https://github.com/stardelt/stardelt-operator/issues/50)).
-- Per-user authorization: Lakekeeper runs `allowall` and Trino has no authenticator, so any signed-in user
-  can run any DDL/DML their token allows (Trino now sees the user, but has no access rules yet) ([docs#34](https://github.com/stardelt/stardelt-docs/issues/34)).
-- A secrets manager (OpenBao / External Secrets) is in the design but in no install path
-  (see [licenses](./licenses)).
+**No credential is committed, and none is a fixed default.** Every secret is generated once at install
+and kept. It is never rotated implicitly. CI fails when a known default string is committed
+(`scripts/check-no-default-secrets.sh`). [Rotating secrets](../operations/rotating-secrets) lists every
+secret, who reads it and how to rotate it.
+
+## Known limits
+
+- **One storage key.** Trino, Spark Connect and the catalog read object storage with one platform
+  key. Anything that holds that key can read every file, whatever the table permissions say.
+- **Spark has weaker protection than Trino.** `stardelt.spark()` passes your token, so the catalog decides
+  which tables you may use. But row and column masks apply only in Trino, Spark writes files with the shared
+  key, and Spark Connect has no authentication of its own, so it stays inside the cluster. Prefer the SQL
+  engine or `stardelt.write_df` when permissions matter.
+- **Network isolation is partial.** NetworkPolicies protect Lakekeeper, OpenFGA, JupyterHub and
+  Superset's database on a `make` install. The rest of the namespace is flat, and the umbrella chart's
+  core renders none.
+- **The operator has broad rights.** Treat access to its namespace like cluster administrator access.
+- **SeaweedFS sign-in stays off.** The pinned version must not use its own OIDC path (CVE-2026-77298,
+  fixed in 4.40). stardelt uses static keys there. See
+  [per-component sign-in](./identity-integrations).

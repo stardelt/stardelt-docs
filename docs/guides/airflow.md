@@ -19,7 +19,7 @@ A DAG may be missing for one of these reasons:
 
 - The pipeline has no `ownerGroup` (administrators only).
 - You are not in the owning group.
-- The DAG was published less than ~25 seconds ago (the loader's interval).
+- The DAG was published less than about 25 seconds ago.
 - The group role does not exist yet (the sync Job runs every five minutes).
 
 If it is still missing, ask an administrator to check `stardelt-group-<group>` in `airflow roles list`.
@@ -30,8 +30,8 @@ Nova is the front door — scheduling, Run/Pause, the pipeline's definition and 
 
 ## What you may do
 
-Read and edit (pause, trigger) your group's DAGs and read/create their runs. No delete — deleting a pipeline is a Nova action on the `Pipeline` resource. Leaving the group takes effect at your next sign-in (`AUTH_ROLES_SYNC_AT_LOGIN`).
+Read and edit (pause, trigger) your group's DAGs and read/create their runs. No delete — deleting a pipeline is a Nova action on the `Pipeline` resource. Leaving the group takes effect at your next sign-in.
 
 ## Notebooks and Spark
 
-A notebook that calls `stardelt.spark()` needs the pipeline principal's token to carry the `lakekeeper` audience (the ServicePrincipal default is now `[trino, lakekeeper]`; see the reference page).
+A notebook that calls `stardelt.spark()` needs the pipeline principal's token to carry the `lakekeeper` audience (the `ServicePrincipal` default is `[trino, lakekeeper]`; see the [reference](../reference/resources/serviceprincipal)).

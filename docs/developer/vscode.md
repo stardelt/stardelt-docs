@@ -64,10 +64,7 @@ The token belongs to your session. When it expires, restart your server from the
 
 ## What is planned
 
-These are tracked as tickets; this page is updated when they ship.
-
 - A stardelt VS Code extension: sign in with your platform account, browse the catalog, run SQL and see results,
   start pipelines.
 - JSON schemas for the platform's resources, so pipeline files get completion and validation in the YAML editor.
 - VS Code in the browser as a workspace option next to JupyterLab.
-- A developer sign-in (device flow) so scripts on your laptop can call the platform without a notebook.

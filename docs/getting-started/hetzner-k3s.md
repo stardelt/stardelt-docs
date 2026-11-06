@@ -1,72 +1,78 @@
 ---
-title: "Hetzner k3s (development cluster)"
-sidebar_label: "Hetzner k3s"
+title: "Install on a single Hetzner node"
+sidebar_label: "Single Hetzner node"
 slug: /getting-started/hetzner-k3s
 ---
 
-# Hetzner k3s — the development cluster
+# Install on a single Hetzner node
 
-The full stardelt chart set (Airflow, Superset, Trino, SeaweedFS, Lakekeeper, …) does not fit
-comfortably on a laptop. Development therefore runs against a real single-node **k3s** cluster
-on Hetzner Cloud.
+If you do not have a cluster yet, this is the cheapest way to try the whole platform: one k3s node
+on Hetzner Cloud, created by a script, gone again with one command.
 
-Provisioning artifacts live in
-[`stardelt-platform/dev/hetzner-k3s`](https://github.com/stardelt/stardelt-platform/tree/main/dev/hetzner-k3s).
+:::caution For trying things out
+One node means no high availability. Do not put data here that you cannot lose. To run stardelt on
+a cluster you already operate, see [Install on your own cluster](./your-cluster).
+:::
 
 ## What you get
 
-- One node, default **`cx33`** (4 vCPU / 8 GB, ~€10/month); workloads are scheduled on it.
-- A private network, a firewall (SSH + Kubernetes API from your IP only, 80/443 open), and the
-  Hetzner CCM + CSI driver.
-- **No cloud load balancer** and **no bundled ingress controller** — ingress comes from
-  [`dev/playground`](https://github.com/stardelt/stardelt-platform/tree/main/dev/playground)
-  (ingress-nginx, host-network), which keeps the cost off the bill.
+- One node, by default **`cx33`** (4 vCPU, 8 GB, about €10 a month). Choose `NODE_TYPE=cx43`
+  (16 GB, about €19 a month) for the full platform.
+- A private network and a firewall: SSH and the Kubernetes API from your IP only, ports 80 and 443
+  open.
+- The Hetzner cloud controller and storage driver. There is no cloud load balancer, which keeps the
+  bill down.
 - A kubeconfig at `~/.kube/stardelt-dev.yaml`.
-- Playground DNS (A + wildcard A) for `$INGRESS_HOST`, when Cloudflare credentials exist.
 
-## Bring it up
+## 1. Create the node
 
-Needs the [`hetzner-k3s`](https://github.com/vitobotta/hetzner-k3s) binary, an SSH keypair, and
-`HCLOUD_TOKEN` (in `~/.config/stardelt/hetzner.env` or `dev/hetzner-k3s/.env`).
+You need the [tools from the prerequisites](./prerequisites#tools), an SSH key pair and a Hetzner
+API token. The scripts live in
+[`stardelt-platform/dev/hetzner-k3s`](https://github.com/stardelt/stardelt-platform/tree/main/dev/hetzner-k3s).
 
 ```sh
-# hetzner-k3s itself: `brew install vitobotta/tap/hetzner_k3s`, or the release binary
-# from github.com/vitobotta/hetzner-k3s/releases
-set -a; . ~/.config/stardelt/hetzner.env; set +a
+git clone https://github.com/stardelt/stardelt-platform
 cd stardelt-platform
+
+export HCLOUD_TOKEN=...          # or keep it in ~/.config/stardelt/hetzner.env
 make dev-up
 
 export KUBECONFIG="$HOME/.kube/stardelt-dev.yaml"
 kubectl get nodes
 ```
 
-## Deploy stardelt onto it
+## 2. Install stardelt
+
+On the 8 GB node, install the core: storage, catalog, SQL engine and the Nova interface. Sign-in is
+off, so keep it behind a port-forward.
 
 ```sh
-make install-core SLIM=1   # core: storage + catalog + query + Nova — fits cx33
-# or, on a 16 GB node (NODE_TYPE=cx43, ~€19/month):
-make install               # full: + Airflow + Superset
-
-make install-notebooks     # JupyterHub; fits next to the core stack
+make install-core SLIM=1
 ```
 
-Then set up ingress and TLS from `dev/playground`.
+On the 16 GB node, install everything, with sign-in. Replace the domain with one you control:
 
-A cluster provisioned exactly this way is already running: Nova at
-[alpha.dev.stardelt.io](https://alpha.dev.stardelt.io), with `trino.` and `jupyter.` under the
-same wildcard host. It serves the `core` profile (`make install-core SLIM=1`) plus JupyterHub
-(`make install-notebooks`) — SeaweedFS, Lakekeeper, Trino, Nova and JupyterHub; Superset and
-Airflow need the `full` profile and a 16 GB node.
+```sh
+IDENTITY=1 BASE_DOMAIN=data.example.com make platform
+```
 
-## Tear it down
+To reach the platform through that domain, set up ingress and TLS from
+[`dev/playground`](https://github.com/stardelt/stardelt-platform/tree/main/dev/playground).
+
+## 3. Open it
+
+Without a domain, forward Nova to your machine and open http://localhost:8080:
+
+```sh
+kubectl -n stardelt port-forward svc/nova 8080:8080
+```
+
+Then follow [From source to dashboard](../guides/source-to-dashboard).
+
+## Remove it
+
+This deletes the node and everything on it:
 
 ```sh
 make dev-down
 ```
-
-## Notes
-
-- Single node, no HA — a development environment, not production.
-- **Do not put real data here.**
-- The build-plane AI fleet runs on the maintainer's laptop, **not** on this cluster. See
-  AI development fleet.

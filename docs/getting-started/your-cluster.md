@@ -6,21 +6,23 @@ slug: /getting-started/your-cluster
 
 # Install on your own cluster
 
-The dev path ([Hetzner k3s](./hetzner-k3s)) installs stardelt with
-`make install` — a script that walks the components one at a time. That path is optimised for the
-maintainer's workflow, not for yours.
+For a cluster you operate, use the **umbrella Helm chart** in `stardelt-platform/chart`: one release,
+one values file you keep in Git, and every cluster-specific decision is a value.
 
-For a cluster you operate, use the **umbrella Helm chart** in `stardelt-platform/chart`. One release,
-one values file you keep in Git, and every cluster-specific decision is a value rather than an edit
-to a script. This page is the settings reference for that path.
+:::caution The chart's default has no sign-in and no permissions
+The chart installs the core with `identity.mode: none`, and Lakekeeper runs with `allowall`. Everyone
+who reaches it can do everything. Set `identity.mode` before you expose it. The chart does not include
+the permission store (OpenFGA) or Spark. For table permissions by group, install with
+`IDENTITY=1 BASE_DOMAIN=<your domain> make platform` instead.
+:::
 
 ## What your cluster must provide
 
 | Requirement | Notes |
 |---|---|
-| Kubernetes ≥ 1.27 | verified on k3s 1.37; nothing here is distribution-specific beyond the notes below |
+| Kubernetes | verified on k3s 1.37; nothing here is distribution-specific beyond the notes below |
 | A default StorageClass | or set `storage.className`; check with `kubectl get storageclass` |
-| `helm` ≥ 3.14 and `kubectl` | `helm dependency build` fetches the sub-charts |
+| `helm` 3.18 or newer and `kubectl` | `helm dependency build` fetches the sub-charts |
 | Optional: an ingress controller | only if you want the chart's Ingress objects (`ingress.enabled`) |
 | Optional: cert-manager | only if you want the chart's TLS annotations (`ingress.tls.enabled`) |
 
@@ -136,8 +138,7 @@ Lower a heap without lowering `maxMemoryPerNode` and Trino refuses to start with
 
 ## Several lakehouses in one cluster
 
-stardelt expects more than one instance to be possible (a lakehouse per tenant is the plan). Two
-things in the stack are **cluster-scoped** and therefore only exist once per cluster:
+Two things in the stack are **cluster-scoped** and therefore only exist once per cluster:
 
 - the **CloudNative-PG operator** (a `ClusterRole`, CRDs, a webhook): for a second release set
   `cloudnative-pg.enabled: false` and let it use the one that already runs;
@@ -148,17 +149,14 @@ things in the stack are **cluster-scoped** and therefore only exist once per clu
 
 Object names come from each sub-chart's `fullnameOverride`, so two releases coexist as long as they
 live in **different namespaces**, which is how the chart is built (`--namespace` everywhere, no
-hardcoded names). Same namespace, same release, different names: not supported.
-
-First-class "many lakehouses, one cluster" is the operator's job — see the `Lakehouse` CRD in
-[`stardelt-operator`](https://github.com/stardelt/stardelt-operator). Until it takes over, one
-values file per namespace is the honest answer.
+hardcoded names). Same namespace, same release, different names: not supported. Use one values file
+per namespace.
 
 ## Distribution notes
 
 | Where you run | What to expect |
 |---|---|
-| **k3s** | the StorageClass comes with the distribution (`local-path`); install an ingress controller yourself if you want one — the dev playground uses ingress-nginx bound to the host network, which is a single-node trick, not a requirement |
+| **k3s** | the StorageClass comes with the distribution (`local-path`); install an ingress controller yourself if you want one — nothing in the chart needs host networking |
 | **EKS, GKE, AKS** | set `storage.className` (`gp3`, `standard-rwo`, `managed-csi`); use the cloud load balancer or install an ingress controller; nothing in the chart assumes host networking or hostPath |
 | **OpenShift** | **not verified.** Routes replace ingresses, and security context constraints may reject the upstream charts' `securityContext` blocks (several upstream images assume a fixed UID). Treat it as a porting project and report what you hit |
 | **Air-gapped** | mirror `ghcr.io/stardelt/*` and every upstream image into your registry, then set `images.pullSecrets` and the sub-chart keys above. The published stardelt images are public, so no secret is needed to pull them from the internet |
@@ -174,13 +172,12 @@ kubectl -n stardelt exec deploy/trino-coordinator -- \
   trino --execute "SELECT count(*) FROM system.runtime.nodes"
 ```
 
-Then open Nova (through your ingress, or `kubectl -n stardelt port-forward svc/nova 8080:8080`).
-Its **Apps** page probes every service and **Health** lists each workload with the image it actually
-runs — including digests — so it is the fastest way to confirm what your cluster is running.
+Then open Nova (through your ingress, or run `kubectl -n stardelt port-forward svc/nova 8080:8080` and open http://localhost:8080).
+Its **Apps** page probes every service, and **Health** lists each workload with the image it runs.
 
-:::note What is verified
-The chart is exercised in a namespace of its own on a single-node k3s cluster, and the settings on
-this page are rendered and checked there. The cloud and OpenShift rows above are reasoned from what
-the chart does and does not assume — not yet from a real install. If you try one, a bug report with
-`kubectl get events -n stardelt` is the most useful thing you can send.
+:::note What has been tested
+The chart has been tested on single-node k3s. The cloud and OpenShift rows above are based on what the
+chart assumes, not on a real install. If you try one, an
+[issue](https://github.com/stardelt/stardelt-platform/issues) with the output of
+`kubectl get events -n stardelt` helps a lot.
 :::

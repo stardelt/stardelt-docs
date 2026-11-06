@@ -35,6 +35,8 @@ function publicText(value) {
       /\s*\((?:decisions? D\d+[^)]*|D\d+[^)]*|master spec[^)]*|internal note[^)]*)\)/gi,
       '',
     )
+    // Issue references mean nothing to a reader of the site.
+    .replace(/\s*\((?:(?:stardelt-)?[a-z]+)?#\d+(?:'s builders)?\)/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
 }

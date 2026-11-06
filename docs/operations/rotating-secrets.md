@@ -8,13 +8,13 @@ slug: /operations/rotating-secrets
 
 Secrets are generated once at install and kept. Rotating one is a deliberate act: **delete the
 Secret, run the install again, restart what read the old value.** This page lists every secret and
-what depends on it. Namespace `stardelt` is assumed. Never print a Secret value into a ticket, log or chat.
+what depends on it. Namespace `stardelt` is assumed. Never paste a Secret value into an issue, a log or a chat.
 
 ## Inventory
 
 | Secret | Keys | Created by | Read by | After a rotation |
 |---|---|---|---|---|
-| `stardelt-s3-creds` | `access-key`, `secret-key`, `endpoint`, `bucket`, `region` | `scripts/s3-secrets.sh` / chart (**ticketed**, #100 #101; today a committed dev file) | Trino, Lakekeeper bootstrap, Airflow, CNPG backups | restart Trino; refresh Lakekeeper's warehouse credential; restart the CNPG pod |
+| `stardelt-s3-creds` | `access-key`, `secret-key`, `endpoint`, `bucket`, `region` | `scripts/s3-secrets.sh` / chart | Trino, Lakekeeper bootstrap, Airflow, CNPG backups | restart Trino; refresh Lakekeeper's warehouse credential; restart the CNPG pod |
 | `seaweedfs-s3-config` | `seaweedfs_s3_config` (JSON, same key pair) | same, derived from the above | SeaweedFS S3 gateway | rolls with the Helm upgrade |
 | `keycloak-admin` | `username`, `password` | `identity-bootstrap.sh` / chart | Keycloak (bootstrap admin) | the bootstrap admin is only created on first start: change the password in the console too |
 | `stardelt-realm-admin` | `username`, `password` | same | realm import and `scripts/sync-realm-admin.sh` | re-run `make install-identity`, it re-applies and verifies it |
@@ -53,9 +53,4 @@ DROP TABLE warehouse.rotation_check.t;
 DROP SCHEMA warehouse.rotation_check;
 ```
 
-An already-committed key (the pre-generation default) is **never** rotated automatically: the
-install keeps an existing Secret. Delete it as above to move to a generated one.
-
-## Status
-
-The Airflow, Superset and Keycloak rows are built. The S3 rows describe the target: until [#100](https://github.com/stardelt/stardelt-platform/issues/100) and [#101](https://github.com/stardelt/stardelt-platform/issues/101) merge, the live key pair is the committed one, and the rotation below is the cutover ticket [#108](https://github.com/stardelt/stardelt-platform/issues/108).
+The install keeps an existing Secret and never rotates it on its own.

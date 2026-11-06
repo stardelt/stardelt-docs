@@ -19,7 +19,7 @@ A managed Trino + catalog + Iceberg unit on object storage.
 | `spec.catalog` | object | No | `{"implementation":"lakekeeper"}` |  |  |
 | `spec.catalog.implementation` | string | No | `lakekeeper` | Catalog implementation (the plug behind the Iceberg REST contract). | `lakekeeper`, `polaris` |
 | `spec.compute` | object | No | `{"spark":{"enabled":false}}` | Compute endpoints installed with the Lakehouse (default: none). |  |
-| `spec.compute.spark` | object | No | `{"enabled":false}` | The Spark Connect endpoint (operator#239's builders): opt-in, because it is a second driver on the namespace and reads the Lakehouse's own S3 Secret. |  |
+| `spec.compute.spark` | object | No | `{"enabled":false}` | The Spark Connect endpoint: opt-in, because it is a second driver on the namespace and reads the Lakehouse's own S3 Secret. |  |
 | `spec.compute.spark.enabled` | boolean | No | `false` |  |  |
 | `spec.deletionPolicy` | string | No | `Retain` | What happens to the data when this resource is deleted. Defaults to Retain. | `Retain`, `Delete` |
 | `spec.dryRun` | boolean | No | `true` | Plan only (no cluster changes) until explicitly disabled. Safe default. |  |
