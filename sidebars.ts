@@ -20,29 +20,34 @@ const sidebars: SidebarsConfig = {
   docs: [
     {
       type: 'category',
-      label: 'Intro',
-      collapsed: false,
-      items: ['intro/overview'],
-    },
-    {
-      type: 'category',
-      label: 'Getting started',
+      label: 'Start here',
       collapsed: false,
       items: [
-        'getting-started/prerequisites',
-        'getting-started/your-cluster',
-        'getting-started/hetzner-k3s'
+        'intro/overview',
+        'getting-started/quickstart',
+        'architecture/how-it-works',
       ],
     },
     {
       type: 'category',
-      label: 'Guides',
+      label: 'Install',
+      collapsed: false,
+      items: [
+        'getting-started/prerequisites',
+        'getting-started/hetzner-k3s',
+        'getting-started/your-cluster',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Work with data',
       collapsed: false,
       items: [
         'guides/source-to-dashboard',
         'guides/connections',
         'guides/schedule-sql',
         'guides/notebooks-in-git',
+        'developer/vscode',
         'guides/airflow',
         'guides/publish-pipelines',
         'guides/bundle-reference',
@@ -53,17 +58,27 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Architecture',
-      collapsed: false,
+      label: 'Operate',
+      collapsed: true,
       items: [
-        'architecture/how-it-works',
+        'operations/production',
+        'operations/backups',
+        'operations/rotating-secrets',
+        'operations/troubleshooting',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Understand',
+      collapsed: true,
+      items: [
         'architecture/overview',
         'architecture/services',
         'architecture/identity',
         'architecture/identity-integrations',
         'architecture/security-model',
-        'architecture/licenses',
         'architecture/sovereignty',
+        'architecture/licenses',
       ],
     },
     {
@@ -74,33 +89,18 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Operations',
-      collapsed: false,
-      items: [
-        'operations/production',
-        'operations/backups',
-        'operations/rotating-secrets',
-        'operations/troubleshooting',
-      ],
-    },
-    'roadmap',
-    {
-      type: 'category',
-      label: 'Developer',
-      collapsed: true,
-      link: { type: 'doc', id: 'developer/index' },
-      items: [
-        'developer/index',
-        'developer/contributing',
-        'developer/vscode',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Reference',
       collapsed: true,
       items: ['reference/resources/index', ...referenceResources, 'reference/api'],
     },
+    {
+      type: 'category',
+      label: 'Contribute',
+      collapsed: true,
+      link: { type: 'doc', id: 'developer/index' },
+      items: ['developer/contributing'],
+    },
+    'roadmap',
   ],
 };
 

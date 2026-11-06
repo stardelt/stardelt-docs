@@ -1,51 +1,45 @@
 # stardelt-docs
 
-The stardelt documentation site, published to **https://stardelt.io**.
+The documentation of [stardelt](https://stardelt.io), an open-source data platform for Kubernetes.
+Built with [Docusaurus](https://docusaurus.io).
 
-Built with [Docusaurus 3](https://docusaurus.io). Theme matches the Nova UI and the marketing site at stardelt.io — same palette (`#0b0e1f` background, `#5b6cff` accent), same system font stack, dark mode only.
+Found something wrong or missing? Every page has an **Edit this page** link, or
+[open an issue](https://github.com/stardelt/stardelt-docs/issues/new/choose).
 
-## Local development
+## Run it locally
 
-### With Docker (recommended)
+With Docker:
 
 ```bash
 docker compose up
 ```
 
-Open <http://localhost:3000>. First run installs dependencies into a named volume and may take a minute or two; subsequent starts reuse the cached `node_modules` and reach "compiled successfully" in seconds. Hot reload works through the bind mount (file watching uses polling so it's reliable on WSL2 and macOS Docker Desktop).
-
-### With host Node
-
-Requires Node ≥ 18.
+Or with Node 20 or newer:
 
 ```bash
 npm install
 npm start
 ```
 
-## Build & preview
+Then open http://localhost:3000. Before you open a pull request, run `npm run build`: it fails on broken
+links.
 
-```bash
-npm run build
-npm run serve
+## Where things are
+
+```text
+docs/getting-started/  install and first steps
+docs/guides/           how to work with data on the platform
+docs/operations/       how to keep it running
+docs/architecture/     how it fits together
+docs/services/         one page per service
+docs/reference/        generated from reference-src/; never edit by hand
+docs/developer/        how to contribute
+sidebars.ts            the navigation
+src/pages/index.tsx    the home page
 ```
 
-## Deployment
+Every merge to `main` publishes the site through GitHub Pages.
 
-Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages. The custom domain `stardelt.io` is pinned via `static/CNAME` — make sure your DNS has `stardelt.io CNAME stardelt.github.io.`
+## License
 
-## Layout
-
-```
-docs/                  # markdown content (architecture, roadmap, design spec, MVP notes, diagrams)
-src/css/custom.css     # stardelt theme overrides
-src/pages/index.tsx    # homepage hero
-static/img/            # logo + wordmark
-static/CNAME           # GitHub Pages custom domain
-docusaurus.config.ts   # site config
-sidebars.ts            # sidebar structure
-```
-
-## Editing content
-
-All markdown lives under `docs/`. Add a new page by dropping a `.md` file in the right folder and listing it in `sidebars.ts`.
+[Apache 2.0](LICENSE). By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).

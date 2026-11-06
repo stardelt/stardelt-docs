@@ -43,7 +43,7 @@ const config: Config = {
     announcementBar: {
       id: 'pre-alpha-disclaimer',
       content:
-        '⚠️ <b>Pre-alpha.</b> stardelt is in an MVP / vibecoding phase — moving fast, iterating in the open. Expect breaking changes; not ready for production.',
+        '<b>Pre-alpha.</b> stardelt changes quickly and is not ready for production.',
       backgroundColor: '#1a1f3d',
       textColor: '#e6e9ff',
       isCloseable: false,
@@ -57,10 +57,10 @@ const config: Config = {
       title: 'stardelt',
       logo: { alt: 'stardelt', src: 'img/logo.svg' },
       items: [
-        { to: '/docs/intro/overview', label: 'Overview', position: 'left' },
-        { to: '/docs/getting-started/prerequisites', label: 'Getting started', position: 'left' },
-        { to: '/docs/architecture/overview', label: 'Architecture', position: 'left' },
+        { to: '/docs/getting-started/quickstart', label: 'Quickstart', position: 'left' },
+        { to: '/docs/intro/overview', label: 'Docs', position: 'left' },
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
+        { to: '/docs/developer', label: 'Contribute', position: 'left' },
         { href: 'https://github.com/stardelt', label: 'GitHub', position: 'right' },
       ],
     },
@@ -70,8 +70,8 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
-            { label: 'Architecture', to: '/docs/architecture/overview' },
-            { label: 'Components', to: '/docs/architecture/services' },
+            { label: 'Quickstart', to: '/docs/getting-started/quickstart' },
+            { label: 'How it works', to: '/docs/architecture/how-it-works' },
             { label: 'Roadmap', to: '/docs/roadmap' },
             { label: 'Sovereignty', to: '/docs/architecture/sovereignty' },
           ],
@@ -80,7 +80,8 @@ const config: Config = {
           title: 'Community',
           items: [
             { label: 'GitHub org', href: 'https://github.com/stardelt' },
-            { label: 'stardelt.io', href: 'https://stardelt.io' },
+            { label: 'Contribute', to: '/docs/developer' },
+            { label: 'Report a security problem', href: 'https://github.com/stardelt/.github/blob/main/SECURITY.md' },
           ],
         },
       ],

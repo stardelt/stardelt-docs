@@ -31,15 +31,6 @@ function IconFlow(): ReactNode {
   );
 }
 
-function IconWave(): ReactNode {
-  return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path d="M2 8c1-2 2-2 3 0s2 2 3 0 2-2 3 0 2 2 3 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M2 13c1-2 2-2 3 0s2 2 3 0 2-2 3 0 2 2 3 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
 function IconNeural(): ReactNode {
   return (
     <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
@@ -94,7 +85,7 @@ function HomepageHero(): ReactNode {
       <div className={styles.heroInner}>
         <div className={styles.status}>
           <span className={styles.statusDot} aria-hidden="true" />
-          Pre-alpha · MVP / vibecoding phase — moving fast
+          Pre-alpha · changing quickly
         </div>
         <img
           className={styles.wordmark}
@@ -105,22 +96,21 @@ function HomepageHero(): ReactNode {
           A self-hostable data platform for Kubernetes.
         </h1>
         <p className={styles.heroSubtitle}>
-          An opinionated collection of upstream OSS services — lakehouse SQL,
-          distributed compute, streaming, notebooks and BI — composed by one
-          declarative platform operator. Apache 2.0. Runs in your cluster.
+          Open-source SQL, tables, notebooks, schedules and dashboards with
+          one sign-in and one interface. Apache 2.0. Runs in your cluster.
         </p>
         <div className={styles.ctaRow}>
           <Link
             className={clsx('button button--primary button--lg', styles.ctaPrimary)}
-            to="/docs/architecture/overview"
+            to="/docs/getting-started/quickstart"
           >
-            Read the design
+            Try the quickstart
           </Link>
           <Link
             className="button button--secondary button--lg"
             href="https://github.com/stardelt"
           >
-            GitHub org →
+            GitHub →
           </Link>
         </div>
         <p className={styles.heroTagline}>
@@ -139,28 +129,28 @@ type Principle = { title: string; body: string };
 
 const visionPrinciples: Principle[] = [
   {
-    title: 'Runs on any Kubernetes',
-    body: 'Hyperscaler, sovereign cloud, on-prem, edge, air-gapped. The control plane is operators in your cluster — there is no SaaS side.',
+    title: 'Runs on your Kubernetes',
+    body: 'In a cloud, on your own servers, or on one small node to try it. There is no SaaS side.',
   },
   {
-    title: 'No outbound calls at runtime',
-    body: 'No telemetry, no license check, no usage report. Each release ships with a documented network-egress matrix listing every call its components make.',
+    title: 'No required outbound calls',
+    body: "stardelt's own components have no telemetry, no license check and no usage report.",
   },
   {
-    title: 'OSI-permissive licenses',
-    body: 'Apache 2.0 / MIT / BSD across the stack. Services on BSL, SSPL, ELv2 or AGPL are excluded by policy.',
+    title: 'Permissive licenses',
+    body: 'Apache 2.0, MIT or BSD across the stack, with one documented, optional MPL 2.0 exception.',
   },
   {
-    title: 'One CRD per workload',
-    body: 'A small set of top-level CRDs (Lakehouse, Pipeline, StreamApp) reconcile into the per-service operators, instead of asking platform teams to assemble them by hand.',
+    title: 'One command to install',
+    body: 'One command installs and upgrades the platform. An operator with small declarative resources is growing to take that over.',
   },
   {
-    title: 'stardelt Nova — single UI',
-    body: 'SSO, catalog browser, lineage view, cost attribution, audit search, and deep-links into the underlying tools. One place to start for engineers, one place to look for auditors.',
+    title: 'One interface',
+    body: 'Catalog, SQL editor, loads, pipelines, query log, lineage and health in Nova, with an API behind every screen.',
   },
   {
     title: 'Open formats at rest',
-    body: 'Tables are Iceberg + Parquet on object storage. Uninstalling stardelt leaves your data readable by any Iceberg-compatible engine — no proprietary metadata to peel off.',
+    body: 'Tables are Iceberg and Parquet on object storage. Uninstall stardelt and any Iceberg engine can still read them.',
   },
 ];
 
@@ -173,10 +163,9 @@ function Vision(): ReactNode {
           Built for teams that need the data to stay inside their cluster.
         </h2>
         <p className={styles.sectionLede}>
-          Managed data warehouses keep the control plane at the vendor and
-          charge per credit. stardelt runs the whole stack inside your
-          Kubernetes cluster — same engines, same SQL, same ML — operated by
-          you.
+          stardelt runs the whole stack inside your Kubernetes cluster,
+          operated by you, on standard open-source engines and open table
+          formats.
         </p>
         <div className={styles.principles}>
           {visionPrinciples.map((p) => (
@@ -211,16 +200,16 @@ const pillars: Pillar[] = [
     tools: ['Spark Connect', 'Airflow'],
   },
   {
-    icon: <IconWave />,
-    title: 'Streaming',
-    body: 'Kafka as the event backbone; Flink (opt-in) for stream processing.',
-    tools: ['Kafka (KRaft)', 'Flink'],
-  },
-  {
     icon: <IconNeural />,
     title: 'Notebooks & BI',
-    body: 'JupyterHub for analysis, Superset for dashboards — both wired into Trino and Spark.',
+    body: 'JupyterHub for analysis and Superset for dashboards, both connected to the same tables.',
     tools: ['JupyterHub', 'Superset'],
+  },
+  {
+    icon: <IconGrid />,
+    title: 'Sign-in & permissions',
+    body: 'One sign-in from the browser to the query, and table permissions by group.',
+    tools: ['Keycloak', 'OpenFGA', 'OPA'],
   },
 ];
 
@@ -230,12 +219,11 @@ function Pillars(): ReactNode {
       <div className={styles.container}>
         <span className={styles.eyebrow}>Architecture</span>
         <h2 className={styles.sectionTitle}>
-          An opinionated collection of services on a shared foundation.
+          Proven services on a shared foundation.
         </h2>
         <p className={styles.sectionLede}>
-          Modern 2026 service picks on a shared Iceberg + Lakekeeper
-          foundation. Composed by the stardelt Operator and surfaced through
-          stardelt Nova.
+          Every engine reads and writes the same Iceberg tables through one
+          catalog. stardelt Nova brings them together.
         </p>
         <div className={styles.pillarGrid}>
           {pillars.map((p) => (
@@ -262,20 +250,20 @@ function Pillars(): ReactNode {
 
 const sovereigntyPrinciples: Principle[] = [
   {
-    title: 'Documented egress',
-    body: 'Every release publishes a network-egress matrix. Every outbound call is listed; nothing undocumented at runtime.',
+    title: 'Your perimeter',
+    body: 'Data, catalog and engines all run in your cluster, on storage you choose.',
   },
   {
-    title: 'Air-gap install path',
-    body: 'Helm/OLM bundles ship every image. Harbor (or any OCI registry) as the in-cluster mirror; no DNS to external hosts required at install or upgrade.',
+    title: 'Your identity provider',
+    body: 'Use the bundled Keycloak or your own OIDC provider. Nova keeps no passwords.',
   },
   {
-    title: 'Sovereign-cloud CI',
-    body: 'CI runs installs on European sovereign-cloud Kubernetes (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway) alongside the hyperscalers.',
+    title: 'A way out',
+    body: 'Your tables stay readable without stardelt, by any Iceberg-compatible engine.',
   },
   {
-    title: 'No non-EU vendor in the default path',
-    body: 'Default install pulls only from the Apache Software Foundation, CNCF, Linux Foundation and vendor-neutral projects. Useful when GDPR Article 28 or the US CLOUD Act are in scope.',
+    title: 'Plain about the gaps',
+    body: 'The sovereignty page separates what holds today from what is still a goal, such as a tested air-gapped install.',
   },
 ];
 
@@ -300,7 +288,7 @@ function Sovereignty(): ReactNode {
             className="button button--secondary button--lg"
             to="/docs/architecture/sovereignty"
           >
-            Read the sovereignty commitments →
+            Read what holds today →
           </Link>
         </div>
       </div>
@@ -317,22 +305,22 @@ type DocCard = { icon: ReactNode; title: string; body: string; to: string; cta: 
 const docCards: DocCard[] = [
   {
     icon: <IconLayers />,
-    title: 'Architecture',
-    body: 'How the core stack and opt-in services compose on Kubernetes, and how requests flow between them.',
-    to: '/docs/architecture/overview',
-    cta: 'Read the architecture →',
+    title: 'How it works',
+    body: 'One picture of the platform: who talks to what, and why.',
+    to: '/docs/architecture/how-it-works',
+    cta: 'See the picture →',
   },
   {
-    icon: <IconGrid />,
-    title: 'Services',
-    body: 'Per-service descriptions, licenses, and upstream links for the core stack and the opt-in services.',
-    to: '/docs/architecture/services',
-    cta: 'Browse services →',
+    icon: <IconFlow />,
+    title: 'From source to dashboard',
+    body: 'Load data, model it in layers, schedule it and show it.',
+    to: '/docs/guides/source-to-dashboard',
+    cta: 'Read the guide →',
   },
   {
     icon: <IconTimeline />,
     title: 'Roadmap',
-    body: 'Phases 0 through 6, what ships when, and an explicit list of what is out of scope for v1.',
+    body: 'The milestones, what works today, and what stardelt will not be.',
     to: '/docs/roadmap',
     cta: 'See the roadmap →',
   },
@@ -342,13 +330,8 @@ function DiveDeeper(): ReactNode {
   return (
     <section id="docs" className={styles.section}>
       <div className={styles.container}>
-        <span className={styles.eyebrow}>Dive deeper</span>
-        <h2 className={styles.sectionTitle}>The full design lives in the docs.</h2>
-        <p className={styles.sectionLede}>
-          Architecture, component selection, licensing analysis, diagrams —
-          load-bearing for everything that comes later. The codebase is
-          pre-alpha; the docs are where the design is settled.
-        </p>
+        <span className={styles.eyebrow}>Next steps</span>
+        <h2 className={styles.sectionTitle}>Find your way around.</h2>
         <div className={styles.docGrid}>
           {docCards.map((d) => (
             <Link key={d.title} to={d.to} className={styles.docCard}>
@@ -373,7 +356,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={siteConfig.title}
-      description="A self-hostable, Kubernetes-native data platform: lakehouse, batch ETL, streaming and ML/AI composed from upstream OSS into one declarative platform CRD. Apache 2.0."
+      description="A self-hostable, Kubernetes-native data platform: SQL over Iceberg tables, notebooks, schedules and dashboards with one sign-in. Apache 2.0."
     >
       <HomepageHero />
       <main>

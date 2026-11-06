@@ -27,13 +27,14 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 - **One API.** Whatever you can click, you can call. See [Python, command line and agents](../guides/sdk-cli-mcp.md).
 - **Nova acts as you.** With sign-in on, your token goes on to the engines, so what you may read is decided by the engine and the catalog for you, not by Nova's own power.
 - **Plugs, not a monolith.** The engine, the catalog, the identity provider and the object store are replaceable behind open contracts (SQL, the Iceberg REST catalog, OIDC, S3).
-- **Honest limits.** Results Nova keeps in memory are capped (100 000 rows or about 64 MiB per statement); storage credentials are one platform key today, not yet one short-lived key per person.
+- **Known limits.** Results Nova keeps in memory are capped (100 000 rows or about 64 MiB per statement); storage credentials are one platform key today, not yet one short-lived key per person.
 
 ## Where to go next
 
 | I want to ... | Read |
 |---|---|
-| Install it on a cluster | [Hetzner k3s](../getting-started/hetzner-k3s.md) |
+| Try it | [Quickstart](../getting-started/quickstart.md) |
+| Install it for real | [Prerequisites](../getting-started/prerequisites.md) |
 | Go from a source to a dashboard | [Source to dashboard](../guides/source-to-dashboard.md) |
 | Keep source credentials out of pipelines | [Connections](../guides/connections.md) |
 | Run SQL on a schedule | [Schedule SQL](../guides/schedule-sql.md) |
