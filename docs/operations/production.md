@@ -78,6 +78,7 @@ stardelt has no bundled monitoring. Watch these with your own tools:
 |---|---|
 | Pods not `Running` or `Completed` | Catches most breakage |
 | `make verify-backups-all` | A backup that stopped looks exactly like one that works |
+| `make verify-images` | A pin can name a digest the registry stopped serving, or a package your pull credential cannot read |
 | Failed queries and memory pressure in Trino | The first sign of undersized heaps |
 | Node disk and memory | SeaweedFS and Trino are the main consumers; a full disk fails writes |
 | Certificate expiry (`kubectl get certificates -A`) | An expired certificate is a silent outage |

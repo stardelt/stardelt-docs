@@ -16,6 +16,32 @@ helm list -A                                    # any release stuck in pending-u
 
 Nova's **Health** page lists every workload and the image it runs.
 
+## A pinned image will not pull
+
+**Symptoms.** `ImagePullBackOff` / `ErrImagePull`; the pod event names the image and a registry status:
+- `403 Forbidden` / `permission_denied: The token provided does not match expected scopes` — the pull credential cannot read the package (a private package with a token that lacks `read:packages`).
+- `404` / `manifest unknown` on a digest — the package or that digest is gone.
+
+**Check it.** `make verify-images`, with the real output block above (keep it verbatim, indenting it as a code block); one sentence on what each verdict means (✓ readable, ✗ not readable with the registry's code, `UNVERIFIED` exit 3 when the Secret cannot be read).
+
+```text
+✓ jupyter-singleuser   ghcr.io/stardelt/jupyter-singleuser@sha256:c3d45ec4…   readable
+✓ stardelt-operator   ghcr.io/stardelt/stardelt-operator@sha256:e7548851…   readable
+✗ superset   ghcr.io/stardelt/superset@sha256:b9ced85d81a0c9efd2ca993f27bba5470e4815aad9d246b93e3ca5e62d26e8cd   404: the digest is gone from the registry (garbage-collected?)
+✓ airflow   ghcr.io/stardelt/airflow@sha256:2d9504d1…   readable
+✓ nova   ghcr.io/stardelt/nova@sha256:8562b91b…   readable
+✓ spark   ghcr.io/stardelt/spark@sha256:7f9c3cbc…   readable
+FAIL (1 of 6 images is not readable)
+```
+
+**Fix it.**
+1. If the package must be readable by the cluster: make it public (GitHub → the `stardelt` org → Packages → the package → Package settings → Change visibility), matching the other `ghcr.io/stardelt/*` packages; or give the pull Secret a token with `read:packages` (and rotate it wherever it is stored).
+2. Re-run `make verify-images`; expect `PASS (N of N images readable)` and exit 0.
+3. If the digest itself is gone (404), re-pin: take the `Pin it:` line from the image's build log (`gh run view <run> --log | grep 'Pin it'`) and update `tag:` in the matching `helm-values/*.yaml`; `./scripts/pin-image.sh <component>` moves the cluster and the line together on the dev cluster.
+4. Restart the consumers: `kubectl -n stardelt rollout restart deploy/<name>` (or `make step-<component>`), then `kubectl -n stardelt get pods`.
+
+**Do not** conclude the platform is healthy from a Running pod with a locally imported image; check `imageID` as above. Detect it with `kubectl -n stardelt get pod <pod> -o jsonpath='{.spec.containers[0].image}{" "}{.spec.containers[0].imagePullPolicy}{" "}{.status.containerStatuses[0].imageID}'` — an `imageID` that is not the pinned digest means that image was never pulled from the registry.
+
 ## PostgreSQL never becomes ready
 
 **Symptoms.** The CloudNativePG pods never report ready (`Instance is still down`,
