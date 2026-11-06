@@ -46,6 +46,11 @@ A stardelt platform instance.
 | `spec.pillars.pipelines` | boolean | No | `false` | Scheduled pipelines and jobs (Airflow, run as `KubernetesExecutor`). Off by default: it brings a metadata database and four long-running pods, and a cluster that only serves queries does not need them. Nova's Pipelines page and `stardelt bundle run` need it. |  |
 | `spec.pillars.streaming` | boolean | No | `false` |  |  |
 | `spec.profile` | string | No | `demo` | Deployment size / capability profile. | `demo`, `full`, `airgap` |
+| `spec.secrets` | object | No | `{"mode":"none"}` | Where the credentials of `Connection` objects come from; see [`SecretsSpec`]. |  |
+| `spec.secrets.external` | object (nullable) | No |  | The enterprise's store; required for `external`, refused for the other modes. |  |
+| `spec.secrets.external.provider` | object | Yes |  | The `provider` block of the `ClusterSecretStore` (`vault`, `aws`, `azurekv`, …), passed to External Secrets verbatim. Exactly one provider key; credentials are referenced by Secret name inside the block, never inline. |  |
+| `spec.secrets.groups` | array of string | No |  | Owner groups that get their own store entry in `secrets.mode: platform`: each one may read only its own path. Mirrors the platform's `STORE_GROUPS`. |  |
+| `spec.secrets.mode` | string | No | `none` | Which secret store the platform uses for user credentials. | `none`, `platform`, `external` |
 | `spec.set` | object (map of object (map of string)) | No |  | `--set` overrides per component: `set.<component>.<helm.key>: "value"`. Highest precedence — Helm applies `--set` after any values document. |  |
 | `spec.values` | object (map of object) | No |  | Free-form Helm values per component, e.g. `values.trino.worker.resources`. Deep-merged over the golden defaults, so one key can be pinned without restating the rest. |  |
 | `spec.valuesFrom` | object (map of object) | No |  | External values documents per component, read from a ConfigMap or Secret key. |  |
@@ -83,6 +88,10 @@ A stardelt platform instance.
 - identity.mode platform derives the issuer from baseDomain; leave identity.issuerUrl out
 - identity needs baseDomain (the application hosts and redirect addresses are built from it)
 - ingress needs baseDomain (the hosts are built from it)
+- secrets.mode external needs secrets.external.provider (the ClusterSecretStore provider block)
+- secrets.external is only allowed with secrets.mode external
+- secrets.groups entries are lower-case letters, digits and dashes (at most 40 characters)
+- secrets.groups is only allowed with secrets.mode platform
 - platform mode creates its own clients: leave provider, apiAudience and clients out
 - external mode needs issuerUrl
 - external mode needs apiAudience
