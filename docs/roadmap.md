@@ -63,7 +63,7 @@ This is the wedge. A single working pillar with the composed control plane prove
 - L1 (substrate, minimum viable): Keycloak, **K8s Secrets** ✅ (OpenBao deferred to Phase 5), VictoriaMetrics + VictoriaLogs + Perses + Jaeger, OpenCost
 - L2 (data foundation): SeaweedFS (+ BYO-S3 path) ✅, Lakekeeper ✅, Apache Iceberg ✅, OPA + OpenFGA bootstrap, OpenLineage emit-only
 - L3 Pillar 1 (Lakehouse SQL only): Trino ✅, DuckDB, Apache Superset (not on the dev node — `full` profile), JupyterHub ✅
-- L4 (stardelt-native): `stardelt-operator` ◐ (CRDs, reconcile planner and a Helm-backed controller for `PlatformInstance` and `Lakehouse`; no `IngestionSource` / `Pipeline` controller yet), **Nova MVP** ✅ (catalog browser, SQL editor, load & transfer, jobs, platform apps and health, Superset embed, an illustrative lineage page — SSO in progress), `stardelt` CLI
+- L4 (stardelt-native): `stardelt-operator` ◐ (CRDs, reconcile planner and a Helm-backed controller for `PlatformInstance` and `Lakehouse`; no `IngestionSource` / `Pipeline` controller yet), **Nova MVP** ✅ (catalog browser, SQL editor, load & transfer, jobs, platform apps and health, Superset embed, a lineage page over OpenLineage events, OIDC sign-in), `stardelt` CLI
 
 **Validation** (✅ done today, ◐ partial, — not started):
 
