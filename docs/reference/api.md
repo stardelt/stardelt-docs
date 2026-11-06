@@ -1413,6 +1413,23 @@ Delete one of the caller's saved queries.
 | `404` | No such saved query, or it is not the caller's |
 | `503` | The state store is not configured |
 
+## /api/service-principals
+
+### GET /api/service-principals
+
+Operation id `service_principals_list`: in Python `client.call("service_principals_list", …)`, on the command line `stardelt api service_principals_list`.
+
+The service principals the caller may see: every `ServicePrincipal` of their groups, and all of them for an administrator. `purpose` is the resource's `spec.purpose` (default `pipeline`); `audiences` are the resource's audiences; `ready` is `status.ready`; `message` is `null` when ready, otherwise the `Ready` condition's message, or `no status yet`. Credentials are never part of an answer. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The caller's principals, sorted by name |
+| `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
 ## /api/statements
 
 ### GET /api/statements

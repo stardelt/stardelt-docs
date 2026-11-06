@@ -4865,6 +4865,57 @@
         }
       }
     },
+    "/api/service-principals": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The service principals the caller may see: every `ServicePrincipal` of their groups, and all of them for an administrator. `purpose` is the resource's `spec.purpose` (default `pipeline`); `audiences` are the resource's audiences; `ready` is `status.ready`; `message` is `null` when ready, otherwise the `Ready` condition's message, or `no status yet`. Credentials are never part of an answer. Answers `Cache-Control: no-store`.",
+        "operationId": "service_principals_list",
+        "responses": {
+          "200": {
+            "description": "The caller's principals, sorted by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServicePrincipalsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/settings": {
       "get": {
         "tags": [
@@ -8348,6 +8399,59 @@
           "truncated": {
             "type": "boolean",
             "description": "True when more tables match than were returned, or when the catalog has more namespaces than one\nrequest reads (100): the answer is then a prefix, so narrow the words or name the catalog."
+          }
+        }
+      },
+      "ServicePrincipalView": {
+        "type": "object",
+        "description": "One `ServicePrincipal` the caller may see (#479).",
+        "required": [
+          "name",
+          "ownerGroup",
+          "purpose",
+          "audiences",
+          "ready"
+        ],
+        "properties": {
+          "audiences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`null` when ready; otherwise the same sentence the Schedule dialog would refuse with."
+          },
+          "name": {
+            "type": "string"
+          },
+          "ownerGroup": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "ready": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ServicePrincipalsResponse": {
+        "type": "object",
+        "description": "`GET /api/service-principals`: the principals the caller may see.",
+        "required": [
+          "principals"
+        ],
+        "properties": {
+          "principals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServicePrincipalView"
+            }
           }
         }
       },
