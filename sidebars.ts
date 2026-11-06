@@ -46,6 +46,7 @@ const sidebars: SidebarsConfig = {
         'guides/source-to-dashboard',
         'guides/connections',
         'guides/schedule-sql',
+        'guides/service-principals',
         'guides/notebooks-in-git',
         'developer/vscode',
         'guides/airflow',
