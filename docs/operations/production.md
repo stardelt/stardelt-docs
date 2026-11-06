@@ -72,7 +72,7 @@ Read the [security model](../architecture/security-model), and its known limits 
 
 ## What to watch
 
-stardelt has no bundled monitoring. Watch these with your own tools:
+stardelt has no bundled monitoring. Watch these with your own tools. See [Checks to run](./checks) for read-only verification after upgrades and on a schedule:
 
 | Signal | Why it matters |
 |---|---|

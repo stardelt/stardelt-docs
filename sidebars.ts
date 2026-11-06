@@ -63,6 +63,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'operations/production',
         'operations/backups',
+        'operations/checks',
         'operations/rotating-secrets',
         'operations/troubleshooting',
       ],
