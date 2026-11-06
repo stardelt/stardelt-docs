@@ -47,6 +47,7 @@ const sidebars: SidebarsConfig = {
         'guides/publish-pipelines',
         'guides/bundle-reference',
         'guides/query-log',
+        'guides/lineage',
         'guides/sdk-cli-mcp',
       ],
     },
