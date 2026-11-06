@@ -647,6 +647,45 @@ The readiness probe. It answers 200 without sign-in whenever the process is up, 
 | --- | --- |
 | `200` | The process is up; `db` is the state store's state |
 
+## /api/lineage
+
+### GET /api/lineage
+
+Operation id `lineage_graph`: in Python `client.call("lineage_graph", …)`, on the command line `stardelt api lineage_graph`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog |
+| `depth` | query | integer | No | Depth 1-5, default 2 |
+| `schema` | query | string | No | Schema |
+| `table` | query | string | No | Table |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | Lineage graph |
+| `403` | Not visible |
+
+### GET /api/lineage/runs/\{run_id\}
+
+Operation id `lineage_run_detail`: in Python `client.call("lineage_run_detail", …)`, on the command line `stardelt api lineage_run_detail`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `run_id` | path | string | Yes | Run ID |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | Run detail |
+| `404` | Not found |
+
 ## /api/me
 
 ### GET /api/me
