@@ -2,20 +2,12 @@
 
 ## A note from the maintainers
 
-stardelt is pre-alpha and built in the open — including by AI agents. Nobody here is going to
-gatekeep on polished prose, perfect English, or "did you read every design doc first." Ask the
-question, open the rough draft PR, paste the half-working manifest.
+Nobody here gatekeeps on polished prose, perfect English, or having read everything first. Ask the
+question, open the rough draft pull request, paste the half-working manifest.
 
-**AI-assisted contributions are welcome.** This project runs an AI development fleet (see
-[`docs/developer/ai-fleet.md`](docs/developer/ai-fleet.md)), and PRs written with an agent are as
-legitimate as PRs written by hand. Two requests:
-
-1. **Tag the model.** Say which model and provider produced the change — e.g.
-   `Model: opencode-go/deepseek-v4.1-flash` — in the PR description or the commit trailer. Reviewers
-   calibrate how much they re-verify based on what they know about the tool, and the record is useful
-   when a change turns out to be wrong.
-2. **Own the change.** A model cannot answer review comments. If you open the PR, you are the author:
-   you verify the build, you answer the questions, you fix the fallout.
+Contributions made with AI assistants are welcome, on the two conditions in
+[the contributing guide](https://stardelt.io/docs/developer/contributing#using-an-ai-assistant): name the
+model, and own the change.
 
 Everything below is the Contributor Covenant 2.1, unchanged except for the contact address.
 

@@ -31,7 +31,7 @@ version. Test it before you depend on it.
 
 | Block | Native OIDC | Via proxy | Not possible in OSS | Groups / roles from token | User token to next hop | Effort |
 |---|---|---|---|---|---|---|
-| **Nova** | ✅ (stardelt-built: auth code + PKCE, bearer) | n/a | n/a | yes (`identity.groupClaim`) | ✅ Bearer to Trino and Lakekeeper (phase 2) | M |
+| **Nova** | ✅ (stardelt-built: auth code + PKCE, bearer) | n/a | n/a | yes (`identity.groupClaim`) | ✅ Bearer to Trino and Lakekeeper | M |
 | **Trino** | ✅ `OAUTH2` (Web UI and bearer JWT) | n/a | groups from claims | ❌ group providers are file/LDAP only | ❌ to Lakekeeper: service principal (user forwarding unverified) | M |
 | **Lakekeeper** | ✅ native OIDC (API and UI) | n/a | n/a | roles claim read only by Cedar; OpenFGA ignores token roles | n/a (end of chain; signs or vends S3 access) | S, or M with OpenFGA |
 | **Superset** | ✅ FAB `AUTH_OAUTH` | n/a | n/a | ✅ `AUTH_ROLES_MAPPING` | ⚠️ service account + impersonation, or a second per-user OAuth2 consent for Trino | S |
@@ -40,7 +40,6 @@ version. Test it before you depend on it.
 | **SeaweedFS S3** | ⚠️ OIDC/STS exists upstream; needs ≥ 4.40 (CVE-2026-77298) | n/a | user SSO at 4.25 (do not enable) | role mapping in IAM JSON (upstream) | n/a | stay on static keys |
 | **SeaweedFS admin UI** | ❌ OIDC is SeaweedFS **Enterprise** only | ✅ oauth2-proxy | yes, in OSS | via oauth2-proxy `allowed_groups` | n/a | S |
 | **SeaweedFS filer UI** | ❌ | ✅ oauth2-proxy, or do not expose | yes | via oauth2-proxy | n/a | S |
-| OpenMetadata | not deployed today; skipped | | | | | |
 
 Effort: **S** is values only. **M** adds an image change, a bootstrap step or extra components.
 
@@ -48,7 +47,7 @@ Effort: **S** is values only. **M** adds an image change, a bootstrap step or ex
 versions.** Trino authenticates the user, then talks to Lakekeeper as one trusted service
 principal. Per-user table policy reaches Trino through Trino's OPA access control plus
 Lakekeeper's **OPA bridge**, which answers Trino's checks from Lakekeeper's permission model. That
-needs a real authorization backend in Lakekeeper (OpenFGA, Apache-2.0), not today's `allowall`.
+needs a real authorization backend in Lakekeeper (OpenFGA), not `allowall`, which the chart's default uses.
 Direct callers (Nova, notebooks, PyIceberg) present the user's own token to Lakekeeper.
 
 ## Decision: two modes, one knob
@@ -89,7 +88,7 @@ How the knob lands in each block:
 
 - **Mechanism.** Built by stardelt to the contract on the Identity page: authorization code + PKCE
   against `issuerUrl` discovery, a server-side session cookie, and `Authorization: Bearer` on
-  `/api/*`. Not implemented on `main` yet: the backend still sends a fixed `X-Trino-User`.
+  `/api/*`. `NOVA_FORWARD_IDENTITY` sends the caller's token on to Trino.
 - **Values.** `NOVA_AUTH_MODE=oidc`, `NOVA_OIDC_ISSUER`, `NOVA_OIDC_CLIENT_ID`,
   `NOVA_OIDC_CLIENT_SECRET`, `NOVA_OIDC_SCOPES`, `NOVA_OIDC_GROUP_CLAIM`, `NOVA_OIDC_ADMIN_GROUP`,
   `NOVA_SESSION_SECRET`. Redirect URI: `https://<baseDomain>/api/auth/callback`.
@@ -184,7 +183,7 @@ How the knob lands in each block:
         clientID: lakekeeper                   # Entra: the SPA app registration
         scopes: "openid profile"               # Entra: "openid profile api://<stardelt-api>/access"
   authz:
-    backend: openfga                           # allowall today = no enforcement
+    backend: openfga                           # allowall = no enforcement
   internalOpenFGA: true
   catalog:
     extraEnv:
