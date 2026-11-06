@@ -149,6 +149,7 @@ Distributed compute for jobs that outgrow Trino. Spark Connect exposes a persist
 
 - Site: [spark.apache.org](https://spark.apache.org)
 - Install: `make install-spark` (`manifests/spark.yaml`).
+Full page: [Spark Connect](../services/spark).
 
 ### OpenBao
 
