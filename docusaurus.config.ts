@@ -39,13 +39,14 @@ const config: Config = {
   ],
 
   themeConfig: {
+    metadata: [{ name: 'theme-color', content: '#18191b' }],
     image: 'img/logo-wordmark.svg',
     announcementBar: {
       id: 'pre-alpha-disclaimer',
       content:
         '<b>Pre-alpha.</b> stardelt changes quickly and is not ready for production.',
-      backgroundColor: '#1a1f3d',
-      textColor: '#e6e9ff',
+      backgroundColor: '#282a2e',
+      textColor: '#e8eaed',
       isCloseable: false,
     },
     colorMode: {
