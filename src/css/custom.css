@@ -181,3 +181,25 @@ thead tr {
   background: #282a2e;
   border-color: rgba(122, 138, 255, 0.45);
 }
+
+/* Admonitions: Graphite surface, a coloured edge instead of a filled block */
+.theme-admonition {
+  background: #1f2124;
+  border: 1px solid var(--ifm-toc-border-color);
+  border-left: 3px solid var(--sd-adm, #7a8aff);
+  border-radius: 10px;
+  box-shadow: none;
+  color: var(--ifm-color-content);
+}
+.theme-admonition.alert--secondary, .theme-admonition.alert--info { --sd-adm: #7a8aff; }
+.theme-admonition.alert--success { --sd-adm: #4cc38a; }
+.theme-admonition.alert--warning { --sd-adm: #e3a33b; }
+.theme-admonition.alert--danger  { --sd-adm: #ef6b6b; }
+.theme-admonition [class*='admonitionHeading'] {
+  color: var(--sd-adm, #7a8aff);
+  text-transform: none;
+  font-size: 0.9rem;
+  letter-spacing: 0;
+}
+.theme-admonition [class*='admonitionIcon'] svg { fill: var(--sd-adm, #7a8aff); }
+.markdown img { border: 1px solid var(--ifm-toc-border-color); border-radius: 12px; }

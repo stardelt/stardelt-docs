@@ -10,6 +10,10 @@ stardelt is an open-source data platform that runs on your own Kubernetes cluste
 proven open-source projects and connects them, so you get one sign-in, one interface and one API for
 storing, querying, scheduling and showing data.
 
+![Nova, the Overview of a team at work](/img/nova/overview.png)
+
+*Nova, stardelt's interface: catalogs, recent loads and queries, and the services, in one place.*
+
 :::warning Pre-alpha
 APIs, resources and install steps change without notice. There are no tagged releases yet. Try it,
 but do not run your business on it.
