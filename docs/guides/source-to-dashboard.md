@@ -20,6 +20,8 @@ Superset: see [Prerequisites](../getting-started/prerequisites).
 | A REST API | Python in a notebook (`requests` → DataFrame), then write the table (step 2) |
 | A database | Read it from a notebook with a [connection](connections), then write the table |
 
+A complete example that keeps itself up to date is [the PEGELONLINE demo](pegelonline-demo).
+
 Write raw data into the **bronze** schema of your domain catalog, for example `mobility.bronze`.
 Never change raw data in place. **Load & transfer** writes to the first catalog you may write — your
 group's catalog, otherwise `shared`; `warehouse` is the platform's technical catalog and

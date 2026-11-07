@@ -44,6 +44,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'guides/source-to-dashboard',
+        'guides/pegelonline-demo',
         'guides/connections',
         'guides/schedule-sql',
         'guides/service-principals',
