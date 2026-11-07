@@ -14,15 +14,33 @@ Each row is one `StreamApp`:
 
 | Column | Meaning |
 |---|---|
-| Phase | The stream's current state (for example `Running` or `Stopped`). |
-| Source → sink | The Kafka topic the stream reads and the Iceberg table it writes. |
-| Last checkpoint | When the stream last recorded its checkpoint. |
+| Name | The `StreamApp` name, with its owner group beneath it. |
+| Phase | The phase the operator reports: `Running`, `Stopped`, `Failed` or `Pending`. |
+| Source | The `Connection` (or the platform bus) and the Kafka topic the stream reads. |
+| Sink | The catalog, table and mode (`merge` or `append`) the stream writes. |
+| Checkpoint | When the stream last recorded its checkpoint. |
 | Last error | The most recent error, if any. |
-| Stopped | Whether the stream is stopped (`spec.stopped`). |
+| Job | One **Stop** or **Resume** button. |
 
 The page shows the `StreamApp`s of the groups you belong to; an administrator sees all of them. It polls every 15 seconds.
 
-If nothing runs on the bus yet, the page is empty with the message: "nothing runs on the bus yet: a stream appears when a `StreamApp` is created".
+If nothing runs on the bus yet, the page is empty and says: "No streams yet. A stream is
+created as a `StreamApp` resource; ask an administrator to add one."
+
+## Stop and resume a stream
+
+**Stop** sets `spec.stopped: true`; the operator deletes the Spark application and keeps the
+checkpoint. **Resume** sets it back to `false` and the job continues from that checkpoint, so
+no rows are lost or re-read from the start.
+
+The button acts on one row and is disabled while that row's request is in flight. If the
+request fails, the API's sentence appears above the table and the button is enabled again;
+the page shows what the operator reports, so the phase does not change until the operator
+has reconciled. An administrator can do the same from the command line:
+
+```bash
+kubectl -n <namespace> patch streamapp <name> --type merge -p '{"spec":{"stopped":true}}'
+```
 
 ## See streams from the command line
 

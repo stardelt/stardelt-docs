@@ -69,8 +69,36 @@ For the modelling steps onward, see [From source to dashboard](source-to-dashboa
 
 ## The same rows on the bus
 
-The demo can publish to the [bus](../services/kafka); publishing is wired when the bus is installed. The wiring is on the platform path. Once a `StreamApp` reads the topic, you can follow it on the [Streams page](streams).
+The DAG also publishes each fetched row to the [bus](../services/kafka) on the topic
+`pegelonline.measurements`. A `StreamApp` reads that topic and writes
+`mobility.bronze.pegelonline_stream`, merging on `(station_uuid, timeseries, measured_at)`.
+
+The example lives in `stardelt-demos/examples/pegelonline/`:
+
+- `streamapp.yaml` — the `StreamApp` (topic in, Iceberg table out, `ownerGroup:
+  mobility-analytics`);
+- `sink.sql` — the target table, with the same 15 columns and both timestamps;
+- `README.md` — the two apply commands.
+
+Apply the table first, then the stream:
+
+```bash
+kubectl -n stardelt apply -f examples/pegelonline/sink.sql   # or run it in Nova's SQL editor
+kubectl -n stardelt apply -f examples/pegelonline/streamapp.yaml
+```
+
+Check that rows arrive in Nova's SQL editor:
+
+```sql
+SELECT count(*) AS rows, max(measured_at) AS newest
+FROM mobility.bronze.pegelonline_stream;
+```
+
+The stream starts from the topic's earliest offset (`startingOffsets: earliest`), so the first
+run reads the whole retained topic. Follow it on the [Streams page](streams); stopping it
+keeps the checkpoint.
 
 ## Why bronze only
 
-This demo writes straight to Iceberg as the first phase of the streaming work; a later streaming path replaces the poller and changes nothing downstream.
+The demo stops at bronze so the streaming path and the hourly path can be compared row for
+row. Modelling onward is the [source-to-dashboard](source-to-dashboard) guide's job.
