@@ -15,6 +15,7 @@ const servicePages = fs
   .filter((file) => file.endsWith('.md'))
   .sort()
   .map((file) => `services/${file.slice(0, -3)}`);
+const streamingBus = 'services/kafka';
 
 const sidebars: SidebarsConfig = {
   docs: [
@@ -44,6 +45,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'guides/source-to-dashboard',
+        'guides/streams',
         'guides/pegelonline-demo',
         'guides/connections',
         'guides/schedule-sql',
@@ -88,7 +90,10 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Services',
       collapsed: true,
-      items: servicePages,
+      // Kafka follows Spark (opt-in streaming bus), overriding alphabetical order.
+      items: servicePages
+        .filter((p) => p !== streamingBus)
+        .flatMap((p) => (p === 'services/spark' ? [p, streamingBus] : [p])),
     },
     {
       type: 'category',

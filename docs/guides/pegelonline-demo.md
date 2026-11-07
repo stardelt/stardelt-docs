@@ -67,6 +67,10 @@ The schedule is `7 * * * *` (seven minutes past every hour), so `newest` advance
 
 For the modelling steps onward, see [From source to dashboard](source-to-dashboard).
 
+## The same rows on the bus
+
+The demo can publish to the [bus](../services/kafka); publishing is wired when the bus is installed. The wiring is on the platform path. Once a `StreamApp` reads the topic, you can follow it on the [Streams page](streams).
+
 ## Why bronze only
 
 This demo writes straight to Iceberg as the first phase of the streaming work; a later streaming path replaces the poller and changes nothing downstream.
