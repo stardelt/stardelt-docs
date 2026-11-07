@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1200, height=630" />
+    <title>stardelt</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #18191b;
+        color: #fff;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      }
+      .frame {
+        position: relative;
+        width: 1200px;
+        height: 630px;
+        display: grid;
+        grid-template-columns: 60% 40%;
+        align-items: center;
+        padding: 56px 0 56px 64px;
+      }
+      .left {
+        padding-right: 24px;
+        z-index: 2;
+      }
+      .wordmark {
+        height: 56px;
+        width: auto;
+        display: block;
+        margin: 0 0 28px 0;
+      }
+      .headline {
+        margin: 0 0 22px 0;
+        font-size: 56px;
+        font-weight: 700;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: #fff;
+        max-width: 640px;
+      }
+      .domain {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 500;
+        color: #8e949e;
+        letter-spacing: -0.01em;
+      }
+      .right {
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        overflow: visible;
+      }
+      .glow {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        width: 420px;
+        height: 360px;
+        transform: translateY(-50%);
+        background: radial-gradient(ellipse at center, rgba(88, 166, 255, 0.22) 0%, rgba(88, 166, 255, 0.08) 38%, rgba(24, 25, 27, 0) 72%);
+        filter: blur(8px);
+        pointer-events: none;
+      }
+      .shot-wrap {
+        position: relative;
+        width: 520px;
+        height: 420px;
+        margin-right: -40px;
+        overflow: hidden;
+        border-radius: 14px;
+        transform: perspective(1800px) rotateY(-9deg) rotateX(2deg);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,255,255,0.06);
+      }
+      .shot {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 760px;
+        height: auto;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="left">
+        <img class="wordmark" src="../../static/img/logo-wordmark.svg" alt="stardelt" />
+        <h1 class="headline">Your own data platform.<br />Built new, for how data<br />works now.</h1>
+        <p class="domain">stardelt.io</p>
+      </div>
+      <div class="right">
+        <div class="glow" aria-hidden="true"></div>
+        <div class="shot-wrap">
+          <img class="shot" src="../../static/img/nova/overview.png" alt="" />
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

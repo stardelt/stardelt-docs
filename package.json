@@ -15,7 +15,8 @@
     "typecheck": "tsc",
     "sync:reference": "node scripts/sync-reference.mjs",
     "gen:reference": "node scripts/gen-reference.mjs",
-    "screenshots": "node scripts/screenshots/capture.mjs"
+    "screenshots": "node scripts/screenshots/capture.mjs",
+    "og": "node scripts/og/render.mjs"
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",

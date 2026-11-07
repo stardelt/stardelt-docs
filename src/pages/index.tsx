@@ -683,7 +683,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title={siteConfig.title}
-      description="A self-hostable, Kubernetes-native data platform: SQL over Iceberg tables, notebooks, schedules and dashboards with one sign-in. Apache 2.0."
+      description="Your own data platform on Kubernetes: Iceberg, SQL, pipelines, notebooks, streams and dashboards with one sign-in, one interface and one API. Apache 2.0."
     >
       <HomepageHero />
       <Story />

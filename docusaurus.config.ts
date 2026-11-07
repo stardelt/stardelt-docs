@@ -39,8 +39,11 @@ const config: Config = {
   ],
 
   themeConfig: {
-    metadata: [{ name: 'theme-color', content: '#18191b' }],
-    image: 'img/logo-wordmark.svg',
+    metadata: [
+      {name: 'theme-color', content: '#18191b'},
+      {name: 'twitter:card', content: 'summary_large_image'},
+    ],
+    image: 'img/og-stardelt.png',
     announcementBar: {
       id: 'pre-alpha-disclaimer',
       content:
