@@ -18,6 +18,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: node scripts/check-images.mjs
       - run: npm run gen:reference
       - run: git diff --exit-code docs/reference
       - run: test -z "$(git status --porcelain --untracked-files=all docs/reference)"
