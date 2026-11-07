@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import {useEffect, useRef, useState, type ReactNode} from 'react';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import CodeBlock from '@theme/CodeBlock';
 import Layout from '@theme/Layout';
 import clsx from 'clsx';
 
@@ -176,6 +177,193 @@ function CurrentGeneration(): ReactNode {
           >
             Read the rule →
           </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Story                                                               */
+/* ------------------------------------------------------------------ */
+
+type StoryStep = {
+  n: number;
+  title: string;
+  body: string;
+  img: string;
+  alt: string;
+  code: {lang: string; text: string} | null;
+};
+
+const storySteps: StoryStep[] = [
+  {
+    n: 1,
+    title: 'Load',
+    body:
+      "Drop a CSV or connect a source. It lands as an Iceberg table in the team's own catalog.",
+    img: '/img/nova/activity.png',
+    alt: 'Nova showing a recent load of data into the team catalog as an Iceberg table.',
+    code: {
+      lang: 'python',
+      text: 'stardelt.write_df(df, "mobility.bronze.trips", bronze=True)',
+    },
+  },
+  {
+    n: 2,
+    title: 'Model and schedule',
+    body:
+      "Bronze to silver to gold in SQL, scheduled every night, running as the team's own service principal.",
+    img: '/img/nova/pipeline.png',
+    alt: 'Nova showing the mobility pipeline with scheduled SQL steps and their runs.',
+    code: {
+      lang: 'yaml',
+      text: `apiVersion: stardelt.io/v1alpha1
+kind: Pipeline
+metadata: { name: mobility-medallion }
+spec:
+  ownerGroup: mobility-analytics
+  runAs: pipeline-mobility-analytics
+  schedule: { cron: "0 3 * * *", timezone: Europe/Berlin }
+  tasks:
+    - { name: silver_schema, kind: sql, sql: "CREATE SCHEMA IF NOT EXISTS mobility.silver" }
+    - { name: silver_init, kind: sql, dependsOn: [silver_schema], sql: "CREATE OR REPLACE TABLE mobility.silver.yellow_trips AS …" }`,
+    },
+  },
+  {
+    n: 3,
+    title: 'Query',
+    body:
+      'One SQL editor over every catalog you may read, with the query log of everything that ran.',
+    img: '/img/nova/sql.png',
+    alt: 'Nova SQL editor running a query over the mobility trips table with results.',
+    code: {
+      lang: 'sql',
+      text: 'SELECT pickup_dow_name, count(*) AS trips, round(avg(tip_pct), 1) AS avg_tip_pct FROM mobility.silver.yellow_trips GROUP BY 1 ORDER BY 2 DESC',
+    },
+  },
+  {
+    n: 4,
+    title: 'Trace',
+    body: 'Lineage is recorded by every run, with no extra setup.',
+    img: '/img/nova/lineage.png',
+    alt: 'Nova lineage view showing how mobility tables flow from bronze to downstream tables.',
+    code: {lang: 'bash', text: 'stardelt run stardelt mobility-medallion --wait'},
+  },
+  {
+    n: 5,
+    title: 'Share',
+    body:
+      "Dashboards in the team's own space, with the same sign-in and the same permissions.",
+    img: '/img/nova/dashboards.png',
+    alt: 'Nova dashboards view showing team dashboards in their own space.',
+    code: null,
+  },
+];
+
+function Story(): ReactNode {
+  const [active, setActive] = useState(0);
+  const [showFrame, setShowFrame] = useState(true);
+  const stepRefs = useRef<Array<HTMLElement | null>>([]);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1100px)');
+    const onChange = () => setShowFrame(mql.matches);
+    onChange();
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) {
+          const index = Number((visible.target as HTMLElement).dataset.index);
+          if (!Number.isNaN(index)) {
+            setActive(index);
+          }
+        }
+      },
+      {rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.25, 0.5, 0.75, 1]},
+    );
+    for (const el of stepRefs.current) {
+      if (el) {
+        observer.observe(el);
+      }
+    }
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <section id="story" className={styles.section}>
+      <div className={styles.container}>
+        <span className={styles.eyebrow}>See it work</span>
+        <h2 className={styles.sectionTitle}>A day with the mobility team.</h2>
+        <p className={styles.sectionLede}>
+          Taxi trips arrive as a file at 7:00. By 9:00 the team has a modelled
+          table, a daily schedule, lineage and a dashboard, without leaving one
+          interface.
+        </p>
+        <div className={styles.storyLayout}>
+          <div className={styles.storySteps}>
+            {storySteps.map((step, index) => (
+              <article
+                key={step.n}
+                className={styles.storyStep}
+                data-index={index}
+                ref={(el) => {
+                  stepRefs.current[index] = el;
+                }}>
+                <div className={styles.storyStepHeader}>
+                  <span
+                    className={clsx(
+                      styles.storyStepNumber,
+                      active === index && styles.storyStepNumberActive,
+                    )}>
+                    {step.n}
+                  </span>
+                  <h3 className={styles.storyStepTitle}>{step.title}</h3>
+                </div>
+                <p className={styles.storyStepBody}>{step.body}</p>
+                {step.code ? (
+                  <CodeBlock language={step.code.lang}>{step.code.text}</CodeBlock>
+                ) : null}
+                {!showFrame ? (
+                  <img
+                    className={styles.storyStepImageInline}
+                    src={step.img}
+                    alt={step.alt}
+                    loading="lazy"
+                    width={1440}
+                    height={900}
+                  />
+                ) : null}
+              </article>
+            ))}
+          </div>
+          {showFrame ? (
+            <div className={styles.storyFrame}>
+              <div className={styles.storyFrameInner}>
+                {storySteps.map((step, index) => (
+                  <img
+                    key={step.n}
+                    className={clsx(
+                      styles.storyFrameImage,
+                      active === index && styles.storyFrameImageActive,
+                    )}
+                    src={step.img}
+                    alt={step.alt}
+                    loading="lazy"
+                    width={1440}
+                    height={900}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
@@ -420,6 +608,7 @@ export default function Home(): ReactNode {
       description="A self-hostable, Kubernetes-native data platform: SQL over Iceberg tables, notebooks, schedules and dashboards with one sign-in. Apache 2.0."
     >
       <HomepageHero />
+      <Story />
       <CurrentGeneration />
       <main>
         <Vision />
