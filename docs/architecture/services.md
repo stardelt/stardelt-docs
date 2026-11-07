@@ -31,7 +31,7 @@ the table says otherwise.
 
 | Service | What it does | Turn it on | License |
 |---|---|---|---|
-| [Keycloak](../services/keycloak) | Sign-in, or use your own OIDC provider | `IDENTITY=1`, or `identity.mode` in the chart | Apache 2.0 |
+| [Keycloak](../services/keycloak) | Sign-in. Optional: the OIDC provider stardelt can deploy | `IDENTITY=1`, or `identity.mode` in the chart | Apache 2.0 |
 | [OpenFGA](../services/openfga) | Stores who may do what on which table | with `make platform` | Apache 2.0 |
 | [Open Policy Agent](../services/open-policy-agent) | Answers Trino's permission questions, next to Lakekeeper | with `make platform` | Apache 2.0 |
 | [Apache Airflow](../services/airflow) | Runs scheduled pipelines | `make install` | Apache 2.0 |

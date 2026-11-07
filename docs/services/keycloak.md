@@ -6,7 +6,7 @@ slug: /services/keycloak
 
 # Keycloak
 
-**What it is.** Keycloak is the optional platform identity provider that issues OIDC tokens for realm `stardelt`.
+**What it is.** Keycloak is the OpenID Connect provider stardelt can deploy for you. It is optional: with `identity.mode: external` you use your own provider instead ([Bring your own OIDC provider](../architecture/identity#bring-your-own-oidc-provider)). It issues OIDC tokens for realm `stardelt`.
 
 **What it decides.** Keycloak authenticates users and issues tokens that Nova, Trino, and other clients validate. On login it returns tokens carrying claims such as `sub`, `groups`, and identity metadata used by the platform. The realm `stardelt` is generated from `chart/files/keycloak-realm.json` with the base domain substituted, and clients registered there are what downstream components trust for authentication.
 

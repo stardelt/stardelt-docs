@@ -216,8 +216,8 @@ const pillars: Pillar[] = [
   {
     icon: <IconGrid />,
     title: 'Sign-in & permissions',
-    body: 'One sign-in from the browser to the query, and table permissions by group.',
-    tools: ['Keycloak', 'OpenFGA', 'OPA'],
+    body: 'One sign-in through any OIDC provider, from the browser to the query, and table permissions by group. Keycloak is included if you need one.',
+    tools: ['OIDC', 'OpenFGA', 'OPA'],
   },
 ];
 

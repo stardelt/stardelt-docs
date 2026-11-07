@@ -16,7 +16,7 @@ To report a vulnerability, follow [the security policy](https://github.com/stard
 | Zone | Contains | Rule |
 |---|---|---|
 | **Edge** | Ingress controller, TLS | Publishes only components that sign users in |
-| **Identity** | Keycloak or your own OIDC provider | Every component validates tokens from one issuer ([Identity](./identity)) |
+| **Identity** | Your OIDC provider (Keycloak, deployed by stardelt, or your own) | Every component validates tokens from one issuer ([Identity](./identity)) |
 | **Applications** | Nova, Superset, Airflow, JupyterHub | Sign in through the identity provider; never published without it |
 | **Data** | Trino, Lakekeeper, SeaweedFS, PostgreSQL | Inside the cluster. Trino can be published because it requires a token; the others are reached through Nova or a port-forward |
 | **Control** | Operator, Helm releases | Holds cluster-wide rights, because installing charts requires them |

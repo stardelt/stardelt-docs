@@ -39,6 +39,29 @@ explains each hop.
 
 Switching a running install to sign-in is a values change and a rollout, with no data migration.
 
+## Bring your own OIDC provider
+
+stardelt signs people in with OpenID Connect. Any provider that meets the requirements below can be used; Keycloak is the one stardelt can deploy and configure for you.
+
+**Requirements**
+
+| Requirement | Why stardelt needs it |
+|---|---|
+| Discovery at `<issuer>/.well-known/openid-configuration` | every component finds the endpoints from the issuer |
+| Authorization code flow with PKCE | browser sign-in to Nova, Superset, Airflow and JupyterHub |
+| Device authorization flow | `stardelt login` on the command line |
+| Client credentials flow | service principals that run pipelines |
+| A groups claim in the access token (name set with `NOVA_OIDC_GROUP_CLAIM`, default `groups`) | permissions by group |
+| An audience that Nova and Trino accept | one token reaches Nova, Trino and the catalog |
+
+**Tested providers**
+
+| Provider | Mode | Status |
+|---|---|---|
+| Keycloak | `identity.mode: platform` | tested in CI and on the dev cluster |
+
+Other providers are expected to work when they meet the requirements; testing them is tracked in stardelt/stardelt-platform#611.
+
 ## Names
 
 | Thing | Value | Notes |

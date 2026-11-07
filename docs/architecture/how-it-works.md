@@ -23,7 +23,7 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 
 ## Five things to remember
 
-- **One sign-in.** Keycloak (or your own OIDC provider) holds users and groups. The browser uses the sign-in page, the command line uses the device code flow (`stardelt login`), and the same token reaches Nova, Trino and the catalog. See [Identity](./identity.md).
+- **One sign-in.** Your OIDC provider (Keycloak, deployed by stardelt, or your own) holds users and groups. The browser uses the sign-in page, the command line uses the device code flow (`stardelt login`), and the same token reaches Nova, Trino and the catalog. See [Identity](./identity.md).
 - **One API.** Whatever you can click, you can call. See [Python, command line and agents](../guides/sdk-cli-mcp.md).
 - **Nova acts as you.** With sign-in on, your token goes on to the engines, so what you may read is decided by the engine and the catalog for you, not by Nova's own power.
 - **Plugs, not a monolith.** The engine, the catalog, the identity provider and the object store are replaceable behind open contracts (SQL, the Iceberg REST catalog, OIDC, S3).

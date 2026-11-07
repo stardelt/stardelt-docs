@@ -37,7 +37,7 @@ promises: a component is named on this site when it is built.
 - **Work:** the Nova interface (catalog, SQL editor, loads, connections, pipelines, query log,
   lineage), notebooks, dashboards, scheduled pipelines, Spark Connect.
 - **Automate:** an API, a Python package, a command line and a local MCP server.
-- **Access:** sign-in through Keycloak or your own OIDC provider, and table permissions by group.
+- **Access:** sign-in through your OIDC provider (Keycloak, deployed by stardelt, or your own), and table permissions by group.
 - **Keep it running:** backups of the databases and the data, with commands that check them.
 
 The [services page](architecture/services) lists what an install contains, and each guide says what is
