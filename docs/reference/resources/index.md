@@ -21,4 +21,5 @@ Every custom resource the operator serves, generated from the JSON Schemas it pu
 | [PlatformInstance](./platforminstance.md) | A stardelt platform instance. |
 | [ServicePrincipal](./serviceprincipal.md) | A non-human identity (client credentials) for pipelines, maintenance and collectors. |
 | [SqlWarehouse](./sqlwarehouse.md) | A compute class for SQL: size, caps and the groups that may use it. |
+| [StreamApp](./streamapp.md) | A streaming app: a Kafka topic in, an Iceberg table out. |
 | [Volume](./volume.md) | A governed folder of files in the object store with an owner group and grants. |

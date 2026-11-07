@@ -1529,6 +1529,23 @@ One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0
 | `200` | The rows of the chunk |
 | `404` | No such statement of the caller's, or no such chunk (yet) |
 
+## /api/streams
+
+### GET /api/streams
+
+Operation id `streams_list`: in Python `client.call("streams_list", …)`, on the command line `stardelt api streams_list`.
+
+The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is empty until the operator can read the checkpoint and the UI must show `—`. `stopped` is `spec.stopped`. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The caller's streams, sorted by namespace and name |
+| `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
 ## /api/warehouses
 
 ### GET /api/warehouses
