@@ -60,3 +60,5 @@ Before stardelt adds or upgrades a component:
 If a component is not under the license stated in these docs,
 [open an issue](https://github.com/stardelt/stardelt-docs/issues) with the component and version, a
 link to the license file or announcement, and the new license's OSI status.
+
+A component also has to pass the [current-generation test](current-generation).

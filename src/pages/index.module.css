@@ -279,3 +279,100 @@
   font-size: 0.87rem;
   font-weight: 600;
 }
+
+/* ------------------------------------------------------------------ */
+/*  Current generation                                                  */
+/* ------------------------------------------------------------------ */
+
+.generationList {
+  border: 1px solid var(--ifm-toc-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+}
+
+.generationHeader,
+.generationRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  padding: 0.85rem 1.2rem;
+  align-items: center;
+}
+
+.generationHeader {
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.generationHead {
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-color-content-secondary);
+}
+
+.generationRow {
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+}
+
+.generationRow:last-child {
+  border-bottom: 0;
+}
+
+.now {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--ifm-font-color-base);
+  font-size: 0.95rem;
+}
+
+.nowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ifm-color-primary);
+  flex-shrink: 0;
+}
+
+.then {
+  color: var(--ifm-color-content-secondary);
+  text-decoration: line-through;
+  opacity: 0.6;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 700px) {
+  .generationHeader {
+    display: none;
+  }
+
+  .generationRow {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .now::before {
+    content: 'stardelt uses: ';
+    color: var(--ifm-color-content-secondary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-right: 0.15rem;
+  }
+
+  .then::before {
+    content: 'left behind: ';
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 0.15rem;
+  }
+}

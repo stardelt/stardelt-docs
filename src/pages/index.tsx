@@ -130,6 +130,59 @@ function HomepageHero(): ReactNode {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Current generation                                                  */
+/* ------------------------------------------------------------------ */
+
+const generations = [
+  { now: 'S3 object storage', then: 'HDFS' },
+  { now: 'Apache Iceberg', then: 'Hive-style directories of files' },
+  { now: 'Iceberg REST catalog', then: 'Hive Metastore' },
+  { now: 'Spark Connect', then: 'spark-submit on YARN' },
+  { now: 'Trino', then: 'SQL on MapReduce' },
+  { now: 'Kafka in KRaft mode', then: 'ZooKeeper' },
+  { now: 'Airflow 3', then: 'cron files and XML workflows' },
+  { now: 'OIDC and OPA', then: 'Kerberos and per-service user lists' },
+];
+
+function CurrentGeneration(): ReactNode {
+  return (
+    <section id="current-generation" className={styles.section}>
+      <div className={styles.container}>
+        <span className={styles.eyebrow}>Built new</span>
+        <h2 className={styles.sectionTitle}>No legacy inside.</h2>
+        <p className={styles.sectionLede}>
+          Every part of stardelt is current-generation open source. Nothing is
+          there for compatibility with the last decade.
+        </p>
+        <div className={styles.generationList} role="table" aria-label="Current generation compared to legacy">
+          <div className={styles.generationHeader} role="row">
+            <div className={styles.generationHead} role="columnheader">stardelt uses</div>
+            <div className={styles.generationHead} role="columnheader">left behind</div>
+          </div>
+          {generations.map((g) => (
+            <div key={g.then} className={styles.generationRow} role="row">
+              <div className={styles.now} role="cell">
+                <span className={styles.nowDot} aria-hidden="true" />
+                {g.now}
+              </div>
+              <div className={styles.then} role="cell">{g.then}</div>
+            </div>
+          ))}
+        </div>
+        <div className={styles.sectionCta}>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/architecture/current-generation"
+          >
+            Read the rule →
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Vision                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -367,6 +420,7 @@ export default function Home(): ReactNode {
       description="A self-hostable, Kubernetes-native data platform: SQL over Iceberg tables, notebooks, schedules and dashboards with one sign-in. Apache 2.0."
     >
       <HomepageHero />
+      <CurrentGeneration />
       <main>
         <Vision />
         <Pillars />

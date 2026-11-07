@@ -84,6 +84,7 @@ const sidebars: SidebarsConfig = {
         'architecture/security-model',
         'architecture/sovereignty',
         'architecture/licenses',
+        'architecture/current-generation',
       ],
     },
     {
