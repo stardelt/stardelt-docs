@@ -546,6 +546,49 @@
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Every screen has an API                                             */
+/* ------------------------------------------------------------------ */
+
+.apiPanel {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.apiPanel :global(.tabs) {
+  background: #1f2124;
+  border-bottom: 1px solid var(--ifm-toc-border-color);
+  border-radius: 8px 8px 0 0;
+  padding: 0 0.5rem;
+}
+
+.apiPanel :global(.tabs__item) {
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  border-radius: 0;
+}
+
+.apiPanel :global(.tabs__item--active) {
+  border-bottom: 2px solid var(--ifm-color-primary);
+  background: transparent;
+  color: var(--ifm-color-content);
+}
+
+.apiPanel :global(.margin-top--md) {
+  margin-top: 0 !important;
+}
+
+.apiNote {
+  margin: 1rem 0 0;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.apiNote a {
+  color: var(--ifm-link-color);
+}
+
 @media (max-width: 700px) {
   .generationHeader {
     display: none;

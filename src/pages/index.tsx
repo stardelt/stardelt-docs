@@ -2,6 +2,8 @@ import {useEffect, useRef, useState, type ReactNode} from 'react';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import CodeBlock from '@theme/CodeBlock';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 import Layout from '@theme/Layout';
 import clsx from 'clsx';
 
@@ -144,6 +146,65 @@ function HomepageHero(): ReactNode {
         </div>
       </div>
     </header>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Every screen has an API                                             */
+/* ------------------------------------------------------------------ */
+
+const pipelineYaml = `apiVersion: stardelt.io/v1alpha1
+kind: Pipeline
+metadata: { name: mobility-medallion }
+spec:
+  ownerGroup: mobility-analytics
+  runAs: pipeline-mobility-analytics
+  schedule: { cron: "0 3 * * *", timezone: Europe/Berlin }
+  tasks:
+    - { name: silver_schema, kind: sql, sql: "CREATE SCHEMA IF NOT EXISTS mobility.silver" }
+    - { name: silver_init, kind: sql, dependsOn: [silver_schema], sql: "CREATE OR REPLACE TABLE mobility.silver.yellow_trips AS …" }`;
+
+function EveryScreenHasAnApi(): ReactNode {
+  return (
+    <section id="api" className={styles.section}>
+      <div className={styles.container}>
+        <span className={styles.eyebrow}>Automate everything</span>
+        <h2 className={styles.sectionTitle}>Every screen has an API.</h2>
+        <p className={styles.sectionLede}>
+          What you click in Nova, you can script, schedule, review in Git, or
+          hand to an AI assistant, always as yourself and with your
+          permissions.
+        </p>
+        <div className={styles.apiPanel}>
+          <Tabs>
+            <TabItem value="cli" label="CLI">
+              <CodeBlock language="bash">{`stardelt login
+stardelt sql "select * from mobility.silver.yellow_trips limit 5"
+stardelt run stardelt mobility-medallion --wait`}</CodeBlock>
+            </TabItem>
+            <TabItem value="python" label="Python">
+              <CodeBlock language="python">{`from stardelt import runs
+run, tasks = runs.start(nova, "stardelt", "mobility-medallion", wait=True)`}</CodeBlock>
+            </TabItem>
+            <TabItem value="yaml" label="YAML">
+              <CodeBlock language="yaml">{pipelineYaml}</CodeBlock>
+            </TabItem>
+            <TabItem value="ai-assistants" label="AI assistants">
+              <CodeBlock language="bash">{`stardelt mcp config      # how to register the server in your assistant
+stardelt mcp serve       # read-only tools unless you allow more`}</CodeBlock>
+            </TabItem>
+          </Tabs>
+          <p className={styles.apiNote}>
+            <strong>Read operations only by default. Every call is checked
+            against your groups, exactly as in the interface.</strong>{' '}
+            <Link to="/docs/guides/sdk-cli-mcp">
+              Python, command line and agents
+            </Link>
+            .
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -627,6 +688,7 @@ export default function Home(): ReactNode {
       <HomepageHero />
       <Story />
       <CurrentGeneration />
+      <EveryScreenHasAnApi />
       <main>
         <Vision />
         <Pillars />
