@@ -3,54 +3,37 @@
 /* ------------------------------------------------------------------ */
 
 .hero {
-  padding: 5rem 2rem 4rem;
-  text-align: center;
+  padding: 3.5rem 2rem 3rem;
   position: relative;
 }
 
 .heroInner {
-  max-width: 880px;
+  max-width: 1200px;
   margin: 0 auto;
-}
-
-.status {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  background: rgba(31, 33, 36, 0.8);
-  border: 1px solid var(--ifm-toc-border-color);
-  color: var(--ifm-color-content-secondary);
-  font-size: 0.82rem;
-  letter-spacing: 0.01em;
-  margin-bottom: 2.5rem;
-  backdrop-filter: blur(10px);
 }
 
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #5ee6a8;
-  box-shadow: 0 0 12px rgba(94, 230, 168, 0.7);
+.heroText {
+  text-align: center;
 }
 
 .wordmark {
-  width: 100%;
-  max-width: 440px;
-  height: auto;
-  margin: 0 auto 2rem;
+  height: 44px;
+  width: auto;
+  margin: 0 0 1.5rem;
   display: block;
   filter: drop-shadow(0 12px 40px rgba(91, 108, 255, 0.28));
 }
 
 .heroTitle {
-  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-size: clamp(2rem, 4.2vw, 3rem);
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.15;
-  margin: 0 0 1.25rem;
+  line-height: 1.12;
+  margin: 0 0 1rem;
   background: linear-gradient(180deg, #ffffff 0%, #c9ccd1 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -58,10 +41,10 @@
 }
 
 .heroSubtitle {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--ifm-color-content-secondary);
   max-width: 640px;
-  margin: 0 auto 2rem;
+  margin: 0 auto 1.25rem;
   line-height: 1.55;
 }
 
@@ -70,28 +53,114 @@
   gap: 1rem;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .ctaPrimary {
   box-shadow: 0 8px 32px rgba(91, 108, 255, 0.4);
 }
 
-.heroTagline {
-  margin-top: 2.5rem;
-  color: var(--ifm-color-content-secondary);
-  font-size: 0.95rem;
+.techRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  margin: 0 0 1rem;
 }
 
-.heroShot {
+.techChip {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(91, 108, 255, 0.1);
+  border: 1px solid rgba(91, 108, 255, 0.25);
+  color: var(--ifm-color-primary-lighter);
+  font-weight: 500;
+}
+
+.heroLinks {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: baseline;
+  justify-content: center;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.92rem;
+}
+
+.githubLink {
+  font-weight: 600;
+  color: var(--ifm-color-primary-lighter);
+}
+
+.heroTagline {
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.92rem;
+}
+
+.heroVisual {
+  display: flex;
+  justify-content: center;
+}
+
+.heroScreenshot {
   display: block;
   width: 100%;
-  max-width: 1080px;
+  max-width: 760px;
   height: auto;
-  margin: 3.5rem auto 0;
   border-radius: 14px;
   border: 1px solid var(--ifm-toc-border-color);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 40px 120px rgba(79, 95, 240, 0.22), 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+@media (min-width: 1100px) {
+  .heroInner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .heroText {
+    text-align: left;
+  }
+
+  .wordmark {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .heroSubtitle {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .ctaRow,
+  .techRow,
+  .heroLinks {
+    justify-content: flex-start;
+  }
+
+  .heroScreenshot {
+    transform: perspective(1800px) rotateY(-7deg) rotateX(3deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 1100px) {
+  .heroScreenshot {
+    transition: transform 400ms ease;
+  }
+
+  .heroScreenshot:hover {
+    transform: perspective(1800px) rotateY(-2deg) rotateX(3deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .wordmark {
+    height: 36px;
+  }
 }
 
 /* ------------------------------------------------------------------ */

@@ -80,51 +80,68 @@ function IconTimeline(): ReactNode {
 /* ------------------------------------------------------------------ */
 
 function HomepageHero(): ReactNode {
+  const techChips = [
+    'Iceberg REST',
+    'Trino',
+    'Spark Connect',
+    'Kafka (KRaft)',
+    'Airflow 3',
+    'OIDC',
+    'OpenFGA',
+    'Rust control plane',
+  ];
+
   return (
     <header className={styles.hero}>
       <div className={styles.heroInner}>
-        <div className={styles.status}>
-          <span className={styles.statusDot} aria-hidden="true" />
-          Pre-alpha · changing quickly
+        <div className={styles.heroText}>
+          <span className={styles.eyebrow}>Open source · Apache 2.0 · Kubernetes-native</span>
+          <img
+            className={styles.wordmark}
+            src="/img/logo-wordmark.svg"
+            alt="stardelt"
+          />
+          <h1 className={styles.heroTitle}>
+            Your own data platform. Built new, for how data works now.
+          </h1>
+          <p className={styles.heroSubtitle}>
+            Iceberg tables, SQL, pipelines, notebooks, streams and dashboards behind one sign-in, one interface and one API, inside your own Kubernetes. Only current-generation open source: no Hadoop heritage, no vendor cloud, no phone-home.
+          </p>
+          <div className={styles.ctaRow}>
+            <Link
+              className={clsx('button button--primary button--lg', styles.ctaPrimary)}
+              to="/docs/getting-started/quickstart"
+            >
+              Try the quickstart
+            </Link>
+            <Link
+              className="button button--secondary button--lg"
+              to="/docs/guides/source-to-dashboard"
+            >
+              See it work ↓
+            </Link>
+          </div>
+          <div className={styles.techRow}>
+            {techChips.map((t) => (
+              <code key={t} className={styles.techChip}>{t}</code>
+            ))}
+          </div>
+          <p className={styles.heroLinks}>
+            <Link href="https://github.com/stardelt" className={styles.githubLink}>GitHub →</Link>
+            <span className={styles.heroTagline}>No managed control plane. No phone-home at runtime. No license server.</span>
+          </p>
         </div>
-        <img
-          className={styles.wordmark}
-          src="/img/logo-wordmark.svg"
-          alt="stardelt"
-        />
-        <h1 className={styles.heroTitle}>
-          A self-hostable data platform for Kubernetes.
-        </h1>
-        <p className={styles.heroSubtitle}>
-          Open-source SQL, tables, notebooks, schedules and dashboards with
-          one sign-in and one interface. Apache 2.0. Runs in your cluster.
-        </p>
-        <div className={styles.ctaRow}>
-          <Link
-            className={clsx('button button--primary button--lg', styles.ctaPrimary)}
-            to="/docs/getting-started/quickstart"
-          >
-            Try the quickstart
-          </Link>
-          <Link
-            className="button button--secondary button--lg"
-            href="https://github.com/stardelt"
-          >
-            GitHub →
-          </Link>
+        <div className={styles.heroVisual}>
+          <img
+            className={styles.heroScreenshot}
+            src="/img/nova-overview.png"
+            alt="stardelt Nova overview: catalogs, recent activity and the platform apps"
+            width={1440}
+            height={900}
+            loading="eager"
+          />
         </div>
-        <p className={styles.heroTagline}>
-          No managed control plane. No phone-home at runtime. No license server.
-        </p>
       </div>
-      <img
-        className={styles.heroShot}
-        src="/img/nova/overview.png"
-        width={1440}
-        height={900}
-        loading="eager"
-        alt="stardelt Nova, the Overview of the mobility team: three catalogs, recent loads and queries, the engine status and the platform apps"
-      />
     </header>
   );
 }
