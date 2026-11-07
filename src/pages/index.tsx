@@ -119,11 +119,11 @@ function HomepageHero(): ReactNode {
       </div>
       <img
         className={styles.heroShot}
-        src="/img/nova-overview.png"
+        src="/img/nova/overview.png"
         width={1440}
         height={900}
         loading="eager"
-        alt="stardelt Nova, the Overview page: catalogs, tables, the engine status, recent activity and the platform apps"
+        alt="stardelt Nova, the Overview of the mobility team: three catalogs, recent loads and queries, the engine status and the platform apps"
       />
     </header>
   );
