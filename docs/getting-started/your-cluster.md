@@ -168,9 +168,15 @@ stardelt fits.
 
 ```bash
 kubectl -n stardelt get pods                     # everything Running/Completed
-kubectl -n stardelt exec deploy/trino-coordinator -- \
-  trino --execute "SELECT count(*) FROM system.runtime.nodes"
 ```
+
+```console
+$ kubectl -n stardelt port-forward svc/trino 8443:8443
+$ trino --server https://localhost:8443 --insecure --external-authentication
+trino> SELECT count(*) FROM system.runtime.nodes;
+```
+
+The browser hands the token to the CLI (device grant) and the sign-in is the same Keycloak user as Nova; `8080` answers `403` on purpose.
 
 Then open Nova (through your ingress, or run `kubectl -n stardelt port-forward svc/nova 8080:8080` and open http://localhost:8080).
 Its **Apps** page probes every service, and **Health** lists each workload with the image it runs.
