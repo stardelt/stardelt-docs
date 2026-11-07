@@ -13,9 +13,11 @@ import styles from './index.module.css';
 /*  SVG icons                                                           */
 /* ------------------------------------------------------------------ */
 
-function IconDatabase(): ReactNode {
+type IconProps = {size?: number};
+
+function IconDatabase({size = 22}: IconProps): ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
       <ellipse cx="10" cy="6" rx="6.5" ry="2.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
       <path d="M3.5 6v3.5c0 1.38 2.91 2.5 6.5 2.5s6.5-1.12 6.5-2.5V6" stroke="currentColor" strokeWidth="1.5"/>
       <path d="M3.5 9.5V13c0 1.38 2.91 2.5 6.5 2.5S16.5 14.38 16.5 13V9.5" stroke="currentColor" strokeWidth="1.5"/>
@@ -23,9 +25,9 @@ function IconDatabase(): ReactNode {
   );
 }
 
-function IconFlow(): ReactNode {
+function IconFlow({size = 22}: IconProps): ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
       <rect x="1.5" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
       <rect x="8" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
       <rect x="14.5" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
@@ -34,9 +36,9 @@ function IconFlow(): ReactNode {
   );
 }
 
-function IconNeural(): ReactNode {
+function IconNeural({size = 22}: IconProps): ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
       <circle cx="4" cy="5" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
       <circle cx="4" cy="10" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
       <circle cx="4" cy="15" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
@@ -46,9 +48,9 @@ function IconNeural(): ReactNode {
   );
 }
 
-function IconLayers(): ReactNode {
+function IconLayers({size = 22}: IconProps): ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
       <path d="M10 2L2 6l8 4 8-4-8-4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
       <path d="M2 10l8 4 8-4" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
       <path d="M2 14l8 4 8-4" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
@@ -56,9 +58,9 @@ function IconLayers(): ReactNode {
   );
 }
 
-function IconGrid(): ReactNode {
+function IconGrid({size = 22}: IconProps): ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
       <rect x="2.5" y="2.5" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
       <rect x="11.5" y="2.5" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
       <rect x="2.5" y="11.5" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
@@ -67,9 +69,9 @@ function IconGrid(): ReactNode {
   );
 }
 
-function IconTimeline(): ReactNode {
+function IconTimeline({size = 22}: IconProps): ReactNode {
   return (
-    <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
       <circle cx="10" cy="5" r="2" stroke="currentColor" strokeWidth="1.5"/>
       <circle cx="10" cy="10.5" r="2" stroke="currentColor" strokeWidth="1.5"/>
       <circle cx="10" cy="16" r="2" stroke="currentColor" strokeWidth="1.5" strokeDasharray="1.5 1.5"/>
@@ -452,30 +454,36 @@ function Story(): ReactNode {
 /*  Vision                                                              */
 /* ------------------------------------------------------------------ */
 
-type Principle = { title: string; body: string };
+type Principle = {icon: ReactNode; title: string; body: string};
 
 const visionPrinciples: Principle[] = [
   {
+    icon: <IconGrid size={20} />,
     title: 'Runs on your Kubernetes',
     body: 'In a cloud, on your own servers, or on one small node to try it. There is no SaaS side.',
   },
   {
+    icon: <IconFlow size={20} />,
     title: 'No required outbound calls',
     body: "stardelt's own components have no telemetry, no license check and no usage report.",
   },
   {
+    icon: <IconLayers size={20} />,
     title: 'Permissive licenses',
     body: 'Apache 2.0, MIT or BSD across the stack, with one documented, optional MPL 2.0 exception.',
   },
   {
+    icon: <IconTimeline size={20} />,
     title: 'One command to install',
     body: 'One command installs and upgrades the platform. An operator with small declarative resources is growing to take that over.',
   },
   {
+    icon: <IconNeural size={20} />,
     title: 'One interface',
     body: 'Catalog, SQL editor, loads, pipelines, query log, lineage and health in Nova, with an API behind every screen.',
   },
   {
+    icon: <IconDatabase size={20} />,
     title: 'Open formats at rest',
     body: 'Tables are Iceberg and Parquet on object storage. Uninstall stardelt and any Iceberg engine can still read them.',
   },
@@ -497,6 +505,7 @@ function Vision(): ReactNode {
         <div className={styles.principles}>
           {visionPrinciples.map((p) => (
             <div key={p.title} className={styles.principle}>
+              <div className={styles.principleIcon}>{p.icon}</div>
               <strong>{p.title}</strong>
               <p>{p.body}</p>
             </div>
@@ -511,31 +520,23 @@ function Vision(): ReactNode {
 /*  Pillars                                                             */
 /* ------------------------------------------------------------------ */
 
-type Pillar = { icon: ReactNode; title: string; body: string; tools: string[] };
+type Pillar = {title: string; tools: string[]};
 
 const pillars: Pillar[] = [
   {
-    icon: <IconDatabase />,
     title: 'Lakehouse SQL',
-    body: 'Interactive SQL over Iceberg tables on object storage.',
     tools: ['Trino', 'Iceberg', 'Lakekeeper', 'SeaweedFS'],
   },
   {
-    icon: <IconFlow />,
     title: 'Compute & orchestration',
-    body: 'Spark Connect for distributed jobs, Airflow for scheduling.',
     tools: ['Spark Connect', 'Airflow'],
   },
   {
-    icon: <IconNeural />,
     title: 'Notebooks & BI',
-    body: 'JupyterHub for analysis and Superset for dashboards, both connected to the same tables.',
     tools: ['JupyterHub', 'Superset'],
   },
   {
-    icon: <IconGrid />,
     title: 'Sign-in & permissions',
-    body: 'One sign-in through any OIDC provider, from the browser to the query, and table permissions by group. Keycloak is included if you need one.',
     tools: ['OIDC', 'OpenFGA', 'OPA'],
   },
 ];
@@ -552,12 +553,16 @@ function Pillars(): ReactNode {
           Every engine reads and writes the same Iceberg tables through one
           catalog. stardelt Nova brings them together.
         </p>
-        <div className={styles.pillarGrid}>
+        <div className={styles.architectureDiagram}>
+          <img
+            src="/img/how-stardelt-works.svg"
+            alt="How stardelt works: the platform services, catalog, storage and query engines"
+          />
+        </div>
+        <div className={styles.pillarChipRow}>
           {pillars.map((p) => (
-            <div key={p.title} className={styles.pillarCard}>
-              <div className={styles.cardIcon}>{p.icon}</div>
-              <h3 className={styles.pillarTitle}>{p.title}</h3>
-              <p className={styles.pillarBody}>{p.body}</p>
+            <div key={p.title} className={styles.pillarChipGroup}>
+              <span className={styles.pillarChipLabel}>{p.title}</span>
               <div className={styles.pillarTools}>
                 {p.tools.map((t) => (
                   <span key={t} className={styles.tool}>{t}</span>
@@ -575,7 +580,9 @@ function Pillars(): ReactNode {
 /*  Sovereignty                                                         */
 /* ------------------------------------------------------------------ */
 
-const sovereigntyPrinciples: Principle[] = [
+type Statement = {title: string; body: string};
+
+const sovereigntyStatements: Statement[] = [
   {
     title: 'Your perimeter',
     body: 'Data, catalog and engines all run in your cluster, on storage you choose.',
@@ -596,17 +603,17 @@ const sovereigntyPrinciples: Principle[] = [
 
 function Sovereignty(): ReactNode {
   return (
-    <section id="sovereignty" className={styles.section}>
+    <section id="sovereignty" className={styles.sovereigntyBand}>
       <div className={styles.container}>
         <span className={styles.eyebrow}>Sovereignty</span>
         <h2 className={styles.sectionTitle}>
           For environments where data has to stay in your perimeter.
         </h2>
-        <div className={styles.principles}>
-          {sovereigntyPrinciples.map((p) => (
-            <div key={p.title} className={styles.principle}>
-              <strong>{p.title}</strong>
-              <p>{p.body}</p>
+        <div className={styles.sovereigntyStatements}>
+          {sovereigntyStatements.map((s) => (
+            <div key={s.title} className={styles.sovereigntyStatement}>
+              <strong>{s.title}</strong>
+              <p>{s.body}</p>
             </div>
           ))}
         </div>
@@ -624,50 +631,37 @@ function Sovereignty(): ReactNode {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Dive deeper                                                         */
+/*  Closing CTA                                                         */
 /* ------------------------------------------------------------------ */
 
-type DocCard = { icon: ReactNode; title: string; body: string; to: string; cta: string };
+const quickstartCommands = `git clone https://github.com/stardelt/stardelt-platform
+cd stardelt-platform
+helm dependency build chart
 
-const docCards: DocCard[] = [
-  {
-    icon: <IconLayers />,
-    title: 'How it works',
-    body: 'One picture of the platform: who talks to what, and why.',
-    to: '/docs/architecture/how-it-works',
-    cta: 'See the picture →',
-  },
-  {
-    icon: <IconFlow />,
-    title: 'From source to dashboard',
-    body: 'Load data, model it in layers, schedule it and show it.',
-    to: '/docs/guides/source-to-dashboard',
-    cta: 'Read the guide →',
-  },
-  {
-    icon: <IconTimeline />,
-    title: 'Roadmap',
-    body: 'The milestones, what works today, and what stardelt will not be.',
-    to: '/docs/roadmap',
-    cta: 'See the roadmap →',
-  },
-];
+helm upgrade --install stardelt chart \\
+  --namespace stardelt --create-namespace \\
+  -f chart/values-slim.yaml --wait --timeout 15m`;
 
 function DiveDeeper(): ReactNode {
   return (
     <section id="docs" className={styles.section}>
       <div className={styles.container}>
         <span className={styles.eyebrow}>Next steps</span>
-        <h2 className={styles.sectionTitle}>Find your way around.</h2>
-        <div className={styles.docGrid}>
-          {docCards.map((d) => (
-            <Link key={d.title} to={d.to} className={styles.docCard}>
-              <div className={styles.cardIcon}>{d.icon}</div>
-              <h3 className={styles.docTitle}>{d.title}</h3>
-              <p className={styles.docBody}>{d.body}</p>
-              <span className={styles.docLink}>{d.cta}</span>
-            </Link>
-          ))}
+        <h2 className={styles.sectionTitle}>Run it on one node this afternoon.</h2>
+        <div className={styles.ctaCodeBlock}>
+          <CodeBlock language="bash">{quickstartCommands}</CodeBlock>
+        </div>
+        <div className={styles.ctaRow}>
+          <Link
+            className={clsx('button button--primary button--lg', styles.ctaPrimary)}
+            to="/docs/getting-started/quickstart">
+            Open the quickstart
+          </Link>
+          <Link
+            className="button button--secondary button--lg"
+            to="/docs/architecture/how-it-works">
+            Read how it works
+          </Link>
         </div>
       </div>
     </section>
