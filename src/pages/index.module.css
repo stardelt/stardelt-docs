@@ -83,6 +83,17 @@
   font-size: 0.95rem;
 }
 
+.heroShot {
+  display: block;
+  width: 100%;
+  max-width: 1080px;
+  height: auto;
+  margin: 3.5rem auto 0;
+  border-radius: 14px;
+  border: 1px solid var(--ifm-toc-border-color);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+}
+
 /* ------------------------------------------------------------------ */
 /*  Section frame                                                       */
 /* ------------------------------------------------------------------ */

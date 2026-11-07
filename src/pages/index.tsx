@@ -117,6 +117,14 @@ function HomepageHero(): ReactNode {
           No managed control plane. No phone-home at runtime. No license server.
         </p>
       </div>
+      <img
+        className={styles.heroShot}
+        src="/img/nova-overview.png"
+        width={1440}
+        height={900}
+        loading="eager"
+        alt="stardelt Nova, the Overview page: catalogs, tables, the engine status, recent activity and the platform apps"
+      />
     </header>
   );
 }
