@@ -8,7 +8,41 @@ slug: /architecture/overview
 
 **stardelt is an opinionated collection of open-source services, shipped together as a Kubernetes-native data platform.** You bring the Kubernetes cluster; stardelt installs and wires the services that turn it into a lakehouse, a streaming platform, a notebook environment, and a BI surface — under a single UI.
 
-This page is the high-level overview. For one picture of how everything connects, start with [How stardelt works](./how-it-works.md). Per-service detail (what each service does, upstream link, license) lives in [Services](./services).
+## Stack at a glance
+
+| Layer | What it is | Services |
+|---|---|---|
+| Control plane | the CRDs and the UI that plan and observe everything | [stardelt Operator](../services/operator), [stardelt Nova](../services/nova) |
+| Data plane | storage, the catalog, the query engine | [SeaweedFS](../services/seaweedfs), [Lakekeeper](../services/lakekeeper), [Apache Iceberg](../architecture/services), [Apache Trino](../services/trino) |
+| Applications | opt-in workloads over the same storage | [Apache Airflow](../services/airflow), [Apache Superset](../services/superset), [JupyterHub](../services/jupyterhub), [Apache Spark (Spark Connect)](../services/spark) |
+| Platform services | identity, policy and secrets the others depend on | [Keycloak](../services/keycloak), [OpenFGA](../services/openfga), [Open Policy Agent (OPA)](../services/open-policy-agent) (the Lakekeeper sidecar), [OpenBao](../services/openbao), [CloudNativePG](../architecture/services) |
+
+```mermaid
+graph LR
+  subgraph people["People"]
+    browser[Browser]
+    notebook[JupyterHub notebook]
+  end
+  nova[Nova] --> trino[Trino]
+  nova --> lakekeeper[Lakekeeper]
+  nova --> airflow[Airflow]
+  nova --> superset[Superset]
+  browser --> nova
+  notebook --> trino
+  notebook --> lakekeeper
+  trino --> lakekeeper
+  trino --> seaweed[SeaweedFS S3]
+  lakekeeper --> seaweed
+  lakekeeper --> iceberg[Iceberg tables]
+  trino --> iceberg
+  airflow --> trino
+  superset --> trino
+  nova -.OIDC.-> keycloak[Keycloak]
+  lakekeeper -.authorize.-> openfga[OpenFGA]
+  trino -.policy.-> opa[OPA sidecar]
+```
+
+<!-- No logo assets or brand palette: service names and marks are trademarks and adding a logo wall needs a maintainer decision. -->
 
 ## What's in the box
 
@@ -22,52 +56,17 @@ today; the [roadmap](../roadmap) carries the phasing.*
 
 stardelt is *not* a Kubernetes distribution. Any conformant cluster works: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, or a sovereign-cloud K8s (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway). Supported versions: current N and N-1.
 
-### Core profile — what an install ships today
+### Core profile
 
-The opinionated set that defines what stardelt *is*. `make install-core`, or the umbrella chart's
-default values, installs exactly this:
+The always-installed services that define stardelt. See [Services](./services) for the current list and links.
 
-- **stardelt Nova** — unified UI: catalog browser, SQL editor, load & transfer, jobs, a platform
-  health view that reports the images actually running, and deep-links into every service below.
-- **stardelt Operator** — CRD reconciler / control plane. Plans each component from a small
-  declarative API; `PlatformInstance` and `Lakehouse` reconcile against a real cluster.
-- **Apache Trino** — distributed SQL engine; fast interactive queries over Iceberg.
-- **Apache Iceberg** — the table format and the spine every engine reads and writes. Not a service
-  you install: it lives in the engines and the catalog.
-- **Lakekeeper** — Iceberg REST catalog; vends table metadata and short-lived object-store credentials.
-- **SeaweedFS** — S3-compatible object storage; the default data plane. Bring your own S3 instead.
-- **CloudNativePG** — Postgres for the catalog's own metadata.
+### Optional components
 
-### Optional components — built, off by default
+Services you can enable on top of the core, off by default. See [Services](./services) for what is available and how to turn each on.
 
-Each of these is installable today; none is part of the core profile.
+### Planned services
 
-Enabled per install (`make install`, or `<component>.enabled: true` in your values file):
-
-- **Keycloak** — the default OIDC provider (`identity.mode: platform`); or point the platform at your own OIDC provider (`external`). See [Identity](./identity.md).
-- **Apache Superset** — BI and dashboards over Trino.
-- **Apache Airflow** — workflow orchestration for batch and scheduled jobs.
-- **JupyterHub** — multi-user notebook environment.
-- **Apache Spark (Spark Connect)** — distributed compute for jobs that outgrow Trino. `make install-spark`.
-- **Open Policy Agent (OPA)** — fine-grained policy enforcement at the catalog; it is the `opa` container of the Lakekeeper Deployment, so it arrives with `make install-lakekeeper`'s values.
-- **OpenBao** — secrets management for the sandbox secret store. `make openbao`.
-- **cert-manager** — TLS lifecycle; a cluster prerequisite, not a platform component (`dev/home-k3s/README.md` has the Helm command).
-
-### Planned services — specified, not built yet
-
-These are designed but not in the install path. The [roadmap](../roadmap)
-carries the sequencing and the phase each one lands in. Listing them here is a promise about direction, not about today.
-
-- **OpenMetadata** — the metadata, lineage and quality spine.
-- **Apache SeaTunnel, Apache NiFi, Debezium** — the three ingestion domains (SaaS, enterprise, CDC).
-- **dbt-core + Soda** — transforms and quality gates.
-- **Apache Kafka (Strimzi) + Apache Flink** — streaming and CDC processing.
-- **MLflow, KServe, vLLM / Ollama** — ML lifecycle, model serving, sovereign LLM inference.
-- **Observability — VictoriaMetrics, VictoriaLogs, Perses, Jaeger, OpenCost, Alertmanager** — metrics,
-  logs, dashboards, traces, cost. Skip whatever your cluster already provides.
-- **Argo CD / Argo Workflows** — GitOps delivery.
-
-See [Services](./services) for the per-service description and upstream links.
+Services designed for later phases but not in the install path yet. See [Services](./services) and the [roadmap](../roadmap).
 
 ## How the services connect
 
