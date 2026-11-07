@@ -5,8 +5,8 @@
 
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0d1130"/>
-      <stop offset="100%" stop-color="#0b0e1f"/>
+      <stop offset="0%" stop-color="#1c1d20"/>
+      <stop offset="100%" stop-color="#18191b"/>
     </linearGradient>
     <linearGradient id="nova" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#3447ff" stop-opacity="0.9"/>
@@ -17,8 +17,8 @@
       <stop offset="100%" stop-color="#1e2a78" stop-opacity="0.35"/>
     </linearGradient>
     <linearGradient id="k8s" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#0e1228" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#0e1228" stop-opacity="0.45"/>
+      <stop offset="0%" stop-color="#18191b" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#18191b" stop-opacity="0.45"/>
     </linearGradient>
   </defs>
 
@@ -27,8 +27,8 @@
     .caption-sub { fill: #a4abd0; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; }
     .chip-name { fill: #ffffff; font-size: 13px; font-weight: 700; }
     .chip-role { fill: #a4abd0; font-size: 10.5px; font-weight: 500; }
-    .core-chip { fill: #1a2256; fill-opacity: 0.65; stroke: #5b6cff; stroke-opacity: 0.55; }
-    .optin-chip { fill: #11152b; fill-opacity: 0.55; stroke: #5b6cff; stroke-opacity: 0.22; }
+    .core-chip { fill: #282a2e; fill-opacity: 0.65; stroke: #5b6cff; stroke-opacity: 0.55; }
+    .optin-chip { fill: #1f2124; fill-opacity: 0.55; stroke: #5b6cff; stroke-opacity: 0.22; }
   </style>
 
   <rect width="700" height="632" fill="url(#bg)" rx="16"/>
