@@ -19,6 +19,12 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-backups-all` | Every volume has a backup mechanism and a recent backup, or an accepted ticketed exception. | A volume is missing a backup mechanism or has a backup older than the limit. |
 | `make verify-streaming` | The Kafka broker is Ready, the Spark Operator watches the platform namespace or every namespace, every StreamApp's status is current and every one that should run is `Running`, and the Strimzi controller has not restarted inside the operator's ten-minute window (an older restart is printed with its age and stays a checkmark). A `Pending` stream is a warning (`!`), not a pass: it is reported with its last submission time and does not change the verdict; `Stopped` is a pass. | A StreamApp cannot run on this install, is `Failed`, or its status is behind its spec (see [the streaming guide](../guides/streams)). |
 
+`verify-streaming` also compares every running `StreamApp`'s job script with the ConfigMap the
+operator wrote for it. A stream that predates the comparison, or that runs an older script, is
+a warning (`!`), not a failure: the operator resubmits it on its next reconcile. After an
+operator upgrade, wait one reconcile (about a minute) and run the check again before treating
+it as a problem.
+
 ## Nightly
 
 | Command | What it proves | A failure means |
