@@ -616,7 +616,7 @@ const features: Feature[] = [
       {name: 'Kafka in KRaft mode', kind: 'opt-in'},
       {name: 'StreamApp resource', kind: 'core'},
     ],
-    why: 'The streaming pillar is opt-in (D26 tier 3). Once it is on, streams are declared like pipelines and land in the same Iceberg tables.',
+    why: 'The streaming pillar is opt-in and off until you enable it.',
     to: '/docs/guides/streams',
   },
   {
