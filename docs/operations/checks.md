@@ -19,6 +19,12 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-backups-all` | Every volume has a backup mechanism and a recent backup, or an accepted ticketed exception. | A volume is missing a backup mechanism or has a backup older than the limit. |
 | `make verify-streaming` | The Kafka broker is Ready, the Spark Operator watches the platform namespace or every namespace, every StreamApp's status is current and every one that should run is `Running`, and the Strimzi controller has not restarted inside the operator's ten-minute window (an older restart is printed with its age and stays a checkmark). A `Pending` stream is a warning (`!`), not a pass: it is reported with its last submission time and does not change the verdict; `Stopped` is a pass. | A StreamApp cannot run on this install, is `Failed`, or its status is behind its spec (see [the streaming guide](../guides/streams)). |
 
+One check is deliberately not part of `step-verify` because it writes: `make verify-airflow-actions` signs
+in as Nova's Airflow service user, reads one DAG, pauses and resumes it, and restores the state it found
+(`DAG`, `NS` and `PORT` select the target; default `pegelonline_hourly` in `stardelt`). It is `PASS`, `FAIL`
+or `UNVERIFIED` — a namespace without the `Pipelines` pillar has no `airflow-nova-api` Secret, and that is
+`UNVERIFIED`, not a failure. Run it after an upgrade and whenever Nova's pipeline buttons misbehave.
+
 `verify-streaming` also compares every running `StreamApp`'s job script with the ConfigMap the
 operator wrote for it. A stream that predates the comparison, or that runs an older script, is
 a warning (`!`), not a failure: the operator resubmits it on its next reconcile. After an
@@ -42,6 +48,7 @@ it as a problem.
 | After a TLS or sign-in change | `make verify-trino-tls` | The in-cluster Trino path is TLS-only and token-authenticated. |
 | After a `Catalog`/role change | `make verify-catalog-permissions` | The live Catalog grants against the OPA bridge. |
 | After a `Cluster` change | `make verify-backups`, `make verify-backups-nova`, `make verify-backups-identity`, or `make verify-backups-openfga` | WAL archiving per database, with a real object in the bucket. |
+| After an Airflow RBAC or service-user change | `make verify-airflow-actions` | Nova's Airflow service user can sign in, read a DAG and pause/resume it. |
 
 ## How to read a failure
 
