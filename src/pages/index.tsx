@@ -74,11 +74,15 @@ function HomepageHero(): ReactNode {
     <header className={styles.hero}>
       <div className={styles.heroInner}>
         <div className={styles.heroText}>
-          <ThemedImage
-            className={styles.wordmark}
-            alt="stardelt"
-            sources={{light: '/img/logo-wordmark.svg', dark: '/img/logo-wordmark-dark.svg'}}
-          />
+          {/* The class is on this wrapper, not on the images: ThemedImage renders both theme
+              variants and Docusaurus hides the inactive one with a `:where(...)` rule. A
+              `display` on the <img> outranks it, and both wordmarks showed until hydration. */}
+          <div className={styles.wordmark}>
+            <ThemedImage
+              alt="stardelt"
+              sources={{light: '/img/logo-wordmark.svg', dark: '/img/logo-wordmark-dark.svg'}}
+            />
+          </div>
           <span className={styles.eyebrow}>Open source · Apache 2.0 · Kubernetes-native</span>
           <h1 className={styles.heroTitle}>
             Your own data platform. Built new, for how data works now.
