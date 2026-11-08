@@ -24,6 +24,12 @@ Each row is one `StreamApp`:
 
 The page shows the `StreamApp`s of the groups you belong to; an administrator sees all of them. It polls every 15 seconds.
 
+Beside the phase, a stream that Spark has submitted more than once shows its
+submission count: `3× restarted` in blue while the last submission is inside the
+operator's ten-minute window, and `3× submissions` in grey once that window has
+passed. The number is historical; only the blue form says the stream is recovering
+now, which is the same window that produces the `Restarting` reason below.
+
 If nothing runs on the bus yet, the page is empty and says: "No streams yet. A stream is
 created as a `StreamApp` resource; ask an administrator to add one."
 
