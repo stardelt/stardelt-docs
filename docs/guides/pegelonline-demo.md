@@ -99,6 +99,38 @@ The stream starts from the topic's earliest offset (`startingOffsets: earliest`)
 run reads the whole retained topic. Follow it on the [Streams page](streams); stopping it
 keeps the checkpoint.
 
+## A continuous stream
+
+The example also carries a continuous variant for watching the streaming plane move: a producer
+pod writes three measurements every five seconds to `pegelonline.continuous`, and a second
+`StreamApp` merges them into `mobility.bronze.pegelonline_continuous`. It lives in
+`stardelt-demos/examples/streaming/`:
+
+- `continuous-demo.yaml` — the `KafkaTopic`, the producer `Deployment` and the `StreamApp`
+  `pegelonline-continuous`;
+- `producer-configmap.yaml` — the producer script and its configuration;
+- `sink.sql` — the 15-column target table, with both timestamps.
+
+Create the table once as a member of `mobility-analytics` (paste `sink.sql`
+into the SQL editor), then apply the producer and the stream:
+
+```bash
+kubectl -n stardelt apply -f examples/streaming/producer-configmap.yaml
+kubectl -n stardelt apply -f examples/streaming/continuous-demo.yaml
+```
+
+Run the count twice, 15 seconds apart; it grows without any DAG run:
+
+```sql
+SELECT count(*) AS rows, max(measured_at) AS newest
+FROM mobility.bronze.pegelonline_continuous;
+```
+
+The producer writes three rows every five seconds, so the table grows by about 36 rows a
+minute. Stop it with
+`kubectl -n stardelt patch streamapp pegelonline-continuous --type merge -p '{"spec":{"stopped":true}}'`;
+the checkpoint is kept and a later resume continues from it.
+
 ## Why bronze only
 
 The demo stops at bronze so the streaming path and the hourly path can be compared row for
