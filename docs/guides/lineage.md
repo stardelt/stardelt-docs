@@ -14,7 +14,12 @@ If you have not selected a table yet, the page asks you to choose one. If a tabl
 
 ## Where the edges come from
 
-A finished query on the platform's query engine contributes one input edge for each table it read and one output edge for each table it wrote. Nothing else feeds lineage today: Nova has no public OpenLineage ingest endpoint. Edges are stored in Nova's own database, and nothing is sent to an external service.
+A finished query on the platform's query engine contributes one input edge for each table it read and one output edge for each table it wrote. OpenLineage events feed it as well: Nova answers `POST /api/v1/lineage` on its
+in-cluster `internal` Service port (`8081` by default, so
+`http://nova.<namespace>.svc.cluster.local:8081`), which is the path the official
+OpenLineage clients append to the base URL. The endpoint takes the shared bearer
+token from Secret `nova-events` and is not exposed through an Ingress; edges stay
+in Nova's own database, and nothing is sent to an external service.
 
 Edges are kept for 365 days and the raw events for 90 days by default. An installation can change this with `NOVA_LINEAGE_EDGE_RETENTION_DAYS` and `NOVA_LINEAGE_RETENTION_DAYS`; `0` turns the purge off, and an empty value keeps the default.
 
