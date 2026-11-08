@@ -634,6 +634,79 @@ function Sovereignty(): ReactNode {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Horizon                                                             */
+/* ------------------------------------------------------------------ */
+
+type HorizonStop = { label: string; state: 'done' | 'now' | 'planned'; goals: string[] };
+
+const horizon: HorizonStop[] = [
+  {
+    label: 'Foundation · v0.1–v0.2',
+    state: 'done',
+    goals: [
+      'Sign-in and TLS everywhere, no committed secrets',
+      'One resource and your values install the whole platform',
+    ],
+  },
+  {
+    label: 'Data engineer workflow · v0.3',
+    state: 'now',
+    goals: [
+      'Ingest, model, schedule, query log, connections, catalog documentation, developer sign-in',
+    ],
+  },
+  {
+    label: 'Operate and govern · v0.4',
+    state: 'planned',
+    goals: ['Warehouse lifecycle, backups, alerting, permissions, upgrades, usage views'],
+  },
+  {
+    label: 'Agents and extensions · v0.5',
+    state: 'planned',
+    goals: ['Hosted tool server, command line, VS Code extension'],
+  },
+  {
+    label: 'Governance and sharing · v0.6',
+    state: 'planned',
+    goals: ['Data products, federation, external sharing, file-drop ingestion, acceleration'],
+  },
+  {
+    label: 'AI and ML · v0.7',
+    state: 'planned',
+    goals: ['Assistant, AI functions in SQL, vector search, feature store, tracking, serving, GPU'],
+  },
+];
+
+function Horizon(): ReactNode {
+  return (
+    <section id="horizon" className={styles.section}>
+      <div className={styles.container}>
+        <span className={styles.eyebrow}>Where it is going</span>
+        <h2 className={styles.sectionTitle}>
+          From a lakehouse to a platform people and agents share.
+        </h2>
+        <p className={styles.sectionLede}>
+          stardelt grows in milestones. Each one has a goal you can check. The next ones are
+          planned, not promised.
+        </p>
+        <ol className={styles.horizon}>
+          {horizon.map((stop) => (
+            <li key={stop.label} className={clsx(styles.stop, styles[stop.state])}>
+              <span className={styles.stopDot} aria-hidden />
+              <Link className={styles.stopLabel} to="/docs/roadmap#milestones">
+                {stop.label}
+              </Link>
+              {stop.state === 'planned' && <span className={styles.planned}>planned</span>}
+              <p className={styles.stopGoal}>{stop.goals.join(' ')}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Closing CTA                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -690,6 +763,7 @@ export default function Home(): ReactNode {
         <Vision />
         <Pillars />
         <Sovereignty />
+        <Horizon />
         <DiveDeeper />
       </main>
     </Layout>

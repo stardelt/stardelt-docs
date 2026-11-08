@@ -756,3 +756,107 @@
     margin-right: 0.15rem;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Horizon                                                             */
+/* ------------------------------------------------------------------ */
+
+.horizon {
+  list-style: none;
+  margin: 2.5rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+}
+
+.stop {
+  position: relative;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--ifm-toc-border-color);
+}
+
+.stopDot {
+  position: absolute;
+  left: -5px;
+  top: 0.4rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--ifm-toc-border-color);
+  background: var(--ifm-background-color);
+}
+
+.done .stopDot,
+.now .stopDot {
+  background: var(--ifm-color-primary);
+  border-color: var(--ifm-color-primary);
+}
+
+.now .stopDot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--ifm-color-primary);
+  animation: horizonPulse 2s ease-out infinite;
+}
+
+@keyframes horizonPulse {
+  from { transform: scale(1); opacity: 0.6; }
+  to   { transform: scale(1.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now .stopDot::after {
+    animation: none;
+    opacity: 0.35;
+  }
+}
+
+.stopLabel {
+  display: inline-block;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.stopLabel:hover {
+  color: var(--ifm-color-primary-lighter);
+  text-decoration: none;
+}
+
+.planned {
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ifm-color-content-secondary);
+}
+
+.stopGoal {
+  margin: 0.4rem 0 0;
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 46ch;
+}
+
+@media (min-width: 1000px) {
+  .horizon {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0 1.25rem;
+  }
+
+  .stop {
+    padding: 1.75rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--ifm-toc-border-color);
+  }
+
+  .stopDot {
+    left: 0;
+    top: -5px;
+  }
+}
