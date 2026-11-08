@@ -16,6 +16,8 @@ A stardelt platform instance.
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `spec.baseDomain` | string (nullable) | No |  | Public DNS name the platform is served under, for example `data.example.com`: Nova answers on the name itself and every other application on a subdomain (`id`, `trino`, `superset`...). | min 3, max 253; pattern `^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$` |
+| `spec.clusterOperation` | object | No | `{"reconciliationPaused":false}` | Freeze this resource: no cluster changes, status phase `Paused`. |  |
+| `spec.clusterOperation.reconciliationPaused` | boolean | No | `false` | Stop reconciling: the operator writes `Paused` and applies nothing. |  |
 | `spec.dryRun` | boolean | No | `true` | Plan only (no cluster changes) until explicitly disabled. Safe default. |  |
 | `spec.identity` | object | No | `{"adminGroup":"stardelt-admins","mode":"none","provider":"oidc"}` | How users sign in; see [`IdentitySpec`]. |  |
 | `spec.identity.adminGroup` | string | No | `stardelt-admins` | Members of this group are platform administrators. |  |
