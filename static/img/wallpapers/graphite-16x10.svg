@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3456 2234" width="3456" height="2234">
+<defs>
+    <linearGradient id="gr-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5b6cff"/>
+      <stop offset="100%" stop-color="#1e2a78"/>
+    </linearGradient>
+  </defs>
+  <radialGradient id="gr-glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#4f5ff0" stop-opacity="0.22"/>
+    <stop offset="100%" stop-color="#4f5ff0" stop-opacity="0"/>
+  </radialGradient>
+<rect width="3456" height="2234" fill="#18191b"/>
+<circle cx="1728.0" cy="1044.4" r="1005.3" fill="url(#gr-glow)"/>
+<g transform="translate(1549.280 865.675) scale(1.787200)">
+  <polygon points="100,28 178,170 22,170" fill="none" stroke="url(#gr-grad)" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <polygon points="100,92 110,118 138,128 110,138 100,162 90,138 62,128 90,118" fill="url(#gr-grad)"/>
+</g>
+<text x="1728.0" y="1352.7" text-anchor="middle" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="78.19" font-weight="700" fill="#e8eaed" letter-spacing="-0.02em">stardelt</text>
+</svg>

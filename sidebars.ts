@@ -104,6 +104,12 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Community',
+      collapsed: true,
+      items: ['community/wallpapers'],
+    },
+    {
+      type: 'category',
       label: 'Contribute',
       collapsed: true,
       link: { type: 'doc', id: 'developer/index' },

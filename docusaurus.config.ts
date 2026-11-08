@@ -84,6 +84,7 @@ const config: Config = {
           title: 'Community',
           items: [
             { label: 'GitHub org', href: 'https://github.com/stardelt' },
+            { label: 'Wallpapers', to: '/docs/community/wallpapers' },
             { label: 'Contribute', to: '/docs/developer' },
             { label: 'Report a security problem', href: 'https://github.com/stardelt/.github/blob/main/SECURITY.md' },
           ],
