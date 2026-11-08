@@ -186,6 +186,19 @@ Running / Ready=Running lastError= attempts=27 last=2026-11-08T05:11:35Z
 is growing, the stream recovered and the reason clears on its own. `phase=Failed` with a
 `lastError` is the Spark error message, and is the case to act on.
 
+`Ready=ExecutorsUnschedulable` means the driver is running but Spark cannot place an executor:
+the application is healthy and processes nothing. The executor pod's `PodScheduled` message
+carries the scheduler's sentence (`0/1 nodes are available: 1 Insufficient cpu. …`), and
+`lastError` repeats it when the operator reports it. Confirm the pod is the one waiting:
+
+```bash
+kubectl -n <namespace> get pods \
+  -l sparkoperator.k8s.io/app-name=<stream-name>,spark-role=executor
+```
+
+A `Pending` executor with a `PodScheduled=False` condition is the cause. Free CPU on the node
+(stop another stream) and the pod schedules; the checkpoint makes the stream continue.
+
 This page does not cover the Kafka side (`kubectl -n <namespace> exec kafka-kafka-0 -- bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic <topic> --time -1` shows the topic's end offset) or a stalled node, which looks like every check failing at once — see `## A pinned image will not pull` and `docs/operations/checks.md`.
 
 ## A new CRD field is ignored

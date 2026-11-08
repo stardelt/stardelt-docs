@@ -15,7 +15,7 @@ Each row is one `StreamApp`:
 | Column | Meaning |
 |---|---|
 | Name | The `StreamApp` name, with its owner group beneath it. |
-| Phase | The phase the operator reports: `Running`, `Stopped`, `Failed` or `Pending`. |
+| Phase | The phase the operator reports: `Running`, `Stopped`, `Failed` or `Pending`. A second badge carries the operator's `Ready` reason when it differs from the phase. |
 | Source | The `Connection` (or the platform bus) and the Kafka topic the stream reads. |
 | Sink | The catalog, table and mode (`merge` or `append`) the stream writes. |
 | Checkpoint | When the stream last recorded its checkpoint. |
@@ -26,6 +26,26 @@ The page shows the `StreamApp`s of the groups you belong to; an administrator se
 
 If nothing runs on the bus yet, the page is empty and says: "No streams yet. A stream is
 created as a `StreamApp` resource; ask an administrator to add one."
+
+## When the phase and the reason disagree
+
+The phase is what Spark reports about the application; the reason is what the operator observes
+about the pods. Two reasons are worth knowing:
+
+- `Restarting` — Spark resubmitted the application in the last ten minutes. The stream is
+  recovering on its own; check again that the table grows.
+- `ExecutorsUnschedulable` — the driver is running, but Spark has no node with room for an
+  executor, so the stream processes nothing. The waiting executor pod's `PodScheduled`
+  condition carries the scheduler's own sentence, for example:
+
+  ```text
+  0/1 nodes are available: 1 Insufficient cpu. preemption: 0/1 nodes are available: 1 No preemption victims found for incoming pod.
+  ```
+
+  The row's **Last error** column shows that sentence as well when the operator reports it.
+
+  Free CPU on the node (stop a stream you no longer need) and the executor schedules; the
+  checkpoint is kept, so the stream continues where it stopped.
 
 ## Stop and resume a stream
 
