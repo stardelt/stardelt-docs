@@ -452,6 +452,38 @@
   font-weight: 600;
 }
 
+.stackOverview {
+  display: block;
+  width: 100%;
+  max-width: 1080px;
+  height: auto;
+  margin: 2.5rem auto 0;
+  border-radius: 20px;
+  border: 1px solid var(--ifm-toc-border-color);
+}
+
+.stackOverviewLink {
+  display: none;
+}
+
+.stackOverviewNotice {
+  margin: 0.8rem auto 0;
+  max-width: 1080px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+@media (max-width: 700px) {
+  .stackOverviewLink {
+    display: block;
+  }
+
+  .stackOverviewDesktop {
+    display: none;
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /*  Current generation                                                  */
 /* ------------------------------------------------------------------ */

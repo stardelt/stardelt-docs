@@ -547,30 +547,33 @@ function Pillars(): ReactNode {
       <div className={styles.container}>
         <span className={styles.eyebrow}>Architecture</span>
         <h2 className={styles.sectionTitle}>
-          Proven services on a shared foundation.
+          One interface. Open engines. Your infrastructure.
         </h2>
         <p className={styles.sectionLede}>
           Every engine reads and writes the same Iceberg tables through one
           catalog. stardelt Nova brings them together.
         </p>
-        <div className={styles.architectureDiagram}>
+        <a className={styles.stackOverviewLink} href="/img/stack-overview.svg">
           <img
-            src="/img/how-stardelt-works.svg"
-            alt="How stardelt works: the platform services, catalog, storage and query engines"
+            className={styles.stackOverview}
+            src="/img/stack-overview.svg"
+            width={1200}
+            height={660}
+            loading="lazy"
+            alt="Nova gives one interface and API over open engines (Trino, Spark, Kafka, Airflow, Jupyter), which all share Apache Iceberg tables, on your Kubernetes, your OIDC provider and your S3 storage."
           />
-        </div>
-        <div className={styles.pillarChipRow}>
-          {pillars.map((p) => (
-            <div key={p.title} className={styles.pillarChipGroup}>
-              <span className={styles.pillarChipLabel}>{p.title}</span>
-              <div className={styles.pillarTools}>
-                {p.tools.map((t) => (
-                  <span key={t} className={styles.tool}>{t}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        </a>
+        <img
+          className={clsx(styles.stackOverview, styles.stackOverviewDesktop)}
+          src="/img/stack-overview.svg"
+          width={1200}
+          height={660}
+          loading="lazy"
+          alt="Nova gives one interface and API over open engines (Trino, Spark, Kafka, Airflow, Jupyter), which all share Apache Iceberg tables, on your Kubernetes, your OIDC provider and your S3 storage."
+        />
+        <p className={styles.stackOverviewNotice}>
+          Logos are trademarks of their respective owners; their use does not imply endorsement.
+        </p>
       </div>
     </section>
   );
