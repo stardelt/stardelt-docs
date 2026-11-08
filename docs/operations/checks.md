@@ -17,7 +17,7 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-trino-auth` | Trino accepts authenticated sign-in. | Authentication to Trino is broken. |
 | `make verify-catalog-permissions` | The live Catalog grants against the OPA bridge. | The live Catalog grants do not match expectations. |
 | `make verify-backups-all` | Every volume has a backup mechanism and a recent backup, or an accepted ticketed exception. | A volume is missing a backup mechanism or has a backup older than the limit. |
-| `make verify-streaming` | The Kafka broker is Ready, the Spark Operator watches the platform namespace, every StreamApp's status is current. | A StreamApp cannot run on this install (see [the streaming guide](../guides/streams)). |
+| `make verify-streaming` | The Kafka broker is Ready, the Spark Operator watches the platform namespace, every StreamApp's status is current and every one that should run is `Running`. A `Pending` stream is a warning (`!`), not a pass: it is reported with its last submission time and does not change the verdict; `Stopped` is a pass. | A StreamApp cannot run on this install, is `Failed`, or its status is behind its spec (see [the streaming guide](../guides/streams)). |
 
 ## Nightly
 
