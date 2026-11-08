@@ -78,12 +78,13 @@ The example lives in `stardelt-demos/examples/pegelonline/`:
 - `streamapp.yaml` — the `StreamApp` (topic in, Iceberg table out, `ownerGroup:
   mobility-analytics`);
 - `sink.sql` — the target table, with the same 15 columns and both timestamps;
-- `README.md` — the two apply commands.
+- `README.md` — the demo's own setup notes for the hourly path.
 
-Apply the table first, then the stream:
+Create the table once, signed in as a member of the catalog's owner group (`mobility-analytics`
+in the example): paste `examples/pegelonline/sink.sql` into Nova's SQL editor, or run it with the
+`trino` CLI and a principal token. Then apply the stream:
 
 ```bash
-kubectl -n stardelt apply -f examples/pegelonline/sink.sql   # or run it in Nova's SQL editor
 kubectl -n stardelt apply -f examples/pegelonline/streamapp.yaml
 ```
 
