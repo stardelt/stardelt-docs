@@ -95,3 +95,7 @@ platform-managed install uses. For an external Kafka, create a `Connection` whos
 `config.bootstrapServers` names the broker and set `source.connectionRef` to its name.
 
 `spec.stopped: true` stops the job and keeps the checkpoint, so setting it back to `false` resumes from where it left off. Keyed `merge` sinks are effectively-once; append-only sinks (`mode: append`, no `mergeKeys`) are at-least-once. Credentials live in a `Connection`, never in the manifest.
+If one micro-batch carries two rows for the same key — a producer retry, or two
+messages for one measurement time — the row with the newest Kafka offset wins
+before the `MERGE`, so a replayed or superseded message cannot overwrite a newer
+value.
