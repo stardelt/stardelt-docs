@@ -110,19 +110,16 @@ function HomepageHero(): ReactNode {
             Your own data platform. Built new, for how data works now.
           </h1>
           <p className={styles.heroSubtitle}>
-            Iceberg tables, SQL, pipelines, notebooks, streams and dashboards behind one sign-in, one interface and one API, inside your own Kubernetes. Only current-generation open source: no Hadoop heritage, no vendor cloud, no phone-home.
+            Iceberg tables, SQL, pipelines, notebooks, streams and dashboards behind one sign-in, one interface and one API, inside your own Kubernetes.
           </p>
           <div className={styles.ctaRow}>
             <Link
               className={clsx('button button--primary button--lg', styles.ctaPrimary)}
               to="/docs/getting-started/quickstart"
             >
-              Try the quickstart
+              Start the quickstart
             </Link>
-            <Link
-              className="button button--secondary button--lg"
-              to="/docs/guides/source-to-dashboard"
-            >
+            <Link className="button button--secondary button--lg" href="#story">
               See it work ↓
             </Link>
           </div>
@@ -132,8 +129,7 @@ function HomepageHero(): ReactNode {
             ))}
           </div>
           <p className={styles.heroLinks}>
-            <Link href="https://github.com/stardelt" className={styles.githubLink}>GitHub →</Link>
-            <span className={styles.heroTagline}>No managed control plane. No phone-home at runtime. No license server.</span>
+            <Link href="https://github.com/stardelt" className={styles.githubLink}>GitHub ↗</Link>
           </p>
         </div>
         <div className={styles.heroVisual}>
@@ -200,7 +196,7 @@ stardelt mcp serve       # read-only tools unless you allow more`}</CodeBlock>
             <strong>Read operations only by default. Every call is checked
             against your groups, exactly as in the interface.</strong>{' '}
             <Link to="/docs/guides/sdk-cli-mcp">
-              Python, command line and agents
+              API, Python, CLI and MCP →
             </Link>
             .
           </p>
@@ -835,12 +831,12 @@ function DiveDeeper(): ReactNode {
           <Link
             className={clsx('button button--primary button--lg', styles.ctaPrimary)}
             to="/docs/getting-started/quickstart">
-            Open the quickstart
+            Start the quickstart
           </Link>
           <Link
             className="button button--secondary button--lg"
             to="/docs/architecture/how-it-works">
-            Read how it works
+            How it works →
           </Link>
         </div>
       </div>

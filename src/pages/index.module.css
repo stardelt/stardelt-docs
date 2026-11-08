@@ -107,11 +107,6 @@
   color: var(--ifm-color-primary-lighter);
 }
 
-.heroTagline {
-  color: var(--ifm-color-content-secondary);
-  font-size: 0.92rem;
-}
-
 .heroVisual {
   display: flex;
   justify-content: center;
