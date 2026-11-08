@@ -23,6 +23,7 @@ slug: /services/operator
 | Platform namespace | `docs/reference/resources/platforminstance.md` | `spec.namespace` | `stardelt` | Namespace the platform's components are installed into. |
 | Deployment profile | `docs/reference/resources/platforminstance.md` | `spec.profile` | `demo` | Deployment size/profile (`demo`, `full`, `airgap`). |
 | Ingress enabled | `docs/reference/resources/platforminstance.md` | `spec.ingress.enabled` | `false` | Create Ingresses for platform services when enabled. |
+| Pause reconciliation | `docs/reference/resources/lakehouse.md` | `spec.clusterOperation.reconciliationPaused` | `false` | Freeze a `Lakehouse`: the operator reports phase `Paused`, Ready `False` reason `Paused`, and applies nothing until the field is `false` again. |
 
 **Related pages.** [CRD reference](../reference/resources/), [PlatformInstance reference](../reference/resources/platforminstance), [Bundle reference](../guides/bundle-reference), [How it works](../architecture/how-it-works).
 
@@ -35,3 +36,4 @@ slug: /services/operator
 - **CLI — values:** `stardelt-operator values <component> <demo|full|airgap> [--identity <baseDomain>]` prints the Helm values the controller would apply.
 - **CLI — identity checklist:** `stardelt-operator identity-checklist <platforminstance.yaml>` prints the identity setup steps.
 - **Safety defaults:** New resources default to `spec.dryRun: true`; `adopt` refuses to take over a release the operator did not create.
+- **Pause:** `spec.clusterOperation.reconciliationPaused: true` freezes a `Lakehouse` without deleting it; the operator writes phase `Paused` and applies nothing.
