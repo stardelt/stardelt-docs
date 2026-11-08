@@ -114,7 +114,7 @@ kubectl -n <namespace> get streamapp <stream-name> \
 Expected on the dev cluster:
 
 ```text
-Running attempts=25 last=2026-11-08T04:57:34Z
+Running attempts=27 last=2026-11-08T05:11:35Z
 ```
 
 `attempts` counts every submission since the application was created, so a recovered stream keeps a
@@ -179,7 +179,7 @@ kubectl -n <namespace> logs deploy/stardelt-operator --tail=5 | grep stream=
 Expected on a healthy stream:
 
 ```text
-Running / Ready=Running lastError= attempts=25 last=2026-11-08T04:57:34Z
+Running / Ready=Running lastError= attempts=27 last=2026-11-08T05:11:35Z
 ```
 
 `Ready=Restarting` means Spark resubmitted the application inside the last ten minutes; if the table
