@@ -17,7 +17,7 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-trino-auth` | Trino accepts authenticated sign-in. | Authentication to Trino is broken. |
 | `make verify-catalog-permissions` | The live Catalog grants against the OPA bridge. | The live Catalog grants do not match expectations. |
 | `make verify-backups-all` | Every volume has a backup mechanism and a recent backup, or an accepted ticketed exception. | A volume is missing a backup mechanism or has a backup older than the limit. |
-| `make verify-streaming` | The Kafka broker is Ready, the Spark Operator watches the platform namespace, every StreamApp's status is current and every one that should run is `Running`, and the Strimzi controller is not restarting. A `Pending` stream is a warning (`!`), not a pass: it is reported with its last submission time and does not change the verdict; `Stopped` is a pass. | A StreamApp cannot run on this install, is `Failed`, or its status is behind its spec (see [the streaming guide](../guides/streams)). |
+| `make verify-streaming` | The Kafka broker is Ready, the Spark Operator watches the platform namespace, every StreamApp's status is current and every one that should run is `Running`, and the Strimzi controller has not restarted inside the operator's ten-minute window (an older restart is printed with its age and stays a checkmark). A `Pending` stream is a warning (`!`), not a pass: it is reported with its last submission time and does not change the verdict; `Stopped` is a pass. | A StreamApp cannot run on this install, is `Failed`, or its status is behind its spec (see [the streaming guide](../guides/streams)). |
 
 ## Nightly
 
@@ -53,10 +53,13 @@ FAIL (1 of 6 images is not readable)
 
 A `!` line is a warning and the command still exits 0. Four warnings exist today: a stream in
 `Pending` (not running now), a running stream that restarted inside the operator's ten-minute
-window, a Strimzi controller with a non-zero restart count, and a SparkApplication list the check
-cannot read (so execution attempts are not checked). Each names the object; the `PASS` verdict
-means no check failed, not that there were no warnings. The streaming guide explains what
-`Restarting` means; the Kafka page explains the controller's restart count.
+window, a Strimzi controller whose newest restart is inside the ten-minute window, and a
+SparkApplication list the check cannot read (so execution attempts are not checked). Each names
+the object; the `PASS` verdict means no check failed, not that there were no warnings. The
+streaming guide explains what `Restarting` means; the Kafka page explains the controller's restart
+count. A controller whose newest restart is older than the ten-minute window prints a checkmark
+and the age, for example `✓ strimzi-operator   7 restart(s), last 49m ago (outside the window)`;
+`RESTART_WINDOW_SECS` overrides the window for a test.
 
 `UNVERIFIED` plus exit 3 means the check could not see its subject (bucket, Secret, kube context) and proved nothing — fix the access, do not treat it as a pass.
 
