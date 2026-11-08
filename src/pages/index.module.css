@@ -33,11 +33,11 @@
 }
 
 .wordmark {
-  height: 44px;
+  height: clamp(52px, 5.5vw, 76px);
   width: auto;
-  margin: 0 0 1.5rem;
+  margin: 0 auto 1.25rem;
   display: block;
-  filter: drop-shadow(0 12px 40px rgba(91, 108, 255, 0.28));
+  filter: drop-shadow(0 10px 36px rgba(122, 138, 255, 0.35));
 }
 
 .heroTitle {
@@ -180,11 +180,7 @@
   filter: invert(1) hue-rotate(180deg);
 }
 
-@media (max-width: 600px) {
-  .wordmark {
-    height: 36px;
-  }
-}
+
 
 /* ------------------------------------------------------------------ */
 /*  Section frame                                                       */
