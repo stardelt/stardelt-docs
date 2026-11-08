@@ -17,6 +17,15 @@ slug: /services/kafka
 
 **What owns what.** A `StreamApp` reads one Kafka topic and writes one Iceberg table. `spec.stopped: true` stops the job and deletes its Spark application; the checkpoint is kept, so setting `spec.stopped: false` resumes from it.
 
+A `StreamApp` also declares a Strimzi `KafkaTopic` for its source topic: the object
+is named after the topic when Kubernetes allows it (otherwise `stream-<name>`),
+with one partition, one replica and seven-day retention. The operator never
+changes an existing topic: if a `KafkaTopic` already manages the same topic with
+the same spec, it writes nothing; with a different spec, it leaves that topic in
+place and logs a warning. Create the `KafkaTopic` yourself before the stream when
+you need more partitions or another retention. A stream that reads an external
+Kafka through `source.connectionRef` declares no topic at all.
+
 **Delivery.** Keyed `merge` sinks are effectively-once. Append-only sinks are at-least-once. Credentials live in a `Connection`, never in a manifest.
 
 **Not in this version.** Flink, CDC/Debezium, a schema registry and streaming SQL in Trino are not part of this version.
