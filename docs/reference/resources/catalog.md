@@ -22,6 +22,16 @@ A data domain: a catalog with its storage location, an owner group and grants.
 | `spec.grants[].verb` | string | Yes |  | What a grant lets a group do with a catalog. Six verbs exist; `use` belongs to compute (`SqlWarehouse`) and is not a data verb. There is no deny, no `ALL PRIVILEGES` and no per-column verb. | `browse`, `select`, `write`, `create`, `manage` |
 | `spec.lakehouseRef` | object | Yes |  | The `Lakehouse` that hosts a catalog or a warehouse. |  |
 | `spec.lakehouseRef.name` | string | Yes |  |  | min 1, max 63; pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$` |
+| `spec.maintenance` | object | No | `{"excludeTables":[],"expireSnapshots":{"retention":"7d"},"optimize":{"fileSizeThreshold":"128MB","minSmallFiles":20},"removeOrphanFiles":{"retention":"7d"},"schedule":"0 2 * * *"}` | The automatic Iceberg maintenance policy: compaction, snapshot expiry and orphan-file removal, daily at 02:00 unless changed. On by default. |  |
+| `spec.maintenance.excludeTables` | array of string | No | `[]` | Tables (`schema.table`) this policy never touches. | max 100 |
+| `spec.maintenance.expireSnapshots` | object | No | `{"retention":"7d"}` | Snapshot expiry. The engine's minimum is 7 days (`iceberg.expire-snapshots.min-retention`), so `retention` is a minimum, not a preference. |  |
+| `spec.maintenance.expireSnapshots.retention` | string | No | `7d` |  | pattern `^[1-9][0-9]*d$` |
+| `spec.maintenance.optimize` | object | No | `{"fileSizeThreshold":"128MB","minSmallFiles":20}` | Compaction: files smaller than the threshold are rewritten when at least `minSmallFiles` exist. |  |
+| `spec.maintenance.optimize.fileSizeThreshold` | string | No | `128MB` |  | pattern `^[1-9][0-9]*(MB\|GB)$` |
+| `spec.maintenance.optimize.minSmallFiles` | integer | No | `20` |  | min 0; format `int32` |
+| `spec.maintenance.removeOrphanFiles` | object | No | `{"retention":"7d"}` | Orphan-file removal. The engine's minimum is 7 days (`iceberg.remove-orphan-files.min-retention`). |  |
+| `spec.maintenance.removeOrphanFiles.retention` | string | No | `7d` |  | pattern `^[1-9][0-9]*d$` |
+| `spec.maintenance.schedule` | string | No | `0 2 * * *` | Five-field cron; the default is 02:00 every day. | pattern `^(\S+\s+){4}\S+$` |
 | `spec.managedAccess` | boolean | No | `false` | True: the owner cannot grant on this catalog; only platform administrators can. |  |
 | `spec.owner` | string | Yes |  | Exactly one group. Ownership means `manage` and does not mean `select`. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.storage` | object (nullable) | No |  | Where a catalog's data files live. Omitted: the `Lakehouse`'s storage defaults. |  |
