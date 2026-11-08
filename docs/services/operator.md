@@ -33,7 +33,20 @@ slug: /services/operator
 - **Image pinning:** Update `image.tag` to the digest printed by the Image workflow (e.g. `ghcr.io/stardelt/stardelt-operator:dev@sha256:...`).
 - **Logs:** `kubectl -n stardelt logs -l app.kubernetes.io/name=stardelt-operator` (or the namespace where the operator is installed).
 - **CRDs:** Cluster-scoped `platforminstances.stardelt.io` and namespaced `lakehouses`, `catalogs`, `sqlwarehouses`, `streamapps`, `connections`, `serviceprincipals`, `ingestionsources`, `pipelines`, `volumes` (all `v1alpha1`). See [CRD reference](../reference/resources/) for fields.
+- **Pause a resource:** set `spec.clusterOperation.reconciliationPaused: true` and the operator applies nothing
+  for it and reports `Paused`; set it back to `false` to resume. Deleting a paused resource still uninstalls its
+  releases (data follows `spec.deletionPolicy`).
+
+  ```console
+  $ kubectl -n <namespace> patch lakehouse <name> --type=merge \
+      -p '{"spec":{"clusterOperation":{"reconciliationPaused":true}}}'
+  $ kubectl -n <namespace> get lakehouse <name> \
+      -o jsonpath='{.status.phase}{" "}{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
+  Paused False
+  ```
+
+  The same field on a `PlatformInstance` freezes the whole platform install. A paused resource does not pick up
+  `spec` changes until it is un-paused; `kubectl get` keeps showing the last status it wrote.
 - **CLI — values:** `stardelt-operator values <component> <demo|full|airgap> [--identity <baseDomain>]` prints the Helm values the controller would apply.
 - **CLI — identity checklist:** `stardelt-operator identity-checklist <platforminstance.yaml>` prints the identity setup steps.
 - **Safety defaults:** New resources default to `spec.dryRun: true`; `adopt` refuses to take over a release the operator did not create.
-- **Pause:** `spec.clusterOperation.reconciliationPaused: true` freezes a `Lakehouse` without deleting it; the operator writes phase `Paused` and applies nothing.
