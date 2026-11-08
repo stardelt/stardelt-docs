@@ -691,44 +691,96 @@ function Sovereignty(): ReactNode {
 /*  Horizon                                                             */
 /* ------------------------------------------------------------------ */
 
-type HorizonStop = { label: string; state: 'done' | 'now' | 'planned'; goals: string[] };
+type HorizonStop = {
+  id: string;
+  label: string;
+  state: 'done' | 'now' | 'planned';
+  goal: string;
+  doneWhen: string | null;
+  items: string[];
+};
 
 const horizon: HorizonStop[] = [
   {
-    label: 'Foundation · v0.1–v0.2',
+    id: 'v0.1',
+    label: 'Secure foundation · v0.1',
     state: 'done',
-    goals: [
-      'Sign-in and TLS everywhere, no committed secrets',
-      'One resource and your values install the whole platform',
-    ],
+    goal: 'Sign-in and TLS everywhere, no committed secrets',
+    doneWhen: 'A stranger can install a cluster and nothing is exposed that should not be',
+    items: ['Sign-in on every service', 'TLS everywhere', 'No secrets in Git'],
   },
   {
+    id: 'v0.2',
+    label: 'Operator install · v0.2',
+    state: 'done',
+    goal: 'One resource and your values install the whole platform',
+    doneWhen: 'A single manifest installs the platform on a fresh node and answers a query',
+    items: ['PlatformInstance and Lakehouse resources', 'One manifest installs a fresh node'],
+  },
+  {
+    id: 'v0.3',
     label: 'Data engineer workflow · v0.3',
     state: 'now',
-    goals: [
-      'Ingest, model, schedule, query log, connections, catalog documentation, developer sign-in',
+    goal: 'Ingest, model, schedule, query log, connections, catalog documentation, developer sign-in',
+    doneWhen: 'From source to dashboard works end to end by hand',
+    items: [
+      'Ingest',
+      'model',
+      'schedule',
+      'query log',
+      'connections',
+      'catalog documentation',
+      'developer sign-in',
     ],
   },
   {
+    id: 'v0.4',
     label: 'Operate and govern · v0.4',
     state: 'planned',
-    goals: ['Warehouse lifecycle, backups, alerting, permissions, upgrades, usage views'],
+    goal: 'Warehouse lifecycle, backups, alerting, permissions, upgrades, usage views',
+    doneWhen: 'An operations team can run and upgrade a production install',
+    items: ['Warehouse lifecycle', 'backups', 'alerting', 'permissions', 'upgrades', 'usage views'],
   },
   {
+    id: 'v0.5',
     label: 'Agents and extensions · v0.5',
     state: 'planned',
-    goals: ['Hosted tool server, command line, VS Code extension'],
+    goal: 'Hosted tool server, command line, VS Code extension',
+    doneWhen: 'A local AI assistant works on the platform as the signed-in person',
+    items: ['Hosted tool server', 'command line', 'VS Code extension'],
   },
   {
+    id: 'v0.6',
     label: 'Governance and sharing · v0.6',
     state: 'planned',
-    goals: ['Data products, federation, external sharing, file-drop ingestion, acceleration'],
+    goal: 'Data products, federation, external sharing, file-drop ingestion, acceleration',
+    doneWhen: null,
+    items: ['Data products', 'federation', 'external sharing', 'file-drop ingestion', 'acceleration'],
   },
   {
+    id: 'v0.7',
     label: 'AI and ML · v0.7',
     state: 'planned',
-    goals: ['Assistant, AI functions in SQL, vector search, feature store, tracking, serving, GPU'],
+    goal: 'Assistant, AI functions in SQL, vector search, feature store, tracking, serving, GPU',
+    doneWhen: 'A model goes from a notebook to a served endpoint',
+    items: [
+      'Assistant',
+      'AI functions in SQL',
+      'vector search',
+      'feature store',
+      'tracking',
+      'serving',
+      'GPU',
+    ],
   },
+];
+
+const notGoals = [
+  'A hosted service first',
+  'A new query engine or storage format',
+  'A Kubernetes distribution',
+  'An OLTP database',
+  'A benchmark contest',
 ];
 
 function Horizon(): ReactNode {
@@ -745,16 +797,48 @@ function Horizon(): ReactNode {
         </p>
         <ol className={styles.horizon}>
           {horizon.map((stop) => (
-            <li key={stop.label} className={clsx(styles.stop, styles[stop.state])}>
-              <span className={styles.stopDot} aria-hidden />
-              <Link className={styles.stopLabel} to="/docs/roadmap#milestones">
-                {stop.label}
-              </Link>
-              {stop.state === 'planned' && <span className={styles.planned}>planned</span>}
-              <p className={styles.stopGoal}>{stop.goals.join(' ')}</p>
+            <li key={stop.id} className={clsx(styles.stop, styles[stop.state])}>
+              <details className={styles.expand} open={stop.state === 'now'}>
+                <summary>
+                  <span className={styles.stopDot} aria-hidden />
+                  <span className={styles.stopLabel}>{stop.label}</span>
+                  {stop.state === 'planned' && <span className={styles.planned}>planned</span>}
+                  {stop.state === 'now' && <span className={styles.planned}>in progress</span>}
+                </summary>
+                <div className={styles.expandBody}>
+                  <ul>
+                    {stop.items.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                  {stop.doneWhen && (
+                    <p>
+                      <strong>Done when: </strong>
+                      {stop.doneWhen}
+                    </p>
+                  )}
+                  <a href="https://github.com/stardelt/stardelt-platform/milestones">Follow on GitHub →</a>
+                </div>
+              </details>
             </li>
           ))}
         </ol>
+        <details className={styles.expand}>
+          <summary>
+            <strong>What stardelt will not be</strong>
+          </summary>
+          <div className={styles.expandBody}>
+            <ul>
+              {notGoals.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+            <Link to="/docs/roadmap#what-stardelt-will-not-be">Why →</Link>
+          </div>
+        </details>
+        <Link className="button button--secondary" to="/docs/roadmap">
+          The full roadmap →
+        </Link>
       </div>
     </section>
   );

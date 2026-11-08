@@ -12,11 +12,14 @@ if (!block) {
   process.exit(1);
 }
 
-// Goals live inside `goals: [...]` (single- or multi-line). The ticket's original
-// regex only matched bare quoted lines, which missed inline arrays like
-// `goals: ['...']`; fixed here so the check covers all 7 goals as the ticket intends.
-const goalArrays = [...block[0].matchAll(/goals:\s*\[([\s\S]*?)\]/g)].map((m) => m[1]);
-const goals = goalArrays.flatMap((a) => [...a.matchAll(/'([^'\n]+)'/g)].map((m) => m[1]));
+// Goals live in `goal: '...'` (one per milestone). Kept compatible with the
+// older `goals: [...]` shape.
+const goals = [
+  ...[...block[0].matchAll(/\bgoal:\s*'([^'\n]+)'/g)].map((m) => m[1]),
+  ...[...block[0].matchAll(/goals:\s*\[([\s\S]*?)\]/g)].flatMap((m) =>
+    [...m[1].matchAll(/'([^'\n]+)'/g)].map((s) => s[1]),
+  ),
+];
 
 if (goals.length < 7) {
   console.error(`check-horizon: found ${goals.length} goals, expected at least 7`);
