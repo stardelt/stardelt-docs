@@ -860,10 +860,10 @@ export default function Home(): ReactNode {
       description="Your own data platform on Kubernetes: Iceberg, SQL, pipelines, notebooks, streams and dashboards with one sign-in, one interface and one API. Apache 2.0."
     >
       <HomepageHero />
-      <Story />
       <main>
         <Pillars />
         <Why />
+        <Story />
         <EveryScreenHasAnApi />
         <Horizon />
         <DiveDeeper />
