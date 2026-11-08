@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import Link from '@docusaurus/Link';
+import useBrokenLinks from '@docusaurus/useBrokenLinks';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import CodeBlock from '@theme/CodeBlock';
 import Tabs from '@theme/Tabs';
@@ -297,6 +298,10 @@ const stories: TeamStory[] = [
 ];
 
 function Story(): ReactNode {
+  // `<section id="story">` is a real target, but Docusaurus only indexes anchors from
+  // content pages; registering it keeps the `#story` links from `src/pages/index.tsx`
+  // and `docs/intro/overview.md` checkable (docs#332).
+  useBrokenLinks().collectAnchor('story')
   const [storyIdx, setStoryIdx] = useState(0);
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(true);
