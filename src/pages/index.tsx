@@ -562,7 +562,7 @@ const features: Feature[] = [
       {name: 'Apache Iceberg', kind: 'core'},
       {name: 'Lakekeeper', kind: 'core'},
     ],
-    why: 'Trino reads Iceberg tables in place and scales out. Lakekeeper is a small Iceberg REST catalog written in Rust, so any Iceberg engine can share the same tables.',
+    why: 'Trino reads Iceberg tables in place and scales out.',
     to: '/docs/services/trino',
   },
   {
@@ -572,7 +572,7 @@ const features: Feature[] = [
       {name: 'Your S3 storage', kind: 'plug'},
       {name: 'SeaweedFS', kind: 'starter'},
     ],
-    why: 'Enterprises already run object storage, and stardelt uses it. SeaweedFS is there so one node can try everything.',
+    why: 'Enterprises already run object storage, and stardelt uses it.',
     to: '/docs/services/seaweedfs',
   },
   {
@@ -592,21 +592,21 @@ const features: Feature[] = [
       {name: 'Pipeline resource', kind: 'core'},
       {name: 'Airflow', kind: 'default'},
     ],
-    why: 'Pipelines are declared in Git and moved between stages. Airflow runs them, with retries and history; the batch pillar switches it off when you use your own scheduler.',
+    why: 'Pipelines are declared in Git and moved between stages.',
     to: '/docs/guides/schedule-sql',
   },
   {
     title: 'Spark',
     line: 'Python and Spark jobs without a Spark cluster per person.',
     parts: [{name: 'Spark Connect', kind: 'default'}],
-    why: 'A thin client talks to a shared Spark server: no spark-submit, no driver on your laptop. It ships with the notebooks pillar.',
+    why: 'A thin client talks to a shared Spark server: no spark-submit, no driver on your laptop.',
     to: '/docs/services/spark',
   },
   {
     title: 'Notebooks',
     line: 'Explore next to the data, then publish and schedule.',
     parts: [{name: 'JupyterHub', kind: 'default'}],
-    why: "Notebooks run inside the platform with the person's own permissions, and published ones run as pipeline steps. The notebooks pillar switches them off.",
+    why: "Notebooks run inside the platform with the person's own permissions, and published ones run as pipeline steps.",
     to: '/docs/guides/notebooks-in-git',
   },
   {
@@ -626,7 +626,7 @@ const features: Feature[] = [
       {name: 'Superset', kind: 'default'},
       {name: 'Your BI tool', kind: 'plug'},
     ],
-    why: "Dashboards query through Trino with the viewer's permissions, so there is no copy of the data. The BI pillar is switchable, and any BI tool can use the same engine.",
+    why: "Dashboards query through Trino with the viewer's permissions, so there is no copy of the data.",
     to: '/docs/services/superset',
   },
   {
@@ -638,7 +638,7 @@ const features: Feature[] = [
       {name: 'OpenFGA', kind: 'core'},
       {name: 'OPA', kind: 'core'},
     ],
-    why: 'You keep the identity provider you already have. OpenFGA records who may use what, and OPA enforces it in every engine.',
+    why: 'You keep the identity provider you already have.',
     to: '/docs/architecture/identity',
   },
   {
@@ -648,7 +648,7 @@ const features: Feature[] = [
       {name: 'Your secret store', kind: 'plug'},
       {name: 'OpenBao', kind: 'starter'},
     ],
-    why: 'Secrets come from the store you already run, through External Secrets. OpenBao is the sandbox store for small installs.',
+    why: 'Secrets come from the store you already run, through External Secrets.',
     to: '/docs/services/openbao',
   },
 ];
@@ -729,7 +729,7 @@ function Pillars(): ReactNode {
         <div className={styles.featureList}>
           {features.map((f) => (
             <article className={styles.featureCard} key={f.title}>
-              <h3 className={styles.featureTitle}>{f.title}</h3>
+              <h3 className={styles.featureTitle}><Link to={f.to}>{f.title} →</Link></h3>
               <p className={styles.featureLine}>{f.line}</p>
               <div className={styles.chips}>
                 {f.parts.map((p) => (
@@ -739,7 +739,6 @@ function Pillars(): ReactNode {
                 ))}
               </div>
               <p className={styles.featureWhy}><strong>Why: </strong>{f.why}</p>
-              <Link className={styles.featureMore} to={f.to}>Read more →</Link>
             </article>
           ))}
         </div>

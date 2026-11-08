@@ -593,11 +593,10 @@
   .featureList { display: grid; grid-auto-flow: column; grid-auto-columns: 82%; grid-template-columns: none; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: .5rem; }
   .featureCard { scroll-snap-align: start; }
 }
-.featureCard { display: flex; flex-direction: column; gap: .5rem; border: 1px solid var(--ifm-toc-border-color); border-radius: 14px; background: var(--ifm-card-background-color); padding: 1.1rem 1.25rem; }
+.featureCard { display: flex; flex-direction: column; gap: .35rem; border: 1px solid var(--ifm-toc-border-color); border-radius: 14px; background: var(--ifm-card-background-color); padding: 1rem 1.1rem; }
 .featureTitle { margin: 0; font-size: 1rem; }
 .featureLine { margin: 0; color: var(--ifm-color-content-secondary); font-size: .9rem; }
 .featureWhy { margin: 0; font-size: .8rem; color: var(--ifm-color-content-secondary); }
-.featureMore { margin-top: auto; font-size: .9rem; font-weight: 600; }
 .partsLegend { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .8rem; color: var(--ifm-color-content-secondary); margin-top: 1rem; }
 .core, .starter, .defaultKind, .optIn, .plug { font-style: normal; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; margin-left: .35rem; }
 .core { color: var(--ifm-color-primary); }
