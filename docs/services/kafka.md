@@ -24,6 +24,11 @@ slug: /services/kafka
 **Operating it.**
 
 - **Install:** Opt-in. Enable it with `make step-kafka` or `spec.pillars.streaming: true`; nothing is installed by default.
-- **Health check:** The broker reports `READY=True` (`kubectl -n <namespace> get kafka kafka`).
+- **Health check:** two checks, because the broker can be Ready while its controller is restarting.
+  `kubectl -n <namespace> get kafka kafka` must print `READY=True`, and
+  `kubectl -n <namespace> get pods -l name=strimzi-cluster-operator` must show `1/1` with **0
+  restarts**. A non-zero restart count means topic and broker changes are not being reconciled,
+  even though `get kafka` stays green (stardelt/stardelt-platform#665).
 - **Backup:** No backup of its own; durable state lives in the Iceberg tables that streams write.
-- **Logs:** Broker and operator logs come from the pods in the same namespace (Strimzi-managed).
+- **Logs:** `kubectl -n <namespace> logs deploy/strimzi-cluster-operator` for the controller;
+  broker logs come from the `kafka-kafka-0` pod (`-c kafka`) in the same namespace.
