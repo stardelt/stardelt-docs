@@ -26,7 +26,7 @@ If it is still missing, ask an administrator to check `stardelt-group-<group>` i
 
 ## Nova or Airflow
 
-Nova is the front door — scheduling, Run/Pause, the pipeline's definition and its runs. Airflow is for the graph, the Gantt view and the raw task logs. The Run/Pause buttons in Nova work through Nova's service identity; a group member does not need a separate Airflow password for them.
+Nova is where people run pipelines: **Run now**, **Pause**, **Resume** and **Stop run** act through Nova's service identity, so a group member needs no separate Airflow password, and every action is checked against the group that owns the pipeline first. **Graph in Airflow ↗** opens the Airflow graph, Gantt view and task logs; the Airflow UI is an optional advanced view for the same runs.
 
 ## What you may do
 

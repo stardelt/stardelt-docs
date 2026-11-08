@@ -99,8 +99,8 @@ administrators). A dashboard that spans two catalogs is administrators-only unti
 ![Trino or Spark](/img/guides/compute-choice.svg)
 
 - **Schedule it:** publish the notebook or SQL as a pipeline (Nova → **Pipelines**); the schedule runs
-  in Airflow, and **Open in Airflow** takes you to the run, task and log view. Group members may run
-  and pause their group's DAGs there.
+  in Airflow, and **Graph in Airflow ↗** opens the graph, Gantt view and task logs. Run now, Pause,
+  Resume and Stop are on the pipeline page in Nova, checked against your group.
 
 ## Not available yet
 
