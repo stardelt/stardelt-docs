@@ -97,7 +97,9 @@ The canonical lakehouse read path:
             (read by engine)
 ```
 
-When the streaming service (P3) is enabled, Apache Kafka carries event topics that Flink processes into Iceberg tables; the base install needs no Kafka — Airflow writes batch results straight to Iceberg. JupyterHub talks to Trino for SQL and to Spark Connect for heavier compute; Superset talks to Trino for dashboards.
+When the streaming service (P3) is enabled, Apache Kafka (Strimzi) carries event topics and a
+`StreamApp` runs a Spark Structured Streaming job that writes them to Iceberg tables; the base
+install needs no Kafka — Airflow writes batch results straight to Iceberg. JupyterHub talks to Trino for SQL and to Spark Connect for heavier compute; Superset talks to Trino for dashboards.
 
 Sign-in is a plug per install. With `identity.mode: platform` the chart deploys Keycloak and Nova and Trino sign people in through it; `external` points them at your own OIDC provider; `none` (the chart default) keeps the development authentication. The vended-credential step in the diagram is the target design: today Trino reads and writes S3 with the static credentials from the `stardelt-s3-creds` Secret (`vended-credentials-enabled=false` in `helm-values/trino.yaml`).
 
