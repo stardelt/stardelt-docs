@@ -18,7 +18,7 @@ Each row is one `StreamApp`:
 | Phase | The phase the operator reports: `Running`, `Stopped`, `Failed` or `Pending`. A second badge carries the operator's `Ready` reason when it differs from the phase. |
 | Source | The `Connection` (or the platform bus) and the Kafka topic the stream reads. |
 | Sink | The catalog, table and mode (`merge` or `append`) the stream writes. |
-| Checkpoint | When the stream last recorded its checkpoint. |
+| Checkpoint | `—` until the operator can read the stream's checkpoint; the checkpoint itself is written to the object store and survives a stop. |
 | Last error | The most recent error, if any. |
 | Job | One **Stop** or **Resume** button. |
 
@@ -80,7 +80,6 @@ metadata:
   namespace: stardelt
 spec:
   source:
-    connectionRef: kafka-bus
     topic: pegelonline.measurements
   sink:
     catalog: shared
@@ -90,5 +89,9 @@ spec:
       - station_uuid
       - measured_at
 ```
+
+Without `source.connectionRef` the stream reads the platform's own Kafka bus, which is what a
+platform-managed install uses. For an external Kafka, create a `Connection` whose
+`config.bootstrapServers` names the broker and set `source.connectionRef` to its name.
 
 `spec.stopped: true` stops the job and keeps the checkpoint, so setting it back to `false` resumes from where it left off. Keyed `merge` sinks are effectively-once; append-only sinks (`mode: append`, no `mergeKeys`) are at-least-once. Credentials live in a `Connection`, never in the manifest.
