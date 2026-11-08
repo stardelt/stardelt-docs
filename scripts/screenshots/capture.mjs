@@ -23,7 +23,7 @@ const SQL =
 const shots = [
   { file: 'overview.png', route: '/', must: 'overview' },
   { file: 'pipeline.png', route: '/pipelines/stardelt/mobility-medallion', must: 'pipeline' },
-  { file: 'lineage.png', route: '/lineage', must: 'lineage' },
+  { file: 'lineage.png', route: '/lineage?catalog=retail&schema=bronze&table=orders&depth=1', must: 'lineage' },
   { file: 'sql.png', route: '/query', must: 'sql', runSql: SQL },
   { file: 'catalog.png', route: '/catalog', must: 'catalog' },
   { file: 'activity.png', route: '/jobs', must: 'activity' },
@@ -124,6 +124,14 @@ async function main() {
       console.error(`skip ${shot.file}: still on a sign-in page (${signedOut.join(', ')})`);
       process.exitCode = 1;
       continue;
+    }
+    if (shot.file === 'lineage.png') {
+      const text = await page.locator('body').innerText();
+      if (/Choose a table to see|No lineage captured/.test(text)) {
+        console.error('skip lineage.png: the page shows no graph');
+        process.exitCode = 1;
+        continue;
+      }
     }
     const out = path.join(OUT, shot.file);
     await page.screenshot({ path: out, fullPage: false });
