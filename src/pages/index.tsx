@@ -540,24 +540,107 @@ function Why(): ReactNode {
 /*  Pillars                                                             */
 /* ------------------------------------------------------------------ */
 
-type Pillar = {title: string; tools: string[]};
+type Kind = 'core' | 'starter' | 'default' | 'opt-in' | 'plug';
+type Part = {name: string; kind: Kind};
+type Feature = {title: string; line: string; parts: Part[]; why: string; to: string};
 
-const pillars: Pillar[] = [
+const features: Feature[] = [
   {
-    title: 'Lakehouse SQL',
-    tools: ['Trino', 'Iceberg', 'Lakekeeper', 'SeaweedFS'],
+    title: 'SQL on your lakehouse',
+    line: 'Query every table with standard SQL.',
+    parts: [
+      {name: 'Trino', kind: 'core'},
+      {name: 'Apache Iceberg', kind: 'core'},
+      {name: 'Lakekeeper', kind: 'core'},
+    ],
+    why: 'Trino reads Iceberg tables in place and scales out. Lakekeeper is a small Iceberg REST catalog written in Rust, so any Iceberg engine can share the same tables.',
+    to: '/docs/services/trino',
   },
   {
-    title: 'Compute & orchestration',
-    tools: ['Spark Connect', 'Airflow'],
+    title: 'Storage',
+    line: 'Tables live on object storage you choose.',
+    parts: [
+      {name: 'Your S3 storage', kind: 'plug'},
+      {name: 'SeaweedFS', kind: 'starter'},
+    ],
+    why: 'Enterprises already run object storage, and stardelt uses it. SeaweedFS is there so one node can try everything.',
+    to: '/docs/services/seaweedfs',
   },
   {
-    title: 'Notebooks & BI',
-    tools: ['JupyterHub', 'Superset'],
+    title: 'Load and connect',
+    line: 'Files and sources become tables.',
+    parts: [
+      {name: 'Nova', kind: 'core'},
+      {name: 'Connections', kind: 'core'},
+    ],
+    why: 'Loading is a feature of the platform, not a separate tool to buy and operate.',
+    to: '/docs/guides/connections',
   },
   {
-    title: 'Sign-in & permissions',
-    tools: ['OIDC', 'OpenFGA', 'OPA'],
+    title: 'Pipelines and schedules',
+    line: 'Bronze to silver to gold, on a schedule.',
+    parts: [
+      {name: 'Pipeline resource', kind: 'core'},
+      {name: 'Airflow', kind: 'default'},
+    ],
+    why: 'Pipelines are declared in Git and moved between stages. Airflow runs them, with retries and history; the batch pillar switches it off when you use your own scheduler.',
+    to: '/docs/guides/schedule-sql',
+  },
+  {
+    title: 'Spark',
+    line: 'Python and Spark jobs without a Spark cluster per person.',
+    parts: [{name: 'Spark Connect', kind: 'default'}],
+    why: 'A thin client talks to a shared Spark server: no spark-submit, no driver on your laptop. It ships with the notebooks pillar.',
+    to: '/docs/services/spark',
+  },
+  {
+    title: 'Notebooks',
+    line: 'Explore next to the data, then publish and schedule.',
+    parts: [{name: 'JupyterHub', kind: 'default'}],
+    why: "Notebooks run inside the platform with the person's own permissions, and published ones run as pipeline steps. The notebooks pillar switches them off.",
+    to: '/docs/guides/notebooks-in-git',
+  },
+  {
+    title: 'Streams',
+    line: 'Events in, tables out.',
+    parts: [
+      {name: 'Kafka in KRaft mode', kind: 'opt-in'},
+      {name: 'StreamApp resource', kind: 'core'},
+    ],
+    why: 'The streaming pillar is opt-in (D26 tier 3). Once it is on, streams are declared like pipelines and land in the same Iceberg tables.',
+    to: '/docs/guides/streams',
+  },
+  {
+    title: 'Dashboards',
+    line: 'Charts on governed tables.',
+    parts: [
+      {name: 'Superset', kind: 'default'},
+      {name: 'Your BI tool', kind: 'plug'},
+    ],
+    why: "Dashboards query through Trino with the viewer's permissions, so there is no copy of the data. The BI pillar is switchable, and any BI tool can use the same engine.",
+    to: '/docs/services/superset',
+  },
+  {
+    title: 'Sign-in and permissions',
+    line: 'One sign-in, permissions by team.',
+    parts: [
+      {name: 'Your OIDC provider', kind: 'plug'},
+      {name: 'Keycloak', kind: 'starter'},
+      {name: 'OpenFGA', kind: 'core'},
+      {name: 'OPA', kind: 'core'},
+    ],
+    why: 'You keep the identity provider you already have. OpenFGA records who may use what, and OPA enforces it in every engine.',
+    to: '/docs/architecture/identity',
+  },
+  {
+    title: 'Secrets',
+    line: 'No passwords in files.',
+    parts: [
+      {name: 'Your secret store', kind: 'plug'},
+      {name: 'OpenBao', kind: 'starter'},
+    ],
+    why: 'Secrets come from the store you already run, through External Secrets. OpenBao is the sandbox store for small installs.',
+    to: '/docs/services/openbao',
   },
 ];
 
@@ -584,6 +667,14 @@ function Pillars(): ReactNode {
     }
     return () => observer.disconnect();
   }, []);
+
+  const KIND_CLASS: Record<Part['kind'], string> = {
+    core: styles.core,
+    starter: styles.starter,
+    default: styles.defaultKind,
+    'opt-in': styles.optIn,
+    plug: styles.plug,
+  };
 
   return (
     <section id="pillars" className={styles.section}>
@@ -619,6 +710,30 @@ function Pillars(): ReactNode {
         <p className={styles.stackOverviewNotice}>
           Logos are trademarks of their respective owners; their use does not imply endorsement.
         </p>
+        <p className={styles.partsLegend}>
+          <span className={styles.chip}>core <em className={styles.core}>always installed</em></span>
+          <span className={styles.chip}>starter <em className={styles.starter}>for small installs, replaceable</em></span>
+          <span className={styles.chip}>default <em className={styles.defaultKind}>full profile, switchable per pillar</em></span>
+          <span className={styles.chip}>opt-in <em className={styles.optIn}>off until you enable it</em></span>
+          <span className={styles.chip}>plug <em className={styles.plug}>you bring your own</em></span>
+        </p>
+        <div className={styles.featureList}>
+          {features.map((f) => (
+            <article className={styles.featureCard} key={f.title}>
+              <h3 className={styles.featureTitle}>{f.title}</h3>
+              <p className={styles.featureLine}>{f.line}</p>
+              <div className={styles.chips}>
+                {f.parts.map((p) => (
+                  <span className={styles.chip} key={p.name}>
+                    {p.name} <em className={KIND_CLASS[p.kind]}>{p.kind}</em>
+                  </span>
+                ))}
+              </div>
+              <p className={styles.featureWhy}><strong>Why: </strong>{f.why}</p>
+              <Link className={styles.featureMore} to={f.to}>Read more →</Link>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );

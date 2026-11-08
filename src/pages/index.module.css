@@ -583,3 +583,19 @@
 .whyPoints { margin: 0; padding-left: 1.1rem; color: var(--ifm-color-content-secondary); }
 .whyPoints li + li { margin-top: .35rem; }
 .whyCard a { margin-top: auto; }
+
+.featureList { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; align-items: stretch; }
+@media (max-width: 1200px) { .featureList { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .featureList { grid-template-columns: minmax(0, 1fr); } }
+.featureCard { display: flex; flex-direction: column; gap: .5rem; border: 1px solid var(--ifm-toc-border-color); border-radius: 14px; background: var(--ifm-card-background-color); padding: 1.1rem 1.25rem; }
+.featureTitle { margin: 0; font-size: 1rem; }
+.featureLine { margin: 0; color: var(--ifm-color-content-secondary); font-size: .9rem; }
+.featureWhy { margin: 0; font-size: .85rem; color: var(--ifm-color-content-secondary); }
+.featureMore { margin-top: auto; font-size: .9rem; font-weight: 600; }
+.partsLegend { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .8rem; color: var(--ifm-color-content-secondary); margin-top: 1rem; }
+.core, .starter, .defaultKind, .optIn, .plug { font-style: normal; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; margin-left: .35rem; }
+.core { color: var(--ifm-color-primary); }
+.starter { color: var(--ifm-color-content-secondary); }
+.defaultKind { color: #2fbf71; }
+.optIn { color: #d08a2e; }
+.plug { color: #4c9bd1; }
