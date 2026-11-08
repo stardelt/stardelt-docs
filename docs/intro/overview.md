@@ -8,7 +8,7 @@ slug: /intro/overview
 
 stardelt is an open-source data platform that runs on your own Kubernetes cluster. It installs
 proven open-source projects and connects them, so you get one sign-in, one interface and one API for
-storing, querying, scheduling and showing data.
+storing, querying, scheduling and showing data. [See a team's day in five steps](/#story).
 
 ![Nova, the Overview of a team at work](/img/nova/overview.png)
 

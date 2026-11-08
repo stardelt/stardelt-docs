@@ -88,3 +88,10 @@ CI builds every container image. Merging to `main` publishes `dev`, `main` and a
 ```bash
 kubectl -n stardelt set image deploy/nova nova=ghcr.io/stardelt/nova@sha256:…
 ```
+
+## Button and link labels
+
+- A button is a verb plus an object, in sentence case: "Start the quickstart", not "Quickstart" or "Click here".
+- `→` means the link goes elsewhere on this site, `↓` means it scrolls on this page, and `↗` means it leaves the site. No other arrows.
+- One primary button per section. The same goal always uses the same label.
+- Say each claim once per page, in the place that proves it.

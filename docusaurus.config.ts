@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'stardelt',
-  tagline: 'A self-hostable data platform for Kubernetes.',
+  tagline: 'Your own data platform, on any Kubernetes.',
   favicon: 'img/logo.svg',
 
   url: 'https://stardelt.io',
@@ -47,7 +47,7 @@ const config: Config = {
     announcementBar: {
       id: 'pre-alpha-disclaimer',
       content:
-        '<b>Pre-alpha.</b> stardelt changes quickly and is not ready for production.',
+        '<b>Pre-alpha.</b> stardelt changes quickly. <a href="/docs/roadmap#what-works-today">What works today →</a>',
       backgroundColor: '#282a2e',
       textColor: '#e8eaed',
       isCloseable: false,
@@ -74,6 +74,7 @@ const config: Config = {
         {
           title: 'Documentation',
           items: [
+            { label: 'What is stardelt', to: '/docs/intro/overview' },
             { label: 'Quickstart', to: '/docs/getting-started/quickstart' },
             { label: 'How it works', to: '/docs/architecture/how-it-works' },
             { label: 'Roadmap', to: '/docs/roadmap' },
@@ -83,7 +84,7 @@ const config: Config = {
         {
           title: 'Community',
           items: [
-            { label: 'GitHub org', href: 'https://github.com/stardelt' },
+            { label: 'GitHub', href: 'https://github.com/stardelt' },
             { label: 'Wallpapers', to: '/docs/community/wallpapers' },
             { label: 'Contribute', to: '/docs/developer' },
             { label: 'Report a security problem', href: 'https://github.com/stardelt/.github/blob/main/SECURITY.md' },
