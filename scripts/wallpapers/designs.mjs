@@ -87,50 +87,62 @@ ${logoMark(logo, w / 2, markCy, markH, prefix)}
   return wrap(w, h, defs, body);
 }
 
+function parsePoints(value) {
+  return value
+    .trim()
+    .split(/\s+/)
+    .map((pair) => pair.split(',').map(Number));
+}
+
 function constellation(w, h) {
   const logo = readLogo();
-  const prefix = 'co';
   const rand = mulberry32(20261108);
-  const stars = [];
+  let stars = '';
   for (let i = 0; i < 220; i++) {
     const x = rand() * w;
     const y = rand() * h;
     const size = (0.004 + rand() * (0.014 - 0.004)) * h;
     const opacity = 0.15 + rand() * (0.7 - 0.15);
     const s = size / 200;
-    stars.push(`<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${s.toFixed(6)}) translate(-100 -128)"><polygon points="${logo.starPoints}" fill="#b8c0ff" opacity="${opacity.toFixed(3)}"/></g>`);
+    stars += `<g transform="translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${s.toFixed(6)}) translate(-100 -128)"><polygon points="${logo.starPoints}" fill="#b8c0ff" opacity="${opacity.toFixed(3)}"/></g>\n`;
   }
-  // 6 stars connected by 1px lines forming a delta around the right third.
-  const cx = w * 0.78;
-  const cy = h * 0.38;
-  const r = h * 0.14;
-  const pts = [];
-  for (let i = 0; i < 6; i++) {
-    const a = -Math.PI / 2 + (i * Math.PI) / 3;
-    pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]);
-  }
-  const order = [0, 2, 4, 0, 1, 3, 5, 1];
+
+  // The stardelt mark — the delta and the four-pointed star — drawn as stars in the right third.
+  const delta = parsePoints(logo.deltaPoints);
+  const star = parsePoints(logo.starPoints);
+  const cx = w * 0.76;
+  const cy = h * 0.4;
+  const size = h * 0.34;
+  const s = size / 200;
+  const map = ([x, y]) => [cx + (x - 100) * s, cy + (y - 100) * s];
+  const d = delta.map(map);
+  const t = star.map(map);
+  const center = map([100, 128]);
+  const line = (a, b, opacity = 0.45) => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#7a8aff" stroke-width="1.2" opacity="${opacity}"/>`;
   let lines = '';
-  for (let i = 0; i < order.length - 1; i++) {
-    const a = pts[order[i]];
-    const b = pts[order[i + 1]];
-    lines += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#7a8aff" stroke-width="1" opacity="0.35"/>`;
+  for (let i = 0; i < 3; i++) lines += line(d[i], d[(i + 1) % 3]);
+  for (let i = 0; i < 8; i++) lines += line(t[i], t[(i + 1) % 8]);
+  for (const i of [0, 2, 4, 6]) lines += line(center, t[i], 0.28);
+  let dots = '';
+  for (const p of [...d, ...t]) {
+    dots += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${(h * 0.0045).toFixed(2)}" fill="#b8c0ff" opacity="0.95"/>`;
   }
-  for (const p of pts) {
-    lines += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${(h * 0.004).toFixed(2)}" fill="#b8c0ff" opacity="0.8"/>`;
-  }
-  const markH = 0.07 * h;
-  const markCx = w - 0.05 * h - markH / 2;
-  const markCy = h - 0.05 * h - markH / 2;
-  const defs = `${logoDefs(logo, prefix)}
-  <linearGradient id="${prefix}-bg" x1="0" y1="0" x2="1" y2="1">
+  dots += `<circle cx="${center[0].toFixed(1)}" cy="${center[1].toFixed(1)}" r="${(h * 0.06).toFixed(1)}" fill="url(#co-glow)"/><circle cx="${center[0].toFixed(1)}" cy="${center[1].toFixed(1)}" r="${(h * 0.008).toFixed(2)}" fill="#ffffff"/>`;
+
+  const defs = `<defs>
+  <linearGradient id="co-bg" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0%" stop-color="#18191b"/>
     <stop offset="100%" stop-color="#14152a"/>
-  </linearGradient>`;
-  const body = `<rect width="${w}" height="${h}" fill="url(#${prefix}-bg)"/>
-${stars.join('\n')}
+  </linearGradient>
+  <radialGradient id="co-glow">
+    <stop offset="0%" stop-color="#7a8aff" stop-opacity="0.5"/>
+    <stop offset="100%" stop-color="#7a8aff" stop-opacity="0"/>
+  </radialGradient>
+</defs>`;
+  const body = `<rect width="${w}" height="${h}" fill="url(#co-bg)"/>
+${stars}
 ${lines}
-${logoMark(logo, markCx, markCy, markH, prefix)}`;
+${dots}`;
   return wrap(w, h, defs, body);
 }
 

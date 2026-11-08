@@ -21,7 +21,7 @@ The starfield, glow and delta outline from the top of this site, with the logo c
 
 ## Constellation
 
-![Constellation wallpaper: scattered star marks and a connected delta constellation on a dark gradient, with the stardelt logo in the corner](/img/wallpapers/thumb-constellation.jpg)
+![Constellation wallpaper: the stardelt mark — delta and four-pointed star — drawn as a constellation on a dark gradient](/img/wallpapers/thumb-constellation.jpg)
 
 **Download:** [16:10 (3456 × 2234)](/img/wallpapers/constellation-16x10.jpg) · [16:9 (3840 × 2160)](/img/wallpapers/constellation-16x9.jpg) · [SVG](/img/wallpapers/constellation-16x10.svg)
 
