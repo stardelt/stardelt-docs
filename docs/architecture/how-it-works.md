@@ -19,7 +19,7 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 3. **Engines and apps.** Trino answers SQL. Airflow runs scheduled pipelines and sends their SQL to Trino. Superset draws dashboards from Trino. Spark Connect takes the heavy jobs. Nova asks them for you; notebooks talk to the engines directly with your token.
 4. **Catalog and access.** Lakekeeper is the Iceberg catalog: it knows which tables exist and which files belong to them, and every engine asks it first. OpenFGA, when it is on, decides who may see which table.
 5. **Storage.** Tables are open Iceberg files (Parquet) in SeaweedFS, or in your own S3. Nothing is locked into a stardelt format.
-6. **Control plane.** The stardelt Operator reads small resources (`PlatformInstance`, `Lakehouse`, `Catalog`, `Pipeline`, ...) and installs and wires the services above. CloudNativePG keeps the Postgres databases; ingress-nginx and cert-manager give every service its HTTPS name. All of it runs on a Kubernetes cluster you bring.
+6. **Control plane.** The stardelt Operator reads small resources (`PlatformInstance`, `Lakehouse`, `Connection`, `ServicePrincipal` and `StreamApp`) and installs and wires the services above. CloudNativePG keeps the Postgres databases; ingress-nginx and cert-manager give every service its HTTPS name. All of it runs on a Kubernetes cluster you bring.
 
 ## Five things to remember
 
