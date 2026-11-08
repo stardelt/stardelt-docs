@@ -1,4 +1,10 @@
-import {useEffect, useRef, useState, type ReactNode} from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import CodeBlock from '@theme/CodeBlock';
@@ -289,16 +295,64 @@ const stories: TeamStory[] = [
 function Story(): ReactNode {
   const [storyIdx, setStoryIdx] = useState(0);
   const [active, setActive] = useState(0);
-  const [showFrame, setShowFrame] = useState(true);
+  const [playing, setPlaying] = useState(true);
+  const [inView, setInView] = useState(false);
+  const [hover, setHover] = useState(false);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const story = stories[storyIdx];
+  const steps = story.steps;
 
   useEffect(() => {
-    const mql = window.matchMedia('(min-width: 1100px)');
-    const onChange = () => setShowFrame(mql.matches);
-    onChange();
-    mql.addEventListener('change', onChange);
-    return () => mql.removeEventListener('change', onChange);
+    setPlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }, []);
+
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => setInView(entries[0].isIntersecting),
+      {threshold: 0.3},
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const onVisibility = () => setHover(document.hidden);
+    document.addEventListener('visibilitychange', onVisibility);
+    const running = playing && inView && !hover;
+    const timer = running
+      ? window.setTimeout(() => setActive((a) => (a + 1) % steps.length), 7000)
+      : undefined;
+    return () => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [active, playing, inView, hover, steps.length]);
+
+  const go = (delta: number) => {
+    setActive((a) => (a + delta + steps.length) % steps.length);
+  };
+
+  const onTabKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') {
+      return;
+    }
+    e.preventDefault();
+    const next =
+      (active + (e.key === 'ArrowRight' ? 1 : steps.length - 1)) % steps.length;
+    setActive(next);
+    tabRefs.current[next]?.focus();
+  };
+
+  const step = steps[active];
+  const progressState = playing && inView && !hover ? 'running' : 'paused';
 
   return (
     <section id="story" className={styles.section}>
@@ -323,78 +377,100 @@ function Story(): ReactNode {
             ))}
           </div>
         ) : null}
-        <div className={styles.storyLayout}>
-          <div className={styles.storySteps}>
-            {story.steps.map((step, index) => (
-              <details
-                key={step.n}
-                className={clsx(styles.expand, styles.storyStep)}
-                open={active === index}
-                onToggle={(e) => {
-                  if ((e.currentTarget as HTMLDetailsElement).open) {
-                    setActive(index);
-                  }
-                }}>
-                <summary>
-                  <span
-                    className={clsx(
-                      styles.storyStepNumber,
-                      active === index && styles.storyStepNumberActive,
-                    )}>
-                    {step.n}
-                  </span>
-                  <h3 className={styles.storyStepTitle}>{step.title}</h3>
-                  <span className={styles.storyStepBody}>{step.body}</span>
-                </summary>
-                <div className={styles.expandBody}>
-                  {step.code ? (
-                    <CodeBlock language={step.code.lang}>{step.code.text}</CodeBlock>
-                  ) : null}
-                  <div className={styles.chips}>
-                    {step.behind.map((item) => (
-                      <span key={item} className={styles.chip}>
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                  <p className={styles.why}>
-                    <strong>Why: </strong>
-                    {step.why}
-                  </p>
-                  {!showFrame ? (
-                    <img
-                      className={styles.storyStepImageInline}
-                      src={step.img}
-                      alt={step.alt}
-                      loading="lazy"
-                      width={1440}
-                      height={900}
-                    />
-                  ) : null}
-                </div>
-              </details>
+        <div
+          role="tablist"
+          aria-label="Steps"
+          className={styles.slideTabs}
+          onKeyDown={onTabKeyDown}>
+          {steps.map((s, i) => (
+            <button
+              key={s.n}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              type="button"
+              role="tab"
+              aria-selected={i === active}
+              aria-controls="story-stage"
+              className={clsx(styles.slideTab, i === active && styles.slideTabActive)}
+              onClick={() => setActive(i)}>
+              <span className={styles.slideTabNum}>{s.n}</span>
+              <span className={styles.slideTabTitle}>{s.title}</span>
+              {i === active ? (
+                <span
+                  key={active}
+                  className={styles.slideProgress}
+                  style={{animationPlayState: progressState}}
+                />
+              ) : null}
+            </button>
+          ))}
+        </div>
+        <div
+          id="story-stage"
+          ref={stageRef}
+          className={styles.slideStage}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          onFocusCapture={() => setHover(true)}
+          onBlurCapture={() => setHover(false)}>
+          {steps.map((s, i) => (
+            <img
+              key={s.n}
+              className={clsx(styles.slideImage, i === active && styles.slideImageActive)}
+              src={s.img}
+              alt={s.alt}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              width={1440}
+              height={900}
+              aria-hidden={i !== active}
+            />
+          ))}
+          <button
+            type="button"
+            className={styles.slideNav}
+            aria-label="Previous step"
+            onClick={() => go(-1)}>
+            ‹
+          </button>
+          <button
+            type="button"
+            className={styles.slidePause}
+            aria-label={playing ? 'Pause the tour' : 'Play the tour'}
+            onClick={() => {
+              // The button keeps focus after a click, and focus inside the stage
+              // pauses the tour; starting again must clear that pause.
+              if (!playing) {
+                setHover(false);
+              }
+              setPlaying((p) => !p);
+            }}>
+            {playing ? '❚❚' : '▶'}
+          </button>
+          <button
+            type="button"
+            className={styles.slideNav}
+            aria-label="Next step"
+            onClick={() => go(1)}>
+            ›
+          </button>
+        </div>
+        <div className={styles.slideCaption} aria-live="polite">
+          <p className={styles.slideBody}>{step.body}</p>
+          {step.code ? (
+            <CodeBlock language={step.code.lang}>{step.code.text}</CodeBlock>
+          ) : null}
+          <div className={styles.chips}>
+            {step.behind.map((item) => (
+              <span key={item} className={styles.chip}>
+                {item}
+              </span>
             ))}
           </div>
-          {showFrame ? (
-            <div className={styles.storyFrame}>
-              <div className={styles.storyFrameInner}>
-                {story.steps.map((step, index) => (
-                  <img
-                    key={step.n}
-                    className={clsx(
-                      styles.storyFrameImage,
-                      active === index && styles.storyFrameImageActive,
-                    )}
-                    src={step.img}
-                    alt={step.alt}
-                    loading="lazy"
-                    width={1440}
-                    height={900}
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
+          <p className={styles.why}>
+            <strong>Why: </strong>
+            {step.why}
+          </p>
         </div>
       </div>
     </section>
