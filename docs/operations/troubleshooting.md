@@ -103,23 +103,33 @@ A `StreamApp` can be `Running` while its Spark job is not writing: the phase com
 `SparkApplication` status, and a job that crashes is resubmitted by the Spark operator while the
 `StreamApp` stays `Running`. Three checks, in this order, tell you where it stopped.
 
-**1. Is the Spark application actually running?** Ask the `SparkApplication`, not the `StreamApp`:
+**1. Is the job still running, or restarting?** Ask the `StreamApp` — the operator copies Spark's
+own counters into its status:
+
+```bash
+kubectl -n <namespace> get streamapp <stream-name> \
+  -o jsonpath='{.status.phase} attempts={.status.attempts} last={.status.lastSubmittedAt}{"\n"}'
+```
+
+Expected on the dev cluster:
+
+```text
+Running attempts=27 last=2026-11-08T05:11:35Z
+```
+
+`attempts` counts every submission since the application was created, so a recovered stream keeps a
+number above 1 — but it must **stop growing**. Read it, wait five minutes, read it again: a number
+that grew means Spark keeps resubmitting the driver. `last` is when it last submitted; a `last` that
+moves while the table does not grow is the same signal. Both fields are absent (`attempts=`) on an
+operator older than `3169db2`; then read the `SparkApplication` directly:
 
 ```bash
 kubectl -n <namespace> get sparkapplication <stream-name> \
   -o jsonpath='{.status.applicationState.state} attempts={.status.executionAttempts} last={.status.lastSubmissionAttemptTime}{"\n"}'
 ```
 
-Expected on the dev cluster:
-
-```text
-RUNNING attempts=20 last=2026-11-08T04:08:20Z
-```
-
-`RUNNING` and a recent `last` are what matter. `attempts` counts every submission since the
-application was created, so a recovered stream keeps a number above 1 — but it must stop growing.
-If it grows every few minutes, Spark keeps resubmitting the driver. Capture the log *before* the pod
-is deleted (the Spark operator deletes it on resubmission) and read the exception at the end:
+Capture the log *before* the pod is deleted (the Spark operator deletes it on resubmission) and read
+the exception at the end:
 
 ```bash
 kubectl -n <namespace> logs -f <stream-name>-driver > /tmp/driver.log
@@ -162,14 +172,14 @@ stream writes for a while and then loses its catalog session: search the driver 
 
 ```bash
 kubectl -n <namespace> get streamapp <stream-name> \
-  -o jsonpath='{.status.phase} / {.status.conditions[0].type}={.status.conditions[0].reason} lastError={.status.lastError}{"\n"}'
+  -o jsonpath='{.status.phase} / {.status.conditions[0].type}={.status.conditions[0].reason} lastError={.status.lastError} attempts={.status.attempts} last={.status.lastSubmittedAt}{"\n"}'
 kubectl -n <namespace> logs deploy/stardelt-operator --tail=5 | grep stream=
 ```
 
 Expected on a healthy stream:
 
 ```text
-Running / Ready=Running lastError=
+Running / Ready=Running lastError= attempts=27 last=2026-11-08T05:11:35Z
 ```
 
 `Ready=Restarting` means Spark resubmitted the application inside the last ten minutes; if the table
