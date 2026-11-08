@@ -34,4 +34,4 @@ slug: /services/jupyterhub
 - **Health check:** `kubectl -n stardelt get pods -l app.kubernetes.io/name=jupyterhub`
 - **Logs:** `kubectl -n stardelt logs -l component=hub -n stardelt`
 - **Install step:** `make install-notebooks` (from `stardelt-platform`)
-- **Backup:** Notebook user storage is ephemeral per configuration; backups focus on Git-backed notebooks and platform state as documented.
+- **Storage:** every person has a 2 GiB home volume that survives a server restart. Commit notebooks to Git to share them and to have them backed up.
