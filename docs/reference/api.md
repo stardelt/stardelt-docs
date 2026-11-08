@@ -203,7 +203,7 @@ Set or remove one column's description. The column must be a field of the curren
 
 Operation id `table_documentation_get`: in Python `client.call("table_documentation_get", …)`, on the command line `stardelt api table_documentation_get`.
 
-A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain` custom properties, and the description and type of every column of the **current** schema. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers 503.
+A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain` custom properties, and the description and type of every column of the **current** schema. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).
 
 **Parameters**
 
@@ -222,7 +222,6 @@ A table's documentation: the Iceberg `comment` as `description`, the `stardelt.t
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable or did not answer |
-| `503` | Demo mode |
 
 ### PUT /api/catalog/tables/\{ns\}/\{tbl\}/documentation
 
@@ -1552,7 +1551,7 @@ Operation id `streams_patch`: in Python `client.call("streams_patch", …)`, on 
 
 Stop or resume one stream: merge `spec.stopped` and answer the updated view.
 
-Stop or resume one stream by setting `spec.stopped` (the one verb a stream has, D42 §4.4). `true` stops the job and keeps the checkpoint so `false` resumes from it. A stream the caller may not see, a foreign namespace, and a name that does not exist all answer the same `404`. The answer is the updated stream view. Answers `Cache-Control: no-store`.
+Stop or resume one stream by setting `spec.stopped` (the one verb a stream has). `true` stops the job and keeps the checkpoint so `false` resumes from it. A stream the caller may not see, a foreign namespace, and a name that does not exist all answer the same `404`. The answer is the updated stream view. Answers `Cache-Control: no-store`.
 
 **Parameters**
 

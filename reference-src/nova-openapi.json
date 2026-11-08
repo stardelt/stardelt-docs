@@ -1000,7 +1000,7 @@
         "tags": [
           "public"
         ],
-        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain` custom properties, and the description and type of every column of the **current** schema. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers 503.",
+        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain` custom properties, and the description and type of every column of the **current** schema. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).",
         "operationId": "table_documentation_get",
         "parameters": [
           {
@@ -1074,16 +1074,6 @@
           },
           "502": {
             "description": "The catalog is not reachable or did not answer",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "Demo mode",
             "content": {
               "application/json": {
                 "schema": {
@@ -5364,7 +5354,7 @@
           "public"
         ],
         "summary": "Stop or resume one stream: merge `spec.stopped` and answer the updated view.",
-        "description": "Stop or resume one stream by setting `spec.stopped` (the one verb a stream has, D42 §4.4). `true` stops the job and keeps the checkpoint so `false` resumes from it. A stream the caller may not see, a foreign namespace, and a name that does not exist all answer the same `404`. The answer is the updated stream view. Answers `Cache-Control: no-store`.",
+        "description": "Stop or resume one stream by setting `spec.stopped` (the one verb a stream has). `true` stops the job and keeps the checkpoint so `false` resumes from it. A stream the caller may not see, a foreign namespace, and a name that does not exist all answer the same `404`. The answer is the updated stream view. Answers `Cache-Control: no-store`.",
         "operationId": "streams_patch",
         "parameters": [
           {
@@ -8853,7 +8843,7 @@
       },
       "StreamState": {
         "type": "object",
-        "description": "The one verb a stream has (D42 §4.4): stop or resume by setting `spec.stopped`.",
+        "description": "The one verb a stream has: stop or resume by setting `spec.stopped`.",
         "required": [
           "stopped"
         ],
