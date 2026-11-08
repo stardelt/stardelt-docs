@@ -51,11 +51,12 @@ A `✗`/`FAIL` line names the object and the reason (paste the real `verify-imag
 FAIL (1 of 6 images is not readable)
 ```
 
-A `!` line is a warning and the command still exits 0. Three warnings exist today: a stream in
+A `!` line is a warning and the command still exits 0. Four warnings exist today: a stream in
 `Pending` (not running now), a running stream that restarted inside the operator's ten-minute
-window, and a Strimzi controller with a non-zero restart count. Each names the object; the
-`PASS` verdict means no check failed, not that there were no warnings. The streaming guide
-explains what `Restarting` means; the Kafka page explains the controller's restart count.
+window, a Strimzi controller with a non-zero restart count, and a SparkApplication list the check
+cannot read (so execution attempts are not checked). Each names the object; the `PASS` verdict
+means no check failed, not that there were no warnings. The streaming guide explains what
+`Restarting` means; the Kafka page explains the controller's restart count.
 
 `UNVERIFIED` plus exit 3 means the check could not see its subject (bucket, Secret, kube context) and proved nothing — fix the access, do not treat it as a pass.
 
