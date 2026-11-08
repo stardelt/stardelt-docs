@@ -5,6 +5,7 @@ import CodeBlock from '@theme/CodeBlock';
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import Layout from '@theme/Layout';
+import ThemedImage from '@theme/ThemedImage';
 import clsx from 'clsx';
 
 import styles from './index.module.css';
@@ -100,12 +101,12 @@ function HomepageHero(): ReactNode {
     <header className={styles.hero}>
       <div className={styles.heroInner}>
         <div className={styles.heroText}>
-          <span className={styles.eyebrow}>Open source · Apache 2.0 · Kubernetes-native</span>
-          <img
+          <ThemedImage
             className={styles.wordmark}
-            src="/img/logo-wordmark.svg"
             alt="stardelt"
+            sources={{light: '/img/logo-wordmark.svg', dark: '/img/logo-wordmark-dark.svg'}}
           />
+          <span className={styles.eyebrow}>Open source · Apache 2.0 · Kubernetes-native</span>
           <h1 className={styles.heroTitle}>
             Your own data platform. Built new, for how data works now.
           </h1>
