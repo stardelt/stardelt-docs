@@ -104,4 +104,5 @@ administrators). A dashboard that spans two catalogs is administrators-only unti
 
 ## Not available yet
 
-Ingestion templates, SQL models with tests, and layer tags in the catalog.
+Ingestion templates, SQL models with tests, layer tags in the catalog, and automatic table
+maintenance (`Catalog.spec.maintenance` is stored, but nothing runs it yet).
