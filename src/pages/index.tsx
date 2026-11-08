@@ -414,6 +414,20 @@ function Story(): ReactNode {
               ) : null}
             </button>
           ))}
+          <button
+            type="button"
+            className={styles.slidePause}
+            aria-label={playing ? 'Pause the tour' : 'Play the tour'}
+            onClick={() => {
+              // The button keeps focus after a click, and focus inside the stage
+              // pauses the tour; starting again must clear that pause.
+              if (!playing) {
+                setHover(false);
+              }
+              setPlaying((p) => !p);
+            }}>
+            {playing ? '❚❚' : '▶'}
+          </button>
         </div>
         <div
           id="story-stage"
@@ -441,20 +455,6 @@ function Story(): ReactNode {
             aria-label="Previous step"
             onClick={() => go(-1)}>
             ‹
-          </button>
-          <button
-            type="button"
-            className={styles.slidePause}
-            aria-label={playing ? 'Pause the tour' : 'Play the tour'}
-            onClick={() => {
-              // The button keeps focus after a click, and focus inside the stage
-              // pauses the tour; starting again must clear that pause.
-              if (!playing) {
-                setHover(false);
-              }
-              setPlaying((p) => !p);
-            }}>
-            {playing ? '❚❚' : '▶'}
           </button>
           <button
             type="button"
@@ -803,9 +803,9 @@ export default function Home(): ReactNode {
     >
       <HomepageHero />
       <main>
+        <Story />
         <Pillars />
         <Why />
-        <Story />
         <EveryScreenHasAnApi />
         <DiveDeeper />
       </main>
