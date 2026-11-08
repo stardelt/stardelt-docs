@@ -53,6 +53,15 @@ about the pods. Two reasons are worth knowing:
   Free CPU on the node (stop a stream you no longer need) and the executor schedules; the
   checkpoint is kept, so the stream continues where it stopped.
 
+## After an operator upgrade
+
+An upgrade that changes the job script the operator runs restarts every running stream once.
+The operator compares the script it carries with the one the running application was
+submitted with, and resubmits when they differ. Expect the `Restarting` reason for up to ten
+minutes and the submission count to go up by one; the stream continues from its checkpoint,
+so no already-written rows are processed twice with `merge` sinks. `make verify-streaming`
+prints `stream-scripts` as a pass once every running stream carries the current script.
+
 ## Stop and resume a stream
 
 **Stop** sets `spec.stopped: true`; the operator deletes the Spark application and keeps the
