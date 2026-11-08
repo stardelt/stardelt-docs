@@ -10,6 +10,8 @@ slug: /services/spark
 
 **How it fits.** The endpoint is `sc://spark-connect.<namespace>.svc.cluster.local:15002`, **in-cluster only**: there is no Ingress, because Spark Connect has no built-in client authentication and the platform does not publish an unauthenticated endpoint. Notebooks reach it from inside the cluster; the catalog a session uses is configured per person with that person's token.
 
+**The other Spark runtime: the Spark Operator.** A `StreamApp` does not use Spark Connect. The Kubeflow Spark Operator runs it as a `SparkApplication`: a driver pod and an executor pod per stream in the stream's namespace, with the same Iceberg catalog (see [the streaming guide](../guides/streams)). The operator installs it with the streaming bus (`make step-spark-operator` on a dev install, or `spec.pillars.streaming: true` on the operator path); it is not part of `make install`. The controller watches every namespace (`--namespaces=""`), so a `StreamApp` in any namespace is picked up; `make verify-streaming` checks that, the controller's readiness and each stream's phase.
+
 **What happens when it is down.** Notebooks that use Spark fail to open a session and say so; Trino and the catalog are unaffected, because the endpoint is not in their path.
 
 **What you can tune.**
@@ -28,6 +30,7 @@ slug: /services/spark
 **Operating it.**
 
 - **Install:** Opt-in, not part of `make install`. Run `make install-spark`; it applies `manifests/spark.yaml` and restarts `deploy/spark-connect` when `ConfigMap spark-connect-config` (`spark-defaults.conf`) changes. The endpoint is `sc://spark-connect.<namespace>.svc.cluster.local:15002` (in-cluster only).
+- **Streams:** `kubectl -n <namespace> get deploy spark-operator-controller spark-operator-webhook` must print `1/1` for both; the driver and executor pods of a stream carry `sparkoperator.k8s.io/app-name=<streamapp>`.
 - **Health check:** The driver Deployment and its pods report health; the container exposes TCP readiness and liveness probes on port `15002`.
 - **Backup:** No backup of its own; its state is the Iceberg catalog.
 - **Logs:** Driver logs come from the `spark-connect` pod; executor logs come from the executor pods created per query in the same namespace.
