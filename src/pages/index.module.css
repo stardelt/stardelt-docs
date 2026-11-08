@@ -358,7 +358,7 @@
 .stackOverview {
   display: block;
   width: 100%;
-  max-width: 1080px;
+  max-width: 960px;
   height: auto;
   margin: 2.5rem auto 0;
   border-radius: 20px;
@@ -455,7 +455,7 @@
 /*  Story                                                               */
 /* ------------------------------------------------------------------ */
 
-.slideTabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .5rem; margin: 2rem 0 1rem; }
+.slideTabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)) auto; gap: .5rem; margin: 2rem 0 1rem; }
 .slideTab { position: relative; overflow: hidden; display: flex; align-items: center; gap: .6rem; padding: .75rem 1rem; border-radius: 12px; border: 1px solid var(--ifm-toc-border-color); background: transparent; color: var(--ifm-color-content-secondary); font: inherit; cursor: pointer; text-align: left; }
 .slideTabActive { color: var(--ifm-color-content); background: var(--ifm-card-background-color); border-color: var(--ifm-color-primary); }
 .slideTabNum { font-weight: 700; color: var(--ifm-color-primary); }
@@ -468,10 +468,10 @@
 .slideNav { position: absolute; top: 50%; transform: translateY(-50%); width: 2.5rem; height: 2.5rem; border-radius: 999px; border: 1px solid var(--ifm-toc-border-color); background: rgba(24,25,27,.75); color: #e8eaed; font-size: 1.4rem; cursor: pointer; opacity: 0; transition: opacity 200ms; }
 .slideNav:first-of-type { left: .75rem; } .slideNav:last-of-type { right: .75rem; }
 .slideStage:hover .slideNav, .slideNav:focus-visible { opacity: 1; }
-.slidePause { position: absolute; right: .75rem; bottom: .75rem; border-radius: 999px; padding: .3rem .7rem; border: 1px solid var(--ifm-toc-border-color); background: rgba(24,25,27,.75); color: #e8eaed; cursor: pointer; font-size: .8rem; }
+.slidePause { align-self: stretch; border-radius: 12px; padding: 0 1rem; border: 1px solid var(--ifm-toc-border-color); background: transparent; color: var(--ifm-color-content-secondary); cursor: pointer; }
 .slideCaption { min-height: 11rem; margin-top: 1.25rem; max-width: 52rem; }
 .slideBody { font-size: 1.15rem; color: var(--ifm-color-content); margin-bottom: .75rem; }
-@media (max-width: 700px) { .slideTabTitle { display: none; } .slideTabActive .slideTabTitle { display: inline; } .slideTabs { grid-template-columns: repeat(5, auto); overflow-x: auto; } .slideNav { opacity: 1; } }
+@media (max-width: 700px) { .slideTabTitle { display: none; } .slideTabActive .slideTabTitle { display: inline; } .slideTabs { grid-template-columns: repeat(6, auto); overflow-x: auto; } .slideNav { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .slideImage { transition: none; } .slideProgress { animation: none; transform: scaleX(1); } }
 
 /* ------------------------------------------------------------------ */
@@ -587,13 +587,16 @@
 .whyPoints li + li { margin-top: .35rem; }
 .whyCard a { margin-top: auto; }
 
-.featureList { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; align-items: stretch; }
+.featureList { margin-top: 1.5rem; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; align-items: stretch; }
 @media (max-width: 1200px) { .featureList { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 700px) { .featureList { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) {
+  .featureList { display: grid; grid-auto-flow: column; grid-auto-columns: 82%; grid-template-columns: none; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: .5rem; }
+  .featureCard { scroll-snap-align: start; }
+}
 .featureCard { display: flex; flex-direction: column; gap: .5rem; border: 1px solid var(--ifm-toc-border-color); border-radius: 14px; background: var(--ifm-card-background-color); padding: 1.1rem 1.25rem; }
 .featureTitle { margin: 0; font-size: 1rem; }
 .featureLine { margin: 0; color: var(--ifm-color-content-secondary); font-size: .9rem; }
-.featureWhy { margin: 0; font-size: .85rem; color: var(--ifm-color-content-secondary); }
+.featureWhy { margin: 0; font-size: .8rem; color: var(--ifm-color-content-secondary); }
 .featureMore { margin-top: auto; font-size: .9rem; font-weight: 600; }
 .partsLegend { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-size: .8rem; color: var(--ifm-color-content-secondary); margin-top: 1rem; }
 .core, .starter, .defaultKind, .optIn, .plug { font-style: normal; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; margin-left: .35rem; }
