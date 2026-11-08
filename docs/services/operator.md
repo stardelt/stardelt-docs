@@ -10,6 +10,11 @@ slug: /services/operator
 
 **What it does.** The operator reconciles `PlatformInstance`, `Lakehouse`, `Connection`, `ServicePrincipal` and `StreamApp` resources. The other kinds — `Catalog`, `SqlWarehouse`, `IngestionSource`, `Pipeline` and `Volume` — have schemas and admission rules but no controller yet: they are accepted and stored for later controllers, not acted on. `PlatformInstance` owns cluster-scoped prerequisites and identity settings; other resources describe data domains, compute, and connections. New resources default to `spec.dryRun: true`, and an `adopt` guard refuses to take over a release the operator did not create.
 
+That includes `Catalog.spec.maintenance`: the policy is stored with the catalog (the schema checks
+the cron and retention shapes), but no job runs it today, so no table is compacted, no snapshot is
+expired and no orphan file is removed. Treat the field as a contract for the executor that follows,
+not as working maintenance.
+
 **How you reach it.** The operator runs in the cluster as a controller (no public HTTP endpoint by default). Manage it by applying CRDs and by using its CLI subcommands where installed.
 
 **What you can tune.** Settings from `helm-values/operator.yaml` and CRD defaults:
