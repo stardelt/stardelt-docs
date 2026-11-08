@@ -90,9 +90,10 @@
         "source": {
           "properties": {
             "connectionRef": {
-              "description": "Name of the `Connection` (`type: kafka`) whose `config.bootstrapServers` the job reads.",
+              "description": "Name of the `Connection` (`type: kafka`) whose `config.bootstrapServers` the job reads.\nAbsent: the platform's own bus, `kafka-kafka-bootstrap.<namespace>.svc.cluster.local:9092`.",
               "maxLength": 63,
               "minLength": 1,
+              "nullable": true,
               "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
               "type": "string"
             },
@@ -111,7 +112,6 @@
             }
           },
           "required": [
-            "connectionRef",
             "topic"
           ],
           "type": "object"
@@ -145,6 +145,12 @@
     "status": {
       "nullable": true,
       "properties": {
+        "attempts": {
+          "description": "How many times Spark has submitted the application\n(`SparkApplication.status.executionAttempts`); absent until it exists.",
+          "format": "int64",
+          "nullable": true,
+          "type": "integer"
+        },
         "conditions": {
           "default": [],
           "items": {
@@ -186,6 +192,11 @@
           "type": "string"
         },
         "lastError": {
+          "nullable": true,
+          "type": "string"
+        },
+        "lastSubmittedAt": {
+          "description": "When Spark last submitted the application (RFC 3339), from\n`SparkApplication.status.lastSubmissionAttemptTime`.",
           "nullable": true,
           "type": "string"
         },

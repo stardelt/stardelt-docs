@@ -5312,7 +5312,7 @@
         "tags": [
           "public"
         ],
-        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is empty until the operator can read the checkpoint and the UI must show `—`. `stopped` is `spec.stopped`. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
+        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is empty until the operator can read the checkpoint and the UI must show `—`. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
         "operationId": "streams_list",
         "responses": {
           "200": {
@@ -5327,6 +5327,98 @@
           },
           "401": {
             "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/streams/{namespace}/{name}": {
+      "patch": {
+        "tags": [
+          "public"
+        ],
+        "summary": "Stop or resume one stream: merge `spec.stopped` and answer the updated view.",
+        "description": "Stop or resume one stream by setting `spec.stopped` (the one verb a stream has, D42 §4.4). `true` stops the job and keeps the checkpoint so `false` resumes from it. A stream the caller may not see, a foreign namespace, and a name that does not exist all answer the same `404`. The answer is the updated stream view. Answers `Cache-Control: no-store`.",
+        "operationId": "streams_patch",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The stream's namespace; only Nova's own namespace",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "The stream's name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamState"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The stream, with `spec.stopped` applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such stream, or the caller may not see it, or the namespace is not Nova's own",
             "content": {
               "application/json": {
                 "schema": {
@@ -6863,7 +6955,8 @@
           "user",
           "auth_mode",
           "demo",
-          "warehouse"
+          "warehouse",
+          "stage_kind"
         ],
         "properties": {
           "admin_console_url": {
@@ -6878,6 +6971,15 @@
           },
           "demo": {
             "type": "boolean"
+          },
+          "stage_kind": {
+            "type": "string"
+          },
+          "stage_name": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "user": {
             "type": "string"
@@ -7201,7 +7303,8 @@
           "groups_overage",
           "is_admin",
           "via",
-          "identity_forwarding"
+          "identity_forwarding",
+          "stage_kind"
         ],
         "properties": {
           "admin_by": {
@@ -7272,6 +7375,15 @@
             "format": "int64",
             "description": "Unix seconds at which the browser session can no longer be renewed and the\nperson signs in again; `None` for an Authorization-header call, which has no\nsession. Never the access token's own `exp`.",
             "minimum": 0
+          },
+          "stage_kind": {
+            "type": "string"
+          },
+          "stage_name": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "sub": {
             "type": "string"
@@ -8739,6 +8851,19 @@
           }
         }
       },
+      "StreamState": {
+        "type": "object",
+        "description": "The one verb a stream has (D42 §4.4): stop or resume by setting `spec.stopped`.",
+        "required": [
+          "stopped"
+        ],
+        "properties": {
+          "stopped": {
+            "type": "boolean",
+            "description": "The desired `spec.stopped`."
+          }
+        }
+      },
       "StreamView": {
         "type": "object",
         "description": "One `StreamApp`, as the Streams page needs it. No secret, no checkpoint path.",
@@ -8755,6 +8880,14 @@
           "sink_mode"
         ],
         "properties": {
+          "attempts": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "How many times Spark has submitted the application (`status.attempts`); absent until\nthe operator reports it (operator#336)."
+          },
           "last_checkpoint_at": {
             "type": [
               "string",
@@ -8767,6 +8900,13 @@
               "null"
             ]
           },
+          "last_submitted_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When Spark last submitted the application, RFC 3339 (`status.lastSubmittedAt`)."
+          },
           "name": {
             "type": "string"
           },
@@ -8778,6 +8918,13 @@
           },
           "phase": {
             "type": "string"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `Ready` condition's reason, when the operator set one (operator#322: `Restarting`)."
           },
           "run_as": {
             "type": [
@@ -8937,12 +9084,18 @@
       },
       "TableIdentifier": {
         "type": "object",
-        "description": "One Iceberg table identifier.",
+        "description": "One Iceberg object identifier: a table or a view.",
         "required": [
           "namespace",
-          "name"
+          "name",
+          "kind"
         ],
         "properties": {
+          "kind": {
+            "type": "string",
+            "description": "`table` or `view`. Iceberg REST lists them through two endpoints; the explorer needs to\ntell them apart, and only a table has `/tables/{ns}/{tbl}` metadata.",
+            "example": "table"
+          },
           "name": {
             "type": "string"
           },
