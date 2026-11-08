@@ -210,10 +210,6 @@ stardelt mcp serve       # read-only tools unless you allow more`}</CodeBlock>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Current generation                                                  */
-/* ------------------------------------------------------------------ */
-
 const generations = [
   { now: 'S3 object storage', then: 'HDFS' },
   { now: 'Apache Iceberg', then: 'Hive-style directories of files' },
@@ -224,44 +220,6 @@ const generations = [
   { now: 'Airflow 3', then: 'cron files and XML workflows' },
   { now: 'OIDC and OPA', then: 'Kerberos and per-service user lists' },
 ];
-
-function CurrentGeneration(): ReactNode {
-  return (
-    <section id="current-generation" className={styles.section}>
-      <div className={styles.container}>
-        <span className={styles.eyebrow}>Built new</span>
-        <h2 className={styles.sectionTitle}>No legacy inside.</h2>
-        <p className={styles.sectionLede}>
-          Every part of stardelt is current-generation open source. Nothing is
-          there for compatibility with the last decade.
-        </p>
-        <div className={styles.generationList} role="table" aria-label="Current generation compared to legacy">
-          <div className={styles.generationHeader} role="row">
-            <div className={styles.generationHead} role="columnheader">stardelt uses</div>
-            <div className={styles.generationHead} role="columnheader">left behind</div>
-          </div>
-          {generations.map((g) => (
-            <div key={g.then} className={styles.generationRow} role="row">
-              <div className={styles.now} role="cell">
-                <span className={styles.nowDot} aria-hidden="true" />
-                {g.now}
-              </div>
-              <div className={styles.then} role="cell">{g.then}</div>
-            </div>
-          ))}
-        </div>
-        <div className={styles.sectionCta}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/architecture/current-generation"
-          >
-            Read the rule →
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Story                                                               */
@@ -480,17 +438,12 @@ function Story(): ReactNode {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Vision                                                              */
+/*  Why                                                                 */
 /* ------------------------------------------------------------------ */
 
 type Principle = {icon: ReactNode; title: string; body: string};
 
 const visionPrinciples: Principle[] = [
-  {
-    icon: <IconGrid size={20} />,
-    title: 'Runs on your Kubernetes',
-    body: 'In a cloud, on your own servers, or on one small node to try it. There is no SaaS side.',
-  },
   {
     icon: <IconFlow size={20} />,
     title: 'No required outbound calls',
@@ -502,43 +455,89 @@ const visionPrinciples: Principle[] = [
     body: 'Apache 2.0, MIT or BSD across the stack, with one documented, optional MPL 2.0 exception.',
   },
   {
-    icon: <IconTimeline size={20} />,
-    title: 'One command to install',
-    body: 'One command installs and upgrades the platform. An operator with small declarative resources is growing to take that over.',
-  },
-  {
-    icon: <IconNeural size={20} />,
-    title: 'One interface',
-    body: 'Catalog, SQL editor, loads, pipelines, query log, lineage and health in Nova, with an API behind every screen.',
-  },
-  {
     icon: <IconDatabase size={20} />,
     title: 'Open formats at rest',
     body: 'Tables are Iceberg and Parquet on object storage. Uninstall stardelt and any Iceberg engine can still read them.',
   },
 ];
 
-function Vision(): ReactNode {
+function Why(): ReactNode {
+  const yoursStatements = sovereigntyStatements.map((s, i) => {
+    if (i === 1) {
+      return {
+        ...s,
+        body: 'Any OIDC provider you already run. Keycloak is a starter for small installs. Nova keeps no passwords.',
+      };
+    }
+    return s;
+  });
+
+  const openPrinciples = visionPrinciples.filter((p) =>
+    ['Permissive licenses', 'Open formats at rest', 'No required outbound calls'].includes(p.title),
+  );
+
   return (
-    <section id="vision" className={styles.section}>
+    <section id="why" className={styles.section}>
       <div className={styles.container}>
         <span className={styles.eyebrow}>Why stardelt</span>
-        <h2 className={styles.sectionTitle}>
-          Built for teams that need the data to stay inside their cluster.
-        </h2>
-        <p className={styles.sectionLede}>
-          stardelt runs the whole stack inside your Kubernetes cluster,
-          operated by you, on standard open-source engines and open table
-          formats.
-        </p>
-        <div className={styles.principles}>
-          {visionPrinciples.map((p) => (
-            <div key={p.title} className={styles.principle}>
-              <div className={styles.principleIcon}>{p.icon}</div>
-              <strong>{p.title}</strong>
-              <p>{p.body}</p>
+        <h2 className={styles.sectionTitle}>Yours. Open. Current.</h2>
+        <p className={styles.sectionLede}>Three promises that hold from the first install.</p>
+        <div className={styles.whyList}>
+          <details className={styles.expand}>
+            <summary>
+              <strong>Yours</strong> Your cluster, your sign-in, your storage, your law.
+            </summary>
+            <div className={styles.expandBody}>
+              <ul>
+                {yoursStatements.map((s) => (
+                  <li key={s.title}>
+                    <strong>{s.title}</strong>: {s.body}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/docs/architecture/sovereignty">Sovereignty in detail →</Link>
             </div>
-          ))}
+          </details>
+          <details className={styles.expand}>
+            <summary>
+              <strong>Open</strong> Apache 2.0, open formats, and a real way out.
+            </summary>
+            <div className={styles.expandBody}>
+              <ul>
+                {openPrinciples.map((p) => (
+                  <li key={p.title}>
+                    <strong>{p.title}</strong>: {p.body}
+                  </li>
+                ))}
+              </ul>
+              <Link to="/docs/architecture/licenses">Licences →</Link>
+            </div>
+          </details>
+          <details className={styles.expand}>
+            <summary>
+              <strong>Current</strong> No legacy inside: every part is current-generation open source.
+            </summary>
+            <div className={styles.expandBody}>
+              <div className={styles.generationList} role="table" aria-label="Current generation compared to legacy">
+                <div className={styles.generationHeader} role="row">
+                  <div className={styles.generationHead} role="columnheader">stardelt uses</div>
+                  <div className={styles.generationHead} role="columnheader">left behind</div>
+                </div>
+                {generations.map((g) => (
+                  <div key={g.then} className={styles.generationRow} role="row">
+                    <div className={styles.now} role="cell">
+                      <span className={styles.nowDot} aria-hidden="true" />
+                      {g.now}
+                    </div>
+                    <div className={styles.then} role="cell">{g.then}</div>
+                  </div>
+                ))}
+              </div>
+              <div className={styles.sectionCta}>
+                <Link to="/docs/architecture/current-generation">Read the rule →</Link>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
     </section>
@@ -633,10 +632,6 @@ function Pillars(): ReactNode {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Sovereignty                                                         */
-/* ------------------------------------------------------------------ */
-
 type Statement = {title: string; body: string};
 
 const sovereigntyStatements: Statement[] = [
@@ -646,7 +641,7 @@ const sovereigntyStatements: Statement[] = [
   },
   {
     title: 'Your identity provider',
-    body: 'Use the bundled Keycloak or your own OIDC provider. Nova keeps no passwords.',
+    body: 'Any OIDC provider you already run. Keycloak is a starter for small installs. Nova keeps no passwords.',
   },
   {
     title: 'A way out',
@@ -657,35 +652,6 @@ const sovereigntyStatements: Statement[] = [
     body: 'The sovereignty page separates what holds today from what is still a goal, such as a tested air-gapped install.',
   },
 ];
-
-function Sovereignty(): ReactNode {
-  return (
-    <section id="sovereignty" className={styles.sovereigntyBand}>
-      <div className={styles.container}>
-        <span className={styles.eyebrow}>Sovereignty</span>
-        <h2 className={styles.sectionTitle}>
-          For environments where data has to stay in your perimeter.
-        </h2>
-        <div className={styles.sovereigntyStatements}>
-          {sovereigntyStatements.map((s) => (
-            <div key={s.title} className={styles.sovereigntyStatement}>
-              <strong>{s.title}</strong>
-              <p>{s.body}</p>
-            </div>
-          ))}
-        </div>
-        <div className={styles.sectionCta}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/docs/architecture/sovereignty"
-          >
-            Read what holds today →
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ------------------------------------------------------------------ */
 /*  Horizon                                                             */
@@ -895,12 +861,10 @@ export default function Home(): ReactNode {
     >
       <HomepageHero />
       <Story />
-      <CurrentGeneration />
-      <EveryScreenHasAnApi />
       <main>
-        <Vision />
         <Pillars />
-        <Sovereignty />
+        <Why />
+        <EveryScreenHasAnApi />
         <Horizon />
         <DiveDeeper />
       </main>
