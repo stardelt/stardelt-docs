@@ -1535,7 +1535,7 @@ One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0
 
 Operation id `streams_list`: in Python `client.call("streams_list", …)`, on the command line `stardelt api streams_list`.
 
-The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is empty until the operator can read the checkpoint and the UI must show `—`. `stopped` is `spec.stopped`. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.
+The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is empty until the operator can read the checkpoint and the UI must show `—`. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.
 
 **Responses**
 
@@ -1543,6 +1543,37 @@ The calling user's streams: every `StreamApp` of their groups, and all of them f
 | --- | --- |
 | `200` | The caller's streams, sorted by namespace and name |
 | `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### PATCH /api/streams/\{namespace\}/\{name\}
+
+Operation id `streams_patch`: in Python `client.call("streams_patch", …)`, on the command line `stardelt api streams_patch`.
+
+Stop or resume one stream: merge `spec.stopped` and answer the updated view.
+
+Stop or resume one stream by setting `spec.stopped` (the one verb a stream has, D42 §4.4). `true` stops the job and keeps the checkpoint so `false` resumes from it. A stream the caller may not see, a foreign namespace, and a name that does not exist all answer the same `404`. The answer is the updated stream view. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | The stream's name |
+| `namespace` | path | string | Yes | The stream's namespace; only Nova's own namespace |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `stopped` | boolean | Yes |  | The desired `spec.stopped`. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The stream, with `spec.stopped` applied |
+| `401` | No token to sign in with |
+| `404` | No such stream, or the caller may not see it, or the namespace is not Nova's own |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
 

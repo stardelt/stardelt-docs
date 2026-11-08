@@ -26,7 +26,7 @@ A streaming app: a Kafka topic in, an Iceberg table out.
 | `spec.sink.mode` | string | No | `merge` |  | `merge`, `append` |
 | `spec.sink.table` | string | Yes |  | `schema.table`. | min 3, max 128; pattern `^[a-z0-9_]+\.[a-z0-9_]+$` |
 | `spec.source` | object | Yes |  |  |  |
-| `spec.source.connectionRef` | string | Yes |  | Name of the `Connection` (`type: kafka`) whose `config.bootstrapServers` the job reads. | min 1, max 63; pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$` |
+| `spec.source.connectionRef` | string (nullable) | No |  | Name of the `Connection` (`type: kafka`) whose `config.bootstrapServers` the job reads. Absent: the platform's own bus, `kafka-kafka-bootstrap.<namespace>.svc.cluster.local:9092`. | min 1, max 63; pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$` |
 | `spec.source.format` | string | No | `json` |  | `json` |
 | `spec.source.topic` | string | Yes |  |  | min 1, max 249; pattern `^[A-Za-z0-9._-]+$` |
 | `spec.stopped` | boolean | No | `false` | `true` stops the job and deletes its SparkApplication; the checkpoint is kept, so `stopped: false` resumes from it. The one verb Nova's page needs. |  |
@@ -35,6 +35,7 @@ A streaming app: a Kafka topic in, an Iceberg table out.
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `status.attempts` | integer (nullable) | No |  | How many times Spark has submitted the application (`SparkApplication.status.executionAttempts`); absent until it exists. | format `int64` |
 | `status.conditions` | array of object | No | `[]` |  |  |
 | `status.conditions[].lastTransitionTime` | string (nullable) | No |  |  |  |
 | `status.conditions[].message` | string (nullable) | No |  |  |  |
@@ -44,6 +45,7 @@ A streaming app: a Kafka topic in, an Iceberg table out.
 | `status.conditions[].type` | string | Yes |  |  |  |
 | `status.lastCheckpointAt` | string (nullable) | No |  |  |  |
 | `status.lastError` | string (nullable) | No |  |  |  |
+| `status.lastSubmittedAt` | string (nullable) | No |  | When Spark last submitted the application (RFC 3339), from `SparkApplication.status.lastSubmissionAttemptTime`. |  |
 | `status.observedGeneration` | integer (nullable) | No |  |  | format `int64` |
 | `status.phase` | string | No | `""` | `Pending`, `Running`, `Failed` or `Stopped`. |  |
 
