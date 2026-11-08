@@ -38,7 +38,7 @@ the table says otherwise.
 | [Apache Superset](../services/superset) | Dashboards over Trino | `make install` | Apache 2.0 |
 | [JupyterHub](../services/jupyterhub) | Notebooks for each person | `make install-notebooks` | BSD-3-Clause |
 | [Apache Spark (Spark Connect)](../services/spark) | Distributed compute for jobs that outgrow Trino | `make install-spark` | Apache 2.0 |
-| [Apache Kafka](../services/kafka) | The streaming bus: a `StreamApp` reads its topics and writes Iceberg tables | `make step-kafka`, or `spec.pillars.streaming: true` | Apache 2.0 |
+| [Apache Kafka](../services/kafka) | The streaming bus: a `StreamApp` reads its topics and writes Iceberg tables | `make step-kafka` + `make step-spark-operator`, or `spec.pillars.streaming: true` | Apache 2.0 |
 | [OpenBao](../services/openbao) | Stores connection secrets. Not installed by `make platform` | `make openbao` | MPL 2.0, the one [license exception](./licenses) |
 | [cert-manager](https://cert-manager.io) | Issues TLS certificates. A cluster prerequisite for sign-in, not installed by stardelt | [Prerequisites](../getting-started/prerequisites) | Apache 2.0 |
 
