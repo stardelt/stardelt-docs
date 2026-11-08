@@ -35,9 +35,12 @@ Kafka through `source.connectionRef` declares no topic at all.
 - **Install:** Opt-in. Enable it with `make step-kafka && make step-spark-operator`, or with `spec.pillars.streaming: true`; nothing is installed by default.
 - **Health check:** two checks, because the broker can be Ready while its controller is restarting.
   `kubectl -n <namespace> get kafka kafka` must print `READY=True`, and
-  `kubectl -n <namespace> get pods -l name=strimzi-cluster-operator` must show `1/1` with **0
-  restarts**. A non-zero restart count means topic and broker changes are not being reconciled,
-  even though `get kafka` stays green (stardelt/stardelt-platform#665).
+  `kubectl -n <namespace> get pods -l name=strimzi-cluster-operator` must show `1/1`; the restart
+  count is history, so read its age. A restart inside the last ten minutes means topic and broker
+  changes are not being reconciled, even though `get kafka` stays green
+  (stardelt/stardelt-platform#665); one that came back hours ago is a past failure.
+  `make verify-streaming` prints the newest restart with its age and only warns inside that window,
+  so it is the quickest way to tell the two apart.
 - **Spark runtime:** `kubectl -n <namespace> get deploy spark-operator-controller spark-operator-webhook` must print `1/1` for both. The controller must watch the namespace a `StreamApp` lives in: `kubectl -n <namespace> get deploy spark-operator-controller -o jsonpath='{.spec.template.spec.containers[0].args}'` carries `--namespaces=""` (all namespaces) or the namespace in the list. A stream in a namespace the controller does not watch never runs; `make verify-streaming` checks this and names it `spark-operator`.
 - **Backup:** No backup of its own; durable state lives in the Iceberg tables that streams write.
 - **Logs:** `kubectl -n <namespace> logs deploy/strimzi-cluster-operator` for the controller;
