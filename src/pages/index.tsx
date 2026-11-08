@@ -542,6 +542,29 @@ const pillars: Pillar[] = [
 ];
 
 function Pillars(): ReactNode {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') {
+      setShown(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShown(true);
+          observer.disconnect();
+        }
+      },
+      {threshold: 0.2},
+    );
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section id="pillars" className={styles.section}>
       <div className={styles.container}>
@@ -553,24 +576,26 @@ function Pillars(): ReactNode {
           Every engine reads and writes the same Iceberg tables through one
           catalog. stardelt Nova brings them together.
         </p>
-        <a className={styles.stackOverviewLink} href="/img/stack-overview.svg">
+        <div ref={ref} className={clsx(styles.reveal, shown && styles.revealShown)}>
+          <a className={styles.stackOverviewLink} href="/img/stack-overview.svg">
+            <img
+              className={styles.stackOverview}
+              src="/img/stack-overview.svg"
+              width={1200}
+              height={660}
+              loading="lazy"
+              alt="Nova gives one interface and API over open engines (Trino, Spark, Kafka, Airflow, Jupyter), which all share Apache Iceberg tables, on your Kubernetes, your OIDC provider and your S3 storage."
+            />
+          </a>
           <img
-            className={styles.stackOverview}
+            className={clsx(styles.stackOverview, styles.stackOverviewDesktop)}
             src="/img/stack-overview.svg"
             width={1200}
             height={660}
             loading="lazy"
             alt="Nova gives one interface and API over open engines (Trino, Spark, Kafka, Airflow, Jupyter), which all share Apache Iceberg tables, on your Kubernetes, your OIDC provider and your S3 storage."
           />
-        </a>
-        <img
-          className={clsx(styles.stackOverview, styles.stackOverviewDesktop)}
-          src="/img/stack-overview.svg"
-          width={1200}
-          height={660}
-          loading="lazy"
-          alt="Nova gives one interface and API over open engines (Trino, Spark, Kafka, Airflow, Jupyter), which all share Apache Iceberg tables, on your Kubernetes, your OIDC provider and your S3 storage."
-        />
+        </div>
         <p className={styles.stackOverviewNotice}>
           Logos are trademarks of their respective owners; their use does not imply endorsement.
         </p>

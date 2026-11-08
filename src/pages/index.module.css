@@ -5,6 +5,18 @@
 .hero {
   padding: 3.5rem 2rem 3rem;
   position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  z-index: -1;
+  background: url('/img/hero-sky.svg') center / cover no-repeat;
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 .heroInner {
@@ -155,6 +167,22 @@
   .heroScreenshot:hover {
     transform: perspective(1800px) rotateY(-2deg) rotateX(3deg);
   }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero::before {
+    animation: heroDrift 60s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes heroDrift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-2%, 1.5%, 0) scale(1.04); }
+}
+
+[data-theme='light'] .hero::before {
+  opacity: 0.35;
+  filter: invert(1) hue-rotate(180deg);
 }
 
 @media (max-width: 600px) {
@@ -858,5 +886,18 @@
   .stopDot {
     left: 0;
     top: -5px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 700ms ease, transform 700ms ease;
+  }
+
+  .revealShown {
+    opacity: 1;
+    transform: none;
   }
 }
