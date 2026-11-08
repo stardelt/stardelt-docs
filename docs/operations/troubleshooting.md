@@ -97,6 +97,87 @@ upstream default can be as low as 7. Raise the value and restart the volume serv
 **Cause.** A moving tag such as `:dev` can be served from layers the node already has. Pin the digest
 with `make pin APP=nova`, or put a digest in your values.
 
+## A stream is Running but the table stops growing
+
+A `StreamApp` can be `Running` while its Spark job is not writing: the phase comes from the
+`SparkApplication` status, and a job that crashes is resubmitted by the Spark operator while the
+`StreamApp` stays `Running`. Three checks, in this order, tell you where it stopped.
+
+**1. Is the Spark application actually running?** Ask the `SparkApplication`, not the `StreamApp`:
+
+```bash
+kubectl -n <namespace> get sparkapplication <stream-name> \
+  -o jsonpath='{.status.applicationState.state} attempts={.status.executionAttempts} last={.status.lastSubmissionAttemptTime}{"\n"}'
+```
+
+Expected on the dev cluster:
+
+```text
+RUNNING attempts=20 last=2026-11-08T04:08:20Z
+```
+
+`RUNNING` and a recent `last` are what matter. `attempts` counts every submission since the
+application was created, so a recovered stream keeps a number above 1 — but it must stop growing.
+If it grows every few minutes, Spark keeps resubmitting the driver. Capture the log *before* the pod
+is deleted (the Spark operator deletes it on resubmission) and read the exception at the end:
+
+```bash
+kubectl -n <namespace> logs -f <stream-name>-driver > /tmp/driver.log
+```
+
+The process ending is `SparkContext: Successfully stopped SparkContext (Uptime: …)`; the useful line
+is the last `ERROR` above it. `OutOfMemoryError` in the driver means the merge has outgrown its
+memory; an `org.apache.iceberg.exceptions.NotAuthorizedException` means the catalog session died
+(see check 2). `PENDING_RERUN` or `FAILED` with no live driver is the same situation, one step on.
+
+**2. Is the sink table committing?** Every commit in an Iceberg table is one snapshot. Read the
+metadata table — it needs no storage credentials and is the source of truth for "is it writing":
+
+```sql
+SELECT committed_at, snapshot_id, summary['added-records'] AS added_records
+FROM "mobility"."bronze"."pegelonline_continuous$snapshots"
+ORDER BY committed_at DESC
+LIMIT 3;
+```
+
+Replace catalog, schema and table with the `StreamApp`'s `spec.sink.catalog` and `spec.sink.table`.
+Expected on the dev cluster, run in the SQL editor as a member of the catalog's owner group:
+
+```text
+committed_at                      snapshot_id            added_records
+2026-11-08 04:15:03.865 UTC       8749505033172463698    3
+2026-11-08 04:14:55.641 UTC       7518155263491559790    6
+2026-11-08 04:14:48.075 UTC       8116118513819513870    6
+```
+
+A new `committed_at` within the stream's trigger interval means writes are landing. The table name
+is three parts and the `$snapshots` suffix sits **inside** the quoted last part; a two-part name
+fails with `Catalog must be specified when session catalog is not set`.
+
+If `attempts` (check 1) grows and the newest `committed_at` is older than the trigger interval, the
+stream writes for a while and then loses its catalog session: search the driver log for
+`NotAuthorizedException` and the timestamp of the first one.
+
+**3. Is the operator reporting it?** The `Ready` condition carries the operator's one-word reason:
+
+```bash
+kubectl -n <namespace> get streamapp <stream-name> \
+  -o jsonpath='{.status.phase} / {.status.conditions[0].type}={.status.conditions[0].reason} lastError={.status.lastError}{"\n"}'
+kubectl -n <namespace> logs deploy/stardelt-operator --tail=5 | grep stream=
+```
+
+Expected on a healthy stream:
+
+```text
+Running / Ready=Running lastError=
+```
+
+`Ready=Restarting` means Spark resubmitted the application inside the last ten minutes; if the table
+is growing, the stream recovered and the reason clears on its own. `phase=Failed` with a
+`lastError` is the Spark error message, and is the case to act on.
+
+This page does not cover the Kafka side (`kubectl -n <namespace> exec kafka-kafka-0 -- bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic <topic> --time -1` shows the topic's end offset) or a stalled node, which looks like every check failing at once — see `## A pinned image will not pull` and `docs/operations/checks.md`.
+
 ## A new CRD field is ignored
 
 **Cause.** Helm installs CRDs on `install`, never on `upgrade`. In a checkout of `stardelt-operator`,
