@@ -5,6 +5,14 @@ slug: /community/wallpapers
 
 Wallpapers made from the stardelt logo. Free to use; the logo stays unchanged.
 
+## Sky
+
+The starfield, glow and delta outline from the top of this site, with the logo centred.
+
+![Sky wallpaper: the homepage starfield, blue glow and delta outline with the stardelt logo centred](/img/wallpapers/thumb-sky.jpg)
+
+**Download:** [16:10 (3456 × 2234)](/img/wallpapers/sky-16x10.jpg) · [16:9 (3840 × 2160)](/img/wallpapers/sky-16x9.jpg) · [SVG](/img/wallpapers/sky-16x10.svg)
+
 ## Graphite
 
 ![Graphite wallpaper: the stardelt logo centred on a dark background with a soft blue glow](/img/wallpapers/thumb-graphite.jpg)

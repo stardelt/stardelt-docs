@@ -16,6 +16,16 @@ function readLogo() {
   };
 }
 
+/** The homepage hero sky: glow, delta outline and star field, without the root svg. */
+function readHeroSky() {
+  const svg = readFileSync(resolve(process.cwd(), 'static/img/hero-sky.svg'), 'utf8');
+  return svg
+    .replace(/^[\s\S]*?<svg[^>]*>/, '')
+    .replace(/<\/svg>\s*$/, '')
+    .replace(/id="glow"/g, 'id="sky-glow"')
+    .replace(/url\(#glow\)/g, 'url(#sky-glow)');
+}
+
 export function mulberry32(seed) {
   let t = seed >>> 0;
   return function rand() {
@@ -201,4 +211,23 @@ ${logoMark(logo, w / 2, markCy, markH, prefix)}
   return wrap(w, h, defs, body);
 }
 
-export const designs = { graphite, constellation, 'delta-grid': deltaGrid, silver };
+function sky(w, h) {
+  const logo = readLogo();
+  const prefix = 'sk';
+  const hero = readHeroSky();
+  const markH = 0.16 * h;
+  const textSize = 0.035 * h;
+  const gap = 0.03 * h;
+  const blockH = markH + gap + textSize;
+  const blockTop = (h - blockH) / 2;
+  const markCy = blockTop + markH / 2;
+  const textY = blockTop + markH + gap + textSize * 0.8;
+  const defs = logoDefs(logo, prefix);
+  const body = `<rect width="${w}" height="${h}" fill="#18191b"/>
+<svg x="0" y="0" width="${w}" height="${h}" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">${hero}</svg>
+${logoMark(logo, w / 2, markCy, markH, prefix)}
+<text x="${(w / 2).toFixed(1)}" y="${textY.toFixed(1)}" text-anchor="middle" font-family="Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="${textSize.toFixed(2)}" font-weight="700" fill="#e8eaed" letter-spacing="-0.02em">stardelt</text>`;
+  return wrap(w, h, defs, body);
+}
+
+export const designs = { graphite, constellation, 'delta-grid': deltaGrid, silver, sky };
