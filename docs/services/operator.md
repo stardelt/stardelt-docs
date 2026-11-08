@@ -8,7 +8,7 @@ slug: /services/operator
 
 **What it is.** The stardelt Kubernetes operator (kube-rs, Rust) that watches stardelt CRDs and reconciles them into upstream Helm releases.
 
-**What it does.** The operator reconciles `PlatformInstance`, `Lakehouse`, `Catalog`, `SqlWarehouse`, `Connection`, `ServicePrincipal`, `IngestionSource`, `Pipeline`, and `Volume` resources. `PlatformInstance` owns cluster-scoped prerequisites and identity settings; other resources describe data domains, compute, and connections. New resources default to `spec.dryRun: true`, and an `adopt` guard refuses to take over a release the operator did not create.
+**What it does.** The operator reconciles `PlatformInstance`, `Lakehouse`, `Connection`, `ServicePrincipal` and `StreamApp` resources. The other kinds — `Catalog`, `SqlWarehouse`, `IngestionSource`, `Pipeline` and `Volume` — have schemas and admission rules but no controller yet: they are accepted and stored for later controllers, not acted on. `PlatformInstance` owns cluster-scoped prerequisites and identity settings; other resources describe data domains, compute, and connections. New resources default to `spec.dryRun: true`, and an `adopt` guard refuses to take over a release the operator did not create.
 
 **How you reach it.** The operator runs in the cluster as a controller (no public HTTP endpoint by default). Manage it by applying CRDs and by using its CLI subcommands where installed.
 
@@ -31,7 +31,7 @@ slug: /services/operator
 - **Install:** `make install-operator` with `helm-values/operator.yaml`. The image digest is pinned there; `scripts/check-version-parity.sh` checks it.
 - **Image pinning:** Update `image.tag` to the digest printed by the Image workflow (e.g. `ghcr.io/stardelt/stardelt-operator:dev@sha256:...`).
 - **Logs:** `kubectl -n stardelt logs -l app.kubernetes.io/name=stardelt-operator` (or the namespace where the operator is installed).
-- **CRDs:** Cluster-scoped `platforminstances.stardelt.io` and namespaced `lakehouses`, `catalogs`, `sqlwarehouses`, `connections`, `serviceprincipals`, `ingestionsources`, `pipelines`, `volumes` (all `v1alpha1`). See [CRD reference](../reference/resources/) for fields.
+- **CRDs:** Cluster-scoped `platforminstances.stardelt.io` and namespaced `lakehouses`, `catalogs`, `sqlwarehouses`, `streamapps`, `connections`, `serviceprincipals`, `ingestionsources`, `pipelines`, `volumes` (all `v1alpha1`). See [CRD reference](../reference/resources/) for fields.
 - **CLI — values:** `stardelt-operator values <component> <demo|full|airgap> [--identity <baseDomain>]` prints the Helm values the controller would apply.
 - **CLI — identity checklist:** `stardelt-operator identity-checklist <platforminstance.yaml>` prints the identity setup steps.
 - **Safety defaults:** New resources default to `spec.dryRun: true`; `adopt` refuses to take over a release the operator did not create.
