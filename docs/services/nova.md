@@ -8,7 +8,9 @@ slug: /services/nova
 
 **What it is.** A web UI and API gateway deployed from `manifests/nova-deployment.yaml` as a single pod in namespace `stardelt`.
 
-**What it does.** Nova serves the platform UI and API on the base domain under `/api/`. It reads Trino, Lakekeeper, SeaweedFS, Airflow, and the secret store to present catalog browsing, SQL editing, load and transfer, jobs, health, and app status. It authenticates via OIDC when enabled, stores state in its own Postgres cluster, and lists Kubernetes resources in its namespace to show deployed workloads and their image digests.
+**What it does.** Nova serves the platform UI and API on the base domain under `/api/`. It reads Trino, Lakekeeper, SeaweedFS, Airflow, and the secret store to present catalog browsing,
+the SQL editor and query log, pipelines and jobs, notebooks, streams, lineage, connections,
+dashboards, deployment status, health and the applications in the namespace. It authenticates via OIDC when enabled, stores state in its own Postgres cluster, and lists Kubernetes resources in its namespace to show deployed workloads and their image digests.
 
 **How you reach it.** Reach it at the base domain Ingress `nova` (URL path `/api/`). Health check: `curl -s https://<baseDomain>/api/health` → `{"status":"ok","db":"up"}`. Without a token, `GET /api/me` returns `401`.
 
