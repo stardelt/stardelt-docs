@@ -274,6 +274,8 @@ type StoryStep = {
   img: string;
   alt: string;
   code: {lang: string; text: string} | null;
+  behind: string[];
+  why: string;
 };
 
 const storySteps: StoryStep[] = [
@@ -288,6 +290,8 @@ const storySteps: StoryStep[] = [
       lang: 'python',
       text: 'stardelt.write_df(df, "mobility.bronze.trips", bronze=True)',
     },
+    behind: ['Nova', 'Iceberg', 'Lakekeeper', 'your S3 storage'],
+    why: 'A file becomes a table with a schema and a history from the first minute, not a folder someone has to remember.',
   },
   {
     n: 2,
@@ -309,6 +313,8 @@ spec:
     - { name: silver_schema, kind: sql, sql: "CREATE SCHEMA IF NOT EXISTS mobility.silver" }
     - { name: silver_init, kind: sql, dependsOn: [silver_schema], sql: "CREATE OR REPLACE TABLE mobility.silver.yellow_trips AS …" }`,
     },
+    behind: ['SQL', 'Pipeline resource', 'Airflow 3'],
+    why: 'The schedule lives in Git next to the SQL, so dev and prod run exactly the same thing.',
   },
   {
     n: 3,
@@ -321,6 +327,8 @@ spec:
       lang: 'sql',
       text: 'SELECT pickup_dow_name, count(*) AS trips, round(avg(tip_pct), 1) AS avg_tip_pct FROM mobility.silver.yellow_trips GROUP BY 1 ORDER BY 2 DESC',
     },
+    behind: ['Trino', 'OpenFGA', 'OPA'],
+    why: 'One SQL engine for every team, and each person sees only the tables their group may read.',
   },
   {
     n: 4,
@@ -329,6 +337,8 @@ spec:
     img: '/img/nova/lineage.png',
     alt: 'Nova lineage view showing how mobility tables flow from bronze to downstream tables.',
     code: {lang: 'bash', text: 'stardelt run stardelt mobility-medallion --wait'},
+    behind: ['Nova lineage', 'pipeline runs'],
+    why: 'When a number looks wrong, you can see which run wrote it and from which source.',
   },
   {
     n: 5,
@@ -338,13 +348,27 @@ spec:
     img: '/img/nova/dashboards.png',
     alt: 'Nova showing the Mobility Operations dashboard embedded from Superset.',
     code: null,
+    behind: ['Superset', 'Trino'],
+    why: 'Dashboards query the same governed tables, so there is no extract to keep in sync.',
+  },
+];
+
+type TeamStory = {id: string; tab: string; title: string; lede: string; steps: StoryStep[]};
+const stories: TeamStory[] = [
+  {
+    id: 'mobility',
+    tab: 'Mobility team',
+    title: 'A day with the mobility team.',
+    lede: 'Taxi trips arrive as a file at 7:00. By 9:00 the team has a modelled table, a daily schedule, lineage and a dashboard, without leaving one interface.',
+    steps: storySteps,
   },
 ];
 
 function Story(): ReactNode {
+  const [storyIdx, setStoryIdx] = useState(0);
   const [active, setActive] = useState(0);
   const [showFrame, setShowFrame] = useState(true);
-  const stepRefs = useRef<Array<HTMLElement | null>>([]);
+  const story = stories[storyIdx];
 
   useEffect(() => {
     const mql = window.matchMedia('(min-width: 1100px)');
@@ -354,50 +378,42 @@ function Story(): ReactNode {
     return () => mql.removeEventListener('change', onChange);
   }, []);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) {
-          const index = Number((visible.target as HTMLElement).dataset.index);
-          if (!Number.isNaN(index)) {
-            setActive(index);
-          }
-        }
-      },
-      {rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.25, 0.5, 0.75, 1]},
-    );
-    for (const el of stepRefs.current) {
-      if (el) {
-        observer.observe(el);
-      }
-    }
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section id="story" className={styles.section}>
       <div className={styles.container}>
         <span className={styles.eyebrow}>See it work</span>
-        <h2 className={styles.sectionTitle}>A day with the mobility team.</h2>
-        <p className={styles.sectionLede}>
-          Taxi trips arrive as a file at 7:00. By 9:00 the team has a modelled
-          table, a daily schedule, lineage and a dashboard, without leaving one
-          interface.
-        </p>
+        <h2 className={styles.sectionTitle}>{story.title}</h2>
+        <p className={styles.sectionLede}>{story.lede}</p>
+        {stories.length > 1 ? (
+          <div role="tablist">
+            {stories.map((s, i) => (
+              <button
+                key={s.id}
+                type="button"
+                role="tab"
+                aria-selected={storyIdx === i}
+                onClick={() => {
+                  setStoryIdx(i);
+                  setActive(0);
+                }}>
+                {s.tab}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className={styles.storyLayout}>
           <div className={styles.storySteps}>
-            {storySteps.map((step, index) => (
-              <article
+            {story.steps.map((step, index) => (
+              <details
                 key={step.n}
-                className={styles.storyStep}
-                data-index={index}
-                ref={(el) => {
-                  stepRefs.current[index] = el;
+                className={clsx(styles.expand, styles.storyStep)}
+                open={active === index}
+                onToggle={(e) => {
+                  if ((e.currentTarget as HTMLDetailsElement).open) {
+                    setActive(index);
+                  }
                 }}>
-                <div className={styles.storyStepHeader}>
+                <summary>
                   <span
                     className={clsx(
                       styles.storyStepNumber,
@@ -406,28 +422,41 @@ function Story(): ReactNode {
                     {step.n}
                   </span>
                   <h3 className={styles.storyStepTitle}>{step.title}</h3>
+                  <span className={styles.storyStepBody}>{step.body}</span>
+                </summary>
+                <div className={styles.expandBody}>
+                  {step.code ? (
+                    <CodeBlock language={step.code.lang}>{step.code.text}</CodeBlock>
+                  ) : null}
+                  <div className={styles.chips}>
+                    {step.behind.map((item) => (
+                      <span key={item} className={styles.chip}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                  <p className={styles.why}>
+                    <strong>Why: </strong>
+                    {step.why}
+                  </p>
+                  {!showFrame ? (
+                    <img
+                      className={styles.storyStepImageInline}
+                      src={step.img}
+                      alt={step.alt}
+                      loading="lazy"
+                      width={1440}
+                      height={900}
+                    />
+                  ) : null}
                 </div>
-                <p className={styles.storyStepBody}>{step.body}</p>
-                {step.code ? (
-                  <CodeBlock language={step.code.lang}>{step.code.text}</CodeBlock>
-                ) : null}
-                {!showFrame ? (
-                  <img
-                    className={styles.storyStepImageInline}
-                    src={step.img}
-                    alt={step.alt}
-                    loading="lazy"
-                    width={1440}
-                    height={900}
-                  />
-                ) : null}
-              </article>
+              </details>
             ))}
           </div>
           {showFrame ? (
             <div className={styles.storyFrame}>
               <div className={styles.storyFrameInner}>
-                {storySteps.map((step, index) => (
+                {story.steps.map((step, index) => (
                   <img
                     key={step.n}
                     className={clsx(
