@@ -18,7 +18,7 @@ Each row is one `StreamApp`:
 | Phase | The phase the operator reports: `Running`, `Stopped`, `Failed` or `Pending`. A second badge carries the operator's `Ready` reason when it differs from the phase. |
 | Source | The `Connection` (or the platform bus) and the Kafka topic the stream reads. |
 | Sink | The catalog, table and mode (`merge` or `append`) the stream writes. |
-| Checkpoint | `—` until the operator can read the stream's checkpoint; the checkpoint itself is written to the object store and survives a stop. |
+| Checkpoint | The operator does not report a checkpoint time yet, so this column is `—`; the checkpoint itself is written to the object store and survives a stop. |
 | Last error | The most recent error, if any. |
 | Job | One **Stop** or **Resume** button. |
 
