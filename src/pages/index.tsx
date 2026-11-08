@@ -16,39 +16,6 @@ import styles from './index.module.css';
 
 type IconProps = {size?: number};
 
-function IconDatabase({size = 22}: IconProps): ReactNode {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
-      <ellipse cx="10" cy="6" rx="6.5" ry="2.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-      <path d="M3.5 6v3.5c0 1.38 2.91 2.5 6.5 2.5s6.5-1.12 6.5-2.5V6" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M3.5 9.5V13c0 1.38 2.91 2.5 6.5 2.5S16.5 14.38 16.5 13V9.5" stroke="currentColor" strokeWidth="1.5"/>
-    </svg>
-  );
-}
-
-function IconFlow({size = 22}: IconProps): ReactNode {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
-      <rect x="1.5" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-      <rect x="8" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-      <rect x="14.5" y="7.5" width="4" height="5" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M5.5 10h2.5M12.5 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function IconNeural({size = 22}: IconProps): ReactNode {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
-      <circle cx="4" cy="5" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="4" cy="10" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="4" cy="15" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="16" cy="10" r="1.75" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M5.75 5.3L14.25 9.5M5.75 10H14.25M5.75 14.7L14.25 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
 function IconLayers({size = 22}: IconProps): ReactNode {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden>
@@ -438,103 +405,55 @@ function Story(): ReactNode {
 /*  Why                                                                 */
 /* ------------------------------------------------------------------ */
 
-type Principle = {icon: ReactNode; title: string; body: string};
-
-const visionPrinciples: Principle[] = [
-  {
-    icon: <IconFlow size={20} />,
-    title: 'No required outbound calls',
-    body: "stardelt's own components have no telemetry, no license check and no usage report.",
-  },
-  {
-    icon: <IconLayers size={20} />,
-    title: 'Permissive licenses',
-    body: 'Apache 2.0, MIT or BSD across the stack, with one documented, optional MPL 2.0 exception.',
-  },
-  {
-    icon: <IconDatabase size={20} />,
-    title: 'Open formats at rest',
-    body: 'Tables are Iceberg and Parquet on object storage. Uninstall stardelt and any Iceberg engine can still read them.',
-  },
-];
-
 function Why(): ReactNode {
-  const yoursStatements = sovereigntyStatements.map((s, i) => {
-    if (i === 1) {
-      return {
-        ...s,
-        body: 'Any OIDC provider you already run. Keycloak is a starter for small installs. Nova keeps no passwords.',
-      };
-    }
-    return s;
-  });
-
-  const openPrinciples = visionPrinciples.filter((p) =>
-    ['Permissive licenses', 'Open formats at rest', 'No required outbound calls'].includes(p.title),
-  );
-
   return (
     <section id="why" className={styles.section}>
       <div className={styles.container}>
         <span className={styles.eyebrow}>Why stardelt</span>
         <h2 className={styles.sectionTitle}>Yours. Open. Current.</h2>
         <p className={styles.sectionLede}>Three promises that hold from the first install.</p>
-        <div className={styles.whyList}>
-          <details className={styles.expand}>
-            <summary>
-              <strong>Yours</strong> Your cluster, your sign-in, your storage, your law.
-            </summary>
-            <div className={styles.expandBody}>
-              <ul>
-                {yoursStatements.map((s) => (
-                  <li key={s.title}>
-                    <strong>{s.title}</strong>: {s.body}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/docs/architecture/sovereignty">Sovereignty in detail →</Link>
+        <div className={styles.whyCards}>
+          <article className={styles.whyCard}>
+            <div className={styles.whyIcon}>
+              <IconLayers size={28} />
             </div>
-          </details>
-          <details className={styles.expand}>
-            <summary>
-              <strong>Open</strong> Apache 2.0, open formats, and a real way out.
-            </summary>
-            <div className={styles.expandBody}>
-              <ul>
-                {openPrinciples.map((p) => (
-                  <li key={p.title}>
-                    <strong>{p.title}</strong>: {p.body}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/docs/architecture/licenses">Licences →</Link>
+            <h3>Yours</h3>
+            <p className={styles.whyLine}>Your cluster, your sign-in, your storage, your law.</p>
+            <ul className={styles.whyPoints}>
+              <li>Runs in your cluster, on storage you choose</li>
+              <li>Any OIDC provider you already run; Nova keeps no passwords</li>
+              <li>No phone-home, no licence server</li>
+            </ul>
+            <Link to="/docs/architecture/sovereignty">Sovereignty in detail →</Link>
+          </article>
+          <article className={styles.whyCard}>
+            <div className={styles.whyIcon}>
+              <IconGrid size={28} />
             </div>
-          </details>
-          <details className={styles.expand}>
-            <summary>
-              <strong>Current</strong> No legacy inside: every part is current-generation open source.
-            </summary>
-            <div className={styles.expandBody}>
-              <div className={styles.generationList} role="table" aria-label="Current generation compared to legacy">
-                <div className={styles.generationHeader} role="row">
-                  <div className={styles.generationHead} role="columnheader">stardelt uses</div>
-                  <div className={styles.generationHead} role="columnheader">left behind</div>
-                </div>
-                {generations.map((g) => (
-                  <div key={g.then} className={styles.generationRow} role="row">
-                    <div className={styles.now} role="cell">
-                      <span className={styles.nowDot} aria-hidden="true" />
-                      {g.now}
-                    </div>
-                    <div className={styles.then} role="cell">{g.then}</div>
-                  </div>
-                ))}
-              </div>
-              <div className={styles.sectionCta}>
-                <Link to="/docs/architecture/current-generation">Read the rule →</Link>
-              </div>
+            <h3>Open</h3>
+            <p className={styles.whyLine}>Apache 2.0, open formats, and a real way out.</p>
+            <ul className={styles.whyPoints}>
+              <li>Apache 2.0 across stardelt</li>
+              <li>Iceberg and Parquet at rest</li>
+              <li>Uninstall it and any Iceberg engine still reads your tables</li>
+            </ul>
+            <Link to="/docs/architecture/licenses">Licences →</Link>
+          </article>
+          <article className={styles.whyCard}>
+            <div className={styles.whyIcon}>
+              <IconTimeline size={28} />
             </div>
-          </details>
+            <h3>Current</h3>
+            <p className={styles.whyLine}>
+              No legacy inside: every part is current-generation open source.
+            </p>
+            <ul className={styles.whyPoints}>
+              {generations.slice(0, 3).map((g) => (
+                <li key={g.then}>{`${g.now}, not ${g.then}`}</li>
+              ))}
+            </ul>
+            <Link to="/docs/architecture/current-generation">Read the rule →</Link>
+          </article>
         </div>
       </div>
     </section>
@@ -628,27 +547,6 @@ function Pillars(): ReactNode {
     </section>
   );
 }
-
-type Statement = {title: string; body: string};
-
-const sovereigntyStatements: Statement[] = [
-  {
-    title: 'Your perimeter',
-    body: 'Data, catalog and engines all run in your cluster, on storage you choose.',
-  },
-  {
-    title: 'Your identity provider',
-    body: 'Any OIDC provider you already run. Keycloak is a starter for small installs. Nova keeps no passwords.',
-  },
-  {
-    title: 'A way out',
-    body: 'Your tables stay readable without stardelt, by any Iceberg-compatible engine.',
-  },
-  {
-    title: 'Plain about the gaps',
-    body: 'The sovereignty page separates what holds today from what is still a goal, such as a tested air-gapped install.',
-  },
-];
 
 /* ------------------------------------------------------------------ */
 /*  Closing CTA                                                         */
