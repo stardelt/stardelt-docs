@@ -61,7 +61,7 @@ The page has one section per scope. The text under each heading is the page's ow
 | **Who may use it** | Only you | Every member of the group | Platform services only; nothing consumes one today |
 | **Who sees its name and settings** | Only you | Every member of the group; administrators also see every group's connections | Administrators |
 | **Who may rotate or delete it** | You | Members rotate and delete; an administrator who is not a member may delete but not create or rotate | Administrators |
-| **Where it can be used today** | A Python notebook only | A Python notebook only | Nowhere yet: the page and the store prepare it for platform services that are not built |
+| **Where it can be used today** | A Python notebook only | A Python notebook, and a scheduled notebook whose pipeline runs as that group | Platform-run work: a scheduled notebook whose pipeline names it and whose `ownerGroup` is in `usableBy` |
 
 A group connection belongs to one group, chosen from the groups you are a member of. If you are in
 no group, you cannot create one; the dialog has no group to offer.
@@ -268,6 +268,69 @@ If the only connection with a name is managed, the helper says so in the no-conn
 page's **Use in a notebook** disclosure appears for personal and group rows only; a managed row has
 no snippet.
 
+### In a scheduled notebook
+
+A pipeline's `notebook` task may name a connection with `connection: <name>` next to `kind` — not
+inside `config`:
+
+```yaml
+spec:
+  ownerGroup: analytics
+  runAs: pipeline-analytics
+  tasks:
+    - name: ingest
+      kind: notebook
+      connection: crm-db
+      config:
+        notebook: ingest.ipynb
+        objectVersion: v7
+```
+
+The task pod receives one environment variable per secret field of that connection, named
+`CONN_<NAME>_<KEY>`: the connection name and the field name in upper case, with `-` written as `_`.
+A connection `crm-db` with the fields `user` and `password` gives `CONN_CRM_DB_USER` and
+`CONN_CRM_DB_PASSWORD`. Each variable refers to the Kubernetes Secret `conn-<name>`; no value
+passes through the DAG or the loader.
+
+The notebook reads them with `os.environ["CONN_CRM_DB_USER"]` and
+`os.environ["CONN_CRM_DB_PASSWORD"]`; the values are the same ones the Connections page rotates.
+
+Which connections a pipeline may use follows the three scopes:
+
+- A personal connection belongs to a person. A pipeline runs as a service principal and is refused
+  with:
+
+  ```text
+  connection `x` is personal; a pipeline runs as a service principal and may use a group or managed connection
+  ```
+
+- A group connection must belong to the pipeline's `ownerGroup`:
+
+  ```text
+  connection `x` belongs to group `y`, not to this pipeline's ownerGroup
+  ```
+
+- A managed connection must list the pipeline's `ownerGroup` under **Used by** (`usableBy`):
+
+  ```text
+  connection `x` is managed and does not list group `y` in usableBy
+  ```
+
+- Only a notebook task reads one. A `sql` task runs inside the engine:
+
+  ```text
+  sql task `x` cannot name a connection: it runs inside the engine. A connection is used by a notebook task.
+  ```
+
+- A name that is not in the pipeline's namespace is refused:
+
+  ```text
+  task `x` names connection `y`, which does not exist in namespace `z`
+  ```
+
+A pipeline that breaks one of these rules does not load as a DAG; Airflow's import warning names
+the reason. A notebook task still needs `ownerGroup` and `runAs`, as before.
+
 ## 5. Rotate and delete
 
 **Rotate** opens a dialog named after the connection. It lists the connection's secret fields and
@@ -288,10 +351,10 @@ stops working:
 - Group and managed: *Notebooks that use it will fail. Pipelines and catalogs that use it will stop
   working.*
 
-Pipelines and catalogs do not consume connections yet (section 8), so today only the notebook part
-applies. Deleting removes the value from the secret store and, for a group or managed
-connection, the `Connection` resource. An administrator who is not a member of the owning group can
-delete a group connection; the audit record names the administrator.
+Catalogs do not consume connections yet (section 8); notebooks and pipelines do. Deleting removes
+the value from the secret store and, for a group or managed connection, the `Connection` resource.
+An administrator who is not a member of the owning group can delete a group connection; the audit
+record names the administrator.
 
 ## 6. Status
 
@@ -356,8 +419,9 @@ audit record marks a successful delete as an administrator's action.
 
 ## 8. Not available yet
 
-- **Scheduled pipelines.** No pipeline task kind consumes a connection. A pipeline cannot read a
-  personal, group or managed connection today.
+- **SQL tasks and other task kinds.** A `sql` task cannot name a connection (it runs inside the
+  engine), and `python`, `dbt` and `quality` tasks have no runtime yet. Only a `notebook` task
+  receives the variables.
 - **SQL.** There is deliberately no secret function in SQL: statements are logged, here and in the
   engine. A database or API source will become a catalog that an administrator sets up from a
   managed connection, not a value a query can read.
