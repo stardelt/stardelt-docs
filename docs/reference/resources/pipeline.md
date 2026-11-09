@@ -28,6 +28,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.schedule.timezone` | string (nullable) | No |  | IANA time zone name, for example `Europe/Berlin`. Absent means UTC. |  |
 | `spec.tasks` | array of object | Yes |  | Tasks of the pipeline; at least one, at most 30. | min 1, max 30 |
 | `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). | max 32 |
+| `spec.tasks[].connection` | string (nullable) | No |  | The `Connection` whose secret fields this task receives as `CONN_<NAME>_<KEY>`: the name upper-cased with `-` written as `_`. The credentials reach the pod through `secretKeyRef`s and are never part of the resource, the DAG or a log. A `sql` task runs inside the engine and cannot name one. | min 1, max 40; pattern `^[a-z]([a-z0-9-]*[a-z0-9])?$` |
 | `spec.tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first. | max 8 |
 | `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql` and `notebook` run today (scheduled jobs phases J0 and J1); `python`, `dbt` and `quality` are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality` |
 | `spec.tasks[].name` | string | Yes |  | Unique within the pipeline; becomes the task id in the engine. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
