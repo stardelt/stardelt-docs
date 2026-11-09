@@ -18,8 +18,9 @@ A managed Trino + catalog + Iceberg unit on object storage.
 | `spec.adopt` | boolean | No | `false` | Take over Helm releases this operator did not create. Off by default so a Lakehouse can never silently clobber an existing install. |  |
 | `spec.catalog` | object | No | `{"implementation":"lakekeeper"}` |  |  |
 | `spec.catalog.implementation` | string | No | `lakekeeper` | Catalog implementation (the plug behind the Iceberg REST contract). | `lakekeeper`, `polaris` |
-| `spec.clusterOperation` | object | No | `{"reconciliationPaused":false}` | Freeze this resource: no cluster changes, status phase `Paused`. |  |
+| `spec.clusterOperation` | object | No | `{"reconciliationPaused":false,"stopped":false}` | Freeze this resource: no cluster changes, status phase `Paused`. |  |
 | `spec.clusterOperation.reconciliationPaused` | boolean | No | `false` | Stop reconciling: the operator writes `Paused` and applies nothing. |  |
+| `spec.clusterOperation.stopped` | boolean | No | `false` | Stop the workloads: scale every rendered Deployment and StatefulSet to zero, hibernate the namespace's CNPG databases, and report `Stopped`. Data, PVCs and Secrets stay. |  |
 | `spec.compute` | object | No | `{"spark":{"enabled":false}}` | Compute endpoints installed with the Lakehouse (default: none). |  |
 | `spec.compute.spark` | object | No | `{"enabled":false}` | The Spark Connect endpoint: opt-in, because it is a second driver on the namespace and reads the Lakehouse's own S3 Secret. |  |
 | `spec.compute.spark.enabled` | boolean | No | `false` |  |  |
