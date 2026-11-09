@@ -43,6 +43,7 @@ it as a problem.
 | `make verify-realm-admin` | The realm-admin Secret still signs in. | The realm-admin Secret can no longer sign in. |
 | `make verify-oidc-clients` | Every confidential client's secret still authenticates. | One or more confidential client secrets no longer authenticate. |
 | `make verify-pgdump PG_DUMP=all` | The pg_dump CronJobs produce restorable dumps. | A dump cannot be produced or restored successfully. |
+| `make check-pins` | The registry's `dev`/`demo` digests against every checked-in pin, and the operator's golden values against this repository's pins. Needs no cluster. | A merge published an image that is not pinned (or a pin was changed in one place only). The failing row names the file; run `./scripts/pin-image.sh <app>` and open a pin PR. |
 
 ## When you change one thing
 
@@ -83,7 +84,7 @@ Exit 1 means the check ran and found a real problem — link to the matching anc
 
 ## What runs by itself
 
-`make install`/`make upgrade` run `verify-backup-config` and `step-verify`; everything else is manual. `verify-images` needs the cluster's pull credential, so it is never a CI job.
+`make install`/`make upgrade` run `verify-backup-config` and `step-verify`; everything else is manual. `verify-images` needs the cluster's pull credential, so it is never a CI job. The daily `Pin freshness` workflow runs `scripts/check_pin_freshness.py` and files one issue (label `bug`, `P2`) while a pin is behind the registry; `scripts/pin-rollup.sh` pushes the `chore/pin-rollup` branch, whose PR is opened by hand while GitHub forbids Actions from creating pull requests.
 
 ## Related
 
