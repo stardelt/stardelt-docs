@@ -77,6 +77,30 @@ has reconciled. An administrator can do the same from the command line:
 kubectl -n <namespace> patch streamapp <name> --type merge -p '{"spec":{"stopped":true}}'
 ```
 
+## Deleting a stream
+
+There is no **Delete** button on the Streams page; a stream is removed with `kubectl`. Deleting a
+`StreamApp` also deletes the `KafkaTopic` the operator created for it, and deleting a
+`KafkaTopic` deletes the topic in Kafka — together with every message in it, including messages
+a producer wrote before the stream existed.
+
+To keep the topic and its messages, stop the topic operator managing it before you delete the
+stream:
+
+```bash
+kubectl -n <namespace> annotate kafkatopic <topic-resource> strimzi.io/managed="false"
+kubectl -n <namespace> delete streamapp <name>
+```
+
+`<topic-resource>` is the name `kubectl -n <namespace> get kafkatopics` prints: the topic name
+when Kubernetes allows it as an object name, otherwise `stream-<name>`. The `KafkaTopic` object
+disappears with the stream; the topic stays in Kafka with its messages and is no longer managed
+by Strimzi.
+
+To delete the topic as well, delete the `StreamApp` without the annotation. The checkpoint in
+the object store is not removed in either case; delete it in the bucket if the stream will never
+run again.
+
 ## See streams from the command line
 
 ```bash
