@@ -17,7 +17,7 @@ notebook from the publish call to its runs, and explains the four words Nova use
 | **Notebook** | one `.ipynb` file, owned by a group | **Notebooks**, and the notebook's own page |
 | **Version** | one immutable published copy, named by its `objectVersion` | the notebook's **Versions** table |
 | **Schedule** | a one-task pipeline that runs one version, or a multi-step pipeline that uses it | **Pipelines**, and the Schedule dialog |
-| **Run** | one execution of a schedule | the run list on the schedule's pipeline page |
+| **Run** | one execution of a schedule | **Runs** (every run in one table) and the run list on the schedule's pipeline page |
 
 The four are separate on purpose: publishing again never changes what an existing schedule runs, and a
 run never changes the notebook.
@@ -127,11 +127,21 @@ behind the run see [Service principals](service-principals).
 
 ## Watch it run
 
-A schedule is a pipeline: open **Pipelines**, then the schedule, then its **Runs** table. Each row
-shows the run's state, how it was triggered, when it started and how long it took. Open a run to see
-its tasks; **View log** shows the task's technical log, which is where a failing run puts the
-notebook's error. The pipeline's facts at the top also show the pinned notebook and the parameter
-values the schedule stores.
+### All runs in one place
+
+**Build** → **Runs** lists every run of the notebooks and pipelines your groups own, newest first, at
+most 100. The columns are Pipeline, Kind, State, Started, Duration and Trigger; the pipeline name opens
+the schedule. Filter by kind (SQL, Notebook, Pipeline), by state (`running`, `queued`, `success`,
+`failed`, `skipped`, `upstream_failed`) and by group; the filters are kept in the address bar, so
+`/runs?kind=notebook&state=failed` can be bookmarked or sent to a colleague. While a listed run is
+running or queued the page refreshes itself every five seconds; otherwise reload it.
+
+### One schedule's runs
+
+Open **Pipelines**, then the schedule, then its **Runs** table. Each row shows the run's state, how it
+was triggered, when it started and how long it took. Open a run to see its tasks; **View log** shows the
+task's technical log, which is where a failing run puts the notebook's error. The pipeline's facts at the
+top also show the pinned notebook and the parameter values the schedule stores.
 
 A run that fails is `failed`. The executed notebook — the copy with the cells' output — is not yet
 shown in Nova; the published version has no output on purpose, and the executed copy is kept for the
