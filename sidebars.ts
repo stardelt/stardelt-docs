@@ -67,7 +67,7 @@ const sidebars: SidebarsConfig = {
         'guides/bundle-reference',
         'guides/sdk-cli-mcp',
         'guides/service-principals',
-        'developer/vscode',
+        'developer/develop',
       ],
     },
     {
