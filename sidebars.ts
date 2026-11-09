@@ -120,6 +120,7 @@ const sidebars: SidebarsConfig = {
         'developer/how-it-is-built',
         'developer/recipes',
         'developer/writing-issues',
+        'developer/diagrams',
         'developer/skills',
         'community/wallpapers',
       ],
