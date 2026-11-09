@@ -58,7 +58,7 @@ The page has one section per scope. The text under each heading is the page's ow
 | | Personal | Group | Managed |
 |---|---|---|---|
 | **Who creates it** | You | Any member of the group | Administrators only |
-| **Who may use it** | Only you | Every member of the group | Platform services only; nothing consumes one today |
+| **Who may use it** | Only you | Every member of the group | Platform-run work only: a scheduled notebook whose pipeline names it and whose `ownerGroup` is in `usableBy`, reading the Secret `conn-<name>`. Nobody reads the values directly. |
 | **Who sees its name and settings** | Only you | Every member of the group; administrators also see every group's connections | Administrators |
 | **Who may rotate or delete it** | You | Members rotate and delete; an administrator who is not a member may delete but not create or rotate | Administrators |
 | **Where it can be used today** | A Python notebook only | A Python notebook, and a scheduled notebook whose pipeline runs as that group | Platform-run work: a scheduled notebook whose pipeline names it and whose `ownerGroup` is in `usableBy` |
@@ -76,10 +76,17 @@ an administrator may delete a connection of the group `analytics` but not create
 The page still offers **Rotate** on such a row; the dialog opens and the request is refused with that
 sentence. Deleting works, and the audit record names the administrator rather than a member.
 
-Managed connections are created by an administrator with one or more groups under **Used by**. No
-platform service reads one yet: connection tests, federated catalogs and ingestion are not built.
-The scope exists so those services have a place to read from when they arrive; a managed row is not
-usable in a notebook.
+Managed connections are created by an administrator with one or more groups under **Used by**. A
+scheduled notebook whose pipeline names a managed connection and whose `ownerGroup` is in
+**Used by** receives its secret fields (section 4). Connection tests, federated catalogs and a
+catalog-backed ingestion template are not built. A managed value is still not usable in a notebook
+you run yourself.
+
+The task pod reads `CONN_<NAME>_<KEY>` from the Kubernetes Secret `conn-<name>`, which the External
+Secrets Operator syncs when it is installed (`make external-secrets`, then wait for the next sync —
+the ExternalSecret refreshes every 15 minutes by default). A connection whose `status.ready` is
+false has no Secret yet; the pipeline is then refused with the sync's own sentence instead of a pod
+that never starts.
 
 ## 3. Create a connection
 
@@ -427,10 +434,17 @@ audit record marks a successful delete as an administrator's action.
   managed connection, not a value a query can read.
 - **Spark notebooks.** A Spark session does not receive connection values. `stardelt.connection()`
   is for the Python kernel; use it to fetch a value and pass what the job needs explicitly.
-- **Managed connections.** No platform service reads one yet. Connection tests, federated catalogs
-  and ingestion are not built.
+- **Managed connections.** A scheduled notebook whose pipeline names one and whose `ownerGroup` is
+  in `usableBy` uses it (section 4). Connection tests, federated catalogs and a catalog-backed
+  ingestion template are not built.
 
-These consumers are not built yet; the page and the notebook helper say what exists today.
+  The pod reads `CONN_<NAME>_<KEY>` from the Kubernetes Secret `conn-<name>`, which the External
+  Secrets Operator syncs when it is installed (`make external-secrets`, then wait for the next sync —
+  the ExternalSecret refreshes every 15 minutes by default). A connection whose `status.ready` is
+  false has no Secret yet; the pipeline is then refused with the sync's own sentence instead of a pod
+  that never starts.
+
+The remaining consumers are not built yet; the page and the notebook helper say what exists today.
 
 ## 9. Troubleshooting
 

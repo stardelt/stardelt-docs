@@ -52,7 +52,8 @@ it writes files with the platform's storage key. See [Known limits](../architect
 
 **Connections.** Create one on **Connections** in Nova: type, settings, owner group and secret. The
 settings stay visible; the password is written once and never shown again. A Python notebook reads
-it with `stardelt.connection("name")`; SQL and pipelines cannot use one yet. See
+it with `stardelt.connection("name")`, and a scheduled notebook whose pipeline names the connection
+receives its secret fields as environment variables; SQL cannot use one yet. See
 [Connections and secrets](connections).
 
 The value lives in the platform's secret store, not in the notebook, an image or Git.
