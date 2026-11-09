@@ -109,7 +109,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Reference',
       collapsed: true,
-      items: ['reference/resources/index', ...referenceResources, 'reference/api'],
+      items: ['reference/resources/index', ...referenceResources, 'reference/api', 'glossary'],
     },
     {
       type: 'category',
