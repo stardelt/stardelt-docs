@@ -12,13 +12,13 @@ slug: /services/external-secrets
 
 | `spec.secrets.mode` | What is installed | Where values come from |
 |---|---|---|
-| `none` (default) | Nothing | Connections are plain Kubernetes `Secret`s, written by hand. |
+| `none` (default) | Nothing | The store the Connections API writes. A scheduled notebook needs Secret `conn-<name>` to exist and hold every key from `spec.secret.keys`; a hand-written Secret is enough, and the connection is then `Ready=True` with reason `SecretFound`. |
 | `platform` | External Secrets Operator **and** the built-in store ([OpenBao](openbao)) | The operator writes one `ExternalSecret` per `Connection` and syncs the store path into Secret `conn-<name>`. The per-group `SecretStore` is `openbao-<group>`; managed connections use `openbao-managed`. |
 | `external` | External Secrets Operator only | A `ClusterSecretStore` named `enterprise` is published from `spec.secrets.external.provider` verbatim; the enterprise's store supplies the values. |
 
 Creating a `Connection` does not need the operator: the API writes to the store. The synced Secret `conn-<name>` does, and so does everything that reads it.
 
-**What happens when it is down.** An `ExternalSecret` stops refreshing, and the Kubernetes `Secret` keeps its last value — already-running pods are unaffected until they restart. A `Connection` created while the operator is down has no `conn-<name>` Secret, so its consumer fails. The Connections page in Nova shows the sync state it reads from the `Connection`'s status.
+**What happens when it is down.** An `ExternalSecret` stops refreshing, and the Kubernetes `Secret` keeps its last value — already-running pods are unaffected until they restart. A `Connection` created while the operator is down has no `conn-<name>` Secret, so its consumer fails: it reports `Ready=False` with reason `ExternalSecretsNotInstalled`, and the message names `make external-secrets` — unless a hand-written `conn-<name>` Secret holds every key from `spec.secret.keys`, in which case it is `Ready=True` with reason `SecretFound`. The Connections page in Nova shows the sync state it reads from the `Connection`'s status.
 
 **What you can tune.**
 
@@ -40,6 +40,9 @@ The operator path reads the same numbers from `crates/stardelt-operator/values/e
   ```console
   kubectl -n <namespace> get deploy external-secrets external-secrets-webhook external-secrets-cert-controller
   kubectl -n <namespace> get externalsecrets
+  kubectl -n <namespace> get connection <name> -o jsonpath='{.status.ready} {.status.conditions[?(@.type=="Ready")].reason}{"\n"}'
+  # true SecretFound         (hand-written Secret, no External Secrets)
+  # false ExternalSecretsNotInstalled
   ```
   An `ExternalSecret` whose `STATUS` is not `SecretSynced` carries the reason in `status.conditions`.
 - **Logs:** `kubectl -n <namespace> logs deploy/external-secrets`.
