@@ -26,6 +26,10 @@ place and logs a warning. Create the `KafkaTopic` yourself before the stream whe
 you need more partitions or another retention. A stream that reads an external
 Kafka through `source.connectionRef` declares no topic at all.
 
+Deleting a `StreamApp` deletes the `KafkaTopic` it owns, and deleting a `KafkaTopic` deletes
+the topic and its messages. To keep the topic, annotate the `KafkaTopic` with
+`strimzi.io/managed="false"` first — see [the Streams guide](../guides/streams#deleting-a-stream).
+
 **Delivery.** Keyed `merge` sinks are effectively-once. Append-only sinks are at-least-once. Credentials live in a `Connection`, never in a manifest.
 
 **Not in this version.** Flink, CDC/Debezium, a schema registry and streaming SQL in Trino are not part of this version.
