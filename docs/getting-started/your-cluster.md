@@ -86,12 +86,18 @@ seaweedfs:
   imagePullSecrets:                              # SeaweedFS also reads global.imagePullSecrets
     - name: my-registry-creds
 jupyterhub:
-  singleuser: { storage: { dynamic: { storageClass: "" } } }
+  singleuser: { storage: { dynamic: { storageClass: fast } } }
 trino:
   imagePullSecrets: [{ name: my-registry-creds }]
 lakekeeper:
   imagePullSecrets: [{ name: my-registry-creds }]
 ```
+
+The JupyterHub line must name a StorageClass. KubeSpawner writes `storageClassName` verbatim, so an
+empty value means *no class* — not the cluster default — and `claim-<user>` stays `Pending` with
+`no persistent volumes available for this claim and no storage class is set`. The SeaweedFS entries
+above behave differently: that chart renders an empty value as a null `storageClassName`, which does
+fall back to the default class.
 
 :::warning Overriding inside a list with `--set`
 Helm replaces a whole array element when you target it by index. `--set
