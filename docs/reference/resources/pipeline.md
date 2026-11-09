@@ -29,7 +29,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks` | array of object | Yes |  | Tasks of the pipeline; at least one, at most 30. | min 1, max 30 |
 | `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). | max 32 |
 | `spec.tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first. | max 8 |
-| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql` is the first kind the platform runs (scheduled jobs phase J0); the others are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality` |
+| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql` and `notebook` run today (scheduled jobs phases J0 and J1); `python`, `dbt` and `quality` are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality` |
 | `spec.tasks[].name` | string | Yes |  | Unique within the pipeline; becomes the task id in the engine. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
 | `spec.tasks[].sql` | string (nullable) | No |  | The statement of a `sql` task. `${run.date}`, `${run.id}` and `${params.<name>}` are expanded when the task runs, not in the resource. | min 1, max 100000 |
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |
