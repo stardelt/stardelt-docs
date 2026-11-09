@@ -26,6 +26,7 @@ slug: /services/jupyterhub
 | Notebook Trino config | `helm-values/jupyterhub.yaml` | `hub.extraConfig` (`25-notebook-trino`) | (from identity) | Sets in-cluster Trino endpoint and internal CA. |
 | Proxy service | `helm-values/jupyterhub.yaml` | `proxy` | (see values) | Public proxy configuration. |
 | Single-user | `helm-values/jupyterhub.yaml` | `singleuser` | (see values) | Single-user server image and configuration. |
+| Single-user home | `helm-values/jupyterhub.yaml` | `singleuser.storage` | `dynamic`, 2 GiB | The size and StorageClass of each person's home; `make install-notebooks` applies a change. |
 
 **What it replaces.** JupyterHub replaces a shared notebook server setup with a platform-integrated multi-user notebook environment.
 
@@ -34,4 +35,5 @@ slug: /services/jupyterhub
 - **Health check:** `kubectl -n stardelt get pods -l app.kubernetes.io/name=jupyterhub`
 - **Logs:** `kubectl -n stardelt logs -l component=hub -n stardelt`
 - **Install step:** `make install-notebooks` (from `stardelt-platform`)
-- **Storage:** every person has a 2 GiB home volume that survives a server restart. Commit notebooks to Git to share them and to have them backed up.
+- **A person's home:** `kubectl -n stardelt get pvc | grep claim-` lists the persistent homes (one per person).
+- **Home storage:** each single-user server gets a **2 GiB persistent volume** (`singleuser.storage` below; one PVC per person, named `claim-<username>`, created the first time the server starts). Stopping a server keeps its files.
