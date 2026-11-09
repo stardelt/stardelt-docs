@@ -163,5 +163,7 @@ Results are JSON lines on standard output; messages, warnings and problems go to
 
 A deploy sends, with each pipeline, the bundle's name, the target and the Git commit of the bundle directory (`-dirty` is appended
 when files are uncommitted; outside a Git checkout there is no commit). Nova stamps that on the pipeline: the pipeline page shows it
-under **Deployed from**, the page **Deployments** groups it by bundle and stage, and `summary`, `--prune` and `destroy` use it to
-find what a bundle owns. A pipeline made in the interface or with `stardelt apply` has no stamp.
+under **Deployed from**, the Pipelines list shows it in its **Source** column (`Git · shop-etl/prod @ 0123abc`, or `Nova` for a
+pipeline made in the interface, with a **changed by hand** badge once someone edited a deployed one), the page **Deployments**
+(under **Admin**) groups it by bundle and stage, and `summary`, `--prune` and `destroy` use it to find what a bundle owns. A
+pipeline made in the interface or with `stardelt apply` has no stamp.
