@@ -29,6 +29,7 @@ not as working maintenance.
 | Deployment profile | `docs/reference/resources/platforminstance.md` | `spec.profile` | `demo` | Deployment size/profile (`demo`, `full`, `airgap`). |
 | Ingress enabled | `docs/reference/resources/platforminstance.md` | `spec.ingress.enabled` | `false` | Create Ingresses for platform services when enabled. |
 | Pause reconciliation | `docs/reference/resources/lakehouse.md`, `docs/reference/resources/platforminstance.md` | `spec.clusterOperation.reconciliationPaused` | `false` | Freeze a `Lakehouse` or a `PlatformInstance`: the operator reports phase `Paused`, Ready `False` reason `Paused`, and applies nothing until the field is `false` again. |
+| Stop the workloads | `docs/reference/resources/lakehouse.md`, `docs/reference/resources/platforminstance.md` | `spec.clusterOperation.stopped` | `false` | Scale every rendered Deployment and StatefulSet to zero, hibernate the resource's CNPG databases, and report `Stopped`. Data, PVCs and Secrets stay; CronJobs keep running. `false` restores the recorded replica counts. |
 
 **Related pages.** [CRD reference](../reference/resources/), [PlatformInstance reference](../reference/resources/platforminstance), [Bundle reference](../guides/bundle-reference), [How it works](../architecture/how-it-works).
 
@@ -52,6 +53,17 @@ not as working maintenance.
 
   The same field on a `PlatformInstance` freezes the whole platform install. A paused resource does not pick up
   `spec` changes until it is un-paused; `kubectl get` keeps showing the last status it wrote.
+- **Stop a resource:** set `spec.clusterOperation.stopped: true` to scale the workloads to zero and hibernate the
+  databases; the operator records the replica counts on the resource and restores them when the field is `false`.
+  Backups and the access-sync job keep running; a paused resource stays `Paused`.
+
+  ```console
+  $ kubectl -n <namespace> patch lakehouse <name> --type=merge \
+      -p '{"spec":{"clusterOperation":{"stopped":true}}}'
+  $ kubectl -n <namespace> get lakehouse <name> \
+      -o jsonpath='{.status.phase}{" "}{.status.conditions[?(@.type=="Ready")].status}{"\n"}'
+  Stopped False
+  ```
 - **CLI — values:** `stardelt-operator values <component> <demo|full|airgap> [--identity <baseDomain>]` prints the Helm values the controller would apply.
 - **CLI — identity checklist:** `stardelt-operator identity-checklist <platforminstance.yaml>` prints the identity setup steps.
 - **Safety defaults:** New resources default to `spec.dryRun: true`; `adopt` refuses to take over a release the operator did not create.
