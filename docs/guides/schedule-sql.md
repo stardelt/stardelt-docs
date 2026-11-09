@@ -61,6 +61,8 @@ GROUP BY pickup_date
   *Pipeline task*.
 - Defaults: one run at a time, **one retry after 5 minutes**, and a limit of **2 hours** per run.
 - A failed run shows the engine's error in its task log on the **Pipelines** page.
+- Every run of every schedule is also in **Build** → **Runs**
+  ([published notebooks](./published-notebooks#watch-it-run)).
 
 ## Manage it
 
