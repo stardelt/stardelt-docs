@@ -358,7 +358,7 @@ stops working:
 - Group and managed: *Notebooks that use it will fail. Pipelines and catalogs that use it will stop
   working.*
 
-Catalogs do not consume connections yet (section 8); notebooks and pipelines do. Deleting removes
+Catalogs do not consume connections yet (section 9); notebooks and pipelines do. Deleting removes
 the value from the secret store and, for a group or managed connection, the `Connection` resource.
 An administrator who is not a member of the owning group can delete a group connection; the audit
 record names the administrator.
@@ -424,7 +424,98 @@ page marks the row **Not your group** and offers **Delete** and **Break-glass re
 **Rotate** (a request that sends it anyway is refused with the sentence in section 2), and the
 audit record marks a successful delete as an administrator's action.
 
-## 8. Not available yet
+## 8. An enterprise secret store (external mode)
+
+An installation with `spec.secrets.mode: external` installs no secret store of its own: the
+External Secrets Operator syncs the values of each connection from the enterprise's store into the
+Kubernetes Secret `conn-<name>`. Because only the enterprise knows its layout, it also publishes no
+store paths — the author of a `Connection` names the path.
+
+Two field rules follow:
+
+- **`spec.secret.remoteRef` is required.** Absent, the connection stays `Ready=False` with reason
+  `RemoteRefRequired` and the message `secrets.mode external: set secret.remoteRef to the path in
+  the enterprise store (for example `apps/crm/db`)`.
+- **In any other mode it is refused**, with reason `RemoteRefNotAllowed`: there the platform derives
+  the path itself, `connections/group/<ownerGroup>/<name>` or `connections/managed/<name>`.
+
+The path is 1 to 512 characters matching `^[A-Za-z0-9][A-Za-z0-9_./-]*$`, and may not contain `..`
+or `//`.
+
+### The worked example
+
+The platform expects one store, a `ClusterSecretStore` named `enterprise`, with a HashiCorp Vault
+KV-v2 provider and **AppRole** authentication:
+
+```yaml
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: enterprise
+spec:
+  provider:
+    vault:
+      server: https://vault.example.com
+      path: secret
+      version: v2
+      auth:
+        appRole:
+          path: approle
+          roleId: stardelt-platform
+          secretRef:
+            name: vault-approle
+            key: secret-id
+            namespace: stardelt
+```
+
+The operator copies `spec.secrets.external.provider` from the `PlatformInstance` verbatim into this
+object, so this is the same document an operator install publishes. The credentials are only ever
+referenced by Secret name: `vault-approle` is created by an administrator in the platform namespace
+before the install, and the platform never carries a credential in a resource. Take the `namespace`
+from the instance's own namespace, not the literal `stardelt` shown here.
+
+A `Connection` in external mode then names its path in the store:
+
+```yaml
+apiVersion: stardelt.io/v1alpha1
+kind: Connection
+metadata:
+  name: crm-db
+  namespace: analytics
+spec:
+  type: postgresql
+  scope: group
+  ownerGroup: analytics
+  config:
+    host: postgres.example.com
+    database: crm
+  secret:
+    keys: [user, password]
+    remoteRef: apps/crm/db
+```
+
+`spec.secret.keys` names the fields in the enterprise store. Each becomes a key of the Secret
+`conn-<name>` and an environment variable `CONN_<NAME>_<KEY>` in a scheduled notebook; the sync
+refreshes every 15 minutes unless `spec.refreshInterval` says otherwise.
+
+Check the result:
+
+```console
+$ kubectl -n analytics get connection crm-db -o jsonpath='{.status.ready} {.status.conditions[?(@.type=="Ready")].reason}{"\n"}'
+true SecretSynced
+$ kubectl -n analytics get secret conn-crm-db -o jsonpath='{.data.keys}'
+```
+
+Run `kubectl -n analytics get externalsecret conn-crm-db` for the sync state.
+
+**Registering the connection.** In external mode a `Connection` is created with `kubectl apply`, as
+above. The **Connections** page in Nova writes to the platform's own store and never sets
+`remoteRef`, so it cannot create an external-mode connection.
+
+The platform recommends one prefix per team in the store (`platform/<ownerGroup>/…`) but does not
+enforce it: the enterprise store's own policy decides who reads which path.
+
+## 9. Not available yet
 
 - **SQL tasks and other task kinds.** A `sql` task cannot name a connection (it runs inside the
   engine), and `python`, `dbt` and `quality` tasks have no runtime yet. Only a `notebook` task
@@ -446,7 +537,7 @@ audit record marks a successful delete as an administrator's action.
 
 The remaining consumers are not built yet; the page and the notebook helper say what exists today.
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 | Message | Where | What it means | What to do |
 |---|---|---|---|

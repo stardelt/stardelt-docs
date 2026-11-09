@@ -14,7 +14,7 @@ slug: /services/external-secrets
 |---|---|---|
 | `none` (default) | Nothing | The store the Connections API writes. A scheduled notebook needs Secret `conn-<name>` to exist and hold every key from `spec.secret.keys`; a hand-written Secret is enough, and the connection is then `Ready=True` with reason `SecretFound`. |
 | `platform` | External Secrets Operator **and** the built-in store ([OpenBao](openbao)) | The operator writes one `ExternalSecret` per `Connection` and syncs the store path into Secret `conn-<name>`. The per-group `SecretStore` is `openbao-<group>`; managed connections use `openbao-managed`. |
-| `external` | External Secrets Operator only | A `ClusterSecretStore` named `enterprise` is published from `spec.secrets.external.provider` verbatim; the enterprise's store supplies the values. |
+| `external` | External Secrets Operator only | A `ClusterSecretStore` named `enterprise` is published from `spec.secrets.external.provider` verbatim; the enterprise's store supplies the values. A `Connection` names its path in that store with `spec.secret.remoteRef`: see the [connections guide](../guides/connections#8-an-enterprise-secret-store-external-mode). |
 
 Creating a `Connection` does not need the operator: the API writes to the store. The synced Secret `conn-<name>` does, and so does everything that reads it.
 
