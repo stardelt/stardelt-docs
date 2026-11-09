@@ -59,7 +59,7 @@
         "tags": [
           "internal"
         ],
-        "description": "Change one catalog's `spec.owner`, `spec.managedAccess` and `spec.grants` as a JSON merge patch on the `Catalog` resource, carrying the `resourceVersion` the page read. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. A malformed owner, group name, verb or a duplicate grant is a 400 in the words the form shows; a catalog that changed meanwhile is a 409 `this catalog changed since you opened it; reload`; a name that is not a catalog or no longer exists is a 404; more than 30 changes per administrator in an hour is a 429. Without a cluster connection the answer is 503 `the cluster is not reachable from Nova` (demo mode changes memory instead). Answers the updated row, the same shape as the list, with the new `metadata.generation`; `status.observedGeneration` catches up when the access-sync job runs (about two minutes). Never carries a storage credential. `Cache-Control: no-store`.",
+        "description": "Change one catalog's `spec.owner`, `spec.managedAccess` and `spec.grants` as a JSON merge patch on the `Catalog` resource, carrying the `resourceVersion` the page read. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. A malformed owner, group name, verb or a duplicate grant is a 400 in the words the form shows; a catalog that changed meanwhile is a 409 `this catalog changed since you opened it; reload`, and a catalog a GitOps tool owns (Argo CD or Flux, from its annotations or labels) is a 409 `<name> is managed by <tool>: change its grants in Git` with nothing patched; a name that is not a catalog or no longer exists is a 404; more than 30 changes per administrator in an hour is a 429. Without a cluster connection the answer is 503 `the cluster is not reachable from Nova` (demo mode changes memory instead). Answers the updated row, the same shape as the list, with the new `metadata.generation`; `status.observedGeneration` catches up when the access-sync job runs (about two minutes). Never carries a storage credential. `Cache-Control: no-store`.",
         "operationId": "admin_catalogs_access_update",
         "parameters": [
           {
@@ -124,7 +124,7 @@
             }
           },
           "409": {
-            "description": "The catalog changed since the page read it",
+            "description": "The catalog changed since the page read it, or a GitOps tool owns it",
             "content": {
               "application/json": {
                 "schema": {
@@ -145,6 +145,97 @@
           },
           "502": {
             "description": "The cluster did not answer, or Nova may not patch catalogs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nova has no cluster client",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/teams": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "description": "Create a new team space in one call: the `Catalog` resources `<team>` (production), `<team>lab` (the team's sandbox) and `<team>ref` (shared reference data), each owned by `group` with the four verbs `browse`, `select`, `write` and `create` for `group` and for `stardelt-admins`, plus the `ServicePrincipal` `pipeline-<group>` when it does not exist yet (it may already serve another team of the same group). The group must already exist in the company's sign-in provider — stardelt never creates groups. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. A team name outside 2 to 21 lower-case letters and digits starting with a letter, a group name outside the group rule, or a description over 500 characters is a 400; any of the three catalogs already existing is a 409 `the catalog <name> already exists` with nothing created, and a platform without any `Catalog` is a 409 `no lakehouse to put the catalogs in`; more than ten team spaces per administrator in an hour is a 429. When the API server refuses one of the creates the answer is a 502 naming what failed and what was created so far; nothing is rolled back, so a half-created space stays visible and can be finished by hand. Without a cluster connection the answer is 503 `the cluster is not reachable from Nova`. Answers 201 with the three catalog names and the principal, `Cache-Control: no-store`.",
+        "operationId": "admin_teams_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewTeam"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The three catalogs and the pipeline principal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NewTeamResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The team name, the group name or the description is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "One of the three catalogs already exists, or there is no lakehouse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than ten team spaces this hour",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer, or Nova may not create the resources",
             "content": {
               "application/json": {
                 "schema": {
@@ -4723,6 +4814,115 @@
         }
       }
     },
+    "/api/runs": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The runs of the caller's visible pipelines, newest first. A run carries the pipeline's `namespace`, `name` and `ownerGroup` and a `kind` of `sql`, `notebook` or `pipeline` (a multi-step pipeline). `limit` defaults to 50 and is at most 200. `state`, `kind`, `group` and `pipeline` (`<namespace>/<name>`) narrow the answer; an unknown state answers no rows rather than an error. A failed scheduler read for one pipeline is logged and skipped, not reported. Answers `Cache-Control: no-store`.",
+        "operationId": "runs_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Rows to answer; 50 when absent, at most 200",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "description": "Exact match on the run's state; an unknown state answers no rows",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "description": "`sql`, `notebook` or `pipeline`",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "description": "Exact match on the pipeline's `spec.ownerGroup`",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pipeline",
+            "in": "query",
+            "description": "One pipeline as `<namespace>/<name>`",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The visible runs, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunsListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`limit`, `kind` or `pipeline` is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The scheduler or the cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or the scheduler is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/saved-queries": {
       "get": {
         "tags": [
@@ -5706,6 +5906,13 @@
           "managedAccess": {
             "type": "boolean",
             "description": "`spec.managedAccess`: the owner cannot grant on this catalog."
+          },
+          "managedBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The GitOps tool that owns this resource, or null. A Nova edit would be reverted by it."
           },
           "name": {
             "type": "string",
@@ -7170,6 +7377,57 @@
           }
         }
       },
+      "NewTeam": {
+        "type": "object",
+        "description": "One `POST /api/admin/teams` body: a new team space.\n\nThe group comes from the company's sign-in provider; stardelt never creates groups,\nso `group` must already exist there.",
+        "required": [
+          "team",
+          "group"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`spec.description` of the production catalog; the other two carry a fixed sentence."
+          },
+          "group": {
+            "type": "string",
+            "description": "The group the three catalogs belong to."
+          },
+          "team": {
+            "type": "string",
+            "description": "The team's short name: 2 to 21 lower-case letters and digits, starting with a letter."
+          }
+        }
+      },
+      "NewTeamResponse": {
+        "type": "object",
+        "description": "What a created team space answers: its three catalogs and its pipeline principal.",
+        "required": [
+          "catalogs",
+          "principal",
+          "principalCreated"
+        ],
+        "properties": {
+          "catalogs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "`<team>`, `<team>lab` and `<team>ref`, in that order."
+          },
+          "principal": {
+            "type": "string",
+            "description": "`pipeline-<group>`."
+          },
+          "principalCreated": {
+            "type": "boolean",
+            "description": "False when the principal already existed for another team of the same group."
+          }
+        }
+      },
       "NotebookParameter": {
         "type": "object",
         "required": [
@@ -8473,6 +8731,56 @@
             "type": "string"
           }
         }
+      },
+      "RunsListResponse": {
+        "type": "object",
+        "description": "`GET /api/runs`.",
+        "required": [
+          "runs"
+        ],
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RunsListRow"
+            }
+          }
+        }
+      },
+      "RunsListRow": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/RunView"
+          },
+          {
+            "type": "object",
+            "required": [
+              "namespace",
+              "name",
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "description": "`sql`, `notebook`, or `pipeline` for a multi-step pipeline (`run_task_kind`)."
+              },
+              "name": {
+                "type": "string"
+              },
+              "namespace": {
+                "type": "string"
+              },
+              "ownerGroup": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "`spec.ownerGroup`; `None` means administrators only."
+              }
+            }
+          }
+        ],
+        "description": "One run in the cross-pipeline list (`GET /api/runs`)."
       },
       "SavedQuery": {
         "type": "object",
