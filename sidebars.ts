@@ -51,6 +51,7 @@ const sidebars: SidebarsConfig = {
         'guides/schedule-sql',
         'guides/streams',
         'guides/notebooks-in-git',
+        'guides/published-notebooks',
         'guides/airflow',
         'guides/query-log',
         'guides/sql-editor',

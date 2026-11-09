@@ -98,3 +98,5 @@ typo fails the pull request, not the nightly run.
 Merging to `main` is what deploys: CI applies the manifests, or a GitOps controller syncs the
 directory, and `kubectl get pipelines` shows what the cluster has. Airflow runs each pipeline on its
 schedule. See [Publish pipelines from Git](publish-pipelines).
+
+Publishing a notebook to the platform — versions, parameters and scheduling — is described in [Published notebooks](./published-notebooks).
