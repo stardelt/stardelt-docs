@@ -80,6 +80,30 @@ FROM mobility.silver.accounts GROUP BY 1;
 Run these in Nova's SQL editor or a notebook. The catalog is yours because your group owns it; a
 colleague in another group cannot read or write it.
 
+### Query with %sql in a notebook
+
+The notebook image already loads JupySQL (`stardelt.sqlmagic`): no install cell, and the
+connection is called `warehouse`. One line does it:
+
+```sql
+%sql select count(*) from mobility.bronze.accounts
+```
+
+A whole cell with `%%sql`:
+
+```sql
+%%sql
+select split_part(email, '@', 2) as domain, count(*) as accounts
+from mobility.silver.accounts
+group by 1
+order by accounts desc
+```
+
+The token is read again on every request, so a kernel that stays open keeps working after your
+access token rotates. A Python variable of that name binds as `:name` in the statement, and
+JupySQL's own `%sql --connections`, `%sqlcmd tables`, `%sqlcmd columns -t <table>` and
+`%sqlplot` work too. The query runs as you, exactly like `stardelt.sql()`.
+
 ## 4. Show it
 
 1. Open Superset (Nova → **Dashboards**) and sign in with your platform account.
