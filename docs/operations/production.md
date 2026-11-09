@@ -44,6 +44,20 @@ StorageClass whose volumes can follow a pod to another node. `local-path` cannot
 The charts do not set these up by default. The settings are in
 [Install on your own cluster](../getting-started/your-cluster).
 
+## Stages: dev and prod
+
+Run **one stardelt install per stage**: dev and prod, and test if you need one. Put each on its own cluster, or at least in its own namespace. A broken upgrade or a runaway job then stays in its stage, and dev always upgrades before prod.
+
+| Moves from dev to prod | Stays in each stage |
+|---|---|
+| pipelines, notebooks, SQL and stream apps, through Git | data, runs and query history |
+| the platform's own settings, through your GitOps tool | secret values: each stage has its own behind the same `Connection` name |
+| | service principals: each stage has its own |
+
+Group names come from your sign-in provider, so they are the same in every stage.
+
+**Small installs** can run a single install with one catalog per stage (for example `mobility` for production and `mobilitylab` for work in progress). Upgrades then have no dev stage to go first, so move to two installs before production data depends on it.
+
 ## Upgrades
 
 ```bash
@@ -57,8 +71,8 @@ With the umbrella chart, run `helm upgrade --install stardelt chart -n stardelt 
 - **Helm does not upgrade CRDs.** Apply `chart/crds/` from the operator repository yourself.
 - **Put digests in your values.** A moving tag can serve an old image.
 
-There is no migration guide or compatibility promise before the first tagged release, so try each
-upgrade on a copy first.
+There is no migration guide or compatibility promise before the first tagged release, so upgrade your
+dev install first and prod after it has run for a day.
 
 ## Security
 
