@@ -10,7 +10,7 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 
 ## After an upgrade
 
-`make step-verify` (the target the upgrade path runs) runs the six checks below:
+`make step-verify` (the target the upgrade path runs) runs the seven checks below:
 
 | Command | What it proves | A failure means |
 | --- | --- | --- |
@@ -20,6 +20,7 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-streaming` | The Kafka broker is Ready, the Spark Operator watches the platform namespace or every namespace, every StreamApp's status is current and every one that should run is `Running`, and the Strimzi controller has not restarted inside the operator's ten-minute window (an older restart is printed with its age and stays a checkmark). A `Pending` stream is a warning (`!`), not a pass: it is reported with its last submission time and does not change the verdict; `Stopped` is a pass. | A StreamApp cannot run on this install, is `Failed`, or its status is behind its spec (see [the streaming guide](../guides/streams)). |
 | `make verify-crds` | Every live stardelt CRD schema is `origin/main`'s in the operator checkout (`chart/crds`). The verdict names the commit; an unversioned working tree is named as such. | A merge added a field or a kind but the cluster's CRD schema was not updated, so the API server rejects the new field. Run `make install-operator` (or `./scripts/pin-image.sh stardelt-operator`) to apply the CRDs. |
 | `make verify-pins` | Every live Deployment runs the digest `manifests/`/`helm-values/` pins for Nova, Spark, Superset, Airflow and the operator. | A merge was pinned but never rolled out; run `./scripts/pin-image.sh <app>`. |
+| `make verify-connections` | The Pipeline CRD carries `spec.tasks[].connection`, the Airflow pipeline reader may read `Connection` resources, and the DAG processor's image resolves a connection into `CONN_<NAME>_<KEY>` variables. | A merge moved one of the three links (operator CRD, platform Role, loader image) without a rollout: run `./scripts/pin-image.sh stardelt-operator` for the `crd` row, `make step-airflow` for `role` and `loader`. |
 
 One check is deliberately not part of `step-verify` because it writes: `make verify-airflow-actions` signs
 in as Nova's Airflow service user, reads one DAG, pauses and resumes it, and restores the state it found
