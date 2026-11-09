@@ -325,6 +325,77 @@ The resolved warehouse name and id (`demo` in demo mode).
 | `502` | The catalog is not reachable |
 | `503` | The configured warehouse does not exist |
 
+## /api/compute
+
+### GET /api/compute
+
+Operation id `compute_list`: in Python `client.call("compute_list", …)`, on the command line `stardelt api compute_list`.
+
+`GET /api/compute`: the Spark clusters this caller may use.
+
+The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise), the Connect `endpoint` and `startedAt` while it runs, `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse` and `shared`. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The caller's clusters, sorted by name |
+| `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### POST /api/compute/\{name\}/start
+
+Operation id `compute_start`: in Python `client.call("compute_start", …)`, on the command line `stardelt api compute_start`.
+
+`POST /api/compute/{name}/start`: set `spec.state: Running`.
+
+Start one Spark cluster by merge-patching `spec.state: Running`; the answer is the updated cluster. Idempotent: a cluster already `Running` answers its view without a patch. A cluster the caller may not use and a name that does not exist both answer the same `404`. A non-administrator on the `shared` cluster answers `403` (it is always on). A cluster the operator is still `Starting` or `Stopping` answers `409`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | The cluster's name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The cluster, with `spec.state: Running` applied |
+| `401` | No token to sign in with |
+| `403` | A non-administrator on the shared cluster |
+| `404` | No such cluster, or the caller may not use it |
+| `409` | The cluster is starting or stopping |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### POST /api/compute/\{name\}/stop
+
+Operation id `compute_stop`: in Python `client.call("compute_stop", …)`, on the command line `stardelt api compute_stop`.
+
+`POST /api/compute/{name}/stop`: set `spec.state: Stopped`.
+
+Stop one Spark cluster by merge-patching `spec.state: Stopped`; the answer is the updated cluster. Idempotent: a cluster already `Stopped` answers its view without a patch. A cluster the caller may not use and a name that does not exist both answer the same `404`. A non-administrator on the `shared` cluster answers `403` (it is always on). A cluster the operator is still `Starting` or `Stopping` answers `409`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | The cluster's name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The cluster, with `spec.state: Stopped` applied |
+| `401` | No token to sign in with |
+| `403` | A non-administrator on the shared cluster |
+| `404` | No such cluster, or the caller may not use it |
+| `409` | The cluster is starting or stopping |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
 ## /api/connections
 
 ### GET /api/connections
@@ -801,6 +872,29 @@ The parameters of one published version of a notebook, read from the stored byte
 | `404` | No such notebook version |
 | `502` | The notebook store did not answer |
 | `503` | Notebook storage is not configured |
+
+### GET /api/notebooks/\{group\}/\{name\}/usage
+
+Operation id `notebooks_usage`: in Python `client.call("notebooks_usage", …)`, on the command line `stardelt api notebooks_usage`.
+
+The pipelines that run one published notebook — the schedules and on-demand pipelines of that group, sorted by name. Each row is the one-task `Pipeline` a Schedule created: its pinned `objectVersion`, its cron and timezone when it has a schedule, and its `runAs`. Owner-group scoped: a caller who is not a member of `group` answers 403, and an administrator gets no wider view. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | The notebook's owner group |
+| `name` | path | string | Yes | The notebook's `.ipynb` file name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The visible schedules, sorted by name |
+| `401` | No token to sign in with |
+| `403` | The caller is not a member of the group |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
 
 ### GET /api/notebooks/\{group\}/\{name\}/versions
 
@@ -1440,6 +1534,58 @@ Delete one of the caller's saved queries.
 | `404` | No such saved query, or it is not the caller's |
 | `503` | The state store is not configured |
 
+### POST /api/saved-queries/\{id\}/share
+
+Operation id `saved_queries_share`: in Python `client.call("saved_queries_share", …)`, on the command line `stardelt api saved_queries_share`.
+
+`POST /api/saved-queries/{id}/share` — `204`, whether the share is new, a repeat or the id is not the caller's.
+
+Share one of the caller's saved queries with a group. Members of the group see it in the list.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | The saved query's id |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `group` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Shared, already shared, or not the caller's |
+| `400` | The group name is not valid |
+| `404` | The id is not a number |
+| `503` | The state store is not configured |
+
+### DELETE /api/saved-queries/\{id\}/share/\{group\}
+
+Operation id `saved_queries_unshare`: in Python `client.call("saved_queries_unshare", …)`, on the command line `stardelt api saved_queries_unshare`.
+
+`DELETE /api/saved-queries/{id}/share/{group}` — `204` when a share was removed; `404` when there was none, or the query is not the caller's.
+
+Stop sharing one of the caller's saved queries with a group.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | The group name |
+| `id` | path | integer | Yes | The saved query's id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | The share is gone |
+| `404` | No such share, or the query is not the caller's |
+| `503` | The state store is not configured |
+
 ## /api/service-principals
 
 ### GET /api/service-principals
@@ -1621,3 +1767,57 @@ Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `m
 | `200` | One row per class, largest first, the administrator's row first of all |
 | `401` | Not signed in |
 | `502` | The cluster did not answer, or Nova may not list sqlwarehouses |
+
+## /api/workspace
+
+### GET /api/workspace
+
+Operation id `workspace_get`: in Python `client.call("workspace_get", …)`, on the command line `stardelt api workspace_get`.
+
+`GET /api/workspace`: the caller's own server state.
+
+The state of the caller's own JupyterHub server: `stopped` (no server), `starting` (the hub is spawning it), `running` (`ready`) or `stopping` (the hub is stopping it), with `startedAt`, `lastActivity` and `idleStopAt` (`lastActivity` plus the platform's idle limit: when the hub culls an idle server). Orders no server and never reads another person's: the hub user is the caller's own sign-in name. A person the hub has never seen answers `stopped`. Answers `200 {"state":"unavailable"}` when Nova has no hub credentials or the hub does not answer, so the page still renders. Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The caller's workspace, or `unavailable` |
+| `401` | No token to sign in with |
+
+### POST /api/workspace/start
+
+Operation id `workspace_start`: in Python `client.call("workspace_start", …)`, on the command line `stardelt api workspace_start`.
+
+`POST /api/workspace/start`: ask the hub to spawn the caller's server.
+
+Spawn the caller's own JupyterHub server: `POST /hub/api/users/{name}/server` with Nova's service token. Answers `202 {"state":"starting"}` when the hub accepted the spawn, `200 {"state":"running"}` when a server was already running, and `409` when the hub has never seen this person (they must open JupyterHub once to create their workspace). `503` when Nova has no hub credentials, `502` when the hub does not answer or refuses another way.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | A server was already running |
+| `202` | The hub is spawning the server |
+| `401` | No token to sign in with |
+| `409` | The hub has no such user |
+| `502` | The hub did not answer or refused |
+| `503` | No hub credentials |
+
+### POST /api/workspace/stop
+
+Operation id `workspace_stop`: in Python `client.call("workspace_stop", …)`, on the command line `stardelt api workspace_stop`.
+
+`POST /api/workspace/stop`: ask the hub to stop the caller's server.
+
+Stop the caller's own JupyterHub server: `DELETE /hub/api/users/{name}/server` with Nova's service token. Answers `202 {"state":"stopping"}`; a person the hub has never seen answers `200 {"state":"stopped"}` (there is nothing to stop). `503` when Nova has no hub credentials, `502` when the hub does not answer or refuses.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | There was no server to stop |
+| `202` | The hub is stopping the server |
+| `401` | No token to sign in with |
+| `502` | The hub did not answer or refused |
+| `503` | No hub credentials |

@@ -20,6 +20,7 @@ Every custom resource the operator serves, generated from the JSON Schemas it pu
 | [Pipeline](./pipeline.md) | A pipeline: tasks with dependencies and an optional schedule, run on one engine. |
 | [PlatformInstance](./platforminstance.md) | A stardelt platform instance. |
 | [ServicePrincipal](./serviceprincipal.md) | A non-human identity (client credentials) for pipelines, maintenance and collectors. |
+| [SparkCluster](./sparkcluster.md) | Spark compute for the platform, a team or one person: size, runtime, settings; started by hand, stopped when idle. |
 | [SqlWarehouse](./sqlwarehouse.md) | A compute class for SQL: size, caps and the groups that may use it. |
 | [StreamApp](./streamapp.md) | A streaming app: a Kafka topic in, an Iceberg table out. |
 | [Volume](./volume.md) | A governed folder of files in the object store with an owner group and grants. |
