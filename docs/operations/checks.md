@@ -84,7 +84,9 @@ Exit 1 means the check ran and found a real problem — link to the matching anc
 
 ## What runs by itself
 
-`make install`/`make upgrade` run `verify-backup-config` and `step-verify`; everything else is manual. `verify-images` needs the cluster's pull credential, so it is never a CI job. The daily `Pin freshness` workflow runs `scripts/check_pin_freshness.py` and files one issue (label `bug`, `P2`) while a pin is behind the registry; `scripts/pin-rollup.sh` pushes the `chore/pin-rollup` branch, whose PR is opened by hand while GitHub forbids Actions from creating pull requests.
+`make install` runs `verify-backup-config` while it creates the catalog's Postgres cluster;
+`make upgrade` runs it too and then, at the end, the seven `step-verify` checks above.
+Everything else is manual. `verify-images` needs the cluster's pull credential, so it is never a CI job. The daily `Pin freshness` workflow runs `scripts/check_pin_freshness.py` and files one issue (label `bug`, `P2`) while a pin is behind the registry; `scripts/pin-rollup.sh` pushes the `chore/pin-rollup` branch, whose PR is opened by hand while GitHub forbids Actions from creating pull requests.
 
 ## Related
 
