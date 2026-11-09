@@ -121,7 +121,7 @@ Do not edit these files by hand. \`npm run sync:reference\` rewrites them from t
 | Source | Repository | Commit | Synced |
 |---|---|---|---|
 | \`schemas/*.json\`${exampleFiles.length > 0 ? ', `examples/*.yaml`' : ''} | [\`${operatorRepo}\`](https://github.com/${operatorRepo}) | \`${operatorSha}\` | ${synced} |
-| \`openapi/nova.json\` | [\`${novaRepo}\`](https://github.com/${novaRepo}) | \`${novaSha}\` | ${synced} |
+| \`nova-openapi.json\` | [\`${novaRepo}\`](https://github.com/${novaRepo}) | \`${novaSha}\` | ${synced} |
 
 \`npm run gen:reference\` turns these snapshots into \`docs/reference/\`; CI fails when the committed pages and
 the snapshots disagree. The snapshots are byte copies, but the generator drops references to internal design

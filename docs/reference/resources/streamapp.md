@@ -43,7 +43,7 @@ A streaming app: a Kafka topic in, an Iceberg table out.
 | `status.conditions[].reason` | string (nullable) | No |  |  |  |
 | `status.conditions[].status` | string | Yes |  |  |  |
 | `status.conditions[].type` | string | Yes |  |  |  |
-| `status.lastCheckpointAt` | string (nullable) | No |  |  |  |
+| `status.lastCheckpointAt` | string (nullable) | No |  | The time of the newest checkpoint commit (RFC 3339). Absent until the operator reports it; the checkpoint itself is written to the object store and survives a stop. |  |
 | `status.lastError` | string (nullable) | No |  |  |  |
 | `status.lastSubmittedAt` | string (nullable) | No |  | When Spark last submitted the application (RFC 3339), from `SparkApplication.status.lastSubmissionAttemptTime`. |  |
 | `status.observedGeneration` | integer (nullable) | No |  |  | format `int64` |
