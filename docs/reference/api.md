@@ -1349,6 +1349,34 @@ One query with its whole statement. Somebody else's query answers 404, exactly l
 | `404` | No such query, or it is not the caller's to see |
 | `503` | The state store is not configured |
 
+## /api/runs
+
+### GET /api/runs
+
+Operation id `runs_list`: in Python `client.call("runs_list", …)`, on the command line `stardelt api runs_list`.
+
+The runs of the caller's visible pipelines, newest first. A run carries the pipeline's `namespace`, `name` and `ownerGroup` and a `kind` of `sql`, `notebook` or `pipeline` (a multi-step pipeline). `limit` defaults to 50 and is at most 200. `state`, `kind`, `group` and `pipeline` (`<namespace>/<name>`) narrow the answer; an unknown state answers no rows rather than an error. A failed scheduler read for one pipeline is logged and skipped, not reported. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | query | string | No | Exact match on the pipeline's `spec.ownerGroup` |
+| `kind` | query | string | No | `sql`, `notebook` or `pipeline` |
+| `limit` | query | integer | No | Rows to answer; 50 when absent, at most 200 |
+| `pipeline` | query | string | No | One pipeline as `<namespace>/<name>` |
+| `state` | query | string | No | Exact match on the run's state; an unknown state answers no rows |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The visible runs, newest first |
+| `400` | `limit`, `kind` or `pipeline` is invalid |
+| `401` | No token to sign in with |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
 ## /api/saved-queries
 
 ### GET /api/saved-queries
