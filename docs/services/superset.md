@@ -33,7 +33,7 @@ slug: /services/superset
 
 **Operating it.**
 
-- **Health check:** `kubectl -n stardelt get pods -l app.kubernetes.io/name=superset`
+- **Health check:** `kubectl -n stardelt get pods -l release=superset` (the web server and the worker).
 - **Logs:** `kubectl -n stardelt logs deploy/superset` for the web server; `deploy/superset-worker` runs the background jobs (both default to the `superset` container).
 - **Install step:** `make step-superset` (from `stardelt-platform`)
 - **Backup:** App database dump via `manifests/pg-dump-backup.yaml` / `make step-pgdump` (Superset metadata DB)
