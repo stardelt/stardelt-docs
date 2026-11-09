@@ -14,7 +14,7 @@ If you have not selected a table yet, the page asks you to choose one. If a tabl
 
 ## Where the edges come from
 
-A finished query on the platform's query engine contributes one input edge for each table it read and one output edge for each table it wrote. OpenLineage events feed it as well: Nova answers `POST /api/v1/lineage` on its
+A finished query on the platform's query engine contributes one input edge for each table it read and one output edge for each table it wrote. A query that only reads does not draw an edge: Nova counts it as a reader of each table it read, for that day and that job, so browsing data in the SQL editor does not clutter the graph. OpenLineage events feed it as well: Nova answers `POST /api/v1/lineage` on its
 in-cluster `internal` Service port (`8081` by default, so
 `http://nova.<namespace>.svc.cluster.local:8081`), which is the path the official
 OpenLineage clients append to the base URL. The endpoint takes the shared bearer
