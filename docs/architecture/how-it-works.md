@@ -23,11 +23,22 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 
 ## Five things to remember
 
-- **One sign-in.** Your OIDC provider (Keycloak, deployed by stardelt, or your own) holds users and groups. The browser uses the sign-in page, the command line uses the device code flow (`stardelt login`), and the same token reaches Nova, Trino and the catalog. See [Identity](./identity.md).
+- **One sign-in.** The OIDC provider you already run holds users and groups; small installs can start with the bundled Keycloak. The browser uses the sign-in page, the command line uses the device code flow (`stardelt login`), and the same token reaches Nova, Trino and the catalog. See [Identity](./identity.md).
 - **One API.** Whatever you can click, you can call. See [Python, command line and agents](../guides/sdk-cli-mcp.md).
 - **Nova acts as you.** With sign-in on, your token goes on to the engines, so what you may read is decided by the engine and the catalog for you, not by Nova's own power.
 - **Plugs, not a monolith.** The engine, the catalog, the identity provider and the object store are replaceable behind open contracts (SQL, the Iceberg REST catalog, OIDC, S3).
 - **Known limits.** Results Nova keeps in memory are capped (100 000 rows or about 64 MiB per statement); storage credentials are one platform key today, not yet one short-lived key per person.
+
+## Where each task is done
+
+| Where | What it is for | What it is never for |
+|---|---|---|
+| **Nova** | finding and exploring data, writing SQL and notebooks, running, stopping and retrying, watching what happened | anything you could not also do through the API |
+| **API, command line, agents** | everything Nova does, and automation | — |
+| **Kubernetes resources** | lasting settings an administrator or your GitOps tool owns: `PlatformInstance`, `Lakehouse`, `Catalog`, `Connection`, `ServicePrincipal`, `Pipeline`, `StreamApp` | runs, query results, secret values |
+| **Git** | the only way a team's work moves from dev to prod: pipelines, notebooks, SQL, stream apps | secret values, data, people |
+
+Build once, deploy many: a stage never copies objects to another stage; Git carries them. The platform's own settings move through the GitOps tool you already run.
 
 ## Where to go next
 
