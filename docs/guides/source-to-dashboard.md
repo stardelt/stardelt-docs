@@ -79,7 +79,10 @@ FROM mobility.silver.accounts GROUP BY 1;
 ```
 
 Run these in Nova's SQL editor or a notebook. The catalog is yours because your group owns it; a
-colleague in another group cannot read or write it.
+colleague in another group cannot read or write it. Every catalog page names the group that owns
+it (`Owned by <group>`) and lists, per group, what that group may do there — browse, select, write,
+create or manage. If you may not write, the page says so and names whom to ask: `To write here,
+ask <owner> or an administrator to add your group.`
 
 ### Query with %sql in a notebook
 
