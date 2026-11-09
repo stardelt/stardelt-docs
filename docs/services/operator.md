@@ -36,7 +36,7 @@ not as working maintenance.
 
 - **Install:** `make install-operator` with `helm-values/operator.yaml`. The image digest is pinned there; `scripts/check-version-parity.sh` checks it.
 - **Image pinning:** Update `image.tag` to the digest printed by the Image workflow (e.g. `ghcr.io/stardelt/stardelt-operator:dev@sha256:...`).
-- **Logs:** `kubectl -n stardelt logs -l app.kubernetes.io/name=stardelt-operator` (or the namespace where the operator is installed).
+- **Logs:** `kubectl -n stardelt logs deploy/stardelt-operator` (the Deployment, so the selector cannot go stale; or the namespace where the operator is installed).
 - **CRDs:** Cluster-scoped `platforminstances.stardelt.io` and namespaced `lakehouses`, `catalogs`, `sqlwarehouses`, `streamapps`, `connections`, `serviceprincipals`, `ingestionsources`, `pipelines`, `volumes` (all `v1alpha1`). See [CRD reference](../reference/resources/) for fields.
 - **Pause a resource:** set `spec.clusterOperation.reconciliationPaused: true` and the operator applies nothing
   for it and reports `Paused`; set it back to `false` to resume. Deleting a paused resource still uninstalls its
