@@ -96,7 +96,7 @@ where they came from; **Show definition** says so.
 - The dialog creates **one task**. A pipeline written in YAML can have several steps with `dependsOn`; see the
   [Pipeline reference](../reference/resources/pipeline) for the shape.
 - The dialog schedules **SQL or a published notebook**: switch the run kind to *Notebook* and pick the version.
-  A notebook must be published first (`stardelt.publish` in JupyterLab); the dialog says so when a group has
+  A notebook must be published first ([`stardelt.publish` in JupyterLab](./published-notebooks)); the dialog says so when a group has
   none.
 - Not available yet: notifications on failure, and triggers other than a clock.
 
