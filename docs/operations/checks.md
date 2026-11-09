@@ -10,7 +10,7 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 
 ## After an upgrade
 
-`make step-verify` (the target the upgrade path runs) runs the seven checks below:
+`make step-verify` (the target the upgrade path runs) runs the eight checks below:
 
 | Command | What it proves | A failure means |
 | --- | --- | --- |
