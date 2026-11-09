@@ -53,6 +53,7 @@ const sidebars: SidebarsConfig = {
         'guides/notebooks-in-git',
         'guides/airflow',
         'guides/query-log',
+        'guides/sql-editor',
         'guides/lineage',
       ],
     },
