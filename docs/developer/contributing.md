@@ -45,6 +45,7 @@ such as `nova`, `operator` or `chart`. A pull request's title follows the same s
   its result into the description.
 - If a reader would see a difference, update the docs in the same pull request.
 - Follow the [recipe](./recipes) if there is one for your change.
+- Drawing a diagram? Start from [Diagrams](./diagrams) so it matches the palette and the rules.
 - Keep dependencies within the [license policy](../architecture/licenses).
 
 ## Review
