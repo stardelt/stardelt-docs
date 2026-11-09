@@ -147,14 +147,19 @@ is appended when files are uncommitted; outside a Git checkout there is no commi
 pipeline page shows it under **Deployed from**, with who deployed it and when. A pipeline made in the interface or with
 `stardelt apply` has no such stamp. To go back to an earlier state, check out the earlier commit and deploy again.
 
+The Pipelines page answers the same question in its **Source** column: `Git · shop-etl/prod @ 0123abc` for a pipeline a deploy
+stamped, `Nova` for one made in the interface, and an amber **changed by hand** badge on a pipeline someone edited after the
+deploy. The select above the list narrows it to `From Git`, `Made in Nova` or `Changed by hand`, and the choice stays in the
+address (`?source=modified`), so a reload keeps it.
+
 To read it for the whole bundle at once, `stardelt bundle summary shop -t prod` prints one line per pipeline the target left on the
 stage: its `name`, the Git `revision` it was deployed from, `deployedBy`, `deployedAt` and `"modified": true` when someone changed
 it after the deploy. A release job can compare the revision with the commit it just deployed. The command only reads, and a
 development target shows only your own pipelines.
 
-The same view is in Nova under **Build**, **Deployments**: one block per bundle and stage with the commit, who deployed each
-pipeline and when, and a **Changed since deploy** badge on a pipeline someone changed afterwards. A pipeline deployed before that
-check existed shows a dash there, not "unchanged".
+The same view for a whole bundle is in Nova under **Admin**, **Deployments**: one block per bundle and stage with the commit, who
+deployed each pipeline and when, and a **Changed since deploy** badge on a pipeline someone changed afterwards. A pipeline deployed
+before that check existed shows a dash there, not "unchanged".
 
 ## 5. Keep Git and the stage in step
 
