@@ -48,6 +48,8 @@ The charts do not set these up by default. The settings are in
 
 Run **one stardelt install per stage**: dev and prod, and test if you need one. Put each on its own cluster, or at least in its own namespace. A broken upgrade or a runaway job then stays in its stage, and dev always upgrades before prod.
 
+![Git carries pipelines, notebooks, SQL and stream apps from the dev install to the prod install; data, runs and secret values never move between stages, and dev may read prod's gold catalog read-only.](/img/guides/stages.svg)
+
 | Moves from dev to prod | Stays in each stage |
 |---|---|
 | pipelines, notebooks, SQL and stream apps, through Git | data, runs and query history |
