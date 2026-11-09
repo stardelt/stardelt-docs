@@ -19,6 +19,8 @@ access token:
 git clone https://github.com/your-org/your-analysis.git ~/your-analysis
 ```
 
+To query the warehouse from a cell, see [Query with %sql](./source-to-dashboard#query-with-sql-in-a-notebook).
+
 The token is yours and stays in your notebook environment — typed at the prompt, stored in the
 `git` credential helper, or exported as `GITHUB_TOKEN` for the session. It never enters the
 image and is never committed. A private repository stays private the same way: the token that
