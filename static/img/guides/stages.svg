@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 772 300" width="772" role="img" aria-label="Stages: Git carries the team's work from dev to prod; data, runs and secrets stay in each stage">
+<title>Stages: Git carries the team's work from dev to prod; data, runs and secrets stay in each stage</title>
+<rect x="0.5" y="0.5" width="771" height="299" rx="12" fill="#ffffff" stroke="#d0d7e2"/>
+<text x="16" y="24" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#1b2a4e">Stages: Git is the only way from dev to prod</text>
+
+<rect x="311" y="44" width="150" height="60" rx="8" fill="#eaf0ff" stroke="#5b7bd5"/>
+<text x="386.0" y="67.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="600" fill="#1b2a4e">Git</text>
+<text x="386.0" y="85.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">pipelines · notebooks</text>
+<text x="386.0" y="99.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">SQL · stream apps</text>
+
+<rect x="40" y="150" width="260" height="120" rx="8" fill="#eaf0ff" stroke="#5b7bd5"/>
+<text x="170.0" y="180.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="600" fill="#1b2a4e">dev install</text>
+<text x="170.0" y="203.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">catalogs: mobilitylab, mobilityref</text>
+<text x="170.0" y="221.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">own secrets · own service principal</text>
+<text x="170.0" y="239.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">upgrades first</text>
+
+<rect x="472" y="150" width="260" height="120" rx="8" fill="#eaf0ff" stroke="#5b7bd5"/>
+<text x="602.0" y="180.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="14" font-weight="600" fill="#1b2a4e">prod install</text>
+<text x="602.0" y="203.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">catalog: mobility</text>
+<text x="602.0" y="221.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">own secrets · own service principal</text>
+<text x="602.0" y="239.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">upgrades after dev</text>
+
+<polyline points="170,150 170,74 301,74" fill="none" stroke="#6b778c" stroke-width="2"/>
+<polygon points="309,74 301,69 301,79" fill="#6b778c"/>
+<text x="238.0" y="66.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">push</text>
+
+<polyline points="461,74 600,74 600,138" fill="none" stroke="#6b778c" stroke-width="2"/>
+<polygon points="600,146 595,137 605,137" fill="#6b778c"/>
+<text x="608.0" y="112.0" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">deploy (bundle)</text>
+
+<text x="386.0" y="186.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">no copies of data, runs</text>
+<text x="386.0" y="200.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">or secret values</text>
+<line x1="310" y1="210" x2="462" y2="210" stroke="#d0d7e2" stroke-width="2" stroke-dasharray="4 4"/>
+<line x1="381" y1="205" x2="391" y2="215" stroke="#c0392b" stroke-width="2"/>
+<line x1="381" y1="215" x2="391" y2="205" stroke="#c0392b" stroke-width="2"/>
+
+<line x1="302" y1="245" x2="462" y2="245" stroke="#6b778c" stroke-width="2" stroke-dasharray="4 4"/>
+<polygon points="470,245 461,240 461,250" fill="#6b778c"/>
+<text x="386.0" y="264.0" text-anchor="middle" font-family="Inter, system-ui, -apple-system, Segoe UI, sans-serif" font-size="11.5" fill="#1b2a4e">reads gold, read-only</text>
+</svg>
