@@ -145,7 +145,8 @@ code {
 /* Tables */
 table {
   border-radius: 10px;
-  overflow: hidden;
+  /* a table wider than the reading column scrolls inside its own box, never the page */
+  overflow: auto;
 }
 
 thead tr {
