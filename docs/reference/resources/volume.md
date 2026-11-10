@@ -46,7 +46,7 @@ A governed folder of files in the object store with an owner group and grants.
 ## Validation rules
 
 - storage must be either managed or external, not both and not neither
-- an external prefix must not contain .. or //
+- an external prefix must not contain.. or //
 - each group may appear once in grants
 - a verb may appear once per grant
 - on a libraries volume only a group that also manages it may write

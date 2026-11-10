@@ -53,7 +53,7 @@ A data domain: a catalog with its storage location, an owner group and grants.
 | `status.conditions[].reason` | string (nullable) | No |  |  |  |
 | `status.conditions[].status` | string | Yes |  |  |  |
 | `status.conditions[].type` | string | Yes |  |  |  |
-| `status.maintenance` | object (nullable) | No |  | The newest finished maintenance Job's result (operator#476 slice c). |  |
+| `status.maintenance` | object (nullable) | No |  | The newest finished maintenance Job's result. |  |
 | `status.maintenance.lastResult` | string (nullable) | No |  | `Succeeded` when the Job succeeded, `Failed` otherwise. |  |
 | `status.maintenance.lastRun` | string (nullable) | No |  | The Job's `status.completionTime`, RFC 3339. |  |
 | `status.maintenance.tablesDone` | integer (nullable) | No |  | The summary line's `tablesDone`; absent when the log held no summary. | format `int64` |
@@ -65,4 +65,4 @@ A data domain: a catalog with its storage location, an owner group and grants.
 ## Validation rules
 
 - each group may hold each verb once
-- storage.keyPrefix must not contain .. or //
+- storage.keyPrefix must not contain.. or //
