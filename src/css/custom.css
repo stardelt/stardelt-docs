@@ -63,6 +63,14 @@ html[data-theme='dark'] {
   --sd-ok: #4cc38a;
   --sd-warn: #e3a33b;
   --sd-bad: #ef6b6b;
+  /* The parts legend and the section eyebrow on the home page. Kept out of
+     --sd-ok/--sd-warn on purpose: those belong to the admonitions, and the
+     legend's three hues are what people recognise on the dark page. The light
+     values in the block below are darker so the 11.2 px labels reach 4.5:1. */
+  --sd-legend-ok: #2fbf71;
+  --sd-legend-warn: #d08a2e;
+  --sd-legend-info: #4c9bd1;
+  --sd-eyebrow: #94a1ff;
   /* Code blocks and mermaid diagrams sit on a dark panel in both themes: the
      prism and mermaid palettes were made for dark. */
   --sd-panel: #1f2124;
@@ -115,6 +123,10 @@ html[data-theme='light'] {
   --sd-ok: #107248;
   --sd-warn: #92400e;
   --sd-bad: #b91c1c;
+  --sd-legend-ok: #1a6b40;
+  --sd-legend-warn: #8a5210;
+  --sd-legend-info: #1f6ea8;
+  --sd-eyebrow: #4650c8;
   --sd-panel: #1f2124;
   --sd-panel-text: #e8eaed;
 }
