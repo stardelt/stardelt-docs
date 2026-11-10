@@ -123,25 +123,29 @@ List tables in one namespace of one catalog. `?catalog=` picks the catalog; omit
 
 Operation id `catalog_search`: in Python `client.call("catalog_search", …)`, on the command line `stardelt api catalog_search`.
 
-Find tables by name in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case. The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only names are searched (single-level namespaces), not comments or tags. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.
+Find tables in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case, or when one of its documented fields (the description, a tag, the owner, the domain) contains every word — a table found both ways appears once. `tag`, `owner` and `domain` narrow the answer to documented tables: a table without a documentation row has no tag, owner or domain, so it is not shown. Those three filters need the state store and answer 503 without it (demo mode has none). The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only single-level namespaces are searched. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.
 
 **Parameters**
 
 | Name | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
 | `catalog` | query | string | No | Catalog to search (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `domain` | query | string | No | Only tables in this domain (exact, lowercase). |
 | `limit` | query | integer | No | Most matches to return, 1 to 100; 20 when omitted. |
+| `owner` | query | string | No | Only tables whose owner is this group. |
 | `q` | query | string | No | Words to look for in `namespace.table`, separated by spaces; every word must be there. 1 to 100 characters. |
+| `tag` | query | string | No | Only tables carrying this tag (exact, lowercase). |
 
 **Responses**
 
 | Code | Description |
 | --- | --- |
 | `200` | The matching tables |
-| `400` | `q` is missing or longer than 100 characters, or the catalog name is invalid |
+| `400` | `q` is missing or longer than 100 characters, a filter is blank or longer than 64 characters, or the catalog name is invalid |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
+| `503` | A `tag`, `owner` or `domain` filter was given and the state store is disabled |
 
 ### GET /api/catalog/tables/\{ns\}/\{tbl\}
 
@@ -792,6 +796,64 @@ The caller: static user in `dev` mode, verified claims (never tokens) in `oidc` 
 | --- | --- |
 | `200` | Current user, auth mode, demo flag and warehouse |
 
+## /api/migrations
+
+### POST /api/migrations/apply
+
+Operation id `migrations_apply`: in Python `client.call("migrations_apply", …)`, on the command line `stardelt api migrations_apply`.
+
+Run a bundle's new migration files against one target, once each, and record them in stardelt_meta.migrations in that catalog (stardelt-nova#617 decision 3). Files already applied with the same sha256 are skipped; a file whose content changed after it was applied, or a new file that sorts before an applied one, is refused (409). Statements that are not additive need allowBreaking. The statements and the ledger writes run as the caller, so the caller's catalog privileges apply.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `allowBreaking` | boolean | No |  | Run statements that are not additive. Default false. |  |
+| `catalog` | string | Yes |  | The catalog the migration tables live in; the ledger is `stardelt_meta` in it. |  |
+| `files` | array of object | Yes |  | Every migration file of the bundle; the answer runs the `new` ones in name order. |  |
+| `files[].name` | string | Yes |  | `NNN_<words>.sql`: three digits, an underscore, lower-case words, `.sql`. |  |
+| `files[].sha256` | string | Yes |  | The file's sha256, 64 lower-case hex digits. |  |
+| `files[].sql` | string | Yes |  |  |  |
+| `target` | string | Yes |  | The bundle target whose ledger rows count (`dev`, `prod`, …). |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | What ran and what the ledger already had |
+| `400` | A malformed request, or a statement the engine refused: one sentence |
+| `401` | No token to sign in with |
+| `409` | Refused before anything ran: a changed or reordered file (ApplyAnswer with the errors), or a breaking file without allowBreaking (one sentence) |
+| `502` | The query engine is not reachable |
+| `503` | The demo has no catalog to run migrations against |
+
+### POST /api/migrations/plan
+
+Operation id `migrations_plan`: in Python `client.call("migrations_plan", …)`, on the command line `stardelt api migrations_plan`.
+
+What a bundle's migration files would do to one target, and what already ran there (stardelt-nova#617 decision 3). Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `catalog` | string | Yes |  | The catalog the sink tables live in; the ledger is `stardelt_meta` in it. |  |
+| `files` | array of object | Yes |  | Every migration file of the bundle, in any order; the answer sorts them by name. |  |
+| `files[].name` | string | Yes |  | `NNN_<words>.sql`: three digits, an underscore, lower-case words, `.sql`. |  |
+| `files[].sha256` | string | Yes |  | The file's sha256, 64 lower-case hex digits. |  |
+| `files[].sql` | string | Yes |  |  |  |
+| `target` | string | Yes |  | The bundle target whose ledger rows count (`dev`, `prod`, …). |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The plan: per file, class and status, plus the problems |
+| `400` | A malformed request, one sentence |
+| `401` | No token to sign in with |
+| `502` | The query engine is not reachable |
+| `503` | The demo has no catalog to plan migrations against |
+
 ## /api/notebooks
 
 ### GET /api/notebooks
@@ -864,6 +926,34 @@ Delete a published notebook and every version of it from the `notebooks` bucket;
 | `401` | Not signed in |
 | `403` | Not a member of the group |
 | `404` | No such notebook |
+| `502` | The notebook store did not answer |
+| `503` | Notebook storage is not configured |
+
+### GET /api/notebooks/\{group\}/\{name\}/content
+
+Operation id `notebooks_content`: in Python `client.call("notebooks_content", …)`, on the command line `stardelt api notebooks_content`.
+
+`GET /api/notebooks/{group}/{name}/content`: one stored version's bytes, as they are, so the notebook page can preview what a schedule would run.
+
+One published version's stored bytes, answered `application/json` as they are. The bytes are the notebook Nova stored: outputs emptied, `execution_count` null, so a preview of a published version shows source and markdown only. `?version=<id>` names the immutable version; omitted, the latest is read. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `group` | path | string | Yes | One of the caller's groups |
+| `name` | path | string | Yes | Notebook file name, ending in.ipynb |
+| `version` | query | string | No |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The stored notebook bytes |
+| `400` | Bad name |
+| `401` | Not signed in |
+| `403` | Not a member of the group |
+| `404` | No such notebook version |
 | `502` | The notebook store did not answer |
 | `503` | Notebook storage is not configured |
 
@@ -1369,6 +1459,34 @@ One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, 
 | `502` | The scheduler or the cluster did not answer |
 | `503` | No cluster connection, or the scheduler is not configured |
 
+### GET /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/tasks/\{task_id\}/notebook
+
+Operation id `pipelines_run_task_notebook`: in Python `client.call("pipelines_run_task_notebook", …)`, on the command line `stardelt api pipelines_run_task_notebook`.
+
+The executed copy of one notebook task run: the notebook with its outputs and tracebacks, as the run wrote it. That copy is the run's log. The same visibility rule as the run (404 for another group's pipeline), the same audit line as a log read, and `Cache-Control: no-store`. `download=true` also names the file `<pipeline>-<task>.ipynb` in `Content-Disposition`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `download` | query | boolean | No | Answer as a file attachment |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+| `run_id` | path | string | Yes | Airflow's run id |
+| `task_id` | path | string | Yes | Task id: 1 to 64 letters, digits, underscores or dashes |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The executed notebook, as the run wrote it |
+| `400` | The task id is not 1 to 64 letters, digits, underscores or dashes, or `download` is not true or false |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller, a pipeline without a group, or no executed copy for this task |
+| `413` | The executed notebook is larger than 25 MiB |
+| `502` | The notebook store did not answer |
+| `503` | No cluster connection, or notebook storage is not configured |
+
 ### GET /api/pipelines/\{namespace\}/\{name\}/spec
 
 Operation id `pipelines_spec`: in Python `client.call("pipelines_spec", …)`, on the command line `stardelt api pipelines_spec`.
@@ -1422,7 +1540,7 @@ Operation id `query_log_list`: in Python `client.call("query_log_list", …)`, o
 
 `GET /api/query-log?scope=mine|team|all&state=&warehouse=&q=&from=&to=&limit=&cursor=`
 
-The statements run on the engine, newest first, a page at a time. A person sees their own; an administrator may ask for everyone's with scope=all. Times are epoch milliseconds.
+The statements run on the engine, newest first, a page at a time. A person sees their own; an administrator may ask for everyone's with scope=all. Times are epoch milliseconds. With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's statement shows '?' in place of every string literal.
 
 **Parameters**
 
@@ -1432,7 +1550,7 @@ The statements run on the engine, newest first, a page at a time. A person sees 
 | `from` | query | integer | No | Created at or after this time |
 | `limit` | query | integer | No | Page size from 1 to 200; 50 by default |
 | `q` | query | string | No | Text inside the statement, or an exact query id; at most 200 characters |
-| `scope` | query | string | No | mine (default), team or all. all is for administrators; team stays empty until ownership is recorded |
+| `scope` | query | string | No | mine (default), team or all. team is the queries of the service principals owned by the caller's groups; all is for administrators |
 | `state` | query | string | No | QUEUED, FINISHED, FAILED or CANCELED, in any case |
 | `to` | query | integer | No | Created at or before this time |
 | `warehouse` | query | string | No | Only queries that ran on this warehouse |
@@ -1452,7 +1570,7 @@ Operation id `query_log_detail`: in Python `client.call("query_log_detail", …)
 
 `GET /api/query-log/{id}` — everything stored about one query the caller may see.
 
-One query with its whole statement. Somebody else's query answers 404, exactly like a missing one; an administrator who opens another person's query is audited.
+One query with its whole statement. Somebody else's query answers 404, exactly like a missing one; an administrator who opens another person's query is audited. With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's statement shows '?' in place of every string literal.
 
 **Parameters**
 
@@ -1757,7 +1875,7 @@ One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0
 
 Operation id `streams_list`: in Python `client.call("streams_list", …)`, on the command line `stardelt api streams_list`.
 
-The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is the time of the newest checkpoint commit, absent until the operator reports it. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.
+The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is the time of the newest checkpoint commit, absent until the operator reports it. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.
 
 **Responses**
 
@@ -1765,6 +1883,90 @@ The calling user's streams: every `StreamApp` of their groups, and all of them f
 | --- | --- |
 | `200` | The caller's streams, sorted by namespace and name |
 | `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### POST /api/streams/validate
+
+Operation id `streams_validate`: in Python `client.call("streams_validate", …)`, on the command line `stardelt api streams_validate`.
+
+Check a stream write without writing it. The body is the body of `streams_put`: the stream's `name`, the `ownerGroup` the caller must belong to, `source` (`topic`, optional `connectionRef` naming a `Connection`) and `sink` (`catalog`, `table` as `schema.table`, `mode` `merge` or `append`, `mergeKeys`, optional `checkpointPrefix`), plus an optional `restartPolicy` (`always` or `on-failure`) and an optional `provenance` (`bundle`, `target`, optional `revision` and `repository`). Every rule a write runs is checked in order — the name, the body's name against the path's, the caller's groups, the provenance, the topic, the connection reference, the catalog, the table, the mode, the merge keys, the checkpoint prefix, the restart policy — and then the group's ready `ServicePrincipal`. `provenance` is the stamp a bundle deploy writes; it is checked with the same rules as a pipeline's, and the answer's `deployment` is what is stored. A rule that refuses is an answer, `ok: false` with one sentence in `errors`, status 200, never a 4xx; nothing is written. A cluster that does not answer is still 502 or 503, as on `pipelines_validate`. Answers `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `name` | string | Yes |  | The stream's name; the `PUT` path is authoritative and a different body name is refused. |  |
+| `ownerGroup` | string | Yes |  | The group that owns the stream; the caller must be a member. |  |
+| `provenance` | object | No |  | Which bundle, target and commit this write deploys (`stardelt bundle deploy`). Omitted leaves what the stream already carries untouched. |  |
+| `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
+| `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
+| `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
+| `restartPolicy` | string (nullable) | No |  | `always` (default) or `on-failure`. |  |
+| `sink` | object | Yes |  |  |  |
+| `sink.catalog` | string | Yes |  |  |  |
+| `sink.checkpointPrefix` | string (nullable) | No |  |  |  |
+| `sink.mergeKeys` | array of string | No |  |  |  |
+| `sink.mode` | string (nullable) | No |  | `merge` (default) or `append`. |  |
+| `sink.table` | string | Yes |  | `schema.table`. |  |
+| `source` | object | Yes |  |  |  |
+| `source.connectionRef` | string (nullable) | No |  | Name of the `Connection` (`type: kafka`); absent means the platform's own bus. |  |
+| `source.topic` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The verdict: accepted, or the one sentence that refuses it |
+| `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### PUT /api/streams/\{namespace\}/\{name\}
+
+Operation id `streams_put`: in Python `client.call("streams_put", …)`, on the command line `stardelt api streams_put`.
+
+Create or update one stream (`StreamApp`, D42). The body is the body of `streams_validate`; `name` must be the path's name. `provenance` (`bundle`, `target`, optional `revision` and `repository`) is the stamp a bundle deploy writes; it is checked with the same rules as a pipeline's, and the answer's `deployment` is what is stored. Nova writes `runAs: pipeline-<groupId>` itself (never from the body), stamps its own labels and the creator's annotation, and never carries `stopped`: it defaults to `false` on create and an update leaves the stored value alone. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter, a body name that differs from the path, a group the caller is not a member of, a topic outside 1 to 249 letters, digits, dot, underscore or dash, a bad connection reference, catalog, table, mode, merge key, checkpoint prefix or restart policy, a bundle stamp outside a pipeline's provenance rules — all 400; a group without a ready `ServicePrincipal` 409 with the `principals` route's message; a stream that belongs to another group 404 (the read path's rule, like a stream that does not exist); a body that moves an existing stream to another group 400 "the group of an existing stream cannot change"; a stream Nova did not write 409 `this stream was created outside Nova; change it where it was created`; a stream another writer changed between the read and the write 409 `the stream changed while it was being written; retry`. A foreign namespace and a stream that vanished are 404. The answer is the stored stream's view. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | The stream's name |
+| `namespace` | path | string | Yes | The stream's namespace; only Nova's own namespace |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `name` | string | Yes |  | The stream's name; the `PUT` path is authoritative and a different body name is refused. |  |
+| `ownerGroup` | string | Yes |  | The group that owns the stream; the caller must be a member. |  |
+| `provenance` | object | No |  | Which bundle, target and commit this write deploys (`stardelt bundle deploy`). Omitted leaves what the stream already carries untouched. |  |
+| `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
+| `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
+| `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
+| `restartPolicy` | string (nullable) | No |  | `always` (default) or `on-failure`. |  |
+| `sink` | object | Yes |  |  |  |
+| `sink.catalog` | string | Yes |  |  |  |
+| `sink.checkpointPrefix` | string (nullable) | No |  |  |  |
+| `sink.mergeKeys` | array of string | No |  |  |  |
+| `sink.mode` | string (nullable) | No |  | `merge` (default) or `append`. |  |
+| `sink.table` | string | Yes |  | `schema.table`. |  |
+| `source` | object | Yes |  |  |  |
+| `source.connectionRef` | string (nullable) | No |  | Name of the `Connection` (`type: kafka`); absent means the platform's own bus. |  |
+| `source.topic` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The stream as written |
+| `400` | A rule of the body refuses the write, with its sentence |
+| `401` | No token to sign in with |
+| `404` | The namespace is not Nova's own |
+| `409` | No ready principal, a stream written outside Nova, or a concurrent change |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
 
