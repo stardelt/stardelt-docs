@@ -140,12 +140,16 @@ running or queued the page refreshes itself every five seconds; otherwise reload
 
 Open **Pipelines**, then the schedule, then its **Runs** table. Each row shows the run's state, how it
 was triggered, when it started and how long it took. Open a run to see its tasks; **View log** shows the
-task's technical log, which is where a failing run puts the notebook's error. The pipeline's facts at the
-top also show the pinned notebook and the parameter values the schedule stores.
+task's technical log, and **Open notebook** on a notebook task opens the run's executed notebook — the
+copy the run wrote, with every cell's output. The pipeline's facts at the top also show the pinned
+notebook and the parameter values the schedule stores.
 
-A run that fails is `failed`. The executed notebook — the copy with the cells' output — is not yet
-shown in Nova; the published version has no output on purpose, and the executed copy is kept for the
-platform, not for reading in the browser.
+A run that fails is `failed`. Its executed notebook opens at the cell that failed, and the page names
+the exception above the notebook; **Traceback** unfolds the full trace. **Download** gives the executed
+notebook as a file, and **Run again** starts a new run of the schedule. Cell output is not trusted: it
+is drawn inside a sandboxed frame that cannot reach Nova, your session or the network, so an output that
+carries a chart, HTML or a script cannot touch the page around it. A run whose executed copy was never
+written, or has expired, says so and points at the task log instead.
 
 ## When it does not work
 
