@@ -10,10 +10,26 @@ slug: /services/operator
 
 **What it does.** The operator reconciles `PlatformInstance`, `Lakehouse`, `Connection`, `ServicePrincipal` and `StreamApp` resources. Five more kinds are served but have no controller of their own: `Pipeline` is read by the Airflow pipeline loader (one DAG per resource, with `sql` and `notebook` tasks running today), `Catalog` and `SqlWarehouse` are read by the `access-sync` CronJob the operator applies (each Catalog becomes a Lakekeeper warehouse with its grants, each SqlWarehouse a Trino resource group), and `IngestionSource` and `Volume` have schemas and admission rules only, with no runtime yet. `PlatformInstance` owns cluster-scoped prerequisites and identity settings; other resources describe data domains, compute, and connections. New resources default to `spec.dryRun: true`, and an `adopt` guard refuses to take over a release the operator did not create.
 
-That includes `Catalog.spec.maintenance`: the policy is stored with the catalog (the schema checks
-the cron and retention shapes), but no job runs it today, so no table is compacted, no snapshot is
-expired and no orphan file is removed. Treat the field as a contract for the executor that follows,
-not as working maintenance.
+That includes `Catalog.spec.maintenance`: the operator reconciles one `CronJob` per `Catalog`,
+named `maint-<catalog>`, that runs `stardelt maintenance run --catalog <name>` as the team's
+pipeline principal (`ServicePrincipal pipeline-<ownerGroup>`). It compacts tables with at least
+`spec.maintenance.optimize.minSmallFiles` small files, expires snapshots and removes orphan
+files, once a day. A catalog that sets no schedule runs at a minute staggered from 02:00, so
+several catalogs do not compact at the same second.
+
+The condition says whether the job can run:
+
+```console
+$ kubectl -n stardelt get catalogs -o jsonpath='{range .items[*]}{.metadata.name}{" "}{range .status.conditions[?(@.type=="MaintenanceReady")]}{.status}{" "}{.reason}{" "}{.message}{"\n"}{end}{end}'
+mobility True Scheduled maint-mobility on 44 2 * * *
+shared False NoRunner create ServicePrincipal pipeline-stardelt-admins to run maintenance
+```
+
+`MaintenanceReady=False NoRunner` means the owner group has no `pipeline-<ownerGroup>`
+principal; the operator never invents one. Create it (the [service principals
+guide](../guides/service-principals) shows how) and the catalog is scheduled on the next
+reconcile. `make verify-maintenance` checks every catalog's job, its schedule, its principal's
+token Secret and the newest run's verdict.
 
 **How you reach it.** The operator runs in the cluster as a controller (no public HTTP endpoint by default). Manage it by applying CRDs and by using its CLI subcommands where installed.
 
