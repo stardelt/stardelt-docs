@@ -16,6 +16,13 @@ slug: /services/external-secrets
 | `platform` | External Secrets Operator **and** the built-in store ([OpenBao](openbao)) | The operator writes one `ExternalSecret` per `Connection` and syncs the store path into Secret `conn-<name>`. The per-group `SecretStore` is `openbao-<group>`; managed connections use `openbao-managed`. |
 | `external` | External Secrets Operator only | A `ClusterSecretStore` named `enterprise` is published from `spec.secrets.external.provider` verbatim; the enterprise's store supplies the values. A `Connection` names its path in that store with `spec.secret.remoteRef`: see the [connections guide](../guides/connections#8-an-enterprise-secret-store-external-mode). |
 
+The `provider` block is the enterprise's own and is passed to the `ClusterSecretStore` verbatim;
+stardelt adds nothing to it. The connections guide shows three shapes: HashiCorp Vault with AppRole
+(the one the dev cluster exercises), a cloud key vault that signs in with a Kubernetes
+ServiceAccount, and an external OpenBao with Kubernetes authentication — see
+[connections](../guides/connections#8-an-enterprise-secret-store-external-mode). One store named
+`enterprise` serves every namespace of an instance.
+
 Creating a `Connection` does not need the operator: the API writes to the store. The synced Secret `conn-<name>` does, and so does everything that reads it.
 
 **What happens when it is down.** An `ExternalSecret` stops refreshing, and the Kubernetes `Secret` keeps its last value — already-running pods are unaffected until they restart. A `Connection` created while the operator is down has no `conn-<name>` Secret, so its consumer fails: it reports `Ready=False` with reason `ExternalSecretsNotInstalled`, and the message names `make external-secrets` — unless a hand-written `conn-<name>` Secret holds every key from `spec.secret.keys`, in which case it is `Ready=True` with reason `SecretFound`. The Connections page in Nova shows the sync state it reads from the `Connection`'s status.

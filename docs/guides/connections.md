@@ -515,6 +515,75 @@ above. The **Connections** page in Nova writes to the platform's own store and n
 The platform recommends one prefix per team in the store (`platform/<ownerGroup>/…`) but does not
 enforce it: the enterprise store's own policy decides who reads which path.
 
+### A cloud key vault (AWS Secrets Manager)
+
+A cloud key vault authenticates the cluster to the cloud, so no credential is stored anywhere in
+the platform. The store signs in with a Kubernetes ServiceAccount whose cloud identity (an IAM role
+bound to the cluster's OIDC provider) may read the secret. Create that ServiceAccount and its role
+binding **before** the install, then give the instance the provider block:
+
+```yaml
+# PlatformInstance.spec.secrets
+secrets:
+  mode: external
+  external:
+    provider:
+      aws:
+        service: SecretsManager
+        region: eu-central-1
+        auth:
+          jwt:
+            serviceAccountRef:
+              name: eso-aws
+              namespace: analytics
+```
+
+`namespace` is the instance's own namespace. The operator publishes this block as the
+`ClusterSecretStore` named `enterprise`; the process that signs in is the External Secrets
+controller, so the role's trust policy names the ServiceAccount above.
+
+**Not tested here.** stardelt has no cloud account, so this example is the provider's documented
+shape, not a run anyone can show. The Vault example above is the one exercised on the dev cluster
+(`make verify-external-secrets`).
+
+### An external OpenBao
+
+OpenBao serves the Vault API, so it uses the `vault` provider with Kubernetes authentication instead
+of AppRole:
+
+```yaml
+# PlatformInstance.spec.secrets
+secrets:
+  mode: external
+  external:
+    provider:
+      vault:
+        server: https://openbao.example.com:8200
+        path: secret
+        version: v2
+        auth:
+          kubernetes:
+            mountPath: kubernetes
+            role: stardelt-platform
+            serviceAccountRef:
+              name: eso-openbao
+              namespace: analytics
+```
+
+The store's role and policy decide which paths the sync may read; the platform never holds a token.
+
+### One store, and what that means for namespaces
+
+`spec.secrets.mode: external` publishes exactly **one** cluster-scoped store, `enterprise`, and
+every `ExternalSecret` the operator writes references it
+(`crates/stardelt-operator/src/connection.rs`, `spec.secretStoreRef.name`). There is no
+per-namespace store on this path: the platform cannot give each team its own credential.
+
+Separation between groups is therefore the enterprise store's job: one policy path per group, or
+one store and credential per `PlatformInstance` (one install per stage or tenant). The recommended
+prefix `platform/<ownerGroup>/…` is a convention, not a boundary — in external mode the platform
+does not enforce the three path prefixes, the store's own policy does.
+
 ## 9. Not available yet
 
 - **SQL tasks and other task kinds.** A `sql` task cannot name a connection (it runs inside the
