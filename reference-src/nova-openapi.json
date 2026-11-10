@@ -3079,6 +3079,16 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "description": "Time window in days, 1–365, default 30",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         ],
         "responses": {
@@ -3091,6 +3101,71 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Not visible"
+          }
+        }
+      }
+    },
+    "/api/lineage/columns": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "operationId": "lineage_columns",
+        "parameters": [
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "schema",
+            "in": "query",
+            "description": "Schema",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "table",
+            "in": "query",
+            "description": "Table",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "description": "Days to look back, 1-365, default 90",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Where each column comes from",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColumnLineage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "catalog/schema/table required"
           },
           "403": {
             "description": "Not visible"
@@ -5853,6 +5928,78 @@
         }
       }
     },
+    "/api/stages/compare": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "This stage's deployed pipelines against a peer stage's, for the Deployments page. The peer is called with the caller's own token (`GET {peer}/api/pipelines`), so the answer is filtered by that person's rights there. `status` is `ok`, `unauthorized` (the peer refused the token — sign in there) or `unreachable` (no answer within 5 s). Nova neither compares Git ancestry nor deploys to the peer. Answers `Cache-Control: no-store`.",
+        "operationId": "stages_compare",
+        "parameters": [
+          {
+            "name": "peer",
+            "in": "query",
+            "description": "The peer stage's configured name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Both stages' deployed pipelines",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StageComparison"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No `peer` parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No signed-in caller, so there is no token to forward",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No stage with that name is configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "This stage's cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/statements": {
       "get": {
         "tags": [
@@ -7309,6 +7456,75 @@
           }
         }
       },
+      "ColumnLineage": {
+        "type": "object",
+        "required": [
+          "columns"
+        ],
+        "properties": {
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColumnLineageEntry"
+            }
+          }
+        }
+      },
+      "ColumnLineageEntry": {
+        "type": "object",
+        "required": [
+          "column",
+          "sources",
+          "lastSeen"
+        ],
+        "properties": {
+          "column": {
+            "type": "string"
+          },
+          "lastSeen": {
+            "type": "string"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColumnSource"
+            }
+          }
+        }
+      },
+      "ColumnSource": {
+        "type": "object",
+        "description": "One source column of an output column. A source outside the caller's catalogs is\nanswered as `{ \"hidden\": true }`, without names.",
+        "properties": {
+          "catalog": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "column": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "table": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
       "ComputeCluster": {
         "type": "object",
         "description": "One `SparkCluster`, as the Compute page needs it.",
@@ -7830,6 +8046,13 @@
             ],
             "description": "`true` when the run, the schedule, the parameters or the options differ from what the last\ndeploy wrote: someone used the form, the YAML editor or `kubectl` since. Left out when they\nmatch, and for a pipeline stamped before the digest existed."
           },
+          "repository": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The repository the bundle was read from: `https://host/path`, for the compare link."
+          },
           "revision": {
             "type": [
               "string",
@@ -8092,7 +8315,8 @@
         "type": "object",
         "required": [
           "nodes",
-          "edges"
+          "edges",
+          "jobs"
         ],
         "properties": {
           "edges": {
@@ -8101,11 +8325,46 @@
               "$ref": "#/components/schemas/LineageEdge"
             }
           },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LineageJob"
+            }
+          },
           "nodes": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/LineageNode"
             }
+          }
+        }
+      },
+      "LineageJob": {
+        "type": "object",
+        "description": "One job that wrote an edge of the answer, with its runs in the window.",
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "runs",
+          "lastRun"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "lastRun": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "runs": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -8127,14 +8386,61 @@
               "null"
             ]
           },
+          "lastWrite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The newest event time of an edge that wrote this node."
+          },
+          "level": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "0 for the focus table, negative upstream, positive downstream (visible nodes only)."
+          },
           "name": {
             "type": "string"
           },
           "namespace": {
             "type": "string"
           },
+          "readers": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LineageReaders",
+                "description": "Read-only queries against this node in the window (visible nodes only)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "visible": {
             "type": "boolean"
+          }
+        }
+      },
+      "LineageReaders": {
+        "type": "object",
+        "required": [
+          "queries",
+          "people",
+          "lastRead"
+        ],
+        "properties": {
+          "lastRead": {
+            "type": "string"
+          },
+          "people": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "queries": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
@@ -8210,7 +8516,8 @@
           "auth_mode",
           "demo",
           "warehouse",
-          "stage_kind"
+          "stage_kind",
+          "peers"
         ],
         "properties": {
           "admin_console_url": {
@@ -8225,6 +8532,13 @@
           },
           "demo": {
             "type": "boolean"
+          },
+          "peers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Peer"
+            },
+            "description": "The peer stages `NOVA_PEER_STAGES` configures, so the Deployments page can offer them."
           },
           "stage_kind": {
             "type": "string"
@@ -8683,7 +8997,8 @@
           "is_admin",
           "via",
           "identity_forwarding",
-          "stage_kind"
+          "stage_kind",
+          "peers"
         ],
         "properties": {
           "admin_by": {
@@ -8740,6 +9055,13 @@
               "null"
             ]
           },
+          "peers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Peer"
+            },
+            "description": "The peer stages `NOVA_PEER_STAGES` configures, so the Deployments page can offer them."
+          },
           "roles": {
             "type": "array",
             "items": {
@@ -8775,6 +9097,24 @@
           },
           "warehouse": {
             "type": "string"
+          }
+        }
+      },
+      "Peer": {
+        "type": "object",
+        "description": "One configured peer stage.",
+        "required": [
+          "name",
+          "url"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name the caller passes as `?peer=`; 1 to 24 lower-case letters, digits and dashes."
+          },
+          "url": {
+            "type": "string",
+            "description": "The peer's base URL, without a trailing slash."
           }
         }
       },
@@ -9239,6 +9579,13 @@
           "bundle": {
             "type": "string",
             "description": "The bundle's name: 3 to 40 lower-case letters, digits and dashes."
+          },
+          "repository": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The bundle's repository as an `https://host/path` address, so a later stage can link the\npull request that promotes a commit. Omitted when the bundle's checkout names none."
           },
           "revision": {
             "type": [
@@ -10152,6 +10499,88 @@
           "yours": {
             "type": "boolean",
             "description": "The row this caller will land in: the largest usable class, or the default one."
+          }
+        }
+      },
+      "StageComparison": {
+        "type": "object",
+        "required": [
+          "peer",
+          "peerUrl",
+          "status",
+          "here",
+          "there"
+        ],
+        "properties": {
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "One sentence for the page when `status` is not `ok`; absent otherwise."
+          },
+          "here": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageRow"
+            },
+            "description": "This stage's deployed pipelines."
+          },
+          "peer": {
+            "type": "string"
+          },
+          "peerUrl": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "`ok`, `unauthorized` or `unreachable`."
+          },
+          "there": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StageRow"
+            },
+            "description": "The peer's, empty when `status` is not `ok`."
+          }
+        }
+      },
+      "StageRow": {
+        "type": "object",
+        "description": "One deployed pipeline of a stage, as the comparison needs it.",
+        "required": [
+          "bundle",
+          "target",
+          "name"
+        ],
+        "properties": {
+          "bundle": {
+            "type": "string"
+          },
+          "modified": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "repository": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The bundle's repository, so the page can link the pull request that promotes a commit."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "target": {
+            "type": "string"
           }
         }
       },

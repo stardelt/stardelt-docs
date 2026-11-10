@@ -36,6 +36,7 @@ A non-human identity (client credentials) for pipelines, maintenance and collect
 | `status.observedGeneration` | integer (nullable) | No |  |  | format `int64` |
 | `status.ready` | boolean | No | `false` | True when the client exists (or the referenced Secret is valid) and the Secret is written. |  |
 | `status.secretName` | string (nullable) | No |  |  |  |
+| `status.subject` | string (nullable) | No |  | The identity provider's user id of this principal (the `sub` of its tokens), written in platform mode after the client converges. The query log records it as the engine user; Nova maps it back to `spec.ownerGroup` so a team sees its principals' queries. External mode leaves it unset: the provider's administrator owns the account and the operator never talks to that provider. |  |
 
 ## Validation rules
 

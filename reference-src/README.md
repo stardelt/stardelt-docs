@@ -4,8 +4,8 @@ Do not edit these files by hand. `npm run sync:reference` rewrites them from the
 
 | Source | Repository | Commit | Synced |
 |---|---|---|---|
-| `schemas/*.json`, `examples/*.yaml` | [`stardelt/stardelt-operator`](https://github.com/stardelt/stardelt-operator) | `517a3c74495a0c02bbb42be6a018dbad335a2d91` | 2026-11-09 |
-| `nova-openapi.json` | [`stardelt/stardelt-nova`](https://github.com/stardelt/stardelt-nova) | `2031d71c516c01d28760459454a83d7b4f71b621` | 2026-11-09 |
+| `schemas/*.json`, `examples/*.yaml` | [`stardelt/stardelt-operator`](https://github.com/stardelt/stardelt-operator) | `165e6bd63584603714afde60e444ae4f127c8e81` | 2026-11-10 |
+| `nova-openapi.json` | [`stardelt/stardelt-nova`](https://github.com/stardelt/stardelt-nova) | `7ff6c8523bb190328500a2b7a36cc2f4c9eb57e0` | 2026-11-10 |
 
 `npm run gen:reference` turns these snapshots into `docs/reference/`; CI fails when the committed pages and
 the snapshots disagree. The snapshots are byte copies, but the generator drops references to internal design

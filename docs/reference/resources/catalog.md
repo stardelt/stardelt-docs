@@ -31,7 +31,7 @@ A data domain: a catalog with its storage location, an owner group and grants.
 | `spec.maintenance.optimize.minSmallFiles` | integer | No | `20` |  | min 1; format `int32` |
 | `spec.maintenance.removeOrphanFiles` | object | No | `{"retention":"7d"}` | Orphan-file removal. The engine's minimum is 7 days (`iceberg.remove-orphan-files.min-retention`). The schema refuses a shorter retention; `MaintenanceSpec::validate` repeats the rule because no controller runs it yet. |  |
 | `spec.maintenance.removeOrphanFiles.retention` | string | No | `7d` |  | pattern `^([7-9]\|[1-9][0-9]+)d$` |
-| `spec.maintenance.schedule` | string | No | `0 2 * * *` | Five-field cron; the default is 02:00 every day. | pattern `^(\S+\s+){4}\S+$` |
+| `spec.maintenance.schedule` | string | No | `0 2 * * *` | Five-field cron; the default is 02:00 every day. A `Catalog` that keeps this default is staggered by name at reconcile time; any other value is applied verbatim. | pattern `^(\S+\s+){4}\S+$` |
 | `spec.managedAccess` | boolean | No | `false` | True: the owner cannot grant on this catalog; only platform administrators can. |  |
 | `spec.owner` | string | Yes |  | Exactly one group. Ownership means `manage` and does not mean `select`. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.storage` | object (nullable) | No |  | Where a catalog's data files live. Omitted: the `Lakehouse`'s storage defaults. |  |
