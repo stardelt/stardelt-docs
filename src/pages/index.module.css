@@ -237,7 +237,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.78rem;
-  color: var(--ifm-color-primary-light);
+  color: var(--sd-eyebrow);
   margin-bottom: 1rem;
   font-weight: 600;
 }
@@ -624,6 +624,6 @@
 .core, .starter, .defaultKind, .optIn, .plug { font-style: normal; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; margin-left: .35rem; }
 .core { color: var(--ifm-color-primary); }
 .starter { color: var(--ifm-color-content-secondary); }
-.defaultKind { color: #2fbf71; }
-.optIn { color: #d08a2e; }
-.plug { color: #4c9bd1; }
+.defaultKind { color: var(--sd-legend-ok); }
+.optIn { color: var(--sd-legend-warn); }
+.plug { color: var(--sd-legend-info); }
