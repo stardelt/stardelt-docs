@@ -160,6 +160,18 @@ Two properties matter in an incident:
 - Catalog and data are restored separately, and the catalog must come first: recovering the files
   without the metadata leaves objects nobody can find.
 
+## Rebuild drill
+
+Twice a year, prove that a stage can be rebuilt from Git and backups. Run it against a **new** install, never the one serving people.
+
+1. Before you start, open **Deployments** in Nova and read the **Not in Git** card. Every pipeline listed there was made in the interface or with `stardelt apply`; a rebuild from Git would not bring it back, so add it to a bundle first. Pipelines counted as **changed since deploy** are not lost: Git has the older version and the rebuild restores that version.
+2. Install a fresh stage the way you installed the source (same chart values from your GitOps repository).
+3. Restore the catalog database and the data as in [Restore](#restore) and [Restore the data](#restore-the-data).
+4. For each team bundle: `stardelt bundle deploy -t <stage>` from its repository.
+5. Check: `make verify-backups-all` passes; the Deployments page lists the same pipelines and commits as the source; one table per catalog answers a `SELECT count(*)`; one pipeline run succeeds.
+
+Write down how long each step took. The total is your real recovery time.
+
 ## What still is not covered
 
 - **Losing the cluster.** The archive is a second bucket in the *same* SeaweedFS instance. It
@@ -169,3 +181,4 @@ Two properties matter in an incident:
   is why the default archive stays inside one store. `rclone` can copy between two endpoints: 1.68.2
   and 1.75.2 work against SeaweedFS, and 1.69.1 hangs on PUT.
 - **Separate archives per tenant.** There is one archive bucket for the whole lakehouse.
+- Notebooks and SQL files made outside a bundle are not part of the drill yet.
