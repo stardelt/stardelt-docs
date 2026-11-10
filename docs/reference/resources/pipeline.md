@@ -19,7 +19,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.engine` | string | No | `airflow` | Engine that orchestrates (and for `spark`, executes) the pipeline. | `airflow`, `spark` |
 | `spec.ownerGroup` | string (nullable) | No |  | The group that owns the pipeline: its members see it, run it and pause it in Nova. Optional so that existing pipelines keep working; a pipeline without an owner is visible to administrators only. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.params` | object (map of string) | No |  | Values for `${params.<name>}` in task statements. |  |
-| `spec.publish` | string | No | `direct` | `direct` (default) or `wap`; `wap` needs a `quality` task with at least one check (nova#628 decision 1). | `direct`, `wap` |
+| `spec.publish` | string | No | `direct` | `direct` (default) or `wap`; `wap` needs a `quality` task with at least one check. | `direct`, `wap` |
 | `spec.retries` | object (nullable) | No |  | Retry policy applied to every task. |  |
 | `spec.retries.attempts` | integer | Yes |  | Extra attempts after the first failure. | min 0, max 10; format `int32` |
 | `spec.retries.backoff` | string (nullable) | No |  | Wait between attempts, for example `5m`. Absent means one minute. |  |
@@ -31,7 +31,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].checks` | array of object | No |  | A `quality` task's assertions; empty on every other kind. | max 50 |
 | `spec.tasks[].checks[].name` | string | Yes |  | Unique within the task; the run page names the check by it. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
 | `spec.tasks[].checks[].severity` | string | No | `error` | `error` fails the run; `warn` records the rows and lets the run publish. | `error`, `warn` |
-| `spec.tasks[].checks[].sql` | string | Yes |  | The assertion; it passes when it returns zero rows. `${table}` is the branch-qualified table during the audit (nova#628 decision 2). | min 1, max 20000 |
+| `spec.tasks[].checks[].sql` | string | Yes |  | The assertion; it passes when it returns zero rows. `${table}` is the branch-qualified table during the audit. | min 1, max 20000 |
 | `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). | max 32 |
 | `spec.tasks[].connection` | string (nullable) | No |  | The `Connection` whose secret fields this task receives as `CONN_<NAME>_<KEY>`: the name upper-cased with `-` written as `_`. The credentials reach the pod through `secretKeyRef`s and are never part of the resource, the DAG or a log. A `sql` task runs inside the engine and cannot name one. | min 1, max 40; pattern `^[a-z]([a-z0-9-]*[a-z0-9])?$` |
 | `spec.tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first. | max 8 |
@@ -39,7 +39,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].name` | string | Yes |  | Unique within the pipeline; becomes the task id in the engine. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
 | `spec.tasks[].sql` | string (nullable) | No |  | The statement of a `sql` task. `${run.date}`, `${run.id}` and `${params.<name>}` are expanded when the task runs, not in the resource. | min 1, max 100000 |
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |
-| `spec.tasks[].writes` | array of string | No |  | The tables a `sql` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone (nova#628 decision 3). | max 16 |
+| `spec.tasks[].writes` | array of string | No |  | The tables a `sql` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone. | max 16 |
 | `spec.timeout` | string (nullable) | No |  | Longest a whole run may take, for example `2h`. |  |
 
 ## Status
@@ -67,7 +67,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - a sql task needs a sql statement
 - publish: wap needs a quality task with at least one check
 - publish: wap needs a task that writes at least one table
-- a notebook task needs config.notebook (a .ipynb file name) and config.objectVersion (the published version)
+- a notebook task needs config.notebook (a.ipynb file name) and config.objectVersion (the published version)
 - notebook tasks accept only notebook, objectVersion and params
 - notebook params must be a JSON object string of at most 4096 characters
 - a sql task cannot name a connection: it runs inside the engine

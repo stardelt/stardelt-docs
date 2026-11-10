@@ -802,7 +802,7 @@ The caller: static user in `dev` mode, verified claims (never tokens) in `oidc` 
 
 Operation id `migrations_apply`: in Python `client.call("migrations_apply", …)`, on the command line `stardelt api migrations_apply`.
 
-Run a bundle's new migration files against one target, once each, and record them in stardelt_meta.migrations in that catalog (stardelt-nova#617 decision 3). Files already applied with the same sha256 are skipped; a file whose content changed after it was applied, or a new file that sorts before an applied one, is refused (409). Statements that are not additive need allowBreaking. The statements and the ledger writes run as the caller, so the caller's catalog privileges apply.
+Run a bundle's new migration files against one target, once each, and record them in stardelt_meta.migrations in that catalog. Files already applied with the same sha256 are skipped; a file whose content changed after it was applied, or a new file that sorts before an applied one, is refused (409). Statements that are not additive need allowBreaking. The statements and the ledger writes run as the caller, so the caller's catalog privileges apply.
 
 **Request body**
 
@@ -831,7 +831,7 @@ Run a bundle's new migration files against one target, once each, and record the
 
 Operation id `migrations_plan`: in Python `client.call("migrations_plan", …)`, on the command line `stardelt api migrations_plan`.
 
-What a bundle's migration files would do to one target, and what already ran there (stardelt-nova#617 decision 3). Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.
+What a bundle's migration files would do to one target, and what already ran there. Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.
 
 **Request body**
 
@@ -906,7 +906,7 @@ Publish a notebook as a new immutable object version in the `notebooks` bucket. 
 
 Operation id `notebooks_delete`: in Python `client.call("notebooks_delete", …)`, on the command line `stardelt api notebooks_delete`.
 
-`DELETE /api/notebooks/{group}/{name}`: the notebook and every version of it.
+`DELETE /api/notebooks/{group}/{name}`: the notebook and every version of it (#298).
 
 Delete a published notebook and every version of it from the `notebooks` bucket; the bucket is versioned, so each version is removed by its id and the bytes are gone, not hidden. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). A notebook with no version is 404 `no such notebook`. The answer carries the number of versions removed. A schedule that pinned a deleted version fails its next run. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502 (a retry removes what is left). Each delete writes one audit line with group, name and the number of versions, never content. Answers `Cache-Control: no-store`.
 
@@ -989,7 +989,7 @@ The parameters of one published version of a notebook, read from the stored byte
 
 Operation id `notebooks_usage`: in Python `client.call("notebooks_usage", …)`, on the command line `stardelt api notebooks_usage`.
 
-The pipelines that run one published notebook — the schedules and on-demand pipelines of that group, sorted by name. Each row is the one-task `Pipeline` a Schedule created: its pinned `objectVersion`, its cron and timezone when it has a schedule, and its `runAs`. Owner-group scoped: a caller who is not a member of `group` answers 403, and an administrator gets no wider view. Answers `Cache-Control: no-store`.
+The pipelines that run one published notebook — the schedules and on-demand pipelines of that group, sorted by name. Each row is the one-task `Pipeline` a Schedule created (#516): its pinned `objectVersion`, its cron and timezone when it has a schedule, and its `runAs`. Owner-group scoped: a caller who is not a member of `group` answers 403, and an administrator gets no wider view. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1078,7 +1078,7 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
-| `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
@@ -1182,7 +1182,7 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
-| `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
