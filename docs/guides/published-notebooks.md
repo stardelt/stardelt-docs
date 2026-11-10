@@ -35,7 +35,12 @@ run never changes the notebook.
 
 ## Publish
 
-In JupyterLab, in a notebook in the file's directory, run a cell:
+In JupyterLab, open the notebook and press **Publish** in its toolbar. The dialog saves the
+notebook, prefills the name, lets you pick the group, and says that scheduled runs use the group's
+principal, not you. If the file has uncommitted Git changes it warns that the published version will
+not match a commit; it still publishes. The notification after it offers **Open in Nova**.
+
+The same from a cell, in the file's directory:
 
 ```python
 import stardelt
@@ -46,6 +51,14 @@ The call sends the file to `PUT /api/notebooks/{group}/{name}` and prints what w
 the group, the version, its `sha256` and the parameters it found. The group defaults to your only
 group; if your account belongs to several, name it: `stardelt.publish("daily_trips.ipynb",
 group="analytics")`.
+
+From a laptop, after `stardelt login`:
+
+```bash
+stardelt notebook publish daily_trips.ipynb --group analytics
+```
+
+`stardelt.publish()` works there too: off the platform it uses the same sign-in.
 
 The rules:
 
@@ -61,8 +74,9 @@ The rules:
 
 ## Parameters
 
-Tag one cell `parameters` (in JupyterLab, the cell's tag list in the right-hand property inspector) and
-write one `name = literal` line per parameter:
+Tag one cell `parameters` (in JupyterLab, right-click the cell and choose
+**Mark as parameters cell**; the same again removes the tag) and write one `name = literal` line per
+parameter:
 
 ```python
 region = "eu"
@@ -92,8 +106,9 @@ the **Versions** table. Versions are listed newest first, at most 50, and each r
 stored bytes.
 
 A version is immutable. A correction is a new publish, which becomes a new version — the old one stays
-as it was, so a schedule that pinned it keeps running the old bytes. Pick a version's row to see that
-version's parameters.
+as it was, so a schedule that pinned it keeps running the old bytes. Pick a version's row to see its
+parameters and a read-only **Preview** of its cells. A published version has no outputs: those are in
+each run's executed notebook.
 
 Deleting a notebook deletes **every** version of it. A schedule that pinned a deleted version fails its
 next run; publish again and point the schedule at the new version.
@@ -120,6 +135,10 @@ It is not you who runs when the clock fires.
 
 The schedule **pins** the version it was created with: publishing again does not change what it runs.
 Each edit can pin another version; in edit mode the Version list also offers *Use newest version*.
+
+On the notebook page, **Where it is used** marks a schedule that runs an older version (“2 versions
+behind”). **Move to newest** opens that schedule's edit dialog on the newest version, so you see its
+parameters before you save.
 
 For the timing presets, the custom cron and the advanced options see
 [Schedule a SQL statement](schedule-sql); the same dialog and the same limits apply. For the identity
@@ -149,7 +168,8 @@ the exception above the notebook; **Traceback** unfolds the full trace. **Downlo
 notebook as a file, and **Run again** starts a new run of the schedule. Cell output is not trusted: it
 is drawn inside a sandboxed frame that cannot reach Nova, your session or the network, so an output that
 carries a chart, HTML or a script cannot touch the page around it. A run whose executed copy was never
-written, or has expired, says so and points at the task log instead.
+written, or has expired, says so and points at the task log instead. Executed copies are kept for
+30 days by default.
 
 ## When it does not work
 
