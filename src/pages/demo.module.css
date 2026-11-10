@@ -1,0 +1,168 @@
+/* The demo page: one centred column, the sign-in card, and the three "Things to try" cards. */
+
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 3rem 16px 4rem;
+}
+
+.hero {
+  margin-bottom: 2rem;
+}
+
+.title {
+  margin-bottom: 0.75rem;
+}
+
+.lead {
+  font-size: 1.15rem;
+  color: var(--sd-text-dim);
+  margin-bottom: 0;
+}
+
+.card {
+  background: var(--sd-surface);
+  border: 1px solid var(--sd-border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.cardTitle {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--sd-border);
+}
+
+.rowLabel {
+  min-width: 5.5rem;
+  color: var(--sd-text-dim);
+}
+
+.rowValue {
+  flex: 1;
+  font-size: 1rem;
+  background: var(--sd-surface-2);
+  border: 1px solid var(--sd-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.copy {
+  background: transparent;
+  border: 1px solid var(--sd-border);
+  border-radius: 8px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+}
+
+.copy:hover {
+  border-color: var(--sd-accent-line);
+  color: var(--sd-heading);
+}
+
+.open {
+  display: block;
+  margin-top: 1.25rem;
+  text-align: center;
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: var(--sd-text-dim);
+}
+
+.status {
+  margin: 1.25rem 0 0;
+  font-size: 0.95rem;
+  color: var(--sd-text-dim);
+}
+
+.dot {
+  margin-right: 2px;
+}
+
+.up .dot {
+  color: #4cc38a;
+}
+
+.down .dot {
+  color: #ef6b6b;
+}
+
+.section {
+  margin-top: 3rem;
+}
+
+.sectionTitle {
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.tryTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+/* Pre-wrapped: a long statement must not make the page scroll sideways at 390 px. */
+.sql {
+  background: var(--sd-surface-2);
+  border: 1px solid var(--sd-border);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+  padding: 12px;
+  white-space: pre-wrap;
+}
+
+.note {
+  color: var(--sd-text-dim);
+  font-size: 0.9rem;
+  margin: 0.75rem 0 0;
+}
+
+.rules {
+  padding-left: 1.25rem;
+}
+
+.rules li {
+  margin-bottom: 0.5rem;
+}
+
+.footerLine {
+  border-top: 1px solid var(--sd-border);
+  color: var(--sd-text-dim);
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding-top: 2rem;
+  }
+
+  .row {
+    flex-wrap: wrap;
+  }
+
+  .rowLabel {
+    min-width: 0;
+  }
+}

@@ -38,6 +38,10 @@ const config: Config = {
     ],
   ],
 
+  customFields: {
+    demoUrl: 'https://alpha.dev.stardelt.io',
+  },
+
   themeConfig: {
     metadata: [
       {name: 'theme-color', content: '#18191b'},
@@ -94,6 +98,7 @@ const config: Config = {
         { to: '/docs/intro/overview', label: 'Docs', position: 'left' },
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
         { to: '/docs/developer', label: 'Contribute', position: 'left' },
+        { to: '/demo', label: 'Try the demo', position: 'right', className: 'navbar-demo-button' },
         { href: 'https://github.com/stardelt', label: 'GitHub', position: 'right' },
       ],
     },
