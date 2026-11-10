@@ -81,7 +81,7 @@ function HomepageHero(): ReactNode {
           <div className={styles.wordmark}>
             <ThemedImage
               alt="stardelt"
-              sources={{light: '/img/logo-wordmark.svg', dark: '/img/logo-wordmark-dark.svg'}}
+              sources={{light: '/img/logo-wordmark-dark.svg', dark: '/img/logo-wordmark-dark.svg'}}
             />
           </div>
           <span className={styles.eyebrow}>Open source · Apache 2.0 · Kubernetes-native</span>

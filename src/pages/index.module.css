@@ -7,6 +7,36 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  /* The hero is the brand moment: it stays dark in both themes, star field,
+     gradient title and light wordmark included, so it re-declares the dark
+     tokens locally. Everything the hero rules touch is pinned here; a token
+     left out would follow the page theme and change the hero's look. */
+  --sd-bg: #18191b;
+  --sd-surface: #1f2124;
+  --sd-surface-2: #282a2e;
+  --sd-border: #3e4147;
+  --sd-text: #e8eaed;
+  --sd-text-dim: #b0b5bd;
+  --sd-heading: #ffffff;
+  --sd-accent: #7a8aff;
+  --sd-accent-soft: rgba(91, 108, 255, 0.1);
+  --sd-accent-line: rgba(91, 108, 255, 0.25);
+
+  --ifm-color-primary: #7a8aff;
+  --ifm-color-primary-dark: #5f73ff;
+  --ifm-color-primary-darker: #4f5ff0;
+  --ifm-color-primary-darkest: #3a47c4;
+  --ifm-color-primary-light: #94a1ff;
+  --ifm-color-primary-lighter: #a3aeff;
+  --ifm-color-primary-lightest: #c4cbff;
+  --ifm-color-content: #e8eaed;
+  --ifm-color-content-secondary: #b0b5bd;
+  --ifm-toc-border-color: #3e4147;
+  --ifm-link-color: #94a1ff;
+
+  background-color: #18191b;
+  color: var(--ifm-color-content);
+  color-scheme: dark;
 }
 
 .hero::before {
@@ -183,13 +213,6 @@
   to   { transform: translate3d(-2%, 1.5%, 0) scale(1.04); }
 }
 
-[data-theme='light'] .hero::before {
-  opacity: 0.35;
-  filter: invert(1) hue-rotate(180deg);
-}
-
-
-
 /* ------------------------------------------------------------------ */
 /*  Section frame                                                       */
 /* ------------------------------------------------------------------ */
@@ -251,7 +274,7 @@
 .architectureDiagram {
   max-width: 1080px;
   margin: 0 0 1.5rem;
-  background: #1f2124;
+  background: var(--sd-surface);
   border: 1px solid var(--ifm-toc-border-color);
   border-radius: 14px;
   overflow: hidden;
@@ -307,8 +330,8 @@
   font-size: 0.76rem;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: rgba(91, 108, 255, 0.1);
-  border: 1px solid rgba(91, 108, 255, 0.25);
+  background: var(--sd-accent-soft);
+  border: 1px solid var(--sd-accent-line);
   color: var(--ifm-color-primary-lighter);
   font-weight: 500;
 }
@@ -339,7 +362,7 @@
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: #ffffff;
+  color: var(--sd-heading);
 }
 
 .docBody {
@@ -409,7 +432,7 @@
 
 .generationHeader {
   border-bottom: 1px solid var(--ifm-toc-border-color);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--sd-surface-2);
 }
 
 .generationHead {
@@ -462,7 +485,7 @@
 .slideTabTitle { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .slideProgress { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--ifm-color-primary); transform-origin: left; animation: slideProgress 7s linear forwards; }
 @keyframes slideProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-.slideStage { position: relative; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; border: 1px solid var(--ifm-toc-border-color); box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 0 1px rgba(122,138,255,.08), 0 0 120px rgba(79,95,240,.18); background: #18191b; }
+.slideStage { position: relative; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; border: 1px solid var(--ifm-toc-border-color); box-shadow: var(--sd-shadow); background: var(--sd-bg); }
 .slideImage { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top left; opacity: 0; transition: opacity 600ms ease; }
 .slideImage.slideImageActive { opacity: 1; }
 .slideNav { position: absolute; top: 50%; transform: translateY(-50%); width: 2.5rem; height: 2.5rem; border-radius: 999px; border: 1px solid var(--ifm-toc-border-color); background: rgba(24,25,27,.75); color: #e8eaed; font-size: 1.4rem; cursor: pointer; opacity: 0; transition: opacity 200ms; }
@@ -484,7 +507,7 @@
 }
 
 .apiPanel :global(.tabs) {
-  background: #1f2124;
+  background: var(--sd-surface);
   border-bottom: 1px solid var(--ifm-toc-border-color);
   border-radius: 8px 8px 0 0;
   padding: 0 0.5rem;
