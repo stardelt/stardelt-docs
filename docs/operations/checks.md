@@ -10,7 +10,7 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 
 ## After an upgrade
 
-`make step-verify` (the target the upgrade path runs) runs the eight checks below:
+`make step-verify` (the target the upgrade path runs) runs the checks below:
 
 | Command | What it proves | A failure means |
 | --- | --- | --- |
@@ -22,6 +22,8 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-pins` | Every live Deployment runs the digest its file pins (Nova, the operator, Spark, both Superset Deployments and Airflow), and so do the places that are not Deployments: the JupyterHub spawn image in Secret `hub`, Airflow's `PIPELINE_NOTEBOOK_IMAGE`, and the `airflow-group-roles` and `superset-group-roles` CronJobs. | A merge was pinned but never rolled out, or a hand-pinned image was changed in one place only. The failing row names the fix: `./scripts/pin-image.sh <app>`, `make install-notebooks` for the JupyterHub image, `make step-airflow` for the notebook task image and the Airflow CronJob, or `make step-superset` for the two Superset Deployments and the Superset CronJob. |
 | `make verify-operator-values` | The running operator carries the golden values the pins were merged with: the SeaweedFS volume size, the JupyterHub home size, the Airflow `stardelt-nova-operator` role, and the loader, notebook and Superset digests. | The operator image predates a values merge, or the Deployment was not rolled: run `./scripts/pin-image.sh stardelt-operator`. The failing row names the value. |
 | `make verify-connections` | The Pipeline CRD carries `spec.tasks[].connection`, the Airflow pipeline reader may read `Connection` resources, and the DAG processor's image resolves a connection into `CONN_<NAME>_<KEY>` variables. | A merge moved one of the three links (operator CRD, platform Role, loader image) without a rollout: run `./scripts/pin-image.sh stardelt-operator` for the `crd` row, `make step-airflow` for `role` and `loader`. |
+| `make verify-compute` | Every `SparkCluster` the CRD accepts is `Running`, carries `spc-<name>-ingress` admitting exactly the owner's pods, Nova and Airflow, and the runtime catalogue is the repository's. | A `SparkCluster` runs without its ingress policy (Spark Connect is open to every pod), the runtime catalogue drifted from `chart/files/spark-runtimes.json`, or the CRD rejects the fields the Compute page writes: run `make install-operator` or `make install-spark`. |
+| `make verify-maintenance` | Every `Catalog` with a `pipeline-<ownerGroup>` principal has the `maint-<catalog>` CronJob the operator intends: the staggered default schedule (never `0 2 * * *`), `stardelt maintenance run --catalog <name>`, the principal's token Secret, and `MaintenanceReady=True`. Prints the newest Job and warns when two catalogs share a minute or a catalog has no principal. | A catalog with a principal has no maintenance job, its schedule is not the staggered default, an env var or the principal reference drifted (a stale operator: `make install-operator`), or the newest run failed: the row names the job to read. |
 
 One check is deliberately not part of `step-verify` because it writes: `make verify-airflow-actions` signs
 in as Nova's Airflow service user, reads one DAG, pauses and resumes it, and restores the state it found
@@ -86,7 +88,7 @@ Exit 1 means the check ran and found a real problem — link to the matching anc
 ## What runs by itself
 
 `make install` runs `verify-backup-config` while it creates the catalog's Postgres cluster;
-`make upgrade` runs it too and then, at the end, the eight `step-verify` checks above.
+`make upgrade` runs it too and then, at the end, the `step-verify` checks above.
 Everything else is manual. `verify-images` needs the cluster's pull credential, so it is never a
 CI job. The daily `Pin freshness` workflow runs `scripts/check_pin_freshness.py` for the
 registry's `dev`/`demo` digests and, against a checkout of `stardelt-operator`,
