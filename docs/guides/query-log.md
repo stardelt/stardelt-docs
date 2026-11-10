@@ -53,16 +53,29 @@ a dash.
 
 ## Who sees what
 
-You see **your own queries**. A scheduled pipeline's tasks run as a service principal, so their queries appear under the
-principal's name, not under yours. Administrators can switch to **Everyone** to see every query on the platform. Nobody
-else's statements are visible to you, including in the engine's own web interface: that interface is for administrators
-only, and this page is the view for everybody else.
+**Mine** (the default): the queries you ran, whoever sent them — the SQL editor, a notebook, a dashboard. A scheduled
+pipeline's tasks run as a service principal, so they do **not** appear under your name.
+
+**Team**: the queries of the service principals your groups own — in practice the scheduled pipelines and notebook runs of
+your group (`pipeline-<group>`), including their failures. This is the scope that answers "did last night's run read that
+table?". A person who is in no group with a principal sees an empty list, not an error.
+
+**Everyone** (administrators only): every query on the platform.
+
+Somebody else's statement reaches you only through **Team** or **Everyone**, and an administrator can hide its string
+literals. The engine's own web interface is for administrators only, and this page is the view for everybody else.
 
 ## What is kept, and for how long
 
 Nova stores the statement text, who ran it, the timing and the counters above, in its own database. Statements longer than about
 100 KB are cut. The text of catalog-management statements, which carry connection credentials, has those values
-replaced by `***` before it is stored. Nothing else is rewritten, so do not put secrets into SQL text.
+replaced by `***` before it is stored. By default nothing else is rewritten, so do not put secrets into SQL text.
+
+An administrator can hide string literals from everybody but the query's owner: with
+`NOVA_QUERY_LOG_REDACT_LITERALS=1` on Nova, the statement of somebody else's query shows every string literal as `'?'`, in
+the list and in the detail view; the owner always sees the text they ran. It is off by default, and it does not touch
+numbers or identifiers. Turn it on where the log is read by more people than the person who ran the query — a team scope
+is exactly that case.
 
 Rows are removed after 90 days by default. An administrator changes this with the environment variable
 `NOVA_QUERY_LOG_RETENTION_DAYS` on Nova (`0` keeps everything).
@@ -77,5 +90,5 @@ curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log
 ```
 
 The list is keyset-paged: a response carries `nextCursor`; pass it as `cursor` to get the next page. It accepts the filters the
-page uses (`scope` = `mine` or `all`, `state`, `q`, `warehouse` and `limit`). The detail endpoint returns the same groups as the
+page uses (`scope` = `mine`, `team` or `all`; `all` is for administrators), `state`, `q`, `warehouse` and `limit`). The detail endpoint returns the same groups as the
 page. The API description is at `/api/openapi.json` on your Nova.
