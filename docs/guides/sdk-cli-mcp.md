@@ -47,14 +47,19 @@ stardelt sql -f report.sql --format csv                          # the statement
 stardelt pipelines list --format table                             # RESOURCE VERB
 stardelt pipelines get etl nyc_taxi                                # the values of the path follow the verb
 stardelt table history demo trips --format table
-stardelt catalog search -q q=trips --format table                  # find tables by name
+stardelt catalog search -q q=trips --format table                  # words from a name, a description or a tag
+stardelt catalog search -q q=revenue -q tag=finance --format table # narrow by tag, owner or domain
 stardelt --help                                                    # lists every resource and its verbs
 stardelt pipelines                                                 # lists the verbs and the values each one takes
 ```
 
-`catalog search` finds tables by name: a table matches when its `namespace.table` contains every word you give, in any case. `-q catalog=finance`
-searches another catalog and `-q limit=50` asks for more than the 20 matches you get by default; the answer says `truncated: true` when it is only a
-beginning, so narrow the words. Nova looks only at the tables you may browse. In Python: `nova.ops.catalog.search(q="trips")["matches"]`.
+`catalog search` matches words in a table's `namespace.table`, in its description and in its tags: a table matches when one of them
+contains every word you give, in any case. Descriptions and tags come from Nova's state store; a deployment without one matches names
+only. `-q tag=finance`, `-q owner=team-mobility` and `-q domain=retail` narrow the answer to one label, owner group or domain — those
+three need the state store, and the command exits `1` with `the state store is disabled; tag, owner and domain filters need it`
+without it. `-q catalog=finance` searches another catalog and `-q limit=50` asks for more than the 20 matches you get by default; the
+answer says `truncated: true` when it is only a beginning, so narrow the words. Nova looks only at the tables you may browse. In
+Python: `nova.ops.catalog.search(q="trips")["matches"]`.
 
 Results go to standard output and messages to standard error. The exit code is `0` for success, `1` for an error, `2` for
 wrong usage and `3` when sign-in is needed, so scripts can tell the cases apart.
