@@ -728,6 +728,7 @@ Operation id `lineage_graph`: in Python `client.call("lineage_graph", …)`, on 
 | Name | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
 | `catalog` | query | string | No | Catalog |
+| `days` | query | integer | No | Time window in days, 1–365, default 30 |
 | `depth` | query | integer | No | Depth 1-5, default 2 |
 | `schema` | query | string | No | Schema |
 | `table` | query | string | No | Table |
@@ -737,6 +738,27 @@ Operation id `lineage_graph`: in Python `client.call("lineage_graph", …)`, on 
 | Code | Description |
 | --- | --- |
 | `200` | Lineage graph |
+| `403` | Not visible |
+
+### GET /api/lineage/columns
+
+Operation id `lineage_columns`: in Python `client.call("lineage_columns", …)`, on the command line `stardelt api lineage_columns`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | Yes | Catalog |
+| `days` | query | integer | No | Days to look back, 1-365, default 90 |
+| `schema` | query | string | Yes | Schema |
+| `table` | query | string | Yes | Table |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | Where each column comes from |
+| `400` | catalog/schema/table required |
 | `403` | Not visible |
 
 ### GET /api/lineage/runs/\{run_id\}
@@ -979,6 +1001,7 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this pipeline is deployed from (`stardelt bundle deploy`). |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
 | `schedule` | object | No |  | A cron expression and its IANA zone; both required when a `schedule` object is sent. |  |
@@ -1082,6 +1105,7 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this pipeline is deployed from (`stardelt bundle deploy`). |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
 | `schedule` | object | No |  | A cron expression and its IANA zone; both required when a `schedule` object is sent. |  |
@@ -1150,6 +1174,7 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 | `params` | object (map of string) | No |  | The whole parameter table; omitted means none. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this update deploys. Omitted leaves what the pipeline already says untouched; given, it replaces it. |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
 | `resourceVersion` | string (nullable) | No |  | The `resourceVersion` the caller read (`pipelines_spec`). When it is given and is not the stored one, somebody changed the pipeline in between: 409 `the pipeline changed while you edited it: reload`, and nothing is written. Omitted keeps the old behaviour (the update then only fails if the resource changes while the update itself runs). |  |
@@ -1602,6 +1627,30 @@ The service principals the caller may see: every `ServicePrincipal` of their gro
 | `401` | No token to sign in with |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
+
+## /api/stages
+
+### GET /api/stages/compare
+
+Operation id `stages_compare`: in Python `client.call("stages_compare", …)`, on the command line `stardelt api stages_compare`.
+
+This stage's deployed pipelines against a peer stage's, for the Deployments page. The peer is called with the caller's own token (`GET {peer}/api/pipelines`), so the answer is filtered by that person's rights there. `status` is `ok`, `unauthorized` (the peer refused the token — sign in there) or `unreachable` (no answer within 5 s). Nova neither compares Git ancestry nor deploys to the peer. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `peer` | query | string | Yes | The peer stage's configured name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | Both stages' deployed pipelines |
+| `400` | No `peer` parameter |
+| `401` | No signed-in caller, so there is no token to forward |
+| `404` | No stage with that name is configured |
+| `502` | This stage's cluster did not answer |
 
 ## /api/statements
 
