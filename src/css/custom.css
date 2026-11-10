@@ -1,5 +1,7 @@
-/* stardelt docs theme: Graphite, the same palette as Nova's default theme
-   (stardelt-nova frontend/src/index.css, [data-theme='graphite']). Dark mode only.
+/* stardelt docs theme: Graphite (dark, default) and Silver (light), the palettes
+   of Nova's themes of the same names (stardelt-nova frontend/src/index.css,
+   [data-theme='graphite'] and [data-theme='silver']). Everything below the two
+   token blocks uses the --sd-* tokens, so a rule needs no second colour.
 
    The selector must be `html[data-theme='dark']`: Infima declares its own dark
    palette on that selector, and a weaker one (`[data-theme='dark']`) loses to it,
@@ -43,6 +45,78 @@ html[data-theme='dark'] {
   --ifm-menu-color-background-active: rgba(122, 138, 255, 0.14);
   --ifm-menu-color-background-hover: rgba(255, 255, 255, 0.05);
   --ifm-link-color: #94a1ff;
+
+  /* Semantic tokens. Every rule below uses these names, so a colour is set
+     once per theme. */
+  --sd-bg: #18191b;
+  --sd-surface: #1f2124;
+  --sd-surface-2: #282a2e;
+  --sd-border: #3e4147;
+  --sd-text: #e8eaed;
+  --sd-text-dim: #b0b5bd;
+  --sd-heading: #ffffff;
+  --sd-accent: #7a8aff;
+  --sd-accent-soft: rgba(91, 108, 255, 0.10);
+  --sd-accent-line: rgba(91, 108, 255, 0.25);
+  --sd-navbar: rgba(24, 25, 27, 0.82);
+  --sd-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  --sd-ok: #4cc38a;
+  --sd-warn: #e3a33b;
+  --sd-bad: #ef6b6b;
+  /* Code blocks and mermaid diagrams sit on a dark panel in both themes: the
+     prism and mermaid palettes were made for dark. */
+  --sd-panel: #1f2124;
+  --sd-panel-text: #e8eaed;
+}
+
+/* Silver (light). Same names as the tokens above, so no rule below needs a
+   second colour. */
+html[data-theme='light'] {
+  color-scheme: light;
+
+  --ifm-color-primary: #4252e1;
+  --ifm-color-primary-dark: #3b4acb;
+  --ifm-color-primary-darker: #3846bf;
+  --ifm-color-primary-darkest: #2e3a9e;
+  --ifm-color-primary-light: #5b69e6;
+  --ifm-color-primary-lighter: #6875e8;
+  --ifm-color-primary-lightest: #8f99ee;
+
+  --ifm-background-color: #f0f1f2;
+  --ifm-background-surface-color: #ffffff;
+  --ifm-color-content: #181a1d;
+  --ifm-color-content-secondary: #484d55;
+
+  --ifm-toc-border-color: #d0d3d7;
+  --ifm-hr-border-color: #d0d3d7;
+  --ifm-card-background-color: #ffffff;
+
+  --ifm-code-background: #e6e8ea;
+  --ifm-code-color: #181a1d;
+
+  --ifm-menu-color-background-active: rgba(66, 82, 225, 0.10);
+  --ifm-menu-color-background-hover: rgba(0, 0, 0, 0.04);
+  --ifm-link-color: #2b3aa8;
+
+  --docusaurus-highlighted-code-line-bg: rgba(122, 138, 255, 0.16);
+
+  --sd-bg: #f0f1f2;
+  --sd-surface: #ffffff;
+  --sd-surface-2: #e6e8ea;
+  --sd-border: #d0d3d7;
+  --sd-text: #181a1d;
+  --sd-text-dim: #484d55;
+  --sd-heading: #0f1114;
+  --sd-accent: #4252e1;
+  --sd-accent-soft: rgba(66, 82, 225, 0.08);
+  --sd-accent-line: rgba(66, 82, 225, 0.30);
+  --sd-navbar: rgba(240, 241, 242, 0.85);
+  --sd-shadow: 0 20px 50px rgba(16, 24, 40, 0.12);
+  --sd-ok: #107248;
+  --sd-warn: #92400e;
+  --sd-bad: #b91c1c;
+  --sd-panel: #1f2124;
+  --sd-panel-text: #e8eaed;
 }
 
 /* One solid colour on both <html> and <body>. Safari paints the area outside the
@@ -66,7 +140,7 @@ h4 {
 }
 
 h1 {
-  color: #ffffff;
+  color: var(--sd-heading);
 }
 
 /* Navbar: translucent glass like Nova's top bar.
@@ -82,7 +156,7 @@ h1 {
 }
 
 .navbar__inner {
-  background: rgba(24, 25, 27, 0.82);
+  background: var(--sd-navbar);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   padding: var(--ifm-navbar-padding-vertical) var(--ifm-navbar-padding-horizontal);
@@ -95,7 +169,7 @@ h1 {
 
 /* Sidebar menu */
 .theme-doc-sidebar-container {
-  background: #1f2124;
+  background: var(--sd-surface);
   border-right: 1px solid var(--ifm-toc-border-color);
 }
 
@@ -105,8 +179,8 @@ h1 {
 
 .menu__link--active {
   background-color: var(--ifm-menu-color-background-active);
-  border: 1px solid rgba(122, 138, 255, 0.3);
-  color: #ffffff;
+  border: 1px solid var(--sd-accent-line);
+  color: var(--sd-heading);
 }
 
 /* Cards & content */
@@ -117,7 +191,8 @@ article {
 
 /* Code blocks */
 .theme-code-block {
-  background: #1f2124 !important;
+  background: var(--sd-panel) !important;
+  color: var(--sd-panel-text);
   border: 1px solid var(--ifm-toc-border-color);
   border-radius: 12px;
 }
@@ -130,13 +205,21 @@ code {
 
 /* Footer */
 .footer--dark {
-  background: #1f2124;
+  background: var(--sd-surface);
   border-top: 1px solid var(--ifm-toc-border-color);
+}
+
+/* Infima's .footer--dark text colours are light, made for a dark background.
+   The footer follows the page theme, so the light theme sets its own. */
+html[data-theme='light'] .footer--dark {
+  --ifm-footer-color: var(--sd-text-dim);
+  --ifm-footer-link-color: var(--sd-text-dim);
+  --ifm-footer-title-color: var(--sd-heading);
 }
 
 /* Mermaid diagrams */
 .docusaurus-mermaid-container {
-  background: #1f2124;
+  background: var(--sd-panel);
   border: 1px solid var(--ifm-toc-border-color);
   border-radius: 12px;
   padding: 1rem;
@@ -150,7 +233,7 @@ table {
 }
 
 thead tr {
-  background: #282a2e;
+  background: var(--sd-surface-2);
 }
 
 /* Buttons */
@@ -172,35 +255,35 @@ thead tr {
 .button.button--secondary:hover,
 .button.button--secondary:active,
 .button.button--secondary:focus {
-  --ifm-button-color: #ffffff;
-  background: #1f2124;
+  --ifm-button-color: var(--sd-heading);
+  background: var(--sd-surface);
   border-color: var(--ifm-toc-border-color);
-  color: #ffffff !important;
+  color: var(--sd-heading) !important;
 }
 
 .button.button--secondary:hover {
-  background: #282a2e;
-  border-color: rgba(122, 138, 255, 0.45);
+  background: var(--sd-surface-2);
+  border-color: var(--sd-accent-line);
 }
 
 /* Admonitions: Graphite surface, a coloured edge instead of a filled block */
 .theme-admonition {
-  background: #1f2124;
+  background: var(--sd-surface);
   border: 1px solid var(--ifm-toc-border-color);
-  border-left: 3px solid var(--sd-adm, #7a8aff);
+  border-left: 3px solid var(--sd-adm, var(--sd-accent));
   border-radius: 10px;
   box-shadow: none;
   color: var(--ifm-color-content);
 }
-.theme-admonition.alert--secondary, .theme-admonition.alert--info { --sd-adm: #7a8aff; }
-.theme-admonition.alert--success { --sd-adm: #4cc38a; }
-.theme-admonition.alert--warning { --sd-adm: #e3a33b; }
-.theme-admonition.alert--danger  { --sd-adm: #ef6b6b; }
+.theme-admonition.alert--secondary, .theme-admonition.alert--info { --sd-adm: var(--sd-accent); }
+.theme-admonition.alert--success { --sd-adm: var(--sd-ok); }
+.theme-admonition.alert--warning { --sd-adm: var(--sd-warn); }
+.theme-admonition.alert--danger  { --sd-adm: var(--sd-bad); }
 .theme-admonition [class*='admonitionHeading'] {
-  color: var(--sd-adm, #7a8aff);
+  color: var(--sd-adm, var(--sd-accent));
   text-transform: none;
   font-size: 0.9rem;
   letter-spacing: 0;
 }
-.theme-admonition [class*='admonitionIcon'] svg { fill: var(--sd-adm, #7a8aff); }
+.theme-admonition [class*='admonitionIcon'] svg { fill: var(--sd-adm, var(--sd-accent)); }
 .markdown img { border: 1px solid var(--ifm-toc-border-color); border-radius: 12px; }
