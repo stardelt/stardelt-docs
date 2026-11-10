@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
+<title id="title">A notebook from write to watch</title>
+<desc id="desc">Four steps of a published notebook: write it in JupyterLab in your workspace and publish it with the toolbar button or the command line in your workspace or on your laptop, then in stardelt Nova schedule the pinned version and watch its runs, which open at the failing cell first.</desc>
+<defs>
+  <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 Z" fill="#5b6cff"/></marker>
+</defs>
+<style>
+  .t { fill: #1e2a78; font-size: 20px; font-weight: 700; }
+  .d { fill: #5b6476; font-size: 14px; }
+  .bn { fill: #ffffff; font-size: 15px; font-weight: 700; }
+  .lbl { fill: #5b6476; font-size: 13px; }
+  .sm { fill: #5b6476; font-size: 12.5px; font-style: italic; }
+</style>
+<rect width="1200" height="360" fill="#ffffff"/>
+<rect x="40" y="70" width="250" height="170" rx="14" fill="#f4f6ff" stroke="#5b6cff" stroke-width="1.6"/>
+<circle cx="78" cy="122" r="17" fill="#5b6cff"/>
+<text x="78" y="128" class="bn" text-anchor="middle">1</text>
+<text x="109" y="128" class="t">Write</text>
+<text x="60" y="176" class="d">JupyterLab in your workspace</text>
+<text x="60" y="200" class="d">tag one cell `parameters`</text>
+<rect x="330" y="70" width="250" height="170" rx="14" fill="#f4f6ff" stroke="#5b6cff" stroke-width="1.6"/>
+<circle cx="368" cy="122" r="17" fill="#5b6cff"/>
+<text x="368" y="128" class="bn" text-anchor="middle">2</text>
+<text x="399" y="128" class="t">Publish</text>
+<text x="350" y="176" class="d">Publish button, or</text>
+<text x="350" y="200" class="d">`stardelt notebook publish`</text>
+<rect x="620" y="70" width="250" height="170" rx="14" fill="#f4f6ff" stroke="#5b6cff" stroke-width="1.6"/>
+<circle cx="658" cy="122" r="17" fill="#5b6cff"/>
+<text x="658" y="128" class="bn" text-anchor="middle">3</text>
+<text x="689" y="128" class="t">Schedule</text>
+<text x="640" y="176" class="d">Nova: pin a version, set when</text>
+<text x="640" y="200" class="d">runs as `pipeline-&lt;group&gt;`</text>
+<rect x="910" y="70" width="250" height="170" rx="14" fill="#f4f6ff" stroke="#5b6cff" stroke-width="1.6"/>
+<circle cx="948" cy="122" r="17" fill="#5b6cff"/>
+<text x="948" y="128" class="bn" text-anchor="middle">4</text>
+<text x="979" y="128" class="t">Watch</text>
+<text x="930" y="176" class="d">Nova: Runs, open the notebook</text>
+<text x="930" y="200" class="d">failing cell first</text>
+<path d="M294,155 L324,155" fill="none" stroke="#5b6cff" stroke-width="2" marker-end="url(#ah)"/>
+<path d="M584,155 L614,155" fill="none" stroke="#5b6cff" stroke-width="2" marker-end="url(#ah)"/>
+<path d="M874,155 L904,155" fill="none" stroke="#5b6cff" stroke-width="2" marker-end="url(#ah)"/>
+<path d="M600,168 L600,258" fill="none" stroke="#5b6cff" stroke-width="1" stroke-dasharray="3 4" stroke-opacity="0.6"/>
+<path d="M40,246 L40,258 L580,258 L580,246" fill="none" stroke="#5b6cff" stroke-width="1.4" stroke-dasharray="6 5"/>
+<path d="M620,246 L620,258 L1160,258 L1160,246" fill="none" stroke="#5b6cff" stroke-width="1.4" stroke-dasharray="6 5"/>
+<text x="310" y="282" class="lbl" text-anchor="middle">your workspace or laptop</text>
+<text x="890" y="282" class="lbl" text-anchor="middle">stardelt Nova</text>
+<text x="600" y="282" class="sm" text-anchor="middle">immutable version</text>
+</svg>

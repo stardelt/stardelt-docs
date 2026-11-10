@@ -10,6 +10,8 @@ A notebook you write in JupyterHub lives in your own home directory. The platfor
 there: it runs a **published** copy, which is immutable and pinned by a schedule. This page follows one
 notebook from the publish call to its runs, and explains the four words Nova uses for it.
 
+![A notebook from write to watch: write in JupyterLab, publish with the toolbar button or the command line, schedule a pinned version in Nova, watch its runs in Nova](/img/notebook-journey.svg)
+
 ## The four words
 
 | Word | What it is | Where you see it in Nova |
