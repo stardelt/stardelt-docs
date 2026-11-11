@@ -25,6 +25,29 @@ in Nova's own database, and nothing is sent to an external service.
 
 Edges are kept for 365 days and the raw events for 90 days by default. An installation can change this with `NOVA_LINEAGE_EDGE_RETENTION_DAYS` and `NOVA_LINEAGE_RETENTION_DAYS`; `0` turns the purge off, and an empty value keeps the default.
 
+## From the command line
+
+`stardelt lineage CATALOG.SCHEMA.TABLE` answers the same question as the table page's Lineage tab, so a shell or a CI job can do an impact check. Off the platform it needs `stardelt login`; on a notebook server it reuses the server's sign-in. The command is part of the `stardelt` package described in [Python, command line and agents](./sdk-cli-mcp).
+
+`--depth` sets how many hops each way (`1` to `5`, default `2`) and `--days` the window (`1` to `365`, default `30`). `--upstream` or `--downstream` keeps one side of the graph; the two cannot be combined. `--format table` is the default, and `--format json` prints the answer Nova's graph API returns.
+
+```bash
+stardelt lineage mobility.gold.kpis --downstream --depth 3 --days 7
+stardelt lineage mobility.gold.kpis --format json
+```
+
+The table has one row per table: `level`, which is negative upstream, `0` for the table itself and positive downstream; `dataset`; `written by`, the job of the newest edge that wrote it; `last write`; and `readers`, `n people, m queries` or `no reads`. For example:
+
+```text
+level  dataset                written by          last write            readers
+   -1  mobility.silver.kpis    etl/kpis_hourly     2026-11-10T09:12:00Z  4 people, 12 queries
+    0  mobility.gold.kpis      etl/kpis_gold       2026-11-10T09:40:00Z  2 people, 3 queries
+```
+
+The table goes to standard output. The job lines go to standard error, one per job, with the number of runs in the window and the last run: `stardelt: job <kind> <name>  <runs> runs, last <last run>`. A pipeline can therefore take the table alone.
+
+An empty answer is not an error: standard output stays empty and `stardelt: no lineage for <table> in the last <days> days` goes to standard error with exit code `0`. A name that is not `catalog.schema.table` is a usage error, exit code `2`. Exit codes follow the command line's rule throughout: `0` for success, `1` for an error, `2` for wrong usage and `3` when sign-in is needed.
+
 ## What it does not show
 
 The graph is table-level; column-level sources are shown on the table's **Columns** tab, in the **From** column. It only knows what was recorded since the feature was enabled, so a table whose queries predate it, or a table that is only ever read through an external client, stays empty. It lists only datasets in catalogs you can see; anything else is drawn unnamed. A query that failed produces no edges.

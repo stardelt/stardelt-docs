@@ -47,6 +47,7 @@ stardelt sql -f report.sql --format csv                          # the statement
 stardelt pipelines list --format table                             # RESOURCE VERB
 stardelt pipelines get etl nyc_taxi                                # the values of the path follow the verb
 stardelt table history demo trips --format table
+stardelt lineage warehouse.demo.trips --downstream                     # who depends on it; --upstream, --depth, --days
 stardelt catalog search -q q=trips --format table                  # words from a name, a description or a tag
 stardelt catalog search -q q=revenue -q tag=finance --format table # narrow by tag, owner or domain
 stardelt --help                                                    # lists every resource and its verbs
@@ -60,6 +61,8 @@ three need the state store, and the command exits `1` with `the state store is d
 without it. `-q catalog=finance` searches another catalog and `-q limit=50` asks for more than the 20 matches you get by default; the
 answer says `truncated: true` when it is only a beginning, so narrow the words. Nova looks only at the tables you may browse. In
 Python: `nova.ops.catalog.search(q="trips")["matches"]`.
+
+`stardelt lineage` prints a table's upstream and downstream tables with the job that wrote each one, its last write and its readers. `--upstream` or `--downstream` keeps one side, `--depth` (1–5) and `--days` (1–365) set the reach and the window, and `--format json` prints the answer Nova's graph API returns. The guide is [Table lineage](./lineage).
 
 Results go to standard output and messages to standard error. The exit code is `0` for success, `1` for an error, `2` for
 wrong usage and `3` when sign-in is needed, so scripts can tell the cases apart.
