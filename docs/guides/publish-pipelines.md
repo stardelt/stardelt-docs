@@ -157,7 +157,8 @@ stage: its `name`, the Git `revision` it was deployed from, `deployedBy`, `deplo
 it after the deploy. A release job can compare the revision with the commit it just deployed. The command only reads, and a
 development target shows only your own pipelines.
 
-The same view for a whole bundle is in Nova under **Admin**, **Deployments**: one block per bundle and stage with the commit, who
+The same view for a whole bundle is in Nova under **Admin**, **Deployments** ([what the page
+shows](/docs/guides/deployments)): one block per bundle and stage with the commit, who
 deployed each pipeline and when, and a **Changed since deploy** badge on a pipeline someone changed afterwards. A pipeline deployed
 before that check existed shows a dash there, not "unchanged".
 
