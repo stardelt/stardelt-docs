@@ -6,7 +6,7 @@ slug: /services/trino
 
 # Trino
 
-**What it is.** A distributed MPP SQL engine (chart `trino/trino` 1.42.2, appVersion 480).
+**What it is.** A distributed MPP SQL engine (chart `trino/trino` 1.45.0, appVersion 484).
 
 **Why stardelt uses it.** Trino is the query engine the platform uses for interactive SQL over Iceberg tables. It serves the SQL editor, Superset, and client connections, reading Iceberg catalogs through Lakekeeper and Parquet data from SeaweedFS.
 
@@ -22,7 +22,7 @@ slug: /services/trino
 | Query time limits (coordinator) | `helm-values/trino.yaml` | `server.coordinatorExtraConfig` (`query.max-execution-time`, `query.max-run-time`) | `10m`, `15m` | Coordinator-only query execution/run time limits. |
 | Coordinator resources | `helm-values/trino.yaml` | `coordinator.resources` | `requests: {cpu: "500m", memory: "2300Mi"}, limits: {memory: "3000Mi"}` | CPU/memory requests and limits for the coordinator. |
 | Worker resources | `helm-values/trino.yaml` | `worker.resources` | `requests: {cpu: "500m", memory: "2300Mi"}, limits: {memory: "3000Mi"}` | CPU/memory requests and limits for workers. |
-| Object cache | `helm-values/trino.yaml` | `coordinator.additionalVolumes` / `fs.cache.*` in catalog config | cache dir `/var/trino/cache`, max size `10GB`, TTL `7d` | Worker-local file-system cache for object-store reads. |
+| Object cache | `helm-values/trino.yaml` | `additionalConfigProperties: cache-manager.config-files` + `additionalConfigFiles: cache-manager-alluxio.properties` | cache dir `/var/trino/cache`, max size `10GB`, TTL `7d` | Node-level file-system cache for object-store reads (Trino 483+); every coordinator and worker loads it, and a catalog only turns caching on. |
 | Authentication/TLS (when IdP present) | `helm-values/trino-identity.yaml` | `server.config.authenticationType`, `server.config.https` | `PASSWORD,OAUTH2`, HTTPS on `8443` | Enables authentication and in-cluster TLS when the platform IdP exists. |
 
 **What it replaces.** Trino replaces legacy query engines such as Hive/Impala for interactive SQL over object storage.
