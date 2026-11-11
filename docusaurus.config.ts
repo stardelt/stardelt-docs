@@ -58,6 +58,7 @@ const config: Config = {
 
   customFields: {
     demoUrl: 'https://alpha.dev.stardelt.io',
+    starRepo: 'stardelt/stardelt',
   },
 
   themeConfig: {
@@ -117,7 +118,7 @@ const config: Config = {
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
         { to: '/docs/developer', label: 'Contribute', position: 'left' },
         { to: '/demo', label: 'Try the demo', position: 'right', className: 'navbar-demo-button' },
-        { href: 'https://github.com/stardelt', label: 'GitHub', position: 'right' },
+        { type: 'custom-star', position: 'right' },
       ],
     },
     footer: {
@@ -137,6 +138,7 @@ const config: Config = {
           title: 'Community',
           items: [
             { label: 'GitHub', href: 'https://github.com/stardelt' },
+            { label: 'Star on GitHub ★', href: 'https://github.com/stardelt/stardelt' },
             { label: 'Wallpapers', to: '/docs/community/wallpapers' },
             { label: 'Contribute', to: '/docs/developer' },
             { label: 'Report a security problem', href: 'https://github.com/stardelt/.github/blob/main/SECURITY.md' },
