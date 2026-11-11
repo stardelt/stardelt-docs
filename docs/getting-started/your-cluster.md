@@ -193,3 +193,7 @@ chart assumes, not on a real install. If you try one, an
 [issue](https://github.com/stardelt/stardelt-platform/issues) with the output of
 `kubectl get events -n stardelt` helps a lot.
 :::
+
+<NextStep to="/docs/guides/source-to-dashboard" title="From source to dashboard">
+  Load data, model it in bronze, silver and gold, and show it in a dashboard.
+</NextStep>

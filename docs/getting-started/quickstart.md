@@ -77,16 +77,17 @@ ORDER BY people DESC;
 You have just written an Iceberg table to object storage and read it back through Trino. Open
 **Catalog** to see the table and its columns, and **Query log** to see the query you ran.
 
-## 5. Clean up
+<NextStep to="/docs/getting-started/prerequisites" title="Install stardelt with sign-in">
+  The quickstart has no sign-in, schedules, notebooks or dashboards. A full install has all of them; then you build your first pipeline.
+</NextStep>
+
+Something went wrong? See [Troubleshooting](../operations/troubleshooting).
+
+## When you are done
+
+This deletes the install and its data.
 
 ```bash
 helm uninstall stardelt -n stardelt
 kubectl delete namespace stardelt     # also deletes the data
 ```
-
-## Next steps
-
-- Something went wrong? See [Troubleshooting](../operations/troubleshooting).
-- Want sign-in, schedules, notebooks and dashboards? Choose an install in
-  [Prerequisites](./prerequisites).
-- Ready to work with real sources? Follow [From source to dashboard](../guides/source-to-dashboard).

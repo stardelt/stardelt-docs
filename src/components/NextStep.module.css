@@ -1,0 +1,43 @@
+/* The "Next" card: --sd-* tokens only, so it works in both themes. */
+
+.card {
+  display: block;
+  margin-top: 3rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--sd-accent-line);
+  border-radius: 12px;
+  background: var(--sd-surface);
+  text-decoration: none;
+  color: var(--sd-text);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.card:hover,
+.card:focus-visible {
+  border-color: var(--sd-accent);
+  background: var(--sd-accent-soft);
+  text-decoration: none;
+  color: var(--sd-text);
+}
+
+.label {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--sd-accent);
+}
+
+.title {
+  display: block;
+  margin-top: 0.25rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.body {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--sd-text-dim);
+}
