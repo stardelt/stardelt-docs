@@ -18,7 +18,7 @@ slug: /services/superset
 
 | Setting | Values file | Key | Default | What it changes |
 |---|---|---|---|---|
-| Superset image | `helm-values/superset.yaml` | `image.repository` / `image.tag` | `ghcr.io/stardelt/superset` / `dev@sha256:b9ced85d81a0c9efd2ca993f27bba5470e4815aad9d246b93e3ca5e62d26e8cd` | Stardelt Superset image with drivers pre-installed. |
+| Superset image | `helm-values/superset.yaml` | `image.repository` / `image.tag` | `ghcr.io/stardelt/superset` / `dev@sha256:9a7b5f965afe581655646ba4c5537cb9dca67464e2e3726da5526cf155d1c53f` | Stardelt Superset image with drivers pre-installed. |
 | Image pull secret | `helm-values/superset.yaml` | `imagePullSecrets` | `[{"name": "ghcr-creds"}]` | Pull secret for private image. |
 | Service account | `helm-values/superset.yaml` | `serviceAccountName` | `superset` | SA used by pods and init Jobs for group role sync. |
 | Bootstrap script | `helm-values/superset.yaml` | `bootstrapScript` | (inline script) | Startup bootstrap behavior. |

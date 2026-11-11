@@ -6,7 +6,7 @@ slug: /services/jupyterhub
 
 # JupyterHub
 
-**What it is.** A multi-user notebook environment (JupyterHub chart 4.4.3, appVersion 5.5.3).
+**What it is.** A multi-user notebook environment (JupyterHub chart 4.4.5, appVersion 5.5.5).
 
 **Why stardelt uses it.** JupyterHub provides interactive notebooks for analysis and exploration, integrated with the platform's identity and data access.
 
@@ -18,7 +18,7 @@ slug: /services/jupyterhub
 
 | Setting | Values file | Key | Default | What it changes |
 |---|---|---|---|---|
-| Chart version | `helm-values/jupyterhub.yaml` | (chart) | `jupyterhub/jupyterhub` 4.4.3 | JupyterHub chart version. |
+| Chart version | `helm-values/jupyterhub.yaml` | (chart) | `jupyterhub/jupyterhub` 4.4.5 | JupyterHub chart version. |
 | Hub identity env | `helm-values/jupyterhub.yaml` | `hub.extraEnv` | (from ConfigMap/Secret) | OIDC issuer, Nova origin, client secret from identity contract. |
 | OIDC endpoints/config | `helm-values/jupyterhub.yaml` | `hub.extraConfig` (`10-oidc`) | (derived from issuer) | Derives authorize/token/userinfo URLs and OAuth callback. |
 | Framing/cookies | `helm-values/jupyterhub.yaml` | `hub.extraConfig` (`15-framing`) | (from Nova origin) | Allows framing by Nova, sets SameSite=None Secure cookies. |
