@@ -26,11 +26,19 @@ If it is still missing, ask an administrator to check `stardelt-group-<group>` i
 
 ## Nova or Airflow
 
-Nova is where people run pipelines: **Run now**, **Pause**, **Resume** and **Stop run** act through Nova's service identity, so a group member needs no separate Airflow password, and every action is checked against the group that owns the pipeline first. **Graph in Airflow ↗** opens the Airflow graph, Gantt view and task logs; the Airflow UI is an optional advanced view for the same runs.
+Nova is where people run pipelines: **Run now**, **Pause**, **Resume** and **Stop run** act through Nova's service identity, so a group member needs no separate Airflow password, and every action is checked against the group that owns the pipeline first. The Airflow UI is a read-only view of the same runs: **Graph in Airflow ↗** opens the graph, the Gantt view and the task logs. Nothing can be started or paused there.
 
 ## What you may do
 
-Read and edit (pause, trigger) your group's DAGs and read/create their runs. No delete — deleting a pipeline is a Nova action on the `Pipeline` resource. Leaving the group takes effect at your next sign-in.
+Read your group's DAGs and their runs, graphs and task logs. Run, pause, resume and stop a pipeline in Nova, or with `stardelt run` and the API. Deleting a pipeline is a Nova action on the `Pipeline` resource. Leaving the group takes effect at your next sign-in.
+
+## What a pipeline is, and is not
+
+A pipeline is a `Pipeline` resource: tasks, their order, a schedule, parameters, retries and a time limit. The platform checks it before it runs and runs it as your group's service identity.
+
+It is not a program. It has no branching, no loops over data, no values passed between tasks and no sensors. Logic of that kind belongs inside a task: a SQL statement or a notebook.
+
+You cannot add DAG files of your own to the platform's Airflow. If your team already runs an orchestrator, let it start a pipeline and wait for it: `stardelt run <namespace> <name> --wait` exits 0 only when the run succeeded. See [SDK, CLI and MCP](sdk-cli-mcp.md).
 
 ## Notebooks and Spark
 
