@@ -21,7 +21,7 @@ in this section. When the two pages disagree, the *Identity* page is authoritati
 
 Pinned versions (`stardelt-platform/Makefile`): Trino chart 1.45.0 (Trino 484), Lakekeeper chart
 0.11.0 (Lakekeeper 0.12.2), Superset chart 0.15.5 (Superset 5.0.0, Flask-AppBuilder 4.5.5),
-Airflow chart 1.22.0 (Airflow 3.2.2, FAB provider 3.5.0), JupyterHub chart 4.4.5 (JupyterHub 5.5.3,
+Airflow chart 1.22.0 (Airflow 3.2.2, FAB provider 3.6.4), JupyterHub chart 4.4.5 (JupyterHub 5.5.5,
 OAuthenticator 17.4.0), SeaweedFS chart 4.25.1 (SeaweedFS 4.25).
 
 Anything marked **unverified** is not confirmed by upstream docs or source for the pinned
@@ -264,7 +264,7 @@ How the knob lands in each block:
      Each user goes through a second consent, and Superset stores their token. This path is
      **unverified** end to end against Trino 484 OAUTH2.
 
-### Airflow 3.2 (chart 1.21.0)
+### Airflow 3.2.2 (chart 1.22.0)
 
 - **Mechanism.** The chart already sets
   `config.core.auth_manager: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager`.
@@ -292,7 +292,7 @@ How the knob lands in each block:
   ```
 
   - **Redirect URI.** `https://airflow.<baseDomain>/auth/oauth-authorized/<provider>`.
-  - **Authlib.** It is in the Airflow 3.2.0 constraints (`Authlib==1.6.9`). Whether it is installed
+  - **Authlib.** It is in the Airflow 3.2.2 constraints (`Authlib==1.7.2`). Whether it is installed
     in the official image that stardelt's Airflow image builds on is **unverified**.
   - **Shared secrets.** The fixed dev `jwtSecret` and `webserverSecretKey` in
     `helm-values/airflow.yaml` must be replaced before SSO means anything.
@@ -301,7 +301,7 @@ How the knob lands in each block:
 - **Forwarding.** None. DAG tasks run with Airflow connections, so give them a dedicated
   client-credentials client per target (Lakekeeper, Trino). User identity ends at the Airflow UI.
 
-### JupyterHub 5.5.3 (chart 4.4.3, OAuthenticator 17.4.0)
+### JupyterHub 5.5.5 (chart 4.4.5, OAuthenticator 17.4.0)
 
 - **Mechanism.** OAuthenticator. Use `generic-oauth` for Keycloak or any OIDC provider; it has no
   discovery, so list all endpoints. Use `azuread` (`AzureAdOAuthenticator`, plus `tenant_id`) for
@@ -505,8 +505,8 @@ plus:
 - **Flask-AppBuilder:** security docs, and `security/manager.py` source at v4.5.4 (closest tag to
   4.5.5).
 - **Superset 5.0.0:** `config.py`, `db_engine_specs/trino.py` and `requirements/base.txt`.
-- **Airflow:** FAB provider SSO docs, Keycloak auth-manager docs, constraints-3.2.0.
-- **JupyterHub:** z2jh authentication docs, OAuthenticator API reference, and z2jh 4.4.3 hub
+- **Airflow:** FAB provider SSO docs, Keycloak auth-manager docs, constraints-3.2.2.
+- **JupyterHub:** z2jh authentication docs, OAuthenticator API reference, and z2jh 4.4.5 hub
   `requirements.txt`.
 - **SeaweedFS:** wiki *OIDC Integration* and *Admin UI OIDC* pages, and CVE-2026-77298 (OSV,
   GHSA-757h-cm9x-wprg).
