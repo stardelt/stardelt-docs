@@ -46,7 +46,7 @@ A typed connection to an outside system: settings here, the credentials in the s
 - a group connection needs ownerGroup and no usableBy
 - a managed connection needs usableBy and no ownerGroup
 - usableBy must list group names (letters, digits, dot, underscore, dash)
-- secret.remoteRef must not contain.. or //
+- secret.remoteRef must not contain .. or //
 - secret.keys must be unique names of letters, digits and underscore
 - config holds settings, not secrets: a name like password, secret or token belongs in secret.keys
 - a database connection needs config.host and the secret keys user and password

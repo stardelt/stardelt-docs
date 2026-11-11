@@ -906,7 +906,7 @@ Publish a notebook as a new immutable object version in the `notebooks` bucket. 
 
 Operation id `notebooks_delete`: in Python `client.call("notebooks_delete", …)`, on the command line `stardelt api notebooks_delete`.
 
-`DELETE /api/notebooks/{group}/{name}`: the notebook and every version of it (#298).
+`DELETE /api/notebooks/{group}/{name}`: the notebook and every version of it.
 
 Delete a published notebook and every version of it from the `notebooks` bucket; the bucket is versioned, so each version is removed by its id and the bytes are gone, not hidden. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). A notebook with no version is 404 `no such notebook`. The answer carries the number of versions removed. A schedule that pinned a deleted version fails its next run. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502 (a retry removes what is left). Each delete writes one audit line with group, name and the number of versions, never content. Answers `Cache-Control: no-store`.
 
@@ -989,7 +989,7 @@ The parameters of one published version of a notebook, read from the stored byte
 
 Operation id `notebooks_usage`: in Python `client.call("notebooks_usage", …)`, on the command line `stardelt api notebooks_usage`.
 
-The pipelines that run one published notebook — the schedules and on-demand pipelines of that group, sorted by name. Each row is the one-task `Pipeline` a Schedule created (#516): its pinned `objectVersion`, its cron and timezone when it has a schedule, and its `runAs`. Owner-group scoped: a caller who is not a member of `group` answers 403, and an administrator gets no wider view. Answers `Cache-Control: no-store`.
+The pipelines that run one published notebook — the schedules and on-demand pipelines of that group, sorted by name. Each row is the one-task `Pipeline` a Schedule created: its pinned `objectVersion`, its cron and timezone when it has a schedule, and its `runAs`. Owner-group scoped: a caller who is not a member of `group` answers 403, and an administrator gets no wider view. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1071,14 +1071,14 @@ The pipelines the caller may see: their groups' pipelines, and every pipeline fo
 
 Operation id `pipelines_create`: in Python `client.call("pipelines_create", …)`, on the command line `stardelt api pipelines_create`.
 
-Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`, #237) — both or neither is 400 `give a statement or a notebook`. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: "loading"`. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
+Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`) — both or neither is 400 `give a statement or a notebook`. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: "loading"`. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
 
 **Request body**
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
-| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
@@ -1182,7 +1182,7 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
-| `notebook` | object | No |  | A published notebook version to run instead of a statement (#237). |  |
+| `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
