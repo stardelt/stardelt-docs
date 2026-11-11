@@ -157,7 +157,7 @@
   display: flex;
   gap: 0.75rem;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
   margin-top: 1rem;
   color: var(--sd-text-dim);
