@@ -21,7 +21,25 @@ const config: Config = {
     mermaid: true,
     hooks: { onBrokenMarkdownLinks: 'warn' },
   },
-  themes: ['@docusaurus/theme-mermaid'],
+  themes: [
+    '@docusaurus/theme-mermaid',
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        docsRouteBasePath: '/docs',
+        indexDocs: true,
+        indexBlog: false,
+        indexPages: false,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        searchResultLimits: 8,
+        searchResultContextMaxLength: 60,
+        explicitSearchResultPath: true,
+        searchBarShortcutHint: true,
+      },
+    ],
+  ],
 
   presets: [
     [
