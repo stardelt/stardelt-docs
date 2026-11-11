@@ -130,15 +130,12 @@ administrators). A dashboard that spans two catalogs is administrators-only unti
   in Airflow, and **Graph in Airflow ↗** opens the graph, Gantt view and task logs. Run now, Pause,
   Resume and Stop are on the pipeline page in Nova, checked against your group.
 
-- **Maintenance runs on its own.** Every catalog whose owner group has a `pipeline-<ownerGroup>`
-  principal gets one `maint-<catalog>` CronJob, staggered after 02:00, that compacts small files,
-  expires old snapshots and removes orphan files. The catalog page shows when it last ran and how
-  many tables it optimized, and the table page repeats that catalog line above the table's file and
-  snapshot counts. `make verify-maintenance`
-  proves every catalog is scheduled. The [operator page](../services/operator) has the condition to
-  look at when a catalog says `MaintenanceReady=False`, and the
-  [checks page](../operations/checks) lists the target.
+- **Maintenance runs on its own** every night. The catalog page shows when it last ran. Administrators: see the [operator page](../services/operator).
 
 ## Not available yet
 
 Ingestion templates, SQL models with tests, and layer tags in the catalog.
+
+<NextStep to="/docs/guides/published-notebooks" title="Publish, schedule and watch a notebook">
+  Turn the notebook from step 3 into a pipeline that runs every night, and see each run.
+</NextStep>

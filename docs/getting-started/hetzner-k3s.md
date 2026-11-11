@@ -67,8 +67,6 @@ Without a domain, forward Nova to your machine and open http://localhost:8080:
 kubectl -n stardelt port-forward svc/nova 8080:8080
 ```
 
-Then follow [From source to dashboard](../guides/source-to-dashboard).
-
 ## Remove it
 
 This deletes the node and everything on it:
@@ -76,3 +74,7 @@ This deletes the node and everything on it:
 ```sh
 make dev-down
 ```
+
+<NextStep to="/docs/guides/source-to-dashboard" title="From source to dashboard">
+  Load data, model it in bronze, silver and gold, and show it in a dashboard.
+</NextStep>
