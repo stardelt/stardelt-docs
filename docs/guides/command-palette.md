@@ -23,8 +23,12 @@ press `Enter` on does the one thing named below.
 - **Pages** — the pages in the left navigation. Matched on their label or their path, and only the
   pages you may see: an administrator also gets the admin pages, nobody else does. At most eight rows
   per navigation group.
-- **Tables** — tables and views the catalog knows, from two characters onwards, searched a moment after
-  you stop typing. `Enter` opens the catalog explorer with that table selected.
+- **Catalogs** — the catalogs you may browse, matched on their name. The default catalog says so.
+  `Enter` opens the catalog explorer on that catalog.
+- **Schemas** — the schemas of those catalogs, matched on `catalog.schema`; every word you type must
+  appear. `Enter` opens the schema's page with its tables.
+- **Tables** — tables and views in the default catalog, from two characters onwards, searched a moment
+  after you stop typing. `Enter` opens the catalog explorer with that table selected.
 - **Pipelines** — the pipelines you may see, matched on their name. `Enter` opens the pipeline's page.
 - **Queries** — your own recent queries, the newest twenty. Matched on the statement or the query type,
   from two characters onwards; a row shows the first part of the statement. `Enter` opens the query log
@@ -49,5 +53,7 @@ When nothing matches, the palette says so and names what you typed:
 
 - It does not run SQL. There is no free-text statement box; use the SQL editor for that.
 - It does not search other people's saved queries, and **Queries** covers only what you ran yourself.
+- **Tables** does not search other catalogs yet. Open the catalog from **Catalogs** or **Schemas**, then
+  use the explorer's filter.
 - None of its actions change data. `Load data` takes you to the load page; nothing runs, uploads or
   deletes from the palette itself.
