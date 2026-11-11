@@ -99,7 +99,7 @@ const thingsToTry = [
 const goodToKnow = [
   'Everyone signs in as the same person: others can see what you type and save.',
   'Everything you create is deleted every night at 03:00 UTC.',
-  'You can query and create tables; notebooks and pipelines are not part of the demo.',
+  'You can query and create tables. Pipelines are not part of the demo.',
   'Please do not enter personal or confidential data.',
   'The lab is our development cluster: it can be slow, changed or down.',
 ];
