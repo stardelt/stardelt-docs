@@ -19,9 +19,9 @@ stardelt pins, the Helm value paths, the claims each block needs, and where the 
 can and cannot travel. The Nova-side contract (env vars, flows, rules) is on the *Identity* page
 in this section. When the two pages disagree, the *Identity* page is authoritative for the contract.
 
-Pinned versions (`stardelt-platform/Makefile`): Trino chart 1.42.2 (Trino 480), Lakekeeper chart
+Pinned versions (`stardelt-platform/Makefile`): Trino chart 1.45.0 (Trino 484), Lakekeeper chart
 0.11.0 (Lakekeeper 0.12.2), Superset chart 0.15.5 (Superset 5.0.0, Flask-AppBuilder 4.5.5),
-Airflow chart 1.21.0 (Airflow 3.2.0, FAB provider 3.5.0), JupyterHub chart 4.4.3 (JupyterHub 5.5.3,
+Airflow chart 1.22.0 (Airflow 3.2.2, FAB provider 3.5.0), JupyterHub chart 4.4.5 (JupyterHub 5.5.3,
 OAuthenticator 17.4.0), SeaweedFS chart 4.25.1 (SeaweedFS 4.25).
 
 Anything marked **unverified** is not confirmed by upstream docs or source for the pinned
@@ -100,7 +100,7 @@ How the knob lands in each block:
   - **Entra:** a token has exactly one resource audience, so Nova requests a scope on the
     stardelt API app (see the Entra section). Trino and Lakekeeper both trust that one audience.
 
-### Trino 480 (chart 1.42.2)
+### Trino 484 (chart 1.45.0)
 
 - **Mechanism.** `http-server.authentication.type=oauth2` (chart: `server.config.authenticationType: OAUTH2`).
   It covers browser login via `web-ui.authentication.type=oauth2` and bearer JWT access tokens
@@ -140,13 +140,16 @@ How the knob lands in each block:
   - **Access-token issuer.** `access-token-issuer` defaults to `issuer`. On Entra it only matches
     when the API app issues v2 tokens (`accessTokenAcceptedVersion: 2`).
   - **Redirect URI.** `https://trino.<baseDomain>/oauth2/callback`.
+  - **Web UI.** Trino 483 and later serve the redesigned UI at `/ui`. The previous UI is at
+    `/ui/legacy` and is off unless `web-ui.legacy.enabled=true` is set (a coordinator-only
+    property); both UIs use the same OAuth2 sign-in.
 - **Claims.**
   - **Principal.** `principal-field` picks one claim (default `sub`). `preferred_username` gives
     readable user names in query history and rules. On Entra it is mutable, so do not base
     authorization on it there. Use `oid` with `user-mapping` if the OPA bridge has to match
     Lakekeeper user IDs. **Unverified:** which form the bridge expects. Its docs only say
     "typically OIDC subject identifiers".
-  - **Groups.** Trino 480 documents no way to take groups from a token claim. Group providers are
+  - **Groups.** Trino 484 documents no way to take groups from a token claim. Group providers are
     `file` and `ldap` only. Role logic belongs in OPA (Lakekeeper permissions) or file rules keyed
     on users.
 - **Forwarding to Lakekeeper.** The documented path is a service principal (client credentials)
@@ -259,7 +262,7 @@ How the knob lands in each block:
      `oid`.
   3. **Per-user OAuth2 to Trino.** `supports_oauth2 = True` and `DATABASE_OAUTH2_CLIENTS["Trino"]`.
      Each user goes through a second consent, and Superset stores their token. This path is
-     **unverified** end to end against Trino 480 OAUTH2.
+     **unverified** end to end against Trino 484 OAUTH2.
 
 ### Airflow 3.2 (chart 1.21.0)
 
@@ -396,7 +399,7 @@ clients request it as an optional scope.
 
 - **Trino client type.** The Identity page and the `main` realm register `trino` as public, which
   is enough as a bearer audience. The Trino Web UI login also takes
-  `http-server.authentication.oauth2.client-secret`. Whether Trino 480 starts without a secret is
+  `http-server.authentication.oauth2.client-secret`. Whether Trino 484 starts without a secret is
   **unverified**, so register it as confidential when the Web UI login is enabled.
 - **Token lifespan.** Keycloak's default access-token lifespan is short. Lakekeeper recommends
   12 hours for interactive catalog use. Choose a realm value deliberately, because notebooks
@@ -496,8 +499,8 @@ Airflow tasks ──client-credentials(airflow-tasks)──▶ Lakekeeper / Trin
 Read for the pinned versions, from the Helm charts (`helm show values` at the pinned versions)
 plus:
 
-- **Trino 480:** OAuth 2.0, JWT, TLS, internal communication, group mapping and Iceberg REST
-  catalog pages (trino.io/docs/480).
+- **Trino 484:** OAuth 2.0, JWT, TLS, internal communication, group mapping and Iceberg REST
+  catalog pages (trino.io/docs/484).
 - **Lakekeeper 0.12.x:** authentication, configuration and OPA docs (docs.lakekeeper.io).
 - **Flask-AppBuilder:** security docs, and `security/manager.py` source at v4.5.4 (closest tag to
   4.5.5).
