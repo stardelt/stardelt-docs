@@ -80,6 +80,7 @@ const sidebars: SidebarsConfig = {
         'operations/checks',
         'operations/logs',
         'operations/rotating-secrets',
+        'operations/network-access',
         'operations/troubleshooting',
       ],
     },
