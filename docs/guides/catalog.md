@@ -25,7 +25,9 @@ pane says **Select a table to inspect it.** and offers **Load data**.
 
 The header names the schema in small capitals and the table below it, with a **View** badge when the object is a
 view. For a table it also shows the table's location in the object store, and — when the table has them — **Owner**
-and **Last changed**. Beside the name are the buttons that start the work:
+and **Last changed**. When the table has a current snapshot, one more line gives its exact size:
+`12,480 rows · 2.4 MB`. A table with no snapshot — or metadata without those counters — shows no line rather than a
+zero. Beside the name are the buttons that start the work:
 
 - **Query table** opens the SQL editor with `SELECT * FROM <catalog>.<schema>.<table> LIMIT 100`. A view's button
   reads **Query view**.
