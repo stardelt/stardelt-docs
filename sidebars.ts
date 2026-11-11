@@ -59,6 +59,7 @@ const sidebars: SidebarsConfig = {
         'guides/command-palette',
         'guides/catalog',
         'guides/sql-editor',
+        'guides/compute',
         'guides/lineage',
       ],
     },
