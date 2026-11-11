@@ -36,6 +36,9 @@ a warning (`!`), not a failure: the operator resubmits it on its next reconcile.
 operator upgrade, wait one reconcile (about a minute) and run the check again before treating
 it as a problem.
 
+Nova's **Health** page shows the same state live, including the images the cluster runs
+([Platform health](./health)).
+
 ## Nightly
 
 | Command | What it proves | A failure means |
