@@ -300,6 +300,16 @@ thead tr {
 .theme-admonition [class*='admonitionIcon'] svg { fill: var(--sd-adm, var(--sd-accent)); }
 .markdown img { border: 1px solid var(--ifm-toc-border-color); border-radius: 12px; }
 
+/* "Try the demo": the one filled button in the navbar. */
+.navbar__item.navbar-demo-button { background: #5b6cff; color: #ffffff; border-radius: 999px; padding: 6px 16px; margin: 0 8px; font-weight: 600; }
+.navbar__item.navbar-demo-button:hover { background: #4252e1; color: #ffffff; text-decoration: none; }
+@media (max-width: 996px) { .navbar__item.navbar-demo-button { margin: 8px 12px; text-align: center; } }
+
+/* The phone menu renders the same item as `.menu__link.navbar-demo-button` (there is no
+   `.navbar__item` there), so the pill needs one rule of its own, or it reads as plain text. */
+.navbar-sidebar .navbar-demo-button { background: #5b6cff; color: #ffffff; border-radius: 999px; font-weight: 600; margin: 8px 12px; padding: 6px 16px; text-align: center; }
+.navbar-sidebar .navbar-demo-button:hover { background: #4252e1; color: #ffffff; }
+
 /* Local search. The plugin brings its own light palette and paints the selected
    result with Infima's primary, which in Graphite is --sd-accent (#7a8aff) under
    white text (3.0:1). It reads its colours from these variables, so point them at
