@@ -88,6 +88,11 @@ list: a pattern does not have to be repeated under `files`.
 - A file is **additive** when every statement is `CREATE TABLE`, `CREATE TABLE AS`, `ALTER TABLE … ADD COLUMN` or
   `CREATE [OR REPLACE] VIEW`; anything else is **breaking** (`DROP`, `DELETE`, `RENAME`, …). Breaking files need
   `--allow-breaking`; without it the deploy writes nothing and exits `2`.
+- In a **`production`** target a breaking file needs a **second person** as well. The first deploy is refused with the plan
+  id on standard error; a colleague runs `stardelt bundle approve <plan-id>` with their own sign-in, and the next deploy
+  runs the file. The author of a plan cannot approve their own plan, and an approval covers exactly the files that were
+  planned: if a file changes after it was approved, the next deploy names a new id, which has to be approved too. A
+  `development` target never needs an approval.
 - Migrations run **before** the pipelines of the same deploy.
 - A deploy carries 1 to 200 migration files; each file is at most 512 KiB and the files together at most 4 MiB.
 
@@ -110,6 +115,22 @@ $ stardelt bundle deploy shop -t prod
 stardelt: prod: migrations: 002_add.sql: drop column is breaking; pass allowBreaking
 $ echo $?
 2
+```
+
+A breaking file in a target whose `mode` is `production` needs the flag **and** a second person:
+
+```console
+$ stardelt bundle deploy shop -t prod --allow-breaking
+stardelt: prod: migrations: a breaking change in a production target needs a second person: stardelt bundle approve 0f3c…
+$ echo $?
+2
+
+$ stardelt bundle approve 0f3c…            # the second person, their own sign-in
+{"planId": "0f3c…", "approver": "Bob", "approvedAt": 1762…}
+
+$ stardelt bundle deploy shop -t prod --allow-breaking
+{"action": "migration-in-ledger", "name": "001_init.sql"}
+{"action": "migration-applied", "name": "002_drop.sql"}
 ```
 
 ## A pipeline file
@@ -194,6 +215,7 @@ sign-in; the others talk to Nova.
 | `bundle validate [DIR] [-t TARGET]` | checks the bundle offline (every target, or one) | no |
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
 | `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them; `--dry-run` is `plan` | yes |
+| `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
 | `bundle destroy [DIR] -t TARGET [--yes]` | lists, and with `--yes` removes, what a deploy of the target left on the stage | with `--yes` |
@@ -215,7 +237,8 @@ Results are JSON lines on standard output; messages, warnings and problems go to
   already applied, `{"action": "would-apply-migration", "name": ..., "class": "additive"}` for a new one, and in a deploy
   `{"action": "migration-applied", "name": ...}` for each file it ran. A breaking file without `--allow-breaking` is a
   refusal: one sentence on standard error (`prod: migrations: 002_add.sql: drop column is breaking; pass allowBreaking`),
-  exit code `2`, and no pipeline written.
+  exit code `2`, and no pipeline written. `plan` works out the same plan id for the same files as a deploy would, but it
+  does not print it: in a `production` target, copy the id to approve from the refused deploy's sentence.
 - A stream app of the bundle prints `would-create` or `would-update` in a plan and `created` or `updated` in a deploy, after
   the pipelines; `summary` prints its row with `"kind": "StreamApp"`.
 - A pipeline whose notebook is a file adds one thing to this: when the file differs from the newest published version, `plan` prints
