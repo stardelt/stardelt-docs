@@ -18,7 +18,8 @@ Clicking a schema opens its page: the tables and views in it, each row saying wh
 opens that table's page. Clicking a table in the tree opens the table page directly.
 
 When no catalog is open to you, the tree says `no catalog is open to you yet; ask an administrator for access`.
-It can only change when an administrator grants you a catalog. With no table, schema or catalog selected, the right
+It can only change when an administrator grants you a catalog
+([Catalogs and access](../operations/catalogs-access)). With no table, schema or catalog selected, the right
 pane says **Select a table to inspect it.** and offers **Load data**.
 
 ## The table page

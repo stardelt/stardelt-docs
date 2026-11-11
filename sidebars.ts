@@ -83,6 +83,7 @@ const sidebars: SidebarsConfig = {
       label: 'Operate',
       collapsed: true,
       items: [
+        'operations/catalogs-access',
         'operations/production',
         'operations/backups',
         'operations/checks',
