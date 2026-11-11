@@ -501,6 +501,13 @@
 .slideCaption { min-height: 11rem; margin-top: 1.25rem; max-width: 52rem; }
 .slideBody { font-size: 1.15rem; color: var(--ifm-color-content); margin-bottom: .75rem; }
 @media (max-width: 700px) { .slideTabTitle { display: none; } .slideTabActive .slideTabTitle { display: inline; } .slideTabs { grid-template-columns: repeat(6, auto); overflow-x: auto; } .slideNav { opacity: 1; } }
+.slideStepTitle { display: none; margin: 0 0 .5rem; font-size: 1.1rem; }
+@media (max-width: 600px) {
+  .slideTab { justify-content: center; padding: .6rem .5rem; gap: 0; }
+  .slideTabTitle { display: none; }
+  .slideTabActive .slideTabTitle { display: none; }
+  .slideStepTitle { display: block; }
+}
 @media (prefers-reduced-motion: reduce) { .slideImage { transition: none; } .slideProgress { animation: none; transform: scaleX(1); } }
 
 /* ------------------------------------------------------------------ */
