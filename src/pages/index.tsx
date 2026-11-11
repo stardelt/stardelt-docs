@@ -817,8 +817,8 @@ export default function Home(): ReactNode {
     >
       <HomepageHero />
       <main>
-        <Story />
         <Pillars />
+        <Story />
         <Why />
         <EveryScreenHasAnApi />
         <DiveDeeper />
