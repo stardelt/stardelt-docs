@@ -217,8 +217,8 @@ const storySteps: StoryStep[] = [
     title: 'Load',
     body:
       "Drop a CSV or connect a source. It lands as an Iceberg table in the team's own catalog.",
-    img: '/img/nova/activity.png',
-    alt: 'Nova showing a recent load of data into the team catalog as an Iceberg table.',
+    img: '/img/nova/catalog.png',
+    alt: 'Nova catalog: the mobility catalog with its bronze, silver and gold schemas, and a Load data button.',
     code: {
       lang: 'python',
       text: 'stardelt.write_df(df, "mobility.bronze.trips", bronze=True)',
@@ -228,7 +228,7 @@ const storySteps: StoryStep[] = [
   },
   {
     n: 2,
-    title: 'Model and schedule',
+    title: 'Model',
     body:
       "Bronze to silver to gold in SQL, scheduled every night, running as the team's own service principal.",
     img: '/img/nova/pipeline.png',
@@ -465,6 +465,7 @@ function Story(): ReactNode {
           </button>
         </div>
         <div className={styles.slideCaption} aria-live="polite">
+          <h3 className={styles.slideStepTitle}>{step.n} · {step.title}</h3>
           <p className={styles.slideBody}>{step.body}</p>
           {step.code ? (
             <CodeBlock language={step.code.lang}>{step.code.text}</CodeBlock>
