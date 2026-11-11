@@ -98,8 +98,10 @@ const thingsToTry = [
 
 const goodToKnow = [
   'Everyone signs in as the same person: others can see what you type and save.',
+  'You can query, create tables, open a notebook and publish a pipeline.',
+  'A pipeline runs when you click Run or on a schedule, and it writes only to the playground.',
+  'The notebook is shared, and Start/Restart wipes its home directory.',
   'Everything you create is deleted every night at 03:00 UTC.',
-  'You can query and create tables. Pipelines are not part of the demo.',
   'Please do not enter personal or confidential data.',
   'The lab is our development cluster: it can be slow, changed or down.',
 ];
