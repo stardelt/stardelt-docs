@@ -50,6 +50,9 @@ The default chart and core installs have no sign-in and no permissions. Use them
 port-forward, with data you do not mind everyone on the cluster reading.
 :::
 
+Administrators grant catalog access, catalog-wide, on the **Catalogs** page
+([Catalogs and access](../operations/catalogs-access)).
+
 ## Credentials
 
 **No credential is committed, and none is a fixed default.** Every secret is generated once at install
