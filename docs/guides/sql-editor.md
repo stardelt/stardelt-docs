@@ -29,7 +29,7 @@ sample before you have typed anything, and they scroll with the statement.
 Keywords, strings, comments and numbers are coloured. The colours are drawn behind the text: the
 statement itself is unchanged, and it is sent to the engine exactly as you wrote it.
 
-`⌘/Ctrl+Enter` runs the statement, the same as **Run**.
+`⌘/Ctrl+Enter` does the same as **Run**: it runs the statement the cursor is in, or the text you selected.
 
 ## The Tables pane
 
@@ -57,6 +57,11 @@ same parameter.
 
 Type a statement and press **Run**, or press `⌘/Ctrl+Enter`. The button reads **Running…** while the
 statement is in flight and the result panel is cleared for the new answer.
+
+The editor can hold several statements, each ending in `;`. **Run** runs one of them: the selected text
+if you selected some, else the statement the cursor is in (on a blank line between two, the one above).
+The statement that ran is selected, so you can see which. A selection with two or more statements is
+refused: select one, or put the cursor in it. **Schedule** takes the same statement.
 
 At the right of the toolbar a muted line names the SQL warehouse — the compute class the engine puts this
 person's queries in — as `Warehouse: <name> (<size>)`. A statement does not set it.
