@@ -42,6 +42,9 @@ A schema with no matching table is hidden while the filter is set.
 Click a table to insert its fully qualified name, `catalog.schema.table`, at the caret; the `⊕` button on
 the row does the same. Either way the caret lands after the name, so typing continues the statement.
 
+Press ⌘K (Ctrl+K on Windows and Linux) to jump to any page, table or saved query — see
+[Find anything with ⌘K](./command-palette).
+
 ## From a link
 
 The catalog's **Query table** button (and **Query view** for a view) opens the editor with a statement
