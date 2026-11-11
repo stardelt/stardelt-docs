@@ -6,7 +6,7 @@ slug: /services/airflow
 
 # Airflow
 
-**What it is.** A DAG-based workflow orchestrator (Apache Airflow chart 1.21.0, appVersion 3.2.0).
+**What it is.** A DAG-based workflow orchestrator (Apache Airflow chart 1.22.0, appVersion 3.2.2).
 
 **Why stardelt uses it.** Airflow runs scheduled data pipelines on the platform. DAGs are baked into the stardelt-owned image so pipeline code and the runtime ship together.
 
@@ -19,7 +19,7 @@ slug: /services/airflow
 | Setting | Values file | Key | Default | What it changes |
 |---|---|---|---|---|
 | Executor | `helm-values/airflow.yaml` | `executor` | `KubernetesExecutor` | Task execution model (Kubernetes pods per task). |
-| Airflow image | `helm-values/airflow.yaml` | `images.airflow.repository` / `tag` / `digest` | `ghcr.io/stardelt/airflow` / `demo` / `sha256:2d9504d1a88770bbea76c64dae7cd64c2fb6097c19bc20d19d5b0314c5d4c33f` | Stardelt-owned image with DAGs baked in. |
+| Airflow image | `helm-values/airflow.yaml` | `images.airflow.repository` / `tag` / `digest` | `ghcr.io/stardelt/airflow` / `demo` / `sha256:465ca8862f9a886a42891c57aa9156194e153b082aace744fb2a5eb29ad7e211` | Stardelt-owned image with DAGs baked in. |
 | DAG source | `helm-values/airflow.yaml` | `dags.gitSync.enabled` / `dags.persistence.enabled` | `false` / `false` | DAGs come from the image, not gitSync or persistence. |
 | Logs storage | `helm-values/airflow.yaml` | `logs.persistence.enabled` | `false` | Task logs in emptyDir (lost on pod restart). |
 | Redis | `helm-values/airflow.yaml` | `redis.enabled` | `false` | Disabled for KubernetesExecutor. |
