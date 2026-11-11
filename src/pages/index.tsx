@@ -143,7 +143,7 @@ spec:
 
 function EveryScreenHasAnApi(): ReactNode {
   return (
-    <section id="api" className={styles.section}>
+    <section id="api" className={clsx(styles.section, styles.sectionAlt)}>
       <div className={styles.container}>
         <span className={styles.eyebrow}>Automate everything</span>
         <h2 className={styles.sectionTitle}>Every screen has an API.</h2>
@@ -630,6 +630,20 @@ const features: Feature[] = [
     to: '/docs/services/superset',
   },
   {
+    title: 'Lineage',
+    line: 'Every table: what made it, and what uses it.',
+    parts: [{name: 'Nova', kind: 'core'}],
+    why: 'Queries and OpenLineage events draw it inside your cluster; nothing is sent elsewhere.',
+    to: '/docs/guides/lineage',
+  },
+  {
+    title: 'Query log',
+    line: 'Every query with its time, data and memory.',
+    parts: [{name: 'Nova', kind: 'core'}],
+    why: "Each person sees their own queries, and a team sees its pipelines' runs.",
+    to: '/docs/guides/query-log',
+  },
+  {
     title: 'Sign-in and permissions',
     line: 'One sign-in, permissions by team.',
     parts: [
@@ -686,7 +700,7 @@ function Pillars(): ReactNode {
   };
 
   return (
-    <section id="pillars" className={styles.section}>
+    <section id="pillars" className={clsx(styles.section, styles.sectionAlt)}>
       <div className={styles.container}>
         <span className={styles.eyebrow}>Architecture</span>
         <h2 className={styles.sectionTitle}>
@@ -742,6 +756,7 @@ function Pillars(): ReactNode {
             </article>
           ))}
         </div>
+        <p className={styles.swipeHint}>{features.length} parts · swipe for more →</p>
       </div>
     </section>
   );
