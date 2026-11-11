@@ -49,6 +49,7 @@ const sidebars: SidebarsConfig = {
         'guides/overview',
         'guides/source-to-dashboard',
         'guides/connections',
+        'guides/load-and-transfer',
         'guides/schedule-sql',
         'guides/streams',
         'guides/notebooks-in-git',

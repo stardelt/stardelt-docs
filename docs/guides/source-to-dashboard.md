@@ -15,7 +15,7 @@ Superset: see [Prerequisites](../getting-started/prerequisites).
 
 | You have | Do this |
 |---|---|
-| A CSV or JSON file | Nova → **Load & transfer** → choose file, schema and table |
+| A CSV or JSON file | Nova → **Load & transfer** ([guide](/docs/guides/load-and-transfer)) → choose file, schema and table |
 | Data already in the platform | `CREATE TABLE AS SELECT` or `INSERT INTO … SELECT` in the SQL editor or a notebook |
 | A REST API | Python in a notebook (`requests` → DataFrame), then write the table (step 2) |
 | A database | Read it from a notebook with a [connection](connections), then write the table |
