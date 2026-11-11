@@ -642,3 +642,20 @@
 .defaultKind { color: var(--sd-legend-ok); }
 .optIn { color: var(--sd-legend-warn); }
 .plug { color: var(--sd-legend-info); }
+
+/* ------------------------------------------------------------------ */
+/*  Star band                                                           */
+/* ------------------------------------------------------------------ */
+
+.starBand {
+  text-align: center;
+}
+
+.starRow {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}

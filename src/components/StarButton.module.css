@@ -1,0 +1,87 @@
+/* The star button: --sd-* tokens only, so it works in both themes. */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--sd-text);
+  text-decoration: none;
+  white-space: nowrap;
+  font-weight: 600;
+  line-height: 1;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.button:hover {
+  color: var(--sd-text);
+  text-decoration: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--sd-accent);
+  outline-offset: 2px;
+}
+
+.mark {
+  flex: none;
+}
+
+.star {
+  color: var(--sd-accent);
+  font-size: 0.85em;
+}
+
+/* Navbar: a small pill, 32 px high. */
+.nav {
+  border: 1px solid var(--sd-border);
+  border-radius: 999px;
+  height: 32px;
+  padding: 0 0.85rem;
+  font-size: 0.9rem;
+}
+
+.nav:hover {
+  border-color: var(--sd-accent);
+}
+
+.nav .count {
+  border-left: 1px solid var(--sd-border);
+  margin-left: 0.15rem;
+  padding-left: 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Below the navbar breakpoint Docusaurus moves the items into the sidebar; the item is shown
+   there as a full-width row and not twice. */
+@media (max-width: 996px) {
+  :global(.navbar__items) .nav {
+    display: none;
+  }
+}
+
+/* A phone shows the navbar items in the sidebar; there the item is a full-width row. */
+:global(.navbar-sidebar) .nav {
+  justify-content: center;
+  margin: 0.75rem 0;
+  width: 100%;
+}
+
+/* Page bands: the size of button--lg, outlined in the accent. */
+.band {
+  border: 1px solid var(--sd-accent);
+  border-radius: 999px;
+  padding: 0.9rem 1.6rem;
+  font-size: 1.05rem;
+}
+
+.band:hover {
+  border-color: var(--sd-accent);
+  background: var(--sd-accent-soft);
+}
+
+.band .count {
+  border-left: 1px solid var(--sd-accent-line);
+  margin-left: 0.2rem;
+  padding-left: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}

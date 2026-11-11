@@ -17,6 +17,7 @@
     "sync:reference": "node scripts/sync-reference.mjs",
     "gen:reference": "node scripts/gen-reference.mjs",
     "screenshots": "node scripts/screenshots/capture.mjs",
+    "stars": "node scripts/star-count.mjs",
     "og": "node scripts/og/render.mjs"
   },
   "dependencies": {

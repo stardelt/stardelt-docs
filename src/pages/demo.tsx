@@ -4,6 +4,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 
 import styles from './demo.module.css';
+import StarButton from '@site/src/components/StarButton';
 
 /* ------------------------------------------------------------------ */
 /*  The shared sign-in                                                  */
@@ -126,6 +127,9 @@ export default function Demo(): ReactNode {
             A live stardelt in our lab, with a small shop&apos;s data: browse the
             catalog, query it, follow its lineage, and build your own tables.
           </p>
+          <p className={styles.starLine}>
+            Free and open source. <StarButton variant="nav" />
+          </p>
         </header>
 
         <section className={styles.card}>
@@ -195,6 +199,18 @@ export default function Demo(): ReactNode {
           Want your own?{' '}
           <Link to="/docs/getting-started/quickstart">Install stardelt</Link>
         </p>
+
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Liked it?</h2>
+          <p>
+            Star stardelt on GitHub, then install it on your own cluster with the
+            quickstart.
+          </p>
+          <div className={styles.starRow}>
+            <StarButton variant="band" />
+            <Link to="/docs/getting-started/quickstart">Start the quickstart →</Link>
+          </div>
+        </section>
       </main>
     </Layout>
   );

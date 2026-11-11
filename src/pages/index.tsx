@@ -16,6 +16,7 @@ import ThemedImage from '@theme/ThemedImage';
 import clsx from 'clsx';
 
 import styles from './index.module.css';
+import StarButton from '@site/src/components/StarButton';
 
 /* ------------------------------------------------------------------ */
 /*  SVG icons                                                           */
@@ -108,7 +109,7 @@ function HomepageHero(): ReactNode {
             ))}
           </div>
           <p className={styles.heroLinks}>
-            <Link href="https://github.com/stardelt" className={styles.githubLink}>GitHub ↗</Link>
+            <Link href="https://github.com/stardelt" className={styles.githubLink}>Source on GitHub ↗</Link>
           </p>
         </div>
         <div className={styles.heroVisual}>
@@ -805,10 +806,26 @@ function DiveDeeper(): ReactNode {
   );
 }
 
+function StarBand(): ReactNode {
+  return (
+    <section id="star" className={clsx(styles.section, styles.starBand)}>
+      <div className="container">
+        <h2 className={styles.sectionTitle}>Like where this is going?</h2>
+        <p className={styles.sectionLede}>
+          A star helps other data teams find stardelt, and tells us what to keep building.
+        </p>
+        <div className={styles.starRow}>
+          <StarButton variant="band" />
+          <Link to="/docs/developer">Or contribute →</Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Page                                                                */
 /* ------------------------------------------------------------------ */
-
 export default function Home(): ReactNode {
   const { siteConfig } = useDocusaurusContext();
   return (
@@ -823,6 +840,7 @@ export default function Home(): ReactNode {
         <Why />
         <EveryScreenHasAnApi />
         <DiveDeeper />
+        <StarBand />
       </main>
     </Layout>
   );
