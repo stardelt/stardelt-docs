@@ -54,6 +54,7 @@ const sidebars: SidebarsConfig = {
         'guides/published-notebooks',
         'guides/airflow',
         'guides/query-log',
+        'guides/command-palette',
         'guides/catalog',
         'guides/sql-editor',
         'guides/lineage',
