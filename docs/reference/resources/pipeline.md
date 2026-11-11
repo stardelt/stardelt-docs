@@ -67,7 +67,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - a sql task needs a sql statement
 - publish: wap needs a quality task with at least one check
 - publish: wap needs a task that writes at least one table
-- a notebook task needs config.notebook (a.ipynb file name) and config.objectVersion (the published version)
+- a notebook task needs config.notebook (a .ipynb file name) and config.objectVersion (the published version)
 - notebook tasks accept only notebook, objectVersion and params
 - notebook params must be a JSON object string of at most 4096 characters
 - a sql task cannot name a connection: it runs inside the engine

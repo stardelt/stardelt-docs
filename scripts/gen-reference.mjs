@@ -36,23 +36,22 @@ function publicText(value) {
       '',
     )
     // A parenthetical that is nothing but a reference, with optional trailing words
-    // (`nova#628 decision 1`, ``(`stardelt-platform#427`)``).
+    // (`nova#628 decision 1`, (stardelt-platform#427), (#298)).
     .replace(
-      /\s*\(\s*`?(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal)#\d+(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?\s*\)/gi,
+      /\s*\(\s*`?(?:(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal))?#\d+(?:'s builders)?(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?\s*\)/gi,
       '',
     )
     // A reference at the end of a longer parenthetical, after a comma: drop the comma too.
     .replace(
-      /\s*,\s*`?(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal)#\d+(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?\s*(?=\))/gi,
+      /\s*,\s*`?(?:(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal))?#\d+(?:'s builders)?(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?\s*(?=\))/gi,
       '',
     )
     // A bare reference anywhere else in the sentence.
     .replace(
-      /\s*`?(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal)#\d+(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?/gi,
+      /\s*`?(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal)#\d+(?:'s builders)?(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?/gi,
       '',
     )
-    .replace(/\(\s*\)/g, '')
-    .replace(/\s+([.,;:])/g, '$1')
+    .replace(/\s+([.,;:])(?!\.|\w)/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
 }

@@ -65,4 +65,4 @@ A data domain: a catalog with its storage location, an owner group and grants.
 ## Validation rules
 
 - each group may hold each verb once
-- storage.keyPrefix must not contain.. or //
+- storage.keyPrefix must not contain .. or //
