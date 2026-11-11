@@ -92,5 +92,6 @@ still copies a query for a notebook or the CLI.
 
 ## Next
 
+- [The Overview page](./overview) — the numbers, the timeline and the freshness of your tables.
 - [The SQL editor](./sql-editor) — write and run your own statements.
 - [Table lineage](./lineage) — follow a table's sources and its readers.

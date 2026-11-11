@@ -46,6 +46,7 @@ const sidebars: SidebarsConfig = {
       label: 'Work with data',
       collapsed: false,
       items: [
+        'guides/overview',
         'guides/source-to-dashboard',
         'guides/connections',
         'guides/schedule-sql',
