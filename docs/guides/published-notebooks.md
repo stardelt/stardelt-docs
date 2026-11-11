@@ -181,12 +181,8 @@ behind the run see [Service principals](service-principals).
 
 ### All runs in one place
 
-**Build** → **Runs** lists every run of the notebooks and pipelines your groups own, newest first, at
-most 100. The columns are Pipeline, Kind, State, Started, Duration and Trigger; the pipeline name opens
-the schedule. Filter by kind (SQL, Notebook, Pipeline), by state (`running`, `queued`, `success`,
-`failed`, `skipped`, `upstream_failed`) and by group; the filters are kept in the address bar, so
-`/runs?kind=notebook&state=failed` can be bookmarked or sent to a colleague. While a listed run is
-running or queued the page refreshes itself every five seconds; otherwise reload it.
+Every run of your group's notebooks and pipelines is on [Runs](runs.md), beside the runs of SQL
+pipelines; the columns, the filters and the refresh are described there.
 
 ### One schedule's runs
 

@@ -55,6 +55,7 @@ const sidebars: SidebarsConfig = {
         'guides/streams',
         'guides/notebooks-in-git',
         'guides/published-notebooks',
+        'guides/runs',
         'guides/airflow',
         'guides/query-log',
         'guides/command-palette',
