@@ -160,6 +160,7 @@
         },
         "ingress": {
           "default": {
+            "allowedCidrs": [],
             "enabled": false,
             "tls": {
               "enabled": false,
@@ -168,6 +169,17 @@
           },
           "description": "How the applications are reached from outside the cluster; see [`IngressSettings`].",
           "properties": {
+            "allowedCidrs": {
+              "default": [],
+              "description": "Source ranges that may open a connection to the public endpoints\n(`stardelt-platform#427`). Empty = open to everyone. A non-empty list renders\n`nginx.ingress.kubernetes.io/whitelist-source-range` on every Ingress this operator\napplies (ingress-nginx; other controllers ignore it). Entries are CIDRs, at most 64.\nAlways include the cluster's own egress address: pods that call the public names\narrive through it.\n\nThe bounds are not cosmetic: the API server's CEL cost estimator treats an\nunbounded array under a `matches()` rule as unbounded, and refuses the whole\nCRD (\"estimated rule cost exceeds budget by factor of more than 100x\",\noperator#536). `maxItems`/`maxLength` are what make the rule affordable.",
+              "items": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 64,
+              "type": "array"
+            },
             "className": {
               "description": "IngressClass name, for example `nginx` or `traefik`. Absent: the cluster default.",
               "maxLength": 253,
@@ -215,6 +227,14 @@
             {
               "message": "ingress.tls.enabled needs ingress.tls.issuer, the name of a cert-manager ClusterIssuer",
               "rule": "!has(self.tls) || !has(self.tls.enabled) || !self.tls.enabled || (has(self.tls.issuer) && size(self.tls.issuer) > 0)"
+            },
+            {
+              "message": "ingress.allowedCidrs: at most 64 entries",
+              "rule": "size(self.allowedCidrs) <= 64"
+            },
+            {
+              "message": "ingress.allowedCidrs: each entry is a CIDR such as 203.0.113.0/24",
+              "rule": "self.allowedCidrs.all(c, c.matches('^[0-9a-fA-F:.]+/[0-9]{1,3}$'))"
             }
           ]
         },

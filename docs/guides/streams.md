@@ -31,7 +31,8 @@ passed. The number is historical; only the blue form says the stream is recoveri
 now, which is the same window that produces the `Restarting` reason below.
 
 If nothing runs on the bus yet, the page is empty and says: "No streams yet. A stream is
-created as a `StreamApp` resource; ask an administrator to add one."
+created as a `StreamApp` resource; ask an administrator to add one." A stream can also come from a
+bundle in Git — see [Deploy a stream from Git](#deploy-a-stream-from-git).
 
 ## When the phase and the reason disagree
 
@@ -106,6 +107,51 @@ run again.
 ```bash
 kubectl get streamapps -n <namespace>
 ```
+
+## Deploy a stream from Git
+
+A stream app can live in a bundle next to the pipelines, so the same pull request that changes a
+pipeline can change its stream, and a reviewer sees both. Put the file anywhere the bundle's
+`include` matches; `resources/measurements.yaml` is the usual place:
+
+```yaml
+kind: StreamApp
+name: measurements
+ownerGroup: sales
+source: {topic: pegelonline.measurements}
+sink: {catalog: "${var.catalog}", table: bronze.measurements, mode: merge, mergeKeys: [station]}
+```
+
+The file is not a pipeline: `sql`, `sqlFile`, `notebook`, `schedule` and `params` are refused.
+`name`, `source.topic`, `sink.catalog` and `sink.table` are required; `sink.table` is
+`schema.table` inside the sink catalog, not `catalog.schema.table`. Optional are `ownerGroup` (the
+bundle's group is used when it says nothing), `source.connectionRef` (the name of a `Connection`
+for an external Kafka — the topic is still required), `sink.mode` (`merge` or `append`),
+`sink.mergeKeys` and `restartPolicy` (`always` or `on-failure`).
+
+The commands are the ones that deploy pipelines; the stream's row appears among the pipeline rows
+with only its action and name:
+
+```bash
+stardelt bundle plan shop -t prod
+stardelt bundle deploy shop -t prod
+```
+
+```text
+{"action": "would-create", "name": "measurements"}
+{"action": "created", "name": "measurements"}
+```
+
+A `development` target deploys the stream under `dev-<your sign-in name>-<name>`
+(`dev-alice-measurements`), so two people can try the same stream side by side; a `production`
+target uses the name in the file. A deploy stamps the stream with the bundle, the target and the
+revision (the commit, when the directory is a Git checkout). `stardelt bundle summary shop -t prod`
+lists it with `"kind": "StreamApp"`. `--prune` and `destroy` remove pipelines only today: a stream
+app is left in place, and a stream created by hand or by another bundle is never touched.
+
+The stream itself runs on the cluster as the `StreamApp` resource this page shows; the bundle is
+how it gets there and how it changes. Every key of the file is in the
+[Bundle reference](bundle-reference.md).
 
 ## A StreamApp example
 

@@ -268,7 +268,7 @@ spec:
     title: 'Trace',
     body: 'Lineage is recorded by every run, with no extra setup.',
     img: '/img/nova/lineage.png',
-    alt: 'Nova lineage view: a table with its upstream and downstream tables from recorded runs.',
+    alt: 'Nova lineage graph: trips_clean between its source and the tables built from it, with the jobs that move the data.',
     code: {lang: 'bash', text: 'stardelt run stardelt mobility-medallion --wait'},
     behind: ['Nova lineage', 'pipeline runs'],
     why: 'When a number looks wrong, you can see which run wrote it and from which source.',

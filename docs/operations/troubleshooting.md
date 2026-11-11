@@ -6,6 +6,11 @@ slug: /operations/troubleshooting
 
 # Troubleshooting
 
+## Where to look first
+
+Before you guess: the audit trail, the query log, run logs and component logs are indexed in
+[Where the logs are](./logs).
+
 Start with the blunt checks. They catch most problems:
 
 ```bash

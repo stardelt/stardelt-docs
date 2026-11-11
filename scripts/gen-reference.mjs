@@ -35,8 +35,23 @@ function publicText(value) {
       /\s*\((?:decisions? D\d+[^)]*|D\d+[^)]*|master spec[^)]*|internal note[^)]*)\)/gi,
       '',
     )
-    // Issue references mean nothing to a reader of the site.
-    .replace(/\s*\((?:(?:stardelt-)?[a-z]+)?#\d+(?:'s builders)?\)/gi, '')
+    // A parenthetical that is nothing but a reference, with optional trailing words
+    // (`nova#628 decision 1`, (stardelt-platform#427), (#298)).
+    .replace(
+      /\s*\(\s*`?(?:(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal))?#\d+(?:'s builders)?(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?\s*\)/gi,
+      '',
+    )
+    // A reference at the end of a longer parenthetical, after a comma: drop the comma too.
+    .replace(
+      /\s*,\s*`?(?:(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal))?#\d+(?:'s builders)?(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?\s*(?=\))/gi,
+      '',
+    )
+    // A bare reference anywhere else in the sentence.
+    .replace(
+      /\s*`?(?:stardelt-)?(?:nova|operator|platform|python|docs|demos|internal)#\d+(?:'s builders)?(?:\s+(?:decision|slice|part|option|step)s?[\s\w-]*)?`?/gi,
+      '',
+    )
+    .replace(/\s+([.,;:])(?!\.|\w)/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
 }

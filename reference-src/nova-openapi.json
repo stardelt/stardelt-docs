@@ -958,7 +958,7 @@
         "tags": [
           "public"
         ],
-        "description": "Find tables by name in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case. The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only names are searched (single-level namespaces), not comments or tags. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.",
+        "description": "Find tables in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case, or when one of its documented fields (the description, a tag, the owner, the domain) contains every word — a table found both ways appears once. `tag`, `owner` and `domain` narrow the answer to documented tables: a table without a documentation row has no tag, owner or domain, so it is not shown. Those three filters need the state store and answer 503 without it (demo mode has none). The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only single-level namespaces are searched. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.",
         "operationId": "catalog_search",
         "parameters": [
           {
@@ -988,6 +988,33 @@
               "type": "integer",
               "minimum": 0
             }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Only tables carrying this tag (exact, lowercase).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "owner",
+            "in": "query",
+            "description": "Only tables whose owner is this group.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "description": "Only tables in this domain (exact, lowercase).",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1002,7 +1029,7 @@
             }
           },
           "400": {
-            "description": "`q` is missing or longer than 100 characters, or the catalog name is invalid",
+            "description": "`q` is missing or longer than 100 characters, a filter is blank or longer than 64 characters, or the catalog name is invalid",
             "content": {
               "application/json": {
                 "schema": {
@@ -1033,6 +1060,16 @@
           },
           "502": {
             "description": "The catalog or the engine is not reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A `tag`, `owner` or `domain` filter was given and the state store is disabled",
             "content": {
               "application/json": {
                 "schema": {
@@ -3221,6 +3258,158 @@
         }
       }
     },
+    "/api/migrations/apply": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "description": "Run a bundle's new migration files against one target, once each, and record them in stardelt_meta.migrations in that catalog (stardelt-nova#617 decision 3). Files already applied with the same sha256 are skipped; a file whose content changed after it was applied, or a new file that sorts before an applied one, is refused (409). Statements that are not additive need allowBreaking. The statements and the ledger writes run as the caller, so the caller's catalog privileges apply.",
+        "operationId": "migrations_apply",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "What ran and what the ledger already had",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyAnswer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A malformed request, or a statement the engine refused: one sentence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Refused before anything ran: a changed or reordered file (ApplyAnswer with the errors), or a breaking file without allowBreaking (one sentence)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyAnswer"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The query engine is not reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The demo has no catalog to run migrations against",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/migrations/plan": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "description": "What a bundle's migration files would do to one target, and what already ran there (stardelt-nova#617 decision 3). Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.",
+        "operationId": "migrations_plan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The plan: per file, class and status, plus the problems",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanAnswer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A malformed request, one sentence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The query engine is not reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The demo has no catalog to plan migrations against",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notebooks": {
       "get": {
         "tags": [
@@ -3474,6 +3663,114 @@
           },
           "404": {
             "description": "No such notebook",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The notebook store did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Notebook storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notebooks/{group}/{name}/content": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/notebooks/{group}/{name}/content`: one stored version's bytes, as they are,\nso the notebook page can preview what a schedule would run (stardelt-nova#684).",
+        "description": "One published version's stored bytes, answered `application/json` as they are. The bytes are the notebook Nova stored: outputs emptied, `execution_count` null, so a preview of a published version shows source and markdown only. `?version=<id>` names the immutable version; omitted, the latest is read. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.",
+        "operationId": "notebooks_content",
+        "parameters": [
+          {
+            "name": "group",
+            "in": "path",
+            "description": "One of the caller's groups",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Notebook file name, ending in .ipynb",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The stored notebook bytes",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not a member of the group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such notebook version",
             "content": {
               "application/json": {
                 "schema": {
@@ -5061,6 +5358,134 @@
         }
       }
     },
+    "/api/pipelines/{namespace}/{name}/runs/{run_id}/tasks/{task_id}/notebook": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The executed copy of one notebook task run: the notebook with its outputs and tracebacks, as the run wrote it. That copy is the run's log. The same visibility rule as the run (404 for another group's pipeline), the same audit line as a log read, and `Cache-Control: no-store`. `download=true` also names the file `<pipeline>-<task>.ipynb` in `Content-Disposition`.",
+        "operationId": "pipelines_run_task_notebook",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The Pipeline's namespace (Nova's own)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "description": "Airflow's run id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "task_id",
+            "in": "path",
+            "description": "Task id: 1 to 64 letters, digits, underscores or dashes",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "download",
+            "in": "query",
+            "description": "Answer as a file attachment",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The executed notebook, as the run wrote it",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The task id is not 1 to 64 letters, digits, underscores or dashes, or `download` is not true or false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such pipeline for this caller, a pipeline without a group, or no executed copy for this task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The executed notebook is larger than 25 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The notebook store did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or notebook storage is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pipelines/{namespace}/{name}/spec": {
       "get": {
         "tags": [
@@ -5199,13 +5624,13 @@
           "public"
         ],
         "summary": "`GET /api/query-log?scope=mine|team|all&state=&warehouse=&q=&from=&to=&limit=&cursor=`",
-        "description": "The statements run on the engine, newest first, a page at a time. A person sees their own; an administrator may ask for everyone's with scope=all. Times are epoch milliseconds.",
+        "description": "The statements run on the engine, newest first, a page at a time. A person sees their own; an administrator may ask for everyone's with scope=all. Times are epoch milliseconds. With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's statement shows '?' in place of every string literal.",
         "operationId": "query_log_list",
         "parameters": [
           {
             "name": "scope",
             "in": "query",
-            "description": "mine (default), team or all. all is for administrators; team stays empty until ownership is recorded",
+            "description": "mine (default), team or all. team is the queries of the service principals owned by the caller's groups; all is for administrators",
             "required": false,
             "schema": {
               "type": "string"
@@ -5328,7 +5753,7 @@
           "public"
         ],
         "summary": "`GET /api/query-log/{id}` — everything stored about one query the caller may see.",
-        "description": "One query with its whole statement. Somebody else's query answers 404, exactly like a missing one; an administrator who opens another person's query is audited.",
+        "description": "One query with its whole statement. Somebody else's query answers 404, exactly like a missing one; an administrator who opens another person's query is audited. With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's statement shows '?' in place of every string literal.",
         "operationId": "query_log_detail",
         "parameters": [
           {
@@ -6258,7 +6683,7 @@
         "tags": [
           "public"
         ],
-        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is the time of the newest checkpoint commit, absent until the operator reports it. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
+        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is the time of the newest checkpoint commit, absent until the operator reports it. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
         "operationId": "streams_list",
         "responses": {
           "200": {
@@ -6304,7 +6729,177 @@
         }
       }
     },
+    "/api/streams/validate": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "description": "Check a stream write without writing it. The body is the body of `streams_put`: the stream's `name`, the `ownerGroup` the caller must belong to, `source` (`topic`, optional `connectionRef` naming a `Connection`) and `sink` (`catalog`, `table` as `schema.table`, `mode` `merge` or `append`, `mergeKeys`, optional `checkpointPrefix`), plus an optional `restartPolicy` (`always` or `on-failure`) and an optional `provenance` (`bundle`, `target`, optional `revision` and `repository`). Every rule a write runs is checked in order — the name, the body's name against the path's, the caller's groups, the provenance, the topic, the connection reference, the catalog, the table, the mode, the merge keys, the checkpoint prefix, the restart policy — and then the group's ready `ServicePrincipal`. `provenance` is the stamp a bundle deploy writes; it is checked with the same rules as a pipeline's, and the answer's `deployment` is what is stored. A rule that refuses is an answer, `ok: false` with one sentence in `errors`, status 200, never a 4xx; nothing is written. A cluster that does not answer is still 502 or 503, as on `pipelines_validate`. Answers `Cache-Control: no-store`.",
+        "operationId": "streams_validate",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The verdict: accepted, or the one sentence that refuses it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamValidation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/streams/{namespace}/{name}": {
+      "put": {
+        "tags": [
+          "public"
+        ],
+        "description": "Create or update one stream (`StreamApp`, D42). The body is the body of `streams_validate`; `name` must be the path's name. `provenance` (`bundle`, `target`, optional `revision` and `repository`) is the stamp a bundle deploy writes; it is checked with the same rules as a pipeline's, and the answer's `deployment` is what is stored. Nova writes `runAs: pipeline-<groupId>` itself (never from the body), stamps its own labels and the creator's annotation, and never carries `stopped`: it defaults to `false` on create and an update leaves the stored value alone. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter, a body name that differs from the path, a group the caller is not a member of, a topic outside 1 to 249 letters, digits, dot, underscore or dash, a bad connection reference, catalog, table, mode, merge key, checkpoint prefix or restart policy, a bundle stamp outside a pipeline's provenance rules — all 400; a group without a ready `ServicePrincipal` 409 with the `principals` route's message; a stream that belongs to another group 404 (the read path's rule, like a stream that does not exist); a body that moves an existing stream to another group 400 \"the group of an existing stream cannot change\"; a stream Nova did not write 409 `this stream was created outside Nova; change it where it was created`; a stream another writer changed between the read and the write 409 `the stream changed while it was being written; retry`. A foreign namespace and a stream that vanished are 404. The answer is the stored stream's view. Answers `Cache-Control: no-store`.",
+        "operationId": "streams_put",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The stream's namespace; only Nova's own namespace",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "The stream's name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StreamWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The stream as written",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StreamView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A rule of the body refuses the write, with its sentence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The namespace is not Nova's own",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "No ready principal, a stream written outside Nova, or a concurrent change",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": [
           "public"
@@ -6825,6 +7420,17 @@
             ],
             "description": "The medallion layer (`bronze`, `silver`, `gold`) from the `stardelt.io/layer` label\nor the catalog's own name; absent for every other catalog (stardelt-nova#109)."
           },
+          "maintenance": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CatalogMaintenance",
+                "description": "`status.maintenance`: what the newest finished maintenance run did, or absent when\nthe operator has not written one yet."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "managedAccess": {
             "type": "boolean",
             "description": "`spec.managedAccess`: the owner cannot grant on this catalog."
@@ -6952,6 +7558,71 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ApplyAnswer": {
+        "type": "object",
+        "required": [
+          "ok",
+          "applied",
+          "skipped",
+          "errors"
+        ],
+        "properties": {
+          "applied": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Files this call ran and recorded, in name order."
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "One sentence per problem."
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "False when `errors` is not empty: nothing after the failing file was applied."
+          },
+          "skipped": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Files the ledger already had with the same sha256."
+          }
+        }
+      },
+      "ApplyRequest": {
+        "type": "object",
+        "required": [
+          "catalog",
+          "target",
+          "files"
+        ],
+        "properties": {
+          "allowBreaking": {
+            "type": "boolean",
+            "description": "Run statements that are not additive. Default false."
+          },
+          "catalog": {
+            "type": "string",
+            "description": "The catalog the migration tables live in; the ledger is `stardelt_meta` in it."
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MigrationFile"
+            },
+            "description": "Every migration file of the bundle; the answer runs the `new` ones in name order."
+          },
+          "target": {
+            "type": "string",
+            "description": "The bundle target whose ledger rows count (`dev`, `prod`, …)."
           }
         }
       },
@@ -7203,6 +7874,17 @@
             ],
             "description": "`bronze`, `silver` or `gold` when the catalog is a medallion layer — from the\n`stardelt.io/layer` label on its `Catalog` resource, else from its name. Absent for\nevery other catalog."
           },
+          "maintenance": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CatalogMaintenance",
+                "description": "The newest finished maintenance run of this catalog's `Catalog` resource, or `null`\n(operator#476 slice d)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "name": {
             "type": "string",
             "description": "Catalog name, as the engine and the catalog spell it (`warehouse`, `finance`, …)."
@@ -7213,6 +7895,40 @@
               "null"
             ],
             "description": "`spec.owner` of the catalog's `Catalog` resource: the group that owns it, or `null`\nwhen there is no resource or it names no owner (stardelt-nova#577)."
+          }
+        }
+      },
+      "CatalogMaintenance": {
+        "type": "object",
+        "description": "What the newest finished `maint-<catalog>` Job did (operator#476 slice c).",
+        "properties": {
+          "lastResult": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`Succeeded` or `Failed`."
+          },
+          "lastRun": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The Job's completion time, RFC 3339."
+          },
+          "tablesDone": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "tablesFailed": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -8044,7 +8760,7 @@
               "boolean",
               "null"
             ],
-            "description": "`true` when the run, the schedule, the parameters or the options differ from what the last\ndeploy wrote: someone used the form, the YAML editor or `kubectl` since. Left out when they\nmatch, and for a pipeline stamped before the digest existed."
+            "description": "`true` when what the deploy decides differs from what it wrote: a pipeline's run,\nschedule, parameters and options, or a stream's source, sink, engine and restart policy.\nSomeone used the form, the YAML editor or `kubectl` since. Left out when they match, and\nfor a resource stamped before the digest existed."
           },
           "repository": {
             "type": [
@@ -8288,7 +9004,8 @@
           "jobNamespace",
           "jobName",
           "runId",
-          "eventTime"
+          "eventTime",
+          "runs"
         ],
         "properties": {
           "eventTime": {
@@ -8305,6 +9022,11 @@
           },
           "runId": {
             "type": "string"
+          },
+          "runs": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The runs of this job that wrote this edge in the window."
           },
           "to": {
             "type": "string"
@@ -8347,9 +9069,13 @@
           "kind",
           "name",
           "runs",
-          "lastRun"
+          "lastRun",
+          "handMade"
         ],
         "properties": {
+          "handMade": {
+            "type": "boolean"
+          },
           "id": {
             "type": "string"
           },
@@ -8374,9 +9100,14 @@
           "id",
           "namespace",
           "name",
-          "visible"
+          "visible",
+          "handMade"
         ],
         "properties": {
+          "handMade": {
+            "type": "boolean",
+            "description": "True when every used flow that touches this node was a hand-made (ad-hoc) job."
+          },
           "id": {
             "type": "string"
           },
@@ -8420,6 +9151,16 @@
           },
           "visible": {
             "type": "boolean"
+          },
+          "writers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/LineageWriter"
+            },
+            "description": "The jobs that wrote this node, newest first; only on the focus node."
           }
         }
       },
@@ -8436,9 +9177,42 @@
           },
           "people": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Distinct people: the SQL editor and notebooks, never a BI tool."
           },
           "queries": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The tools that read this node, most queries first, at most 5."
+          }
+        }
+      },
+      "LineageWriter": {
+        "type": "object",
+        "description": "One job that wrote the focus table, with its runs in the window.",
+        "required": [
+          "kind",
+          "name",
+          "runs",
+          "lastRun"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "lastRun": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "runs": {
             "type": "integer",
             "format": "int64"
           }
@@ -8515,6 +9289,7 @@
           "user",
           "auth_mode",
           "demo",
+          "shared_account",
           "warehouse",
           "stage_kind",
           "peers"
@@ -8539,6 +9314,10 @@
               "$ref": "#/components/schemas/Peer"
             },
             "description": "The peer stages `NOVA_PEER_STAGES` configures, so the Deployments page can offer them."
+          },
+          "shared_account": {
+            "type": "boolean",
+            "description": "This sign-in is shared by many people (the public demo); its data is reset nightly."
           },
           "stage_kind": {
             "type": "string"
@@ -8625,6 +9404,28 @@
             "format": "int64",
             "description": "Tables across them.",
             "minimum": 0
+          }
+        }
+      },
+      "MigrationFile": {
+        "type": "object",
+        "description": "One file, as the bundle has it. The client hashes the bytes it deploys.",
+        "required": [
+          "name",
+          "sha256",
+          "sql"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "`NNN_<words>.sql`: three digits, an underscore, lower-case words, `.sql`."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "The file's sha256, 64 lower-case hex digits."
+          },
+          "sql": {
+            "type": "string"
           }
         }
       },
@@ -8989,6 +9790,7 @@
           "user",
           "auth_mode",
           "demo",
+          "shared_account",
           "warehouse",
           "sub",
           "groups",
@@ -9076,6 +9878,10 @@
             "format": "int64",
             "description": "Unix seconds at which the browser session can no longer be renewed and the\nperson signs in again; `None` for an Authorization-header call, which has no\nsession. Never the access token's own `exp`.",
             "minimum": 0
+          },
+          "shared_account": {
+            "type": "boolean",
+            "description": "This sign-in is shared by many people (the public demo); its data is reset nightly."
           },
           "stage_kind": {
             "type": "string"
@@ -9434,6 +10240,101 @@
             "items": {
               "$ref": "#/components/schemas/TaskSpecView"
             }
+          }
+        }
+      },
+      "PlanAnswer": {
+        "type": "object",
+        "required": [
+          "ok",
+          "ledger",
+          "files",
+          "errors"
+        ],
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "One sentence per problem: a changed file, a file added before an applied one."
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlannedFile"
+            }
+          },
+          "ledger": {
+            "type": "boolean",
+            "description": "Whether `stardelt_meta.migrations` exists in the catalog yet (false on a fresh catalog)."
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "False when `errors` is not empty: the bundle must not be applied as it is."
+          }
+        }
+      },
+      "PlanRequest": {
+        "type": "object",
+        "required": [
+          "catalog",
+          "target",
+          "files"
+        ],
+        "properties": {
+          "catalog": {
+            "type": "string",
+            "description": "The catalog the sink tables live in; the ledger is `stardelt_meta` in it."
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MigrationFile"
+            },
+            "description": "Every migration file of the bundle, in any order; the answer sorts them by name."
+          },
+          "target": {
+            "type": "string",
+            "description": "The bundle target whose ledger rows count (`dev`, `prod`, …)."
+          }
+        }
+      },
+      "PlannedFile": {
+        "type": "object",
+        "required": [
+          "name",
+          "sha256",
+          "class",
+          "status",
+          "statements"
+        ],
+        "properties": {
+          "class": {
+            "type": "string",
+            "description": "`additive` when every statement only adds (see `classify`), else `breaking`."
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The first statement that is not additive, cut to 120 characters. Absent for `additive`."
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "statements": {
+            "type": "integer",
+            "description": "How many statements the file holds, as the splitter counts them.",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string",
+            "description": "`new` (not in the ledger), `applied` (same sha) or `changed` (applied with another sha)."
           }
         }
       },
@@ -10720,6 +11621,70 @@
           }
         }
       },
+      "StreamIssue": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "StreamSinkBody": {
+        "type": "object",
+        "required": [
+          "catalog",
+          "table"
+        ],
+        "properties": {
+          "catalog": {
+            "type": "string"
+          },
+          "checkpointPrefix": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mergeKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`merge` (default) or `append`."
+          },
+          "table": {
+            "type": "string",
+            "description": "`schema.table`."
+          }
+        }
+      },
+      "StreamSourceBody": {
+        "type": "object",
+        "required": [
+          "topic"
+        ],
+        "properties": {
+          "connectionRef": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Name of the `Connection` (`type: kafka`); absent means the platform's own bus."
+          },
+          "topic": {
+            "type": "string"
+          }
+        }
+      },
       "StreamState": {
         "type": "object",
         "description": "The one verb a stream has: stop or resume by setting `spec.stopped`.",
@@ -10730,6 +11695,24 @@
           "stopped": {
             "type": "boolean",
             "description": "The desired `spec.stopped`."
+          }
+        }
+      },
+      "StreamValidation": {
+        "type": "object",
+        "required": [
+          "ok",
+          "errors"
+        ],
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StreamIssue"
+            }
+          },
+          "ok": {
+            "type": "boolean"
           }
         }
       },
@@ -10756,6 +11739,17 @@
             ],
             "format": "int64",
             "description": "How many times Spark has submitted the application (`status.attempts`); absent until\nthe operator reports it (operator#336)."
+          },
+          "deployment": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DeploymentView",
+                "description": "What a bundle deploy stamped on the stream: bundle, target, revision, repository,\nwho and when. Absent when no bundle wrote it. `modified` is true when the spec was\nchanged after the last deploy."
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "last_checkpoint_at": {
             "type": [
@@ -10821,12 +11815,61 @@
           }
         }
       },
+      "StreamWrite": {
+        "type": "object",
+        "description": "The body of a stream write (`nova#617` slice a). No credentials: `connectionRef` is the\nname of a `Connection`, and Nova never stores or forwards a secret.",
+        "required": [
+          "name",
+          "ownerGroup",
+          "source",
+          "sink"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The stream's name; the `PUT` path is authoritative and a different body name is refused."
+          },
+          "ownerGroup": {
+            "type": "string",
+            "description": "The group that owns the stream; the caller must be a member."
+          },
+          "provenance": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Provenance",
+                "description": "Which bundle, target and commit this write deploys (`stardelt bundle deploy`).\nOmitted leaves what the stream already carries untouched."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "restartPolicy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`always` (default) or `on-failure`."
+          },
+          "sink": {
+            "$ref": "#/components/schemas/StreamSinkBody"
+          },
+          "source": {
+            "$ref": "#/components/schemas/StreamSourceBody"
+          }
+        }
+      },
       "StreamsResponse": {
         "type": "object",
         "required": [
+          "namespace",
           "streams"
         ],
         "properties": {
+          "namespace": {
+            "type": "string",
+            "description": "Nova's own namespace: every stream lives here, and a write's path names it."
+          },
           "streams": {
             "type": "array",
             "items": {

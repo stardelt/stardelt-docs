@@ -115,6 +115,37 @@ each run's executed notebook.
 Deleting a notebook deletes **every** version of it. A schedule that pinned a deleted version fails its
 next run; publish again and point the schedule at the new version.
 
+### Compare two versions
+
+Under the preview, **Compare with** lists every version except the one you are looking at. Choose one
+and a **What changed** card appears below the preview: it names the two versions it compares,
+`<from> → <to>`, and counts the cells that are changed, added and removed.
+
+Each differing cell is named by its position, as `Cell 3 · changed` (or `added` and `removed`), and
+followed by a line diff of its source: a line that starts with `+` is new, a line that starts with `-`
+was removed, and unchanged lines are shown without a sign, in muted text.
+
+Cells are matched by position. A cell you inserted in the middle therefore shows as changed cells from
+that point on, rather than as one added cell.
+
+Only the source is compared: a published version has no outputs.
+
+Comparing changes nothing. The notebook and every schedule that pins a version stay as they are. To
+move a schedule to the newest version, use **Move to newest** on the schedule's row in **Where it is
+used**.
+
+If the notebook has only one version, there is nothing to compare with and the control is absent.
+
+The block below is an illustration, not the output of a particular notebook:
+
+```text
+What changed: v3 → v4
+1 changed · 0 added · 0 removed
+Cell 2 · changed
+  + SELECT count(*) FROM mobility.gold.kpis
+  - SELECT count(*) FROM mobility.silver.kpis
+```
+
 ## Schedule a version
 
 Two ways in:

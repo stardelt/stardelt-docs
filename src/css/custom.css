@@ -309,3 +309,34 @@ thead tr {
    `.navbar__item` there), so the pill needs one rule of its own, or it reads as plain text. */
 .navbar-sidebar .navbar-demo-button { background: #5b6cff; color: #ffffff; border-radius: 999px; font-weight: 600; margin: 8px 12px; padding: 6px 16px; text-align: center; }
 .navbar-sidebar .navbar-demo-button:hover { background: #4252e1; color: #ffffff; }
+
+/* Local search. The plugin brings its own light palette and paints the selected
+   result with Infima's primary, which in Graphite is --sd-accent (#7a8aff) under
+   white text (3.0:1). It reads its colours from these variables, so point them at
+   the theme tokens rather than at its hashed class names; the selected result is
+   the accent filled with the page background as its text (Graphite: 5.3:1, Silver:
+   5.5:1) and the matched word is the accent on the row surface. */
+:root {
+  --search-local-modal-background: var(--sd-surface);
+  --search-local-modal-shadow: var(--sd-shadow);
+  --search-local-hit-background: var(--sd-surface-2);
+  --search-local-hit-color: var(--sd-text);
+  --search-local-highlight-color: var(--sd-accent);
+  --search-local-hit-active-color: var(--sd-bg);
+  --search-local-muted-color: var(--sd-text-dim);
+}
+
+/* The plugin draws the dropdown edge with an inset shadow and has no variable
+   for a border. */
+[class*='dropdownMenu_'] {
+  border: 1px solid var(--sd-border);
+}
+
+/* The matched word on the results page (inside a result card) and on a page the
+   search sends you to (mark.js, which the plugin tags with data-markjs). Both
+   would otherwise get the browser's yellow. */
+[class*='searchResultItem_'] mark,
+mark[data-markjs] {
+  background: var(--sd-accent-soft);
+  color: var(--sd-accent);
+}
