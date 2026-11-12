@@ -22,7 +22,7 @@ This page changes through pull requests, and a large change of scope starts with
 | **v0.2** Operator install | One resource and your values install the whole platform | A single manifest installs the platform on a fresh node and answers a query |
 | **v0.3** Data engineer workflow | Ingest, model, schedule, query log, connections, catalog documentation, developer sign-in | [From source to dashboard](guides/source-to-dashboard) works end to end by hand |
 | **v0.4** Operate and govern | Warehouse lifecycle, backups, alerting, permissions, upgrades, usage views | An operations team can run and upgrade a production install |
-| **v0.5** Agents and extensions | Hosted tool server, command line, VS Code extension | A local AI assistant works on the platform as the signed-in person |
+| **v0.5** Agents and extensions | Hosted tool server and command line | A local AI assistant works on the platform as the signed-in person |
 | **v0.6** Governance and sharing | Data products, federation, external sharing, file-drop ingestion, acceleration | |
 | **v0.7** AI and ML | Assistant, AI functions in SQL, vector search, feature store, tracking, serving, GPU | A model goes from a notebook to a served endpoint |
 
