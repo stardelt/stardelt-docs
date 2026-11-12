@@ -2,6 +2,7 @@
 title: "Install on a single Hetzner node"
 sidebar_label: "Single Hetzner node"
 slug: /getting-started/hetzner-k3s
+pagination_next: guides/source-to-dashboard
 ---
 
 # Install on a single Hetzner node

@@ -2,6 +2,7 @@
 title: "From source to dashboard"
 sidebar_label: "From source to dashboard"
 slug: /guides/source-to-dashboard
+pagination_next: guides/published-notebooks
 ---
 
 # From source to dashboard
