@@ -2,6 +2,7 @@
 title: "Quickstart"
 sidebar_label: "Quickstart"
 slug: /getting-started/quickstart
+pagination_next: getting-started/prerequisites
 ---
 
 # Quickstart
