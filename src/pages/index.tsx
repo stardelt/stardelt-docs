@@ -287,7 +287,73 @@ spec:
   },
 ];
 
-type TeamStory = {id: string; tab: string; title: string; lede: string; steps: StoryStep[]};
+const shopSteps: StoryStep[] = [
+  {
+    n: 1,
+    title: 'Ship',
+    body:
+      "The shop's SQL lives in Git as one bundle. One command puts it on a stage.",
+    img: '/img/nova/shop-deploy.png',
+    alt: "Nova Deployments page: the shop bundle's twelve pipelines, all on one commit.",
+    code: {lang: 'bash', text: 'stardelt bundle deploy . -t prod'},
+    behind: ['Git', 'bundle', 'Pipeline resource'],
+    why: 'Every pipeline says which commit it runs, and Nova shows when someone changed it by hand.',
+  },
+  {
+    n: 2,
+    title: 'Run',
+    body:
+      'Twelve steps run in order: bronze, silver, gold. A failed step stops the rest and says why.',
+    img: '/img/nova/shop-runs.png',
+    alt: "Nova Runs page with the shop pipelines' runs, all successful.",
+    code: {lang: 'bash', text: 'stardelt bundle run . -t prod'},
+    behind: ['Airflow 3', "the team's service principal"],
+    why: "The run belongs to the team, not to a person's laptop.",
+  },
+  {
+    n: 3,
+    title: 'Ask',
+    body:
+      'Who are the best customers? Window functions over governed tables, in the SQL editor.',
+    img: '/img/nova/shop-sql.png',
+    alt: 'Nova SQL editor showing the top ten customers by lifetime value from the gold shop table.',
+    code: {
+      lang: 'sql',
+      text: 'select customer_name, country, lifetime_value, value_rank from gold.shop.customer_ltv order by value_rank limit 10',
+    },
+    behind: ['Trino', 'Iceberg'],
+    why: 'Analysts query the same gold tables the dashboard uses.',
+  },
+  {
+    n: 4,
+    title: 'Trace',
+    body: 'Every gold table shows where its numbers come from.',
+    img: '/img/nova/shop-lineage.png',
+    alt: 'Nova lineage graph: daily_revenue built from order_lines and products by a shop pipeline run.',
+    code: null,
+    behind: ['Nova lineage'],
+    why: 'When revenue looks wrong, you follow it back to the order lines in one click.',
+  },
+  {
+    n: 5,
+    title: 'Share',
+    body: 'The shop dashboard reads the gold tables directly.',
+    img: '/img/nova/shop-dashboard.png',
+    alt: 'Nova showing the shop dashboard embedded from Superset: daily revenue, top customers and revenue by category.',
+    code: null,
+    behind: ['Superset', 'Trino'],
+    why: 'No extracts: the dashboard is as fresh as the last run.',
+  },
+];
+
+type TeamStory = {
+  id: string;
+  tab: string;
+  title: string;
+  lede: string;
+  steps: StoryStep[];
+  cta?: {to: string; label: string};
+};
 const stories: TeamStory[] = [
   {
     id: 'mobility',
@@ -295,6 +361,14 @@ const stories: TeamStory[] = [
     title: 'A day with the mobility team.',
     lede: 'Taxi trips arrive as a file at 7:00. By 9:00 the team has a modelled table, a daily schedule, lineage and a dashboard, without leaving one interface.',
     steps: storySteps,
+  },
+  {
+    id: 'shop',
+    tab: 'Shop team',
+    title: 'A day with the shop team.',
+    lede: 'Orders, products and customers, modelled in twelve SQL steps that live in Git. One command ships them; the platform runs, traces and shows them.',
+    cta: {to: '/demo', label: 'Try the shop yourself in the live demo →'},
+    steps: shopSteps,
   },
 ];
 
@@ -370,6 +444,7 @@ function Story(): ReactNode {
         <span className={styles.eyebrow}>See it work</span>
         <h2 className={styles.sectionTitle}>{story.title}</h2>
         <p className={styles.sectionLede}>{story.lede}</p>
+        {story.cta ? <p><Link to={story.cta.to}>{story.cta.label}</Link></p> : null}
         {stories.length > 1 ? (
           <div role="tablist">
             {stories.map((s, i) => (
