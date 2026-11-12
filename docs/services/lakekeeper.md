@@ -6,7 +6,7 @@ slug: /services/lakekeeper
 
 # Lakekeeper
 
-**What it is.** Lakekeeper is an Iceberg REST catalog (chart `lakekeeper/lakekeeper` 0.11.0, appVersion 0.12.2).
+**What it is.** Lakekeeper is an Iceberg REST catalog (chart `lakekeeper/lakekeeper` 0.14.0, appVersion 0.15.0).
 
 **Why stardelt uses it.** Lakekeeper vends table metadata and coordinates access to Iceberg tables. It is the catalog layer that attaches policy and provides a single point for catalog operations; engines like Trino use it to discover and manage Iceberg tables.
 

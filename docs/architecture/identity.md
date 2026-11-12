@@ -54,6 +54,12 @@ stardelt signs people in with OpenID Connect. Any provider that meets the requir
 | A groups claim in the access token (name set with `NOVA_OIDC_GROUP_CLAIM`, default `groups`) | permissions by group |
 | An audience that Nova and Trino accept | one token reaches Nova, Trino and the catalog |
 
+**Name the token endpoint.** The chart and the operator cannot fetch an external discovery document,
+so `identity.tokenEndpoint` carries the provider's `token_endpoint`
+(`<issuer>/.well-known/openid-configuration` → `token_endpoint`). `external` refuses to render or
+reconcile without it; `platform` derives it from the Keycloak it deploys. The requirements table
+above still applies — this value is the one endpoint stardelt cannot discover itself.
+
 **Tested providers**
 
 | Provider | Mode | Status |
