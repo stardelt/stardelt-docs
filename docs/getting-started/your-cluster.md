@@ -23,7 +23,7 @@ the permission store (OpenFGA) or Spark. For table permissions by group, install
 |---|---|
 | Kubernetes | verified on k3s 1.37; nothing here is distribution-specific beyond the notes below |
 | A default StorageClass | or set `storage.className`; check with `kubectl get storageclass` |
-| `helm` 3.18 or newer and `kubectl` | `helm dependency build` fetches the sub-charts |
+| `helm` 3.18 or newer and `kubectl` | `helm dependency update` fetches the sub-charts |
 | Optional: an ingress controller | only if you want the chart's Ingress objects (`ingress.enabled`) |
 | Optional: cert-manager | only if you want the chart's TLS annotations (`ingress.tls.enabled`) |
 
@@ -35,7 +35,7 @@ No ingress, no cert-manager and no LoadBalancer is required. Without them the se
 ```bash
 git clone https://github.com/stardelt/stardelt-platform
 cd stardelt-platform
-helm dependency build chart
+helm dependency update chart
 
 cat > my-values.yaml <<'YAML'
 platform:
