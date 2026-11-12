@@ -73,13 +73,17 @@ Open the pipeline under **Pipelines**:
 - **Retry failed tasks**, on the row of a failed run, re-runs only the tasks that failed in that run instead of repeating the ones
   that succeeded. If the pipeline changed since the run, or nothing failed, the page says so in the server's own words.
 - **Edit schedule** changes the statement and the schedule (the name and the group cannot change).
-  The dialog's **Advanced** block holds **Tell … when a run fails**: one checkbox per
-  [destination](destinations.md) of the pipeline's group, so a destination of another group is never offered. When a run
-  fails, after its retries are used up, each ticked destination receives one message: the pipeline, its group, the run's
-  id, how the run was triggered, when it started and how long it took, and a link to the pipeline page. It says that the
-  run failed and nothing more — no error text, no row data. A run a person stopped sends nothing, and a later successful
-  run sends nothing: only failures are sent. A webhook gets the message as JSON; an email destination records a failed
-  attempt until the platform's SMTP relay is configured. The pipeline page repeats the names under **Tells on failure**.
+  The dialog's **Tell … when a run ends** block has one checkbox per ending — **When it fails**, **When it succeeds**,
+  **When it recovers** — and each offers the [destinations](destinations.md) of the pipeline's group, so a destination of
+  another group is never offered. A ticked destination receives one message per run, at most once. **When it fails** sends
+  one message after the run's retries are used up: the pipeline, its group, the run's id, how it was triggered, when it
+  started and how long it took, a link to the pipeline page, the failed task and the first 2,000 characters of that task's
+  first log page — not row data. **When it succeeds** sends one message per successful run, with the same run facts and no
+  error. **When it recovers** tells the first successful run after a failed one to the recovery names and to the success
+  names, once each. A run a person stopped sends nothing, and the next successful run is a plain success, not a recovery. A
+  webhook gets the message as JSON; an email destination records a failed attempt until the platform's SMTP relay is
+  configured. The pipeline page repeats the names under **Tells on failure**, **Tells on success** and **Tells on
+  recovery**.
 - **Deployed from** (in the facts at the top) appears for a pipeline that `stardelt bundle deploy` published: the bundle, the
   target and the Git commit it came from, who deployed it and when (see [Publish pipelines from Git](publish-pipelines.md)).
   A pipeline made here has none.
@@ -108,7 +112,7 @@ where they came from; **Show definition** says so.
 - The dialog schedules **SQL or a published notebook**: switch the run kind to *Notebook* and pick the version.
   A notebook must be published first ([`stardelt.publish` in JupyterLab](./published-notebooks)); the dialog says so when a group has
   none.
-- Not available yet: a message when a run succeeds or recovers, and triggers other than a clock.
+- Not available yet: triggers other than a clock.
 
 ## When the dialog refuses
 
