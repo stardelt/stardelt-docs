@@ -19,7 +19,7 @@ A non-human identity (client credentials) for pipelines, maintenance and collect
 | `spec.existingSecretRef` | object (nullable) | No |  | Only with an external identity provider: the Secret that holds the app registration's credentials. |  |
 | `spec.existingSecretRef.name` | string | Yes |  |  | min 1, max 253; pattern `^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$` |
 | `spec.ownerGroup` | string | Yes |  | The group whose members may use the principal. Members never read its credentials. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
-| `spec.purpose` | string | No | `pipeline` | What a service principal is for. It decides nothing by itself (grants do); it makes the intent visible in `kubectl get` and in Nova. | `pipeline`, `maintenance`, `collector` |
+| `spec.purpose` | string | No | `pipeline` | What a service principal is for — a pipeline, maintenance, a collector, or the platform's own client. It decides nothing by itself (grants do); it makes the intent visible in `kubectl get` and in Nova. | `pipeline`, `maintenance`, `collector`, `catalog` |
 
 ## Status
 

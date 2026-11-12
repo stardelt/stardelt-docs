@@ -765,6 +765,24 @@ Operation id `lineage_columns`: in Python `client.call("lineage_columns", …)`,
 | `400` | catalog/schema/table required |
 | `403` | Not visible |
 
+### GET /api/lineage/read-tables
+
+Operation id `lineage_read_tables`: in Python `client.call("lineage_read_tables", …)`, on the command line `stardelt api lineage_read_tables`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `days` | query | integer | No | Time window in days, 1–365, default 30 |
+| `limit` | query | integer | No | Tables to answer, 1–20, default 5 |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The tables the caller read most, newest read first |
+| `503` | No state store |
+
 ### GET /api/lineage/runs/\{run_id\}
 
 Operation id `lineage_run_detail`: in Python `client.call("lineage_run_detail", …)`, on the command line `stardelt api lineage_run_detail`.
@@ -809,11 +827,13 @@ Run a bundle's new migration files against one target, once each, and record the
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `allowBreaking` | boolean | No |  | Run statements that are not additive. Default false. |  |
+| `approvalId` | string (nullable) | No |  | The `planId` a person other than the caller approved, for a breaking file in a production target. |  |
 | `catalog` | string | Yes |  | The catalog the migration tables live in; the ledger is `stardelt_meta` in it. |  |
 | `files` | array of object | Yes |  | Every migration file of the bundle; the answer runs the `new` ones in name order. |  |
 | `files[].name` | string | Yes |  | `NNN_<words>.sql`: three digits, an underscore, lower-case words, `.sql`. |  |
 | `files[].sha256` | string | Yes |  | The file's sha256, 64 lower-case hex digits. |  |
 | `files[].sql` | string | Yes |  |  |  |
+| `mode` | string | No |  | The bundle target's `mode` (`targets.<target>.mode` in bundle.yaml): `development` or `production`. Client-declared, like `allowBreaking`. |  |
 | `target` | string | Yes |  | The bundle target whose ledger rows count (`dev`, `prod`, …). |  |
 
 **Responses**
@@ -827,11 +847,36 @@ Run a bundle's new migration files against one target, once each, and record the
 | `502` | The query engine is not reachable |
 | `503` | The demo has no catalog to run migrations against |
 
+### POST /api/migrations/approve
+
+Operation id `migrations_approve`: in Python `client.call("migrations_approve", …)`, on the command line `stardelt api migrations_approve`.
+
+`POST /api/migrations/approve` — a second person says yes to a plan.
+
+Record that the caller has looked at a migration plan, so a breaking change may run in a production target. The body is the `planId` a plan answered with. The plan's own author cannot approve it: a second person has to. Repeating a call is a no-op that answers the same row with the first approval time. Plans and approvals live in the state store.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `planId` | string | Yes |  | The `planId` a plan answered with. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The recorded approval: who approved and when |
+| `400` | A malformed request, one sentence |
+| `401` | No token to sign in with |
+| `404` | No such plan: it was never planned on this Nova, or the state store was reset |
+| `409` | The caller is the plan's author: a second person has to approve it |
+| `503` | The state store is not configured |
+
 ### POST /api/migrations/plan
 
 Operation id `migrations_plan`: in Python `client.call("migrations_plan", …)`, on the command line `stardelt api migrations_plan`.
 
-What a bundle's migration files would do to one target, and what already ran there. Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.
+What a bundle's migration files would do to one target, and what already ran there. Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. `planId` names exactly the files that would run, and is what `approve` takes; `approvable` is false when no state store is configured. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.
 
 **Request body**
 
@@ -1082,6 +1127,10 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
+| `notify` | object | No |  | Who is told when a run ends (`spec.notify`). Omitted writes none; every name must be a destination of `ownerGroup`. |  |
+| `notify.onFailure` | array of string | No |  | Destinations told when the run fails, after the last retry. |  |
+| `notify.onRecovered` | array of string | No |  | Destinations told on the first success after a failure. |  |
+| `notify.onSuccess` | array of string | No |  | Destinations told when the run succeeds. |  |
 | `options` | object | No |  | Retries, the wait between them, the time limit and the run mode; omitted fields keep the defaults. |  |
 | `options.backoffMinutes` | integer (nullable) | No |  | The wait between attempts, 1 to 60 minutes. | format `int64` |
 | `options.concurrency` | string (nullable) | No |  | `Forbid` (one run at a time, the default) or `Allow` (runs side by side). |  |
@@ -1186,6 +1235,10 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
+| `notify` | object | No |  | Who is told when a run ends (`spec.notify`). Omitted writes none; every name must be a destination of `ownerGroup`. |  |
+| `notify.onFailure` | array of string | No |  | Destinations told when the run fails, after the last retry. |  |
+| `notify.onRecovered` | array of string | No |  | Destinations told on the first success after a failure. |  |
+| `notify.onSuccess` | array of string | No |  | Destinations told when the run succeeds. |  |
 | `options` | object | No |  | Retries, the wait between them, the time limit and the run mode; omitted fields keep the defaults. |  |
 | `options.backoffMinutes` | integer (nullable) | No |  | The wait between attempts, 1 to 60 minutes. | format `int64` |
 | `options.concurrency` | string (nullable) | No |  | `Forbid` (one run at a time, the default) or `Allow` (runs side by side). |  |
@@ -1239,7 +1292,7 @@ One pipeline: the list fields, the latest 20 runs, and the resource's `params`, 
 
 Operation id `pipelines_update`: in Python `client.call("pipelines_update", …)`, on the command line `stardelt api pipelines_update`.
 
-Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller may not act on 404; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
+Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller cannot see 404, and one it can see but may not change — a viewer (`spec.viewers`) — 403 `only the owner group may change this pipeline`; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1256,6 +1309,10 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
+| `notify` | object | No |  | Who is told when a run ends (`spec.notify`). Omitted keeps the stored `spec.notify`; given with all three lists empty, it removes it — a form save must not wipe a notification a bundle deployed until the form edits it. |  |
+| `notify.onFailure` | array of string | No |  | Destinations told when the run fails, after the last retry. |  |
+| `notify.onRecovered` | array of string | No |  | Destinations told on the first success after a failure. |  |
+| `notify.onSuccess` | array of string | No |  | Destinations told when the run succeeds. |  |
 | `options` | object | No |  | The whole option set; omitted means the defaults. |  |
 | `options.backoffMinutes` | integer (nullable) | No |  | The wait between attempts, 1 to 60 minutes. | format `int64` |
 | `options.concurrency` | string (nullable) | No |  | `Forbid` (one run at a time, the default) or `Allow` (runs side by side). |  |
@@ -1280,6 +1337,7 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 | `200` | The resource as written |
 | `400` | The statement, the cron or the timezone is invalid |
 | `401` | No token to sign in with |
+| `403` | The caller may see but not change this pipeline |
 | `404` | No such pipeline for this caller |
 | `409` | Managed outside Nova, an uneditable shape, no ready principal, or a conflict |
 | `502` | The cluster did not answer |
@@ -1289,7 +1347,7 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 
 Operation id `pipelines_delete`: in Python `client.call("pipelines_delete", …)`, on the command line `stardelt api pipelines_delete`.
 
-Delete a pipeline Nova created. Only a pipeline the caller may act on and that carries `app.kubernetes.io/managed-by: stardelt-nova` may be deleted: a `kubectl` or GitOps pipeline answers 409 instead. Airflow is not called — the resource is the source of truth; the DAG leaves the scheduler's default list after about 90 seconds while its history stays readable. Answers 204 with `Cache-Control: no-store`; the attempt is audited.
+Delete a pipeline Nova created. Only the owner group and administrators may delete: a viewer (`spec.viewers`) answers 403 `only the owner group may change this pipeline`, and a pipeline the caller cannot see 404. A pipeline that carries `app.kubernetes.io/managed-by: stardelt-nova` may be deleted: a `kubectl` or GitOps pipeline answers 409 instead. Airflow is not called — the resource is the source of truth; the DAG leaves the scheduler's default list after about 90 seconds while its history stays readable. Answers 204 with `Cache-Control: no-store`; the attempt is audited.
 
 **Parameters**
 
@@ -1304,6 +1362,7 @@ Delete a pipeline Nova created. Only a pipeline the caller may act on and that c
 | --- | --- |
 | `204` | Deleted (or already gone) |
 | `401` | No token to sign in with |
+| `403` | The caller may see but not change this pipeline |
 | `404` | No such pipeline for this caller |
 | `409` | The pipeline is managed outside Nova |
 | `502` | The cluster did not answer |
@@ -1313,7 +1372,7 @@ Delete a pipeline Nova created. Only a pipeline the caller may act on and that c
 
 Operation id `pipelines_pause`: in Python `client.call("pipelines_pause", …)`, on the command line `stardelt api pipelines_pause`.
 
-Pause a pipeline. Idempotent: pausing a paused pipeline answers 200. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+Pause a pipeline. Idempotent: pausing a paused pipeline answers 200. Changing a pipeline is the owner group's and administrators' verb: a viewer (`spec.viewers`) may read and run it but not pause it, and answers 403 `only the owner group may change this pipeline` — a pipeline the caller cannot see stays 404. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.
 
 **Parameters**
 
@@ -1328,6 +1387,7 @@ Pause a pipeline. Idempotent: pausing a paused pipeline answers 200. A pipeline 
 | --- | --- |
 | `200` | The pipeline, now paused |
 | `401` | No token to sign in with |
+| `403` | The caller may see but not change this pipeline |
 | `404` | No such pipeline for this caller |
 | `409` | The scheduler has not loaded this pipeline yet |
 | `502` | The scheduler or the cluster did not answer |
@@ -1337,7 +1397,7 @@ Pause a pipeline. Idempotent: pausing a paused pipeline answers 200. A pipeline 
 
 Operation id `pipelines_resume`: in Python `client.call("pipelines_resume", …)`, on the command line `stardelt api pipelines_resume`.
 
-Resume a pipeline. Idempotent: resuming a running pipeline answers 200. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+Resume a pipeline. Idempotent: resuming a running pipeline answers 200. Changing a pipeline is the owner group's and administrators' verb: a viewer (`spec.viewers`) may read and run it but not resume it, and answers 403 `only the owner group may change this pipeline` — a pipeline the caller cannot see stays 404. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.
 
 **Parameters**
 
@@ -1352,6 +1412,7 @@ Resume a pipeline. Idempotent: resuming a running pipeline answers 200. A pipeli
 | --- | --- |
 | `200` | The pipeline, now unpaused |
 | `401` | No token to sign in with |
+| `403` | The caller may see but not change this pipeline |
 | `404` | No such pipeline for this caller |
 | `409` | The scheduler has not loaded this pipeline yet |
 | `502` | The scheduler or the cluster did not answer |
@@ -1361,7 +1422,7 @@ Resume a pipeline. Idempotent: resuming a running pipeline answers 200. A pipeli
 
 Operation id `pipelines_run_trigger`: in Python `client.call("pipelines_run_trigger", …)`, on the command line `stardelt api pipelines_run_trigger`.
 
-Start a run now. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). `logicalDate` is always now, UTC, whole seconds, so the run has tasks; the note is `Started from Nova by <display name>`. Every attempt, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.
+Start a run now. A viewer (`spec.viewers`) may run the owner's statement and stop its runs: running cannot change what the pipeline does. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). `logicalDate` is always now, UTC, whole seconds, so the run has tasks; the note is `Started from Nova by <display name>`. Every attempt, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1406,11 +1467,36 @@ One run of a pipeline with its task instances. The run id is looked up through t
 | `502` | The scheduler or the cluster did not answer |
 | `503` | No cluster connection, or the scheduler is not configured |
 
+### POST /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/retry
+
+Operation id `pipelines_run_retry`: in Python `client.call("pipelines_run_retry", …)`, on the command line `stardelt api pipelines_run_retry`.
+
+Retry the failed tasks of a run, **in the same run**: the run keeps its id, date and parameters, and the tasks that already succeeded are not repeated (Airflow's run-scoped clear). A viewer (`spec.viewers`) may retry, as it may run and stop. A paused pipeline, a run that is not `failed`, and a run with no failed tasks are refused with 409. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and nothing is cleared. Answers the fresh `RunView` and `Cache-Control: no-store`. Every attempt is audited, including a refusal.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+| `run_id` | path | string | Yes | Airflow's run id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The run, with its failed tasks cleared for another attempt |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller, or no such run |
+| `409` | The run is not failed, the pipeline is paused, or there is nothing to retry |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
 ### POST /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/stop
 
 Operation id `pipelines_run_stop`: in Python `client.call("pipelines_run_stop", …)`, on the command line `stardelt api pipelines_run_stop`.
 
-Stop a run: mark it failed. This is **not a cancel** — work already in flight can finish and commit its side effects, so the answer promises only that the run is marked failed. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and is never patched. A run that is not `queued` or `running` answers 409 and is not patched. Answers the fresh `RunView` and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+Stop a run: mark it failed. A viewer (`spec.viewers`) may stop a run, as it may start one. This is **not a cancel** — work already in flight can finish and commit its side effects, so the answer promises only that the run is marked failed. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and is never patched. A run that is not `queued` or `running` answers 409 and is not patched. Answers the fresh `RunView` and `Cache-Control: no-store`. The attempt is audited, including a refusal.
 
 **Parameters**
 
@@ -1435,7 +1521,7 @@ Stop a run: mark it failed. This is **not a cancel** — work already in flight 
 
 Operation id `pipelines_run_task_logs`: in Python `client.call("pipelines_run_task_logs", …)`, on the command line `stardelt api pipelines_run_task_logs`.
 
-One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, the `::group::` source marker dropped (it names internal object-store paths and is never returned). `try` defaults to the task's last attempt; `token` is the `nextToken` of the previous answer. Every read writes one audit line with user, pipeline, run and task — never the content. Answers `Cache-Control: no-store`.
+One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, the `::group::` source marker dropped (it names internal object-store paths and is never returned). A failed task's line is followed by the exception the scheduler recorded (`ExcType: message`) and up to 20 of its stack frames, each with the file's last path segment; they count against the same caps. `try` defaults to the task's last attempt; `token` is the `nextToken` of the previous answer. Every read writes one audit line with user, pipeline, run and task — never the content. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1592,7 +1678,7 @@ One query with its whole statement. Somebody else's query answers 404, exactly l
 
 Operation id `runs_list`: in Python `client.call("runs_list", …)`, on the command line `stardelt api runs_list`.
 
-The runs of the caller's visible pipelines, newest first. A run carries the pipeline's `namespace`, `name` and `ownerGroup` and a `kind` of `sql`, `notebook` or `pipeline` (a multi-step pipeline). `limit` defaults to 50 and is at most 200. `state`, `kind`, `group` and `pipeline` (`<namespace>/<name>`) narrow the answer; an unknown state answers no rows rather than an error. A failed scheduler read for one pipeline is logged and skipped, not reported. Answers `Cache-Control: no-store`.
+The runs of the caller's visible pipelines, newest first. A run carries the pipeline's `namespace`, `name` and `ownerGroup` and a `kind` of `sql`, `notebook` or `pipeline` (a multi-step pipeline). `limit` defaults to 50 and is at most 200. `state`, `kind`, `group`, `pipeline` (`<namespace>/<name>`) and `notebook` (`<group>/<name>`) narrow the answer; an unknown state answers no rows rather than an error. A `notebook` filter is owner-group scoped: a caller who is not a member of the group answers 403. A failed scheduler read for one pipeline is logged and skipped, not reported. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1601,6 +1687,7 @@ The runs of the caller's visible pipelines, newest first. A run carries the pipe
 | `group` | query | string | No | Exact match on the pipeline's `spec.ownerGroup` |
 | `kind` | query | string | No | `sql`, `notebook` or `pipeline` |
 | `limit` | query | integer | No | Rows to answer; 50 when absent, at most 200 |
+| `notebook` | query | string | No | One published notebook as `<group>/<name>`: only the runs of its schedules |
 | `pipeline` | query | string | No | One pipeline as `<namespace>/<name>` |
 | `state` | query | string | No | Exact match on the run's state; an unknown state answers no rows |
 
@@ -1609,8 +1696,9 @@ The runs of the caller's visible pipelines, newest first. A run carries the pipe
 | Code | Description |
 | --- | --- |
 | `200` | The visible runs, newest first |
-| `400` | `limit`, `kind` or `pipeline` is invalid |
+| `400` | `limit`, `kind`, `pipeline` or `notebook` is invalid |
 | `401` | No token to sign in with |
+| `403` | The caller is not a member of the notebook's group |
 | `502` | The scheduler or the cluster did not answer |
 | `503` | No cluster connection, or the scheduler is not configured |
 
@@ -2042,7 +2130,7 @@ Operation id `workspace_start`: in Python `client.call("workspace_start", …)`,
 
 `POST /api/workspace/start`: ask the hub to spawn the caller's server.
 
-Spawn the caller's own JupyterHub server: `POST /hub/api/users/{name}/server` with Nova's service token. Answers `202 {"state":"starting"}` when the hub accepted the spawn, `200 {"state":"running"}` when a server was already running, and `409` when the hub has never seen this person (they must open JupyterHub once to create their workspace). `503` when Nova has no hub credentials, `502` when the hub does not answer or refuses another way.
+Spawn the caller's own JupyterHub server: `POST /hub/api/users/{name}/server` with Nova's service token. Answers `202 {"state":"starting"}` when the hub accepted the spawn, `200 {"state":"running"}` when a server was already running, and `409` when the hub has never seen this person (they must open JupyterHub once to create their workspace) or when the hub's stored sign-in for them has expired (only the hub's login can renew it: open JupyterLab once). `503` when Nova has no hub credentials, `502` when the hub does not answer or refuses another way.
 
 **Responses**
 
@@ -2051,7 +2139,7 @@ Spawn the caller's own JupyterHub server: `POST /hub/api/users/{name}/server` wi
 | `200` | A server was already running |
 | `202` | The hub is spawning the server |
 | `401` | No token to sign in with |
-| `409` | The hub has no such user |
+| `409` | The hub has no such user, or their hub sign-in has expired |
 | `502` | The hub did not answer or refused |
 | `503` | No hub credentials |
 
