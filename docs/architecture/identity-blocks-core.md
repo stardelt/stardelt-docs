@@ -96,7 +96,7 @@ The four blocks most people touch first. The pinned versions and the mode decisi
   `opa.policy.batched-uri` (chart: `accessControl.type: properties`), backed by the Lakekeeper OPA
   bridge (OPA, Apache-2.0) and its own technical client.
 
-### Lakekeeper 0.12.2 (chart 0.11.0)
+### Lakekeeper 0.15.0 (chart 0.14.0)
 
 - **Mechanism.** Native OIDC: JWT validation against `LAKEKEEPER__OPENID_PROVIDER_URI` discovery,
   plus a browser UI that runs authorization code in the browser.
