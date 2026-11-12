@@ -2912,6 +2912,253 @@
         }
       }
     },
+    "/api/destinations": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`GET /api/destinations` — the caller's groups' destinations, newest first.",
+        "description": "The notification destinations of the caller's groups, newest first. `?group=<group>` narrows to one group the caller belongs to. Times are epoch milliseconds.",
+        "operationId": "destinations_list",
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "description": "Only this group's destinations",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller's groups' destinations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Destination"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the requested group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`POST /api/destinations` — `201` with the stored row.",
+        "description": "Create a notification destination for one of the caller's groups. An `email` destination carries `config.recipients` (1 to 20 addresses); a `webhook` destination carries `config.url` (http or https). Nothing here sends anything.",
+        "operationId": "destinations_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewDestination"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The stored row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Destination"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The kind, the address, the name or the group is not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the owner group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A destination with this name already exists in the group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destinations/{id}": {
+      "delete": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`DELETE /api/destinations/{id}` — `204`; `404` for another group's id or none.",
+        "description": "Delete one of the caller's groups' notification destinations.",
+        "operationId": "destinations_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The destination's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "400": {
+            "description": "The id is not a number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such destination, or it is not the caller's",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/destinations/{id}/test": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`POST /api/destinations/{id}/test` — send one test message to a webhook destination\nand record the attempt.",
+        "description": "Send one test message to a webhook destination and record the attempt. An email destination answers 400 until the platform's SMTP relay exists. The answer never contains the webhook's URL.",
+        "operationId": "destinations_test",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The destination's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "What the attempt did",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationTest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An email destination, or a config without a usable url",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such destination, or it is not the caller's",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/embeds": {
       "get": {
         "tags": [
@@ -3210,6 +3457,51 @@
         }
       }
     },
+    "/api/lineage/read-tables": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "operationId": "lineage_read_tables",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "description": "Time window in days, 1–365, default 30",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Tables to answer, 1–20, default 5",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The tables the caller read most, newest read first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadTables"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No state store"
+          }
+        }
+      }
+    },
     "/api/lineage/runs/{run_id}": {
       "get": {
         "tags": [
@@ -3339,12 +3631,94 @@
         }
       }
     },
+    "/api/migrations/approve": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/migrations/approve` — a second person says yes to a plan.",
+        "description": "Record that the caller has looked at a migration plan, so a breaking change may run in a production target (stardelt-nova#617 decision 3). The body is the `planId` a plan answered with. The plan's own author cannot approve it: a second person has to. Repeating a call is a no-op that answers the same row with the first approval time. Plans and approvals live in the state store.",
+        "operationId": "migrations_approve",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The recorded approval: who approved and when",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApproveAnswer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A malformed request, one sentence",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such plan: it was never planned on this Nova, or the state store was reset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The caller is the plan's author: a second person has to approve it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/migrations/plan": {
       "post": {
         "tags": [
           "public"
         ],
-        "description": "What a bundle's migration files would do to one target, and what already ran there (stardelt-nova#617 decision 3). Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.",
+        "description": "What a bundle's migration files would do to one target, and what already ran there (stardelt-nova#617 decision 3). Writes nothing. The body is `catalog`, `target` and `files` (`name` `NNN_<words>.sql`, `sha256`, `sql`); `class` is `additive` when every statement only creates or adds columns or views, else `breaking` with the first non-additive statement in `reason`; `status` is `new`, `applied` (same sha256 in `stardelt_meta.migrations`) or `changed` (applied with another sha256). `ok` is false, with one sentence per problem in `errors`, when a file changed after it was applied or a new file sorts before an applied one. `ledger` is false on a catalog whose `stardelt_meta.migrations` does not exist yet. `planId` names exactly the files that would run, and is what `approve` takes; `approvable` is false when no state store is configured. The ledger is read as the caller, so the caller's own catalog privileges decide what can be read. Answers `Cache-Control: no-store`.",
         "operationId": "migrations_plan",
         "requestBody": {
           "content": {
@@ -4568,7 +4942,7 @@
         "tags": [
           "public"
         ],
-        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller may not act on 404; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
+        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller cannot see 404, and one it can see but may not change — a viewer (`spec.viewers`) — 403 `only the owner group may change this pipeline`; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_update",
         "parameters": [
           {
@@ -4631,6 +5005,16 @@
               }
             }
           },
+          "403": {
+            "description": "The caller may see but not change this pipeline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "404": {
             "description": "No such pipeline for this caller",
             "content": {
@@ -4677,7 +5061,7 @@
         "tags": [
           "public"
         ],
-        "description": "Delete a pipeline Nova created. Only a pipeline the caller may act on and that carries `app.kubernetes.io/managed-by: stardelt-nova` may be deleted: a `kubectl` or GitOps pipeline answers 409 instead. Airflow is not called — the resource is the source of truth; the DAG leaves the scheduler's default list after about 90 seconds while its history stays readable. Answers 204 with `Cache-Control: no-store`; the attempt is audited.",
+        "description": "Delete a pipeline Nova created. Only the owner group and administrators may delete: a viewer (`spec.viewers`) answers 403 `only the owner group may change this pipeline`, and a pipeline the caller cannot see 404. A pipeline that carries `app.kubernetes.io/managed-by: stardelt-nova` may be deleted: a `kubectl` or GitOps pipeline answers 409 instead. Airflow is not called — the resource is the source of truth; the DAG leaves the scheduler's default list after about 90 seconds while its history stays readable. Answers 204 with `Cache-Control: no-store`; the attempt is audited.",
         "operationId": "pipelines_delete",
         "parameters": [
           {
@@ -4705,6 +5089,16 @@
           },
           "401": {
             "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may see but not change this pipeline",
             "content": {
               "application/json": {
                 "schema": {
@@ -4761,7 +5155,7 @@
         "tags": [
           "public"
         ],
-        "description": "Pause a pipeline. Idempotent: pausing a paused pipeline answers 200. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.",
+        "description": "Pause a pipeline. Idempotent: pausing a paused pipeline answers 200. Changing a pipeline is the owner group's and administrators' verb: a viewer (`spec.viewers`) may read and run it but not pause it, and answers 403 `only the owner group may change this pipeline` — a pipeline the caller cannot see stays 404. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.",
         "operationId": "pipelines_pause",
         "parameters": [
           {
@@ -4796,6 +5190,16 @@
           },
           "401": {
             "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may see but not change this pipeline",
             "content": {
               "application/json": {
                 "schema": {
@@ -4852,7 +5256,7 @@
         "tags": [
           "public"
         ],
-        "description": "Resume a pipeline. Idempotent: resuming a running pipeline answers 200. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.",
+        "description": "Resume a pipeline. Idempotent: resuming a running pipeline answers 200. Changing a pipeline is the owner group's and administrators' verb: a viewer (`spec.viewers`) may read and run it but not resume it, and answers 403 `only the owner group may change this pipeline` — a pipeline the caller cannot see stays 404. A pipeline the scheduler has not loaded answers 409. Answers the fresh `PipelineView` — the DAG as Airflow returned it after the patch — and `Cache-Control: no-store`. The attempt is audited, including a refusal.",
         "operationId": "pipelines_resume",
         "parameters": [
           {
@@ -4887,6 +5291,16 @@
           },
           "401": {
             "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may see but not change this pipeline",
             "content": {
               "application/json": {
                 "schema": {
@@ -4943,7 +5357,7 @@
         "tags": [
           "public"
         ],
-        "description": "Start a run now. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). `logicalDate` is always now, UTC, whole seconds, so the run has tasks; the note is `Started from Nova by <display name>`. Every attempt, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.",
+        "description": "Start a run now. A viewer (`spec.viewers`) may run the owner's statement and stop its runs: running cannot change what the pipeline does. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). `logicalDate` is always now, UTC, whole seconds, so the run has tasks; the note is `Started from Nova by <display name>`. Every attempt, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_run_trigger",
         "parameters": [
           {
@@ -5129,12 +5543,112 @@
         }
       }
     },
+    "/api/pipelines/{namespace}/{name}/runs/{run_id}/retry": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "description": "Retry the failed tasks of a run, **in the same run**: the run keeps its id, date and parameters, and the tasks that already succeeded are not repeated (Airflow's run-scoped clear). A viewer (`spec.viewers`) may retry, as it may run and stop. A paused pipeline, a run that is not `failed`, and a run with no failed tasks are refused with 409. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and nothing is cleared. Answers the fresh `RunView` and `Cache-Control: no-store`. Every attempt is audited, including a refusal.",
+        "operationId": "pipelines_run_retry",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The Pipeline's namespace (Nova's own)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "description": "Airflow's run id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The run, with its failed tasks cleared for another attempt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such pipeline for this caller, or no such run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The run is not failed, the pipeline is paused, or there is nothing to retry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The scheduler or the cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or the scheduler is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pipelines/{namespace}/{name}/runs/{run_id}/stop": {
       "post": {
         "tags": [
           "public"
         ],
-        "description": "Stop a run: mark it failed. This is **not a cancel** — work already in flight can finish and commit its side effects (stardelt-nova#255), so the answer promises only that the run is marked failed. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and is never patched. A run that is not `queued` or `running` answers 409 and is not patched. Answers the fresh `RunView` and `Cache-Control: no-store`. The attempt is audited, including a refusal.",
+        "description": "Stop a run: mark it failed. A viewer (`spec.viewers`) may stop a run, as it may start one. This is **not a cancel** — work already in flight can finish and commit its side effects (stardelt-nova#255), so the answer promises only that the run is marked failed. The run id is looked up through this pipeline's DAG id first: a run id of another pipeline answers 404 and is never patched. A run that is not `queued` or `running` answers 409 and is not patched. Answers the fresh `RunView` and `Cache-Control: no-store`. The attempt is audited, including a refusal.",
         "operationId": "pipelines_run_stop",
         "parameters": [
           {
@@ -5234,7 +5748,7 @@
         "tags": [
           "public"
         ],
-        "description": "One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, the `::group::` source marker dropped (it names internal object-store paths and is never returned). `try` defaults to the task's last attempt; `token` is the `nextToken` of the previous answer. Every read writes one audit line with user, pipeline, run and task — never the content. Answers `Cache-Control: no-store`.",
+        "description": "One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, the `::group::` source marker dropped (it names internal object-store paths and is never returned). A failed task's line is followed by the exception the scheduler recorded (`ExcType: message`) and up to 20 of its stack frames, each with the file's last path segment; they count against the same caps. `try` defaults to the task's last attempt; `token` is the `nextToken` of the previous answer. Every read writes one audit line with user, pipeline, run and task — never the content. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_run_task_logs",
         "parameters": [
           {
@@ -5805,7 +6319,7 @@
         "tags": [
           "public"
         ],
-        "description": "The runs of the caller's visible pipelines, newest first. A run carries the pipeline's `namespace`, `name` and `ownerGroup` and a `kind` of `sql`, `notebook` or `pipeline` (a multi-step pipeline). `limit` defaults to 50 and is at most 200. `state`, `kind`, `group` and `pipeline` (`<namespace>/<name>`) narrow the answer; an unknown state answers no rows rather than an error. A failed scheduler read for one pipeline is logged and skipped, not reported. Answers `Cache-Control: no-store`.",
+        "description": "The runs of the caller's visible pipelines, newest first. A run carries the pipeline's `namespace`, `name` and `ownerGroup` and a `kind` of `sql`, `notebook` or `pipeline` (a multi-step pipeline). `limit` defaults to 50 and is at most 200. `state`, `kind`, `group`, `pipeline` (`<namespace>/<name>`) and `notebook` (`<group>/<name>`) narrow the answer; an unknown state answers no rows rather than an error. A `notebook` filter is owner-group scoped: a caller who is not a member of the group answers 403. A failed scheduler read for one pipeline is logged and skipped, not reported. Answers `Cache-Control: no-store`.",
         "operationId": "runs_list",
         "parameters": [
           {
@@ -5853,6 +6367,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "notebook",
+            "in": "query",
+            "description": "One published notebook as `<group>/<name>`: only the runs of its schedules",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5867,7 +6390,7 @@
             }
           },
           "400": {
-            "description": "`limit`, `kind` or `pipeline` is invalid",
+            "description": "`limit`, `kind`, `pipeline` or `notebook` is invalid",
             "content": {
               "application/json": {
                 "schema": {
@@ -5878,6 +6401,16 @@
           },
           "401": {
             "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the notebook's group",
             "content": {
               "application/json": {
                 "schema": {
@@ -7228,7 +7761,7 @@
           "public"
         ],
         "summary": "`POST /api/workspace/start`: ask the hub to spawn the caller's server.",
-        "description": "Spawn the caller's own JupyterHub server: `POST /hub/api/users/{name}/server` with Nova's service token. Answers `202 {\"state\":\"starting\"}` when the hub accepted the spawn, `200 {\"state\":\"running\"}` when a server was already running, and `409` when the hub has never seen this person (they must open JupyterHub once to create their workspace). `503` when Nova has no hub credentials, `502` when the hub does not answer or refuses another way.",
+        "description": "Spawn the caller's own JupyterHub server: `POST /hub/api/users/{name}/server` with Nova's service token. Answers `202 {\"state\":\"starting\"}` when the hub accepted the spawn, `200 {\"state\":\"running\"}` when a server was already running, and `409` when the hub has never seen this person (they must open JupyterHub once to create their workspace) or when the hub's stored sign-in for them has expired (only the hub's login can renew it: open JupyterLab once). `503` when Nova has no hub credentials, `502` when the hub does not answer or refuses another way.",
         "operationId": "workspace_start",
         "responses": {
           "200": {
@@ -7262,7 +7795,7 @@
             }
           },
           "409": {
-            "description": "The hub has no such user",
+            "description": "The hub has no such user, or their hub sign-in has expired",
             "content": {
               "application/json": {
                 "schema": {
@@ -7609,6 +8142,13 @@
             "type": "boolean",
             "description": "Run statements that are not additive. Default false."
           },
+          "approvalId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `planId` a person other than the caller approved, for a breaking file in a\nproduction target."
+          },
           "catalog": {
             "type": "string",
             "description": "The catalog the migration tables live in; the ledger is `stardelt_meta` in it."
@@ -7620,9 +8160,47 @@
             },
             "description": "Every migration file of the bundle; the answer runs the `new` ones in name order."
           },
+          "mode": {
+            "type": "string",
+            "description": "The bundle target's `mode` (`targets.<target>.mode` in bundle.yaml):\n`development` or `production`. Client-declared, like `allowBreaking`."
+          },
           "target": {
             "type": "string",
             "description": "The bundle target whose ledger rows count (`dev`, `prod`, …)."
+          }
+        }
+      },
+      "ApproveAnswer": {
+        "type": "object",
+        "required": [
+          "planId",
+          "approver",
+          "approvedAt"
+        ],
+        "properties": {
+          "approvedAt": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Epoch milliseconds, as everywhere else."
+          },
+          "approver": {
+            "type": "string",
+            "description": "The signed-in name of the person who approved the plan."
+          },
+          "planId": {
+            "type": "string"
+          }
+        }
+      },
+      "ApproveRequest": {
+        "type": "object",
+        "required": [
+          "planId"
+        ],
+        "properties": {
+          "planId": {
+            "type": "string",
+            "description": "The `planId` a plan answered with."
           }
         }
       },
@@ -8651,6 +9229,17 @@
               }
             ]
           },
+          "notify": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PipelineNotify",
+                "description": "Who is told when a run ends (`spec.notify`). Omitted writes none; every name must be a\ndestination of `ownerGroup`."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "options": {
             "oneOf": [
               {
@@ -8777,6 +9366,75 @@
           },
           "target": {
             "type": "string"
+          }
+        }
+      },
+      "Destination": {
+        "type": "object",
+        "description": "A named email or webhook endpoint owned by one group (`GET /api/destinations`).",
+        "required": [
+          "id",
+          "owner_group",
+          "name",
+          "kind",
+          "config",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "config": {
+            "description": "The kind's address: `{\"recipients\": [...]}` or `{\"url\": \"https://…\"}`."
+          },
+          "created_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Epoch milliseconds, like `Job.started_at`."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "kind": {
+            "type": "string",
+            "description": "`email` or `webhook`."
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_group": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Epoch milliseconds, like `Job.started_at`."
+          }
+        }
+      },
+      "DestinationTest": {
+        "type": "object",
+        "description": "`POST /api/destinations/{id}/test` answer: what the attempt did.",
+        "required": [
+          "ok",
+          "detail"
+        ],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "One sentence; never the URL or a header value."
+          },
+          "ok": {
+            "type": "boolean",
+            "description": "True only for `delivered`."
+          },
+          "status": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "The webhook's HTTP status, when it answered.",
+            "minimum": 0
           }
         }
       },
@@ -9038,7 +9696,8 @@
         "required": [
           "nodes",
           "edges",
-          "jobs"
+          "jobs",
+          "impact"
         ],
         "properties": {
           "edges": {
@@ -9046,6 +9705,9 @@
             "items": {
               "$ref": "#/components/schemas/LineageEdge"
             }
+          },
+          "impact": {
+            "$ref": "#/components/schemas/LineageImpact"
           },
           "jobs": {
             "type": "array",
@@ -9058,6 +9720,32 @@
             "items": {
               "$ref": "#/components/schemas/LineageNode"
             }
+          }
+        }
+      },
+      "LineageImpact": {
+        "type": "object",
+        "description": "The whole closure, at any number of steps (nova#646 L8a). The drawn graph keeps `depth`;\nthese numbers answer \"what breaks if I change this table\".",
+        "required": [
+          "downstream",
+          "upstream",
+          "downstreamJobs"
+        ],
+        "properties": {
+          "downstream": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Distinct visible datasets reachable downstream at any number of steps; the focus is not one."
+          },
+          "downstreamJobs": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Distinct jobs (`(job_ns, job)`) on the downstream flows."
+          },
+          "upstream": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The same upstream."
           }
         }
       },
@@ -9507,6 +10195,31 @@
           }
         }
       },
+      "NewDestination": {
+        "type": "object",
+        "description": "`POST /api/destinations` body.",
+        "required": [
+          "owner_group",
+          "name",
+          "kind",
+          "config"
+        ],
+        "properties": {
+          "config": {
+            "description": "The kind's address: `{\"recipients\": [...]}` or `{\"url\": \"https://…\"}`."
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner_group": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
       "NewSavedQuery": {
         "type": "object",
         "description": "`POST /api/saved-queries` body.",
@@ -9944,6 +10657,17 @@
                 ],
                 "description": "The public Airflow DAG URL, `None` when `NOVA_BASE_DOMAIN` is unset; the route is already visibility-gated, so no second permission check."
               },
+              "notify": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PipelineNotify",
+                    "description": "Who is told when a run ends; left out when the resource has none."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "options": {
                 "$ref": "#/components/schemas/PipelineOptionsView",
                 "description": "Retries, the wait between them, the time limit and the run mode as the resource carries\nthem, with the defaults filled in when a field is absent."
@@ -9994,6 +10718,17 @@
               {
                 "$ref": "#/components/schemas/NotebookRequest",
                 "description": "The pinned notebook of a notebook pipeline."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notify": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PipelineNotify",
+                "description": "Who is told when a run ends; left out when the resource has none."
               },
               {
                 "type": "null"
@@ -10052,6 +10787,33 @@
             "items": {
               "$ref": "#/components/schemas/PipelineView"
             }
+          }
+        }
+      },
+      "PipelineNotify": {
+        "type": "object",
+        "description": "Who is told when a run of this pipeline ends (`spec.notify`, operator#582 / nova#815).\nEach list names at most five destinations owned by the pipeline's `ownerGroup`.",
+        "properties": {
+          "onFailure": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Destinations told when the run fails, after the last retry."
+          },
+          "onRecovered": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Destinations told on the first success after a failure."
+          },
+          "onSuccess": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Destinations told when the run succeeds."
           }
         }
       },
@@ -10153,6 +10915,8 @@
         "required": [
           "name",
           "namespace",
+          "canRun",
+          "canEdit",
           "paused",
           "loaded",
           "state",
@@ -10160,6 +10924,14 @@
           "concurrency"
         ],
         "properties": {
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the caller may also pause, resume, change or delete it — the owner group and\nadministrators only (epic#895 decision 12)."
+          },
+          "canRun": {
+            "type": "boolean",
+            "description": "Whether the caller may run it and stop its runs."
+          },
           "concurrency": {
             "type": "string",
             "description": "`spec.concurrency` as the resource carries it (`Allow`, `Forbid`, `Replace`)."
@@ -10248,10 +11020,16 @@
         "required": [
           "ok",
           "ledger",
+          "planId",
+          "approvable",
           "files",
           "errors"
         ],
         "properties": {
+          "approvable": {
+            "type": "boolean",
+            "description": "Whether this Nova can record an approval (a state store is configured)."
+          },
           "errors": {
             "type": "array",
             "items": {
@@ -10272,6 +11050,10 @@
           "ok": {
             "type": "boolean",
             "description": "False when `errors` is not empty: the bundle must not be applied as it is."
+          },
+          "planId": {
+            "type": "string",
+            "description": "The identity of this plan: what `bundle approve` takes and what apply needs."
           }
         }
       },
@@ -10931,6 +11713,55 @@
           }
         }
       },
+      "ReadTable": {
+        "type": "object",
+        "description": "One table a person read most, with its newest write.",
+        "required": [
+          "namespace",
+          "name",
+          "queries",
+          "lastRead"
+        ],
+        "properties": {
+          "lastRead": {
+            "type": "string"
+          },
+          "lastWrite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The newest write in the window; absent when nothing wrote it."
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string",
+            "description": "`<catalog>.<schema>` (demo data may carry the schema alone)."
+          },
+          "queries": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Read-only queries against it in the window."
+          }
+        }
+      },
+      "ReadTables": {
+        "type": "object",
+        "description": "`GET /api/lineage/read-tables`.",
+        "required": [
+          "tables"
+        ],
+        "properties": {
+          "tables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadTable"
+            }
+          }
+        }
+      },
       "RefreshAccepted": {
         "type": "object",
         "description": "The answer to an accepted `POST /api/catalog/metrics/refresh`: the round runs in the\nbackground, and the page reads the new numbers with its next request.",
@@ -11093,9 +11924,17 @@
         "type": "object",
         "description": "`GET /api/runs`.",
         "required": [
-          "runs"
+          "runs",
+          "groups"
         ],
         "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Every owner group of a pipeline the caller can see, sorted; the runs filters do not\nnarrow it. Administrators (`ownerGroup: null`) are not a group."
+          },
           "runs": {
             "type": "array",
             "items": {
@@ -12213,6 +13052,17 @@
               {
                 "$ref": "#/components/schemas/NotebookRequest",
                 "description": "The notebook, its version and its parameters for a notebook pipeline; a statement\npipeline refuses it."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notify": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PipelineNotify",
+                "description": "Who is told when a run ends (`spec.notify`). Omitted keeps the stored `spec.notify`;\ngiven with all three lists empty, it removes it — a form save must not wipe a\nnotification a bundle deployed until the form edits it."
               },
               {
                 "type": "null"

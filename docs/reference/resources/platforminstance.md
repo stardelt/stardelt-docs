@@ -32,6 +32,7 @@ A stardelt platform instance.
 | `spec.identity.issuerUrl` | string (nullable) | No |  | OIDC issuer URL, `https://` only. Required for `external`; for `platform` it is derived from `baseDomain` and must be left out. |  |
 | `spec.identity.mode` | string | No | `none` | Where users sign in. Two modes besides none: an identity provider the organization already runs (`external`, for example Entra or Okta), or one the platform runs itself (`platform`, Keycloak). An organization often runs the platform several times against one external provider; each instance then has its own app registrations and group mapping. | `none`, `platform`, `external` |
 | `spec.identity.provider` | string | No | `oidc` | `external` only: which kind of provider this instance talks to. | `oidc`, `entra` |
+| `spec.identity.tokenEndpoint` | string (nullable) | No |  | `external` only: the provider's OAuth2 token endpoint — `token_endpoint` in `<issuerUrl>/.well-known/openid-configuration`. Required for `external`: neither the operator (API-server proxy only) nor Helm can fetch an external discovery document. A `platform` instance derives it from the Keycloak it deploys and must leave it out. | min 1, max 512; pattern `^https://\S+$` |
 | `spec.ingress` | object | No | `{"allowedCidrs":[],"enabled":false,"tls":{"enabled":false,"secretNameTemplate":"{host}-tls"}}` | How the applications are reached from outside the cluster; see [`IngressSettings`]. |  |
 | `spec.ingress.allowedCidrs` | array of string | No | `[]` | Source ranges that may open a connection to the public endpoints. Empty = open to everyone. A non-empty list renders `nginx.ingress.kubernetes.io/whitelist-source-range` on every Ingress this operator applies (ingress-nginx; other controllers ignore it). Entries are CIDRs, at most 64. Always include the cluster's own egress address: pods that call the public names arrive through it. The bounds are not cosmetic: the API server's CEL cost estimator treats an unbounded array under a `matches()` rule as unbounded, and refuses the whole CRD ("estimated rule cost exceeds budget by factor of more than 100x"). `maxItems`/`maxLength` are what make the rule affordable. | max 64 |
 | `spec.ingress.className` | string (nullable) | No |  | IngressClass name, for example `nginx` or `traefik`. Absent: the cluster default. | min 1, max 253 |
@@ -90,6 +91,7 @@ A stardelt platform instance.
 
 - identity.mode external needs identity.issuerUrl, an https:// URL
 - identity.mode platform derives the issuer from baseDomain; leave identity.issuerUrl out
+- identity.mode platform derives the token endpoint from the issuer; leave identity.tokenEndpoint out
 - identity needs baseDomain (the application hosts and redirect addresses are built from it)
 - ingress needs baseDomain (the hosts are built from it)
 - secrets.mode external needs secrets.external.provider (the ClusterSecretStore provider block)
@@ -98,6 +100,7 @@ A stardelt platform instance.
 - secrets.groups is only allowed with secrets.mode platform
 - platform mode creates its own clients: leave provider, apiAudience and clients out
 - external mode needs issuerUrl
+- external mode needs tokenEndpoint
 - external mode needs apiAudience
 - external mode needs a nova client
 - client names are nova, trino, lakekeeper, superset, airflow, jupyterhub and trino-group-sync

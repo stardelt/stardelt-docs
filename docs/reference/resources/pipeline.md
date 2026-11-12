@@ -17,6 +17,10 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | --- | --- | --- | --- | --- | --- |
 | `spec.concurrency` | string | No | `Forbid` | What happens when a run is due while the previous one is still running. | `Allow`, `Forbid`, `Replace` |
 | `spec.engine` | string | No | `airflow` | Engine that orchestrates (and for `spark`, executes) the pipeline. | `airflow`, `spark` |
+| `spec.notify` | object (nullable) | No |  | Who to tell when a run ends; names of destinations owned by `ownerGroup`. Optional: a pipeline without it notifies nobody. |  |
+| `spec.notify.onFailure` | array of string | No |  | Destinations told when the run fails, after the last retry. | max 5 |
+| `spec.notify.onRecovered` | array of string | No |  | Destinations told on the first success after a failure. | max 5 |
+| `spec.notify.onSuccess` | array of string | No |  | Destinations told when the run succeeds. | max 5 |
 | `spec.ownerGroup` | string (nullable) | No |  | The group that owns the pipeline: its members see it, run it and pause it in Nova. Optional so that existing pipelines keep working; a pipeline without an owner is visible to administrators only. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.params` | object (map of string) | No |  | Values for `${params.<name>}` in task statements. |  |
 | `spec.publish` | string | No | `direct` | `direct` (default) or `wap`; `wap` needs a `quality` task with at least one check. | `direct`, `wap` |
@@ -41,6 +45,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |
 | `spec.tasks[].writes` | array of string | No |  | The tables a `sql` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone. | max 16 |
 | `spec.timeout` | string (nullable) | No |  | Longest a whole run may take, for example `2h`. |  |
+| `spec.viewers` | array of string | No |  | Groups that may READ the pipeline in Nova — list it, open it, see its runs — and nothing else. Running, pausing, resuming and deleting stay with `ownerGroup`. Absent means the owner group only, which is what every pipeline had before this field. | max 16 |
 
 ## Status
 
@@ -67,6 +72,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - a sql task needs a sql statement
 - publish: wap needs a quality task with at least one check
 - publish: wap needs a task that writes at least one table
+- notify needs an ownerGroup: only a pipeline's owner group can name destinations
 - a notebook task needs config.notebook (a .ipynb file name) and config.objectVersion (the published version)
 - notebook tasks accept only notebook, objectVersion and params
 - notebook params must be a JSON object string of at most 4096 characters
