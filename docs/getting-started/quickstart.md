@@ -61,8 +61,15 @@ Paris,FR,2100000
 Madrid,ES,3300000
 ```
 
-In Nova, open **Load & transfer**. Choose the file, enter the schema `demo` and the table `cities`, and
-load it.
+In Nova, open **Load & transfer**. On the **Load data** tab:
+
+1. In **Catalog**, choose `warehouse`. This install has no sign-in, so the default choice finds no
+   catalog to write to.
+2. Replace the text in **Schema** with `demo`, and the text in **Table** with `cities`.
+3. Press **Choose file** and pick `cities.csv`. The box below now shows your file.
+4. Press **Load into table**.
+
+The page says `Loaded 3 rows into warehouse.demo.cities`.
 
 ## 4. Query it
 
