@@ -14,13 +14,13 @@ slug: /services/external-secrets
 |---|---|---|
 | `none` (default) | Nothing | The store the Connections API writes. A scheduled notebook needs Secret `conn-<name>` to exist and hold every key from `spec.secret.keys`; a hand-written Secret is enough, and the connection is then `Ready=True` with reason `SecretFound`. |
 | `platform` | External Secrets Operator **and** the built-in store ([OpenBao](openbao)) | The operator writes one `ExternalSecret` per `Connection` and syncs the store path into Secret `conn-<name>`. The per-group `SecretStore` is `openbao-<group>`; managed connections use `openbao-managed`. |
-| `external` | External Secrets Operator only | A `ClusterSecretStore` named `enterprise` is published from `spec.secrets.external.provider` verbatim; the enterprise's store supplies the values. A `Connection` names its path in that store with `spec.secret.remoteRef`: see the [connections guide](../guides/connections#8-an-enterprise-secret-store-external-mode). |
+| `external` | External Secrets Operator only | A `ClusterSecretStore` named `enterprise` is published from `spec.secrets.external.provider` verbatim; the enterprise's store supplies the values. A `Connection` names its path in that store with `spec.secret.remoteRef`: see the [connections guide](../guides/connections-secret-stores). |
 
 The `provider` block is the enterprise's own and is passed to the `ClusterSecretStore` verbatim;
 stardelt adds nothing to it. The connections guide shows three shapes: HashiCorp Vault with AppRole
 (the one the dev cluster exercises), a cloud key vault that signs in with a Kubernetes
 ServiceAccount, and an external OpenBao with Kubernetes authentication — see
-[connections](../guides/connections#8-an-enterprise-secret-store-external-mode). One store named
+[connections](../guides/connections-secret-stores). One store named
 `enterprise` serves every namespace of an instance.
 
 Creating a `Connection` does not need the operator: the API writes to the store. The synced Secret `conn-<name>` does, and so does everything that reads it.
