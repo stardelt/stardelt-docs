@@ -60,6 +60,7 @@ const sidebars: SidebarsConfig = {
         'guides/source-to-dashboard',
         'guides/load-and-transfer',
         'guides/connections',
+        'guides/connections-access',
         'guides/connections-notebooks',
         'guides/connections-secret-stores',
         'guides/connections-troubleshooting',

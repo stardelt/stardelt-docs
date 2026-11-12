@@ -15,7 +15,7 @@ Open **Connections** in the left navigation. The page lists what you may see, gr
 with the settings and the names of the secret fields. It records names and settings, not values:
 Nova does not return a secret value to the page or to the API.
 
-## 1. What a connection is
+## What a connection is
 
 A connection is a named bundle of two kinds of field:
 
@@ -28,8 +28,9 @@ A connection is a named bundle of two kinds of field:
   `password, user`.
 
 There is one deliberate exception: an administrator can perform a **break-glass read** of a *group*
-connection, with a written reason, and the group is told. Section 6 describes it. Personal and
-managed values have no such path.
+connection, with a written reason, and the group is told.
+[What administrators can do](./connections-access#what-administrators-can-and-cannot-do) describes
+it. Personal and managed values have no such path.
 
 Keeping the value in the store means a notebook contains a name, not a password:
 
@@ -45,51 +46,10 @@ Rotating the password changes it in one place; the next `crm.value(...)` or `crm
 reads the new value. Nothing secret is copied into a repository, and deleting the connection
 removes the value from the store.
 
-## 2. Three scopes
+A connection is personal, for a group, or managed by administrators. [Who may see and use a
+connection](./connections-access) explains the three scopes.
 
-The page has one section per scope. The text under each heading is the page's own:
-
-> **Personal** — Only you can see and use these, from a Python notebook. They are never used by pipelines or SQL.
-
-> **Group: &lt;group name&gt;** — Every member of the group can use and rotate these from a Python notebook.
-
-> **Managed** — For platform services only. Nobody can read the values.
-
-| | Personal | Group | Managed |
-|---|---|---|---|
-| **Who creates it** | You | Any member of the group | Administrators only |
-| **Who may use it** | Only you | Every member of the group | Platform-run work only: a scheduled notebook whose pipeline names it and whose `ownerGroup` is in `usableBy`, reading the Secret `conn-<name>`. Nobody reads the values directly. |
-| **Who sees its name and settings** | Only you | Every member of the group; administrators also see every group's connections | Administrators |
-| **Who may rotate or delete it** | You | Members rotate and delete; an administrator who is not a member may delete but not create or rotate | Administrators |
-| **Where it can be used today** | A Python notebook only | A Python notebook, and a scheduled notebook whose pipeline runs as that group | Platform-run work: a scheduled notebook whose pipeline names it and whose `ownerGroup` is in `usableBy` |
-
-A group connection belongs to one group, chosen from the groups you are a member of. If you are in
-no group, you cannot create one; the dialog has no group to offer.
-
-An administrator who is not a member of the owning group sees the group section and the row, but
-the API marks the row as not theirs (`member: false`). Creating or rotating it is refused with:
-
-```text
-an administrator may delete a connection of the group `analytics` but not create or rotate one
-```
-
-The page still offers **Rotate** on such a row; the dialog opens and the request is refused with that
-sentence. Deleting works, and the audit record names the administrator rather than a member.
-
-Managed connections are created by an administrator with one or more groups under **Used by**. A
-scheduled notebook whose pipeline names a managed connection and whose `ownerGroup` is in
-**Used by** receives its secret fields (see
-[Use a connection in a notebook](./connections-notebooks)). Connection tests, federated catalogs
-and a catalog-backed ingestion template are not built. A managed value is still not usable in a
-notebook you run yourself.
-
-The task pod reads `CONN_<NAME>_<KEY>` from the Kubernetes Secret `conn-<name>`, which the External
-Secrets Operator syncs when it is installed (`make external-secrets`, then wait for the next sync —
-the ExternalSecret refreshes every 15 minutes by default). A connection whose `status.ready` is
-false has no Secret yet; the pipeline is then refused with the sync's own sentence instead of a pod
-that never starts.
-
-## 3. Create a connection
+## Create a connection
 
 1. Open **Connections** and choose **New connection**.
 2. Choose the **Scope**: **Personal**, **Group** or **Managed**.
@@ -144,7 +104,7 @@ helper then asks which one you mean (see
 name of the platform resource behind it, so two groups cannot both own a connection with the same
 name; the second attempt answers the same sentence.
 
-## 4. Rotate and delete
+## Rotate and delete
 
 **Rotate** opens a dialog named after the connection. It lists the connection's secret fields and
 takes new values:
@@ -155,7 +115,8 @@ takes new values:
   refused with `a managed connection cannot be read back, so a rotation sends every field`.
 - A connection with no secret fields has nothing to rotate.
 
-A successful rotation clears a break-glass notice on a group connection (section 6).
+A successful rotation clears a break-glass notice on a group connection
+([what administrators can do](./connections-access#what-administrators-can-and-cannot-do)).
 
 **Delete** asks once, in a dialog titled `Delete <name>?`. It names the connection and says what
 stops working:
@@ -164,12 +125,13 @@ stops working:
 - Group and managed: *Notebooks that use it will fail. Pipelines and catalogs that use it will stop
   working.*
 
-Catalogs do not consume connections yet (section 7); notebooks and pipelines do. Deleting removes
-the value from the secret store and, for a group or managed connection, the `Connection` resource.
+Catalogs do not consume connections yet ([not available yet](#not-available-yet)); notebooks and
+pipelines do. Deleting removes the value from the secret store and, for a group or managed
+connection, the `Connection` resource.
 An administrator who is not a member of the owning group can delete a group connection; the audit
 record names the administrator.
 
-## 5. Status
+## Status
 
 The **Status** column says whether the platform has a usable copy of the connection:
 
@@ -189,49 +151,7 @@ an administrator to check the store for that group.
 
 The **Changed** column is when the connection or its value last changed; hover for the exact time.
 
-## 6. What administrators can and cannot do
-
-An administrator sees:
-
-- their own personal connections;
-- every group's connections, including groups they are not a member of;
-- the **Managed** section, including managed connections they did not create.
-
-They see names, settings and secret field names. They do **not** see personal or managed values.
-The break-glass action refuses those scopes with `break-glass covers group connections only`.
-No administrative request returns a personal or managed value; the owner of a personal connection
-reads it in their own notebook, as in
-[Use a connection in a notebook](./connections-notebooks).
-
-For a **group** connection, an administrator has one emergency action: **Break-glass read**. It is
-offered on group rows only and asks for a **Reason** of at least 20 characters (at most 500). The
-dialog says:
-
-> The group `<group>` is told that you read this credential, with your reason.
->
-> The read is recorded in the audit log.
->
-> Rotate the credential afterwards.
-
-The answer is shown once, masked until **Show**, and the window closes itself in 60 seconds. Closing
-it, or leaving the tab hidden for more than ten seconds, drops the values. Five reads per
-administrator are accepted in ten minutes; a sixth is refused and asks you to wait ten minutes.
-
-The owner group sees a banner above its table:
-
-> Read by &lt;administrator&gt; on &lt;date and time&gt;: &lt;reason&gt;. Consider rotating the credential.
-
-with a **Rotate now** button. A rotation clears the banner. The read is recorded in the audit log and
-the notice is stored on the group's connection; the audit record carries the administrator, the
-group, the connection, the reason and the outcome, and never a value.
-
-An administrator can create, rotate and delete managed connections, and create and rotate group
-connections of groups they belong to. For a group they do not belong to they can delete only: the
-page marks the row **Not your group** and offers **Delete** and **Break-glass read** without
-**Rotate** (a request that sends it anyway is refused with the sentence in section 2), and the
-audit record marks a successful delete as an administrator's action.
-
-## 7. Not available yet
+## Not available yet
 
 - **SQL tasks and other task kinds.** A `sql` task cannot name a connection (it runs inside the
   engine), and `python`, `dbt` and `quality` tasks have no runtime yet. Only a `notebook` task
@@ -255,6 +175,7 @@ The remaining consumers are not built yet; the page and the notebook helper say 
 
 ## Where the rest is
 
+- [Who may see and use a connection](./connections-access)
 - [Use a connection in a notebook](./connections-notebooks)
 - [An enterprise secret store](./connections-secret-stores)
 - [Troubleshooting connections](./connections-troubleshooting)
