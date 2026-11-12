@@ -107,6 +107,7 @@ const sidebars: SidebarsConfig = {
         'operations/checks',
         'operations/health',
         'operations/logs',
+        'operations/monitoring',
         'operations/rotating-secrets',
         'operations/network-access',
         'operations/troubleshooting',
