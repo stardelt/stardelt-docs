@@ -42,6 +42,11 @@ the reason underneath.
 Each chart counts only what you are allowed to read — your own queries and the runs of pipelines you can
 see — and an instance with nothing to draw says `No queries or runs yet`.
 
+Hover a day, or tab to it and leave focus there, and the chart names it: `Wed 12 Nov · 26 queries` or
+`Wed 12 Nov · 3 ok · 1 failed · 0 running · 0 other`. Under the plot the oldest and the newest day are
+labelled, `max` above it is the largest day in the window, and the runs chart's legend names its four
+colours. A screen reader reads the same window as a table of 14 (or 7) days.
+
 Each chart reads its own source. If one of them fails, its side says `Could not read queries.` or
 `Could not read runs.` with a **Retry** button, and the other chart still draws. The queries chart reads
 every page of its fourteen-day window, up to 4,000 queries, so a busy window is not drawn short; beyond
