@@ -28,7 +28,7 @@ kubectl config current-context
 
 git clone https://github.com/stardelt/stardelt-platform
 cd stardelt-platform
-helm dependency build chart
+helm dependency update chart
 
 helm upgrade --install stardelt chart \
   --namespace stardelt --create-namespace \
