@@ -194,11 +194,13 @@ notebook and the parameter values the schedule stores.
 
 A run that fails is `failed`. Its executed notebook opens at the cell that failed, and the page names
 the exception above the notebook; **Traceback** unfolds the full trace. **Download** gives the executed
-notebook as a file, and **Run again** starts a new run of the schedule. Cell output is not trusted: it
-is drawn inside a sandboxed frame that cannot reach Nova, your session or the network, so an output that
-carries a chart, HTML or a script cannot touch the page around it. A run whose executed copy was never
-written, or has expired, says so and points at the task log instead. Executed copies are kept for
-30 days by default.
+notebook as a file, and **Run again** starts a new run of the schedule. **Retry failed tasks**, offered
+only on a failed run, re-runs just the tasks that failed in this same run instead of repeating the ones
+that succeeded; if the pipeline is paused, or nothing failed, the page says so above the notebook. Cell
+output is not trusted: it is drawn inside a sandboxed frame that cannot reach Nova, your session or
+the network, so an output that carries a chart, HTML or a script cannot touch the page around it. A run
+whose executed copy was never written, or has expired, says so and points at the task log instead.
+Executed copies are kept for 30 days by default.
 
 ## When it does not work
 
