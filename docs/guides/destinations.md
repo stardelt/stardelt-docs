@@ -77,10 +77,10 @@ directly answers `404`, exactly as if it did not exist.
 
 ## What is not built yet
 
-A pipeline's failure notice uses a destination: tick the group's destinations in the pipeline dialog under **Tell … when a
-run fails**, and Nova sends one message per failed run (see [Schedule a SQL statement](schedule-sql.md)). Alert rules and
-access requests still do not use a destination, so a destination today receives the one **Test** sends and a pipeline's
-failure notices.
+A pipeline's notices use a destination: the dialog's **Tell … when a run ends** block ticks the group's destinations for
+a failed run, a successful run and a recovery, one message each (see [Schedule a SQL statement](schedule-sql.md)). Alert
+rules and access requests still do not use a destination, so a destination receives the **Test** message and a pipeline's
+failure, success and recovery notices.
 
 A notice is delivered to a **webhook** only: an email destination records the attempt as failed with the SMTP sentence
 below until the relay exists.
