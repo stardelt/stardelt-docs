@@ -20,7 +20,7 @@ can and cannot travel. The Nova-side contract (env vars, flows, rules) is on the
 in this section. When the two pages disagree, the *Identity* page is authoritative for the contract.
 
 Pinned versions (`stardelt-platform/Makefile`): Trino chart 1.45.0 (Trino 484), Lakekeeper chart
-0.11.0 (Lakekeeper 0.12.2), Superset chart 0.15.5 (Superset 5.0.0, Flask-AppBuilder 4.5.5),
+0.14.0 (Lakekeeper 0.15.0), Superset chart 0.15.5 (Superset 5.0.0, Flask-AppBuilder 4.5.5),
 Airflow chart 1.22.0 (Airflow 3.2.2, FAB provider 3.6.4), JupyterHub chart 4.4.5 (JupyterHub 5.5.5,
 OAuthenticator 17.4.0), SeaweedFS chart 4.25.1 (SeaweedFS 4.25).
 
@@ -53,23 +53,30 @@ Direct callers (Nova, notebooks, PyIceberg) present the user's own token to Lake
 ## Decision: two modes, one knob
 
 The umbrella chart (`stardelt-platform/chart/values.yaml`) already carries this block. The
-`PlatformInstance` CRD will carry the same four fields with the same meanings:
+`PlatformInstance` CRD will carry the same five fields with the same meanings:
 
 ```yaml
 identity:
   mode: platform          # platform | external   (none = dev/CI only, see below)
   issuerUrl: ""           # external: required, https only
                           # platform: derived, https://id.<baseDomain>/realms/stardelt
+  tokenEndpoint: ""       # external: required, the token_endpoint of <issuerUrl>/.well-known/openid-configuration
+                          # platform: derived, https://id.<baseDomain>/realms/stardelt/protocol/openid-connect/token
   groupClaim: groups      # Keycloak: groups   | Entra ID: roles (app roles, recommended)
   adminGroup: stardelt-admins   # Keycloak group name | Entra app-role value, e.g. stardelt.admin
 ```
 
 - `none` is not a third identity mode. It is the dev and CI path (`make demo`), with no
   IdP and components on their dev auth, as the Identity page requires.
-- The chart publishes ConfigMap `stardelt-identity` (`issuerUrl`, `groupClaim`, `adminGroup`).
+- The chart publishes ConfigMap `stardelt-identity` (`issuerUrl`, `tokenEndpoint`, `groupClaim`, `adminGroup`).
   Every block's values are derived from it. Client IDs and secrets live in Secrets
   (`stardelt-oidc-clients` in platform mode, customer-provided in external mode), never in this
   block.
+- `tokenEndpoint` is configuration, not discovery. Neither Helm nor the operator can fetch an
+  external discovery document (Helm has no HTTP; the operator's only transport is the
+  API-server proxy, which cannot leave the cluster), so an `external` install names the
+  provider's `token_endpoint` once and the chart publishes it. `platform` derives it from the
+  Keycloak it deploys and refuses the value.
 - The user-ID claim is derived, not configured. Use `oid` on Entra, because Entra's `sub` is
   pairwise per application: the same user gets a different `sub` in Nova than in Trino. Use
   `sub` everywhere else. Lakekeeper already prefers `oid` and falls back to `sub`.
@@ -79,6 +86,7 @@ How the knob lands in each block:
 | Knob | Nova | Trino | Lakekeeper | Superset / Airflow (FAB) | JupyterHub |
 |---|---|---|---|---|---|
 | `issuerUrl` | `NOVA_OIDC_ISSUER` | `…oauth2.issuer` | `auth.oauth2.providerUri` | `server_metadata_url` / provider URLs | `authorize_url`, `token_url`, `userdata_url` (no discovery) |
+| `tokenEndpoint` | `NOVA_CATALOG_TOKEN_URL` | `CATALOG_TOKEN_URL` | discovers its own endpoints (not this value) | `PIPELINE_TOKEN_URL` (Airflow) / FAB's own discovery (Superset) | not used |
 | `groupClaim` | `NOVA_OIDC_GROUP_CLAIM` | not consumable (see Trino) | `LAKEKEEPER__OPENID_ROLES_CLAIM` (Cedar only) | built-in providers read it themselves (`groups` for keycloak, `roles` for azure) | `auth_state_groups_key: oauth_user.<claim>` |
 | `adminGroup` | `NOVA_OIDC_ADMIN_GROUP` | access-control rules | Lakekeeper role assignment | `AUTH_ROLES_MAPPING = {adminGroup: ["Admin"]}` | `admin_groups: [adminGroup]` |
 
@@ -108,7 +116,7 @@ plus:
 
 - **Trino 484:** OAuth 2.0, JWT, TLS, internal communication, group mapping and Iceberg REST
   catalog pages (trino.io/docs/484).
-- **Lakekeeper 0.12.x:** authentication, configuration and OPA docs (docs.lakekeeper.io).
+- **Lakekeeper 0.15.x:** authentication, configuration and OPA docs (docs.lakekeeper.io).
 - **Flask-AppBuilder:** security docs, and `security/manager.py` source at v4.5.4 (closest tag to
   4.5.5).
 - **Superset 5.0.0:** `config.py`, `db_engine_specs/trino.py` and `requirements/base.txt`.
