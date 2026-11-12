@@ -70,6 +70,8 @@ Open the pipeline under **Pipelines**:
 - **Run now** starts a run at once (refused while the pipeline is paused or a run is already active).
 - **Pause** and **Resume** stop and restart the schedule.
 - **Stop run** cancels the running statement and skips what follows. A change the engine already committed is not undone.
+- **Retry failed tasks**, on the row of a failed run, re-runs only the tasks that failed in that run instead of repeating the ones
+  that succeeded. If the pipeline changed since the run, or nothing failed, the page says so in the server's own words.
 - **Edit schedule** changes the statement and the schedule (the name and the group cannot change).
 - **Deployed from** (in the facts at the top) appears for a pipeline that `stardelt bundle deploy` published: the bundle, the
   target and the Git commit it came from, who deployed it and when (see [Publish pipelines from Git](publish-pipelines.md)).
