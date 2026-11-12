@@ -38,7 +38,17 @@ const sidebars: SidebarsConfig = {
         'getting-started/prerequisites',
         'getting-started/hetzner-k3s',
         'getting-started/your-cluster',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Identity',
+      collapsed: false,
+      items: [
         'architecture/identity-integrations',
+        'architecture/identity-blocks-core',
+        'architecture/identity-blocks-platform',
+        'architecture/identity-providers',
       ],
     },
     {
