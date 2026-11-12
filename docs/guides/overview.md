@@ -43,9 +43,10 @@ Each chart counts only what you are allowed to read — your own queries and the
 see — and an instance with nothing to draw says `No queries or runs yet`.
 
 Each chart reads its own source. If one of them fails, its side says `Could not read queries.` or
-`Could not read runs.` with a **Retry** button, and the other chart still draws. A source that returned
-more rows than a chart shows says so underneath it: `Showing the latest 200 queries.` or `Showing the
-latest 200 runs.`
+`Could not read runs.` with a **Retry** button, and the other chart still draws. The queries chart reads
+every page of its fourteen-day window, up to 4,000 queries, so a busy window is not drawn short; beyond
+that it says `Showing the newest 4,000 queries.` underneath. The runs chart reads its newest 200 runs and
+says `Showing the latest 200 runs.` when there are more.
 
 ## Freshness
 
