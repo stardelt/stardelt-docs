@@ -28,7 +28,7 @@ A connection is a named bundle of two kinds of field:
   `password, user`.
 
 There is one deliberate exception: an administrator can perform a **break-glass read** of a *group*
-connection, with a written reason, and the group is told. Section 7 describes it. Personal and
+connection, with a written reason, and the group is told. Section 6 describes it. Personal and
 managed values have no such path.
 
 Keeping the value in the store means a notebook contains a name, not a password:
@@ -78,9 +78,10 @@ sentence. Deleting works, and the audit record names the administrator rather th
 
 Managed connections are created by an administrator with one or more groups under **Used by**. A
 scheduled notebook whose pipeline names a managed connection and whose `ownerGroup` is in
-**Used by** receives its secret fields (section 4). Connection tests, federated catalogs and a
-catalog-backed ingestion template are not built. A managed value is still not usable in a notebook
-you run yourself.
+**Used by** receives its secret fields (see
+[Use a connection in a notebook](./connections-notebooks)). Connection tests, federated catalogs
+and a catalog-backed ingestion template are not built. A managed value is still not usable in a
+notebook you run yourself.
 
 The task pod reads `CONN_<NAME>_<KEY>` from the Kubernetes Secret `conn-<name>`, which the External
 Secrets Operator syncs when it is installed (`make external-secrets`, then wait for the next sync —
@@ -138,9 +139,10 @@ a connection with this name already exists
 
 Choose another name, or open the existing connection and rotate or delete it. The same name in
 different scopes is allowed: a personal `crm-db` and a group `crm-db` can coexist, and the notebook
-helper then asks which one you mean (section 4). A group connection's name is also the name of the
-platform resource behind it, so two groups cannot both own a connection with the same name; the
-second attempt answers the same sentence.
+helper then asks which one you mean (see
+[Use a connection in a notebook](./connections-notebooks)). A group connection's name is also the
+name of the platform resource behind it, so two groups cannot both own a connection with the same
+name; the second attempt answers the same sentence.
 
 ## 4. Rotate and delete
 
@@ -153,7 +155,7 @@ takes new values:
   refused with `a managed connection cannot be read back, so a rotation sends every field`.
 - A connection with no secret fields has nothing to rotate.
 
-A successful rotation clears a break-glass notice on a group connection (section 7).
+A successful rotation clears a break-glass notice on a group connection (section 6).
 
 **Delete** asks once, in a dialog titled `Delete <name>?`. It names the connection and says what
 stops working:
@@ -162,7 +164,7 @@ stops working:
 - Group and managed: *Notebooks that use it will fail. Pipelines and catalogs that use it will stop
   working.*
 
-Catalogs do not consume connections yet (section 9); notebooks and pipelines do. Deleting removes
+Catalogs do not consume connections yet (section 7); notebooks and pipelines do. Deleting removes
 the value from the secret store and, for a group or managed connection, the `Connection` resource.
 An administrator who is not a member of the owning group can delete a group connection; the audit
 record names the administrator.
@@ -198,7 +200,8 @@ An administrator sees:
 They see names, settings and secret field names. They do **not** see personal or managed values.
 The break-glass action refuses those scopes with `break-glass covers group connections only`.
 No administrative request returns a personal or managed value; the owner of a personal connection
-reads it in their own notebook, as in section 4.
+reads it in their own notebook, as in
+[Use a connection in a notebook](./connections-notebooks).
 
 For a **group** connection, an administrator has one emergency action: **Break-glass read**. It is
 offered on group rows only and asks for a **Reason** of at least 20 characters (at most 500). The
@@ -239,8 +242,8 @@ audit record marks a successful delete as an administrator's action.
 - **Spark notebooks.** A Spark session does not receive connection values. `stardelt.connection()`
   is for the Python kernel; use it to fetch a value and pass what the job needs explicitly.
 - **Managed connections.** A scheduled notebook whose pipeline names one and whose `ownerGroup` is
-  in `usableBy` uses it (section 4). Connection tests, federated catalogs and a catalog-backed
-  ingestion template are not built.
+  in `usableBy` uses it (see [Use a connection in a notebook](./connections-notebooks)). Connection
+  tests, federated catalogs and a catalog-backed ingestion template are not built.
 
   The pod reads `CONN_<NAME>_<KEY>` from the Kubernetes Secret `conn-<name>`, which the External
   Secrets Operator syncs when it is installed (`make external-secrets`, then wait for the next sync —
