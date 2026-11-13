@@ -27,6 +27,7 @@ any compatible system, scrapes these endpoints, stores the samples and alerts on
 | Airflow's statsd exporter | `airflow-statsd:9102/metrics` | `airflow_asset_orphaned` | Airflow sends statsd here; `statsd_exporter_lines_total` counts what arrived |
 | Nova | `nova:8081/metrics` | `nova_build_info` | the internal listener; `8080` is the SPA and answers HTML |
 | JupyterHub's hub | `hub:8081/hub/metrics` | `python_gc_objects_collected_total` | the only unauthenticated path on 8081; the hub API still needs a token |
+| Spark Connect driver | `spark-connect:4040/metrics/executors/prometheus` | `spark_info` | the driver's UI port; the body has no `# TYPE` lines |
 | OpenBao | `openbao:8200/v1/sys/metrics?format=prometheus` | `vault_core_active` | opt-in (`make openbao`); the path is not `/metrics` |
 
 Every address in the table is a Service port in the platform namespace (`stardelt` in the
@@ -64,16 +65,17 @@ Repeat it with the other three cluster names.
 
 ## Who may read them
 
-Two groups. Most endpoints accept a request from any pod in the namespace; four are closed to
+Two groups. Most endpoints accept a request from any pod in the namespace; five are closed to
 everything but a pod that carries the label `app.kubernetes.io/name: prometheus`, in any namespace —
 the label the Prometheus Operator puts on its own pods:
 
 - **Open to any pod in the namespace:** Keycloak `9000`, Reloader `9090`, the Spark operator `8080`,
   the operator `8082`, Airflow's statsd exporter `9102`, Nova `8081`, OpenBao `8200`.
 - **Only a pod labelled `app.kubernetes.io/name: prometheus`:** SeaweedFS `9327`, Lakekeeper `9000`,
-  OpenFGA `2112`, JupyterHub's hub `8081` (`/hub/metrics`).
+  OpenFGA `2112`, JupyterHub's hub `8081` (`/hub/metrics`), the Spark Connect driver `4040` at
+  `spark-connect:4040/metrics/executors/prometheus`.
 
-A plain pod gets `connection refused` on those four:
+A plain pod gets `connection refused` on those five:
 
 ```text
 $ curl -s -o /dev/null -w '%{http_code}\n' http://lakekeeper:9000/metrics      # plain pod
@@ -83,7 +85,12 @@ $ curl -s -o /dev/null -w '%{http_code}\n' http://keycloak:9000/metrics       # 
 ```
 
 Run the scraper with that label (`metadata.labels: {app.kubernetes.io/name: prometheus}` on the Pod
-template) or the four endpoints stay dark.
+template) or the five endpoints stay dark.
+
+Spark Connect is the one gated endpoint whose port is also a user interface: `4040` is the driver's
+Spark UI as well as its metrics path, so a scraper-labelled pod can read its jobs, stages and
+environment page. The page carries no credential values (they are redacted) and no SQL tab; the
+Spark Connect gRPC port `15002` stays limited to members' notebooks.
 
 ## Turn on the scrape objects
 
@@ -203,8 +210,9 @@ The labels on the monitor itself (`prometheus: main` above) must match your Prom
 `serviceMonitorSelector`, or the monitor is never picked up. The same shape works for every row of
 the table; the Service port is named `metrics` for most of them — Reloader's is `http`, Airflow's
 statsd exporter's is `statsd-scrape`, and Nova's is `internal`. The label on the scraper Pod still
-decides on the four gated endpoints: a monitor for SeaweedFS, Lakekeeper, OpenFGA or JupyterHub's hub
-is read only when the Prometheus Pod carries `app.kubernetes.io/name: prometheus`.
+decides on the five gated endpoints: a monitor for SeaweedFS, Lakekeeper, OpenFGA, JupyterHub's hub
+or the Spark Connect driver is read only when the Prometheus Pod carries
+`app.kubernetes.io/name: prometheus`.
 
 ## What has no Prometheus endpoint
 
