@@ -6,7 +6,7 @@ slug: /services/cloudnative-pg
 
 # CloudNativePG
 
-**What it is.** CloudNativePG is the Kubernetes operator that runs PostgreSQL as a `Cluster` custom resource: from the resource it creates the StatefulSet, the `-rw`/`-ro`/`-r` Services, the PVCs and the credentials Secrets, and it manages failover, WAL archiving and base backups. It is Apache-2.0. The platform installs chart `cnpg/cloudnative-pg` **0.28.2** from `https://cloudnative-pg.github.io/charts`; the chart version is fixed in the `Makefile` (`CNPG_VERSION`) and in `crates/stardelt-operator/src/planner.rs`, and the running operator is `ghcr.io/cloudnative-pg/cloudnative-pg:1.29.1`.
+**What it is.** CloudNativePG is the Kubernetes operator that runs PostgreSQL as a `Cluster` custom resource: from the resource it creates the StatefulSet, the `-rw`/`-ro`/`-r` Services, the PVCs and the credentials Secrets, and it manages failover, WAL archiving and base backups. It is Apache-2.0. The platform installs chart `cnpg/cloudnative-pg` **0.29.1** from `https://cloudnative-pg.github.io/charts`; the chart version is fixed in the `Makefile` (`CNPG_VERSION`) and in `crates/stardelt-operator/src/planner.rs`, and the running operator is `ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1`.
 
 **How it fits.** Four databases on the platform are CloudNativePG `Cluster`s. All four run `instances: 1`, keep `backup.retentionPolicy: 14d`, and take continuous WAL plus a daily base backup through barman-cloud into `s3://backups/`:
 
