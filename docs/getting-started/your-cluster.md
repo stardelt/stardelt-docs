@@ -25,12 +25,23 @@ the permission store (OpenFGA) or Spark. For table permissions by group, install
 | A default StorageClass | or set `storage.className`; check with `kubectl get storageclass` |
 | `helm` 3.18 or newer and `kubectl` | `helm dependency update` fetches the sub-charts |
 | Optional: an ingress controller | only if you want the chart's Ingress objects (`ingress.enabled`) |
-| Optional: cert-manager | only if you want the chart's TLS annotations (`ingress.tls.enabled`) |
+| **cert-manager** | the chart's Postgres backup plugin (`plugin-barman-cloud`) renders a self-signed `Issuer` and two `Certificate`s; without cert-manager the release cannot install. With `postgres.backup.enabled: false` the plugin is not installed and cert-manager is not needed |
 
-No ingress, no cert-manager and no LoadBalancer is required. Without them the services stay
-`ClusterIP`: `kubectl port-forward` works, and Nova still reports live status.
+No ingress controller and no LoadBalancer are required. Without them the services stay
+`ClusterIP`: `kubectl port-forward` works, and Nova still reports live status. cert-manager is a
+different matter: the default install needs it, because the Postgres backup plugin gets its webhook
+and client certificates from it. Turning the backup off is the one way to install without it —
+`postgres.backup.enabled: false` means no WAL archive and no base backup, so the databases have no
+recovery point.
 
 ## Install
+
+Check that cert-manager is working before the chart is built — the release cannot be installed
+without it:
+
+```bash
+kubectl get crd certificates.cert-manager.io     # must answer; otherwise install cert-manager first
+```
 
 ```bash
 git clone https://github.com/stardelt/stardelt-platform

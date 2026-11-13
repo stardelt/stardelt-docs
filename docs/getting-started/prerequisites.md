@@ -26,7 +26,7 @@ not supported.
 | **Cluster administrator rights for the install** | The install creates namespaces, CRDs and cluster roles |
 | **Outbound network access at install time** | Charts and images come from upstream registries. To install without internet access, mirror them first: see [Sovereignty](../architecture/sovereignty) |
 | **An ingress controller** (optional) | Needed for hostnames in the browser. Without one, use `kubectl port-forward` |
-| **cert-manager** (with sign-in only) | Issues the SQL engine's internal TLS certificate |
+| **cert-manager** | Required by the default install: the platform's Postgres backup plugin issues its webhook and client certificates through it. Also issues the SQL engine's internal TLS certificate when sign-in is on |
 
 `kubectl config current-context` decides which cluster you install into. To refuse any other, set
 `EXPECT_CONTEXT=<context>` when you run `make`.
