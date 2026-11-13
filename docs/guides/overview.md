@@ -88,7 +88,9 @@ arrived still show, and the failed source keeps its own line — `Could not read
 queries.` or `Could not read loads.` — with **Retry**. An instance where nothing has run yet says
 `Nothing has happened yet`.
 
-An administrator also sees a **Platform apps** card with a status dot per service.
+An administrator also sees a **Platform apps** card — one line per service with a status dot and its
+status word, **All apps →** opens the **Platform** page — and a **Platform** shortcut card next to the
+other two shortcuts.
 
 ## Your first pipeline
 

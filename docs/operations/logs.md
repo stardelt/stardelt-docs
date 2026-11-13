@@ -131,8 +131,8 @@ is an event:
 kubectl -n stardelt get events --sort-by=.lastTimestamp | tail -20
 ```
 
-The **Apps** page in Nova is the quickest overall view for administrators: it lists the platform's
-services with their live status.
+The **Platform** page in Nova is the quickest overall view for administrators: it lists the
+platform's services with their live status.
 
 ## What is not here
 
