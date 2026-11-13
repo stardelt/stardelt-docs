@@ -7,7 +7,7 @@ sidebar_label: "Airflow for group members"
 
 ## Signing in
 
-The Airflow UI is at `https://airflow.<base domain>`. Sign in with the same Keycloak account you use for Nova — no separate Airflow password. `stardelt-admins` is synced to Airflow's `Admin` at every sign-in; everyone else is `stardelt-member`.
+The Airflow UI is at `https://airflow.<base domain>`. Sign in the same way you sign in to Nova, with your company account. There is no separate Airflow password. `stardelt-admins` is synced to Airflow's `Admin` at every sign-in; everyone else is `stardelt-member`.
 
 ## What you see
 
