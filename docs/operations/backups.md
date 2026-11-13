@@ -22,20 +22,25 @@ reproducible from Git: an install is values and charts, not state.
 
 ## How it works
 
-CloudNativePG runs `barman-cloud` inside the Postgres cluster. It streams every WAL segment into the
-object store as it is written and takes a base backup on the schedule in
-`manifests/cnpg-backup-schedule.yaml` (daily at 02:30, CloudNativePG cron with seconds first).
-Together they give point-in-time recovery: restore to the last base backup and replay the WAL up to
-the moment you choose.
+CloudNativePG runs `barman-cloud` inside the Postgres cluster, through the barman-cloud **plugin**:
+the `Cluster` declares `spec.plugins[0].name: barman-cloud.cloudnative-pg.io` with
+`parameters.barmanObjectName: <cluster>-backups`, and that `ObjectStore` holds the bucket, the
+endpoint and the credentials (`manifests/cnpg-objectstore.yaml` on the `make` path,
+`templates/cnpg-objectstore.yaml` on the chart path). WAL streaming is still `barman-cloud`: every
+WAL segment goes into the object store as it is written. The base backup is the daily
+`ScheduledBackup` in `manifests/cnpg-backup-schedule.yaml` (02:30, CloudNativePG cron with seconds
+first), which names the same plugin with `spec.method: plugin` and
+`spec.pluginConfiguration.name`. Together they give point-in-time recovery: restore to the last base
+backup and replay the WAL up to the moment you choose.
 
 The data archive is a CronJob (`manifests/object-store-backup.yaml`): `aws s3 sync` from the
 lakehouse bucket into `s3://lakehouse-backup/` at 03:15, after the catalog's 02:30 base backup — so a
 restore always finds a catalog that describes what is present. No `--delete`: the archive keeps
 objects the live bucket no longer has.
 
-Configuration lives in `manifests/cnpg-postgres.yaml` under `spec.backup`. By default both buckets and
-the credentials come from the in-cluster SeaweedFS — a backup that needs an external service is a
-backup that is not there after a fire.
+Configuration lives on the cluster's `ObjectStore`: `destinationPath`, `endpointURL` and
+`s3Credentials`. By default both buckets and the credentials come from the in-cluster SeaweedFS — a
+backup that needs an external service is a backup that is not there after a fire.
 
 ## Verify it yourself
 
@@ -125,16 +130,19 @@ Three details that silently matter:
 
 ## Production notes
 
-- **Use your own bucket.** Point `spec.backup.barmanObjectStore.endpointURL` and `destinationPath` at
-  S3/GCS/Azure Blob/Ceph, and give the backup credentials write-only access to that prefix — a
-  compromised database pod should not be able to delete its own backup history.
+- **Use your own bucket.** Point the `ObjectStore`'s `spec.configuration.endpointURL` and
+  `destinationPath` at S3/GCS/Azure Blob/Ceph, and its `s3Credentials` at a key pair with write-only
+  access to that prefix — a compromised database pod should not be able to delete its own backup
+  history.
 - **Keep a copy off the cluster.** A bucket inside the cluster you are backing up survives a bad
   migration but not a lost node. Object-store replication to a second location is the cheapest way to
   satisfy that.
 - **Encryption**: the WAL and base backups are compressed, not encrypted by barman itself. Rely on
-  bucket-side encryption (SSE) at your provider, or `AGE` recipient keys via
-  `spec.backup.barmanObjectStore.data.encryption` — pick one deliberately before you put real data
-  in.
+  bucket-side encryption (SSE) at your provider, or set `spec.configuration.data.encryption` on the
+  `ObjectStore` — pick one deliberately before you put real data in. Check the field before you
+  write it: `kubectl -n stardelt explain objectstore.spec.configuration.data` lists what this
+  CloudNativePG version accepts (it takes the bucket's own encryption mode, `AES256` or `aws:kms`;
+  the key stays with the provider).
 - **Retention is a policy, not a number.** `retentionPolicy: "14d"` in the manifest is a starting
   point: what matters is the longest outage or the slowest mistake you have to survive.
 - **Test the restore.** The manifest in this repo exists so a restore is a command someone can run

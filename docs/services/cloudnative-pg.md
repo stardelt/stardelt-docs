@@ -8,7 +8,7 @@ slug: /services/cloudnative-pg
 
 **What it is.** CloudNativePG is the Kubernetes operator that runs PostgreSQL as a `Cluster` custom resource: from the resource it creates the StatefulSet, the `-rw`/`-ro`/`-r` Services, the PVCs and the credentials Secrets, and it manages failover, WAL archiving and base backups. It is Apache-2.0. The platform installs chart `cnpg/cloudnative-pg` **0.29.1** from `https://cloudnative-pg.github.io/charts`; the chart version is fixed in the `Makefile` (`CNPG_VERSION`) and in `crates/stardelt-operator/src/planner.rs`, and the running operator is `ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1`.
 
-**How it fits.** Four databases on the platform are CloudNativePG `Cluster`s. All four run `instances: 1`, keep `backup.retentionPolicy: 14d`, and take continuous WAL plus a daily base backup through barman-cloud into `s3://backups/`:
+**How it fits.** Four databases on the platform are CloudNativePG `Cluster`s. All four run `instances: 1`, keep `backup.retentionPolicy: 14d`, and take continuous WAL plus a daily base backup through the barman-cloud plugin into `s3://backups/<cluster>/`:
 
 | Cluster | PostgreSQL image | Storage | Daily `ScheduledBackup` | Used by |
 |---|---|---|---|---|
@@ -27,10 +27,12 @@ The make path installs the operator in `make step-cnpg` and the catalog's cluste
 
 | Cluster | Manifest | Keys |
 |---|---|---|
-| `lakekeeper-pg` | `manifests/cnpg-postgres.yaml` | `spec.imageName`, `spec.storage.size`, `spec.instances`, `spec.backup.retentionPolicy`; `lakekeeper-pg-daily` in `manifests/cnpg-backup-schedule.yaml` (`spec.schedule`) |
+| `lakekeeper-pg` | `manifests/cnpg-postgres.yaml` | `spec.imageName`, `spec.storage.size`, `spec.instances`, `spec.backup.retentionPolicy`, `spec.plugins[0].parameters.barmanObjectName`; `lakekeeper-pg-daily` in `manifests/cnpg-backup-schedule.yaml` (`spec.schedule`) |
 | `keycloak-pg` | `manifests/keycloak.yaml` | the same keys; `keycloak-pg-daily` (`spec.schedule`) |
 | `nova-pg` | `manifests/nova-pg.yaml` | the same keys; `nova-pg-daily` (`spec.schedule`) |
 | `openfga-pg` | `manifests/openfga-pg.yaml` | the same keys; `openfga-pg-daily` in `manifests/cnpg-backup-schedule.yaml` (`spec.schedule`) |
+
+`spec.plugins[0].parameters.barmanObjectName` names the cluster's `ObjectStore` in `manifests/cnpg-objectstore.yaml` — that is where the bucket, the endpoint and the credentials live. The plugin itself is installed once for the namespace, as `deploy/barman-cloud-plugin-barman-cloud` (chart `cnpg/plugin-barman-cloud`); `make step-barman-cloud-plugin` installs it and the four stores, the chart does it through its `plugin-barman-cloud` sub-chart.
 
 The chart version is not in a values file: it is fixed in the `Makefile` and in `planner.rs` and moves with the pin process. The PostgreSQL image is always pinned on purpose — an unpinned `imageName` would track the operator's default and start a major upgrade on the next apply.
 
