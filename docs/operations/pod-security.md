@@ -117,6 +117,10 @@ verify-pod-security: _context ## Every running pod is admitted by a `restricted`
 	  --allow '^lakekeeper-'
 ```
 
+Each pattern has its reason beside it in the `Makefile`. The StreamApp driver was the third; it
+declares the `restricted` fields on its own pinned operator build and is admitted, so its pattern was
+dropped (platform#1211). A pattern that matches no refusal is still reported so it can be dropped.
+
 ## If a pod is refused
 
 - Read the reason in the output: it names the container and the field (`container "opa" must set
