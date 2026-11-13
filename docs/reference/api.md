@@ -1521,7 +1521,7 @@ Stop a run: mark it failed. A viewer (`spec.viewers`) may stop a run, as it may 
 
 Operation id `pipelines_run_task_logs`: in Python `client.call("pipelines_run_task_logs", …)`, on the command line `stardelt api pipelines_run_task_logs`.
 
-One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, the `::group::` source marker dropped (it names internal object-store paths and is never returned). A failed task's line is followed by the exception the scheduler recorded (`ExcType: message`) and up to 20 of its stack frames, each with the file's last path segment; they count against the same caps. `try` defaults to the task's last attempt; `token` is the `nextToken` of the previous answer. Every read writes one audit line with user, pipeline, run and task — never the content. Answers `Cache-Control: no-store`.
+One page of a task's log: at most 2000 lines and 512 KiB, ANSI escapes removed, the `::group::` source-details block dropped — its marker, the internal object-store path it wraps and its `::endgroup::` (they are never returned). A failed task's line is followed by the exception the scheduler recorded (`ExcType: message`) and up to 20 of its stack frames, each with the file's last path segment; they count against the same caps. `try` defaults to the task's last attempt; `token` is the `nextToken` of the previous answer. Every read writes one audit line with user, pipeline, run and task — never the content. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
