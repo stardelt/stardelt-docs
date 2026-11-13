@@ -108,19 +108,14 @@ priority class), and creates it with `--dry-run=server` in a namespace labelled
 platform's namespace is changed. A refusal that no `--allow` pattern matches fails the run; a
 `--allow` pattern that matches no refusal is reported so it can be dropped.
 
-`--allow <regex>` names a known exception. Today the target passes three:
+`--allow <regex>` names a known exception. Today the target passes two:
 
 ```make
 verify-pod-security: _context ## Every running pod is admitted by a `restricted` Pod Security namespace (#1096)
 	@NS=$(NAMESPACE) bash scripts/verify-pod-security.sh \
 	  --allow '^seaweedfs-' \
-	  --allow '^lakekeeper-' \
-	  --allow '^pegelonline-'
+	  --allow '^lakekeeper-'
 ```
-
-The third one no longer matches a refusal — the StreamApp driver passes on the pinned operator build
-— and the script says so: `note: --allow '^pegelonline-' matched no refusal; drop it from the
-Makefile`.
 
 ## If a pod is refused
 
