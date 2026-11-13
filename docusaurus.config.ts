@@ -116,6 +116,7 @@ const config: Config = {
         { to: '/docs/getting-started/quickstart', label: 'Quickstart', position: 'left' },
         { to: '/docs/intro/overview', label: 'Docs', position: 'left' },
         { to: '/docs/roadmap', label: 'Roadmap', position: 'left' },
+        { href: 'https://slides.stardelt.io', label: 'Slides', position: 'left' },
         { to: '/docs/developer', label: 'Contribute', position: 'left' },
         { to: '/demo', label: 'Try the demo', position: 'right', className: 'navbar-demo-button' },
         { type: 'custom-star', position: 'right' },
