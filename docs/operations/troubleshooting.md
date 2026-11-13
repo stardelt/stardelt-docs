@@ -208,8 +208,15 @@ This page does not cover the Kafka side (`kubectl -n <namespace> exec kafka-kafk
 
 ## A new CRD field is ignored
 
-**Cause.** Helm installs CRDs on `install`, never on `upgrade`. In a checkout of `stardelt-operator`,
-run `kubectl apply --server-side -f chart/crds/`.
+**Cause.** The operator that serves the field is not the build you think, or its rollout has
+not finished: the CRD schema is applied by the operator at start. Check
+`kubectl -n <namespace> get deploy stardelt-operator -o jsonpath='{.spec.template.spec.containers[0].image}'`
+and `kubectl -n <namespace> rollout status deploy/stardelt-operator`.
+
+**Fix.** Roll the operator image that carries the schema (`helm upgrade` with the pinned
+digest, or `./scripts/pin-image.sh stardelt-operator` from `stardelt-platform`). If your
+operator predates the self-applying behaviour, apply the schemas once:
+`kubectl apply --server-side -f chart/crds/` in the `stardelt-operator` checkout.
 
 ## Sign-in fails after hours in a notebook
 

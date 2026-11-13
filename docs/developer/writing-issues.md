@@ -70,7 +70,9 @@ Public issues describe the work and do not compare products.
 > **Acceptance.** ☐ both tests pass ☐ an unmodified `PlatformInstance` still reconciles into `stardelt`
 > ☐ the generated CRD lists `spec.namespace` with default `stardelt`.
 >
-> **Pitfalls.** `chart/crds/` is generated. Helm installs CRDs on `install` only, so an existing cluster
-> needs `kubectl apply --server-side -f chart/crds/`.
+> **Pitfalls.** `chart/crds/` is generated. Helm installs CRDs on `install` only, so a *fresh*
+> cluster gets them from the chart; on an existing cluster the operator applies the regenerated
+> schema when its new image starts. CI enforces the regenerated file with
+> `cargo run --bin crdgen && git diff --exit-code`.
 >
 > **Size.** Small. Branch `feat/platform-namespace`.

@@ -43,8 +43,9 @@ shows up later somewhere else. Make one pull request per repository, in the orde
 4. **Demos**, if you changed `Pipeline` validation: keep `dags/stardelt_pipelines/plan.py` in step with
    `PipelineSpec::validate`.
 5. **Docs**, after the change is on `main`: run `npm run sync:reference && npm run gen:reference`.
-6. **On a running cluster:** Helm does not upgrade CRDs, so run
-   `kubectl apply --server-side -f chart/crds/`.
+6. **On a running cluster:** the operator applies the regenerated schema at its next start,
+   so roll it (`./scripts/pin-image.sh stardelt-operator`). For a cluster whose operator
+   predates that, `kubectl apply --server-side -f chart/crds/` still works.
 
 ## Add a screen
 
