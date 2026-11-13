@@ -108,6 +108,7 @@ const sidebars: SidebarsConfig = {
         'operations/health',
         'operations/logs',
         'operations/monitoring',
+        'operations/pod-security',
         'operations/rotating-secrets',
         'operations/network-access',
         'operations/troubleshooting',
