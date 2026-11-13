@@ -83,6 +83,51 @@ $ curl -s -o /dev/null -w '%{http_code}\n' http://keycloak:9000/metrics       # 
 Run the scraper with that label (`metadata.labels: {app.kubernetes.io/name: prometheus}` on the Pod
 template) or the three endpoints stay dark.
 
+## Turn on the scrape objects
+
+Nothing above needs a switch: the endpoints answer, and any Prometheus can scrape them with the
+job you are about to write. The objects that make a **Prometheus Operator** pick them up
+automatically are opt-in, because they are custom resources: a cluster without the
+`monitoring.coreos.com/v1` CRDs cannot install them.
+
+The umbrella chart renders them with:
+
+```yaml
+monitoring:
+  enabled: true
+  # Added to every rendered object, so your Prometheus selects them.
+  labels:
+    release: kube-prometheus-stack
+```
+
+A platform managed by the operator sets the same values in the resource:
+
+```yaml
+spec:
+  monitoring:
+    enabled: true
+    labels:
+      release: kube-prometheus-stack
+```
+
+With the switch on, stardelt creates one `ServiceMonitor` for each SeaweedFS role, one
+`PodMonitor` for each of the four platform databases, and one `PrometheusRule` named
+`stardelt-alerts` with these starter alerts: a metrics target is down (`StardeltMetricsTargetDown`),
+the operator has no leader (`StardeltOperatorNoLeader`) or is failing reconciles
+(`StardeltOperatorReconcileErrors`), the object store has no master
+(`StardeltSeaweedFSMasterNotLeader`), a database stopped exporting metrics
+(`StardeltCnpgCollectorDown`), and a database has clients waiting
+(`StardeltCnpgClientsWaiting`).
+
+The `labels` must match your Prometheus's selector — `serviceMonitorSelector`,
+`podMonitorSelector` and `ruleSelector` — or the objects are created but never read. Every rule
+carries `runbook_url: https://stardelt.io/docs/operations/monitoring/`.
+
+If `spec.monitoring.enabled` is true and the CRDs are absent, the operator renders nothing and
+reports the condition `MonitoringCRDsMissing` (reason `CRDsMissing`). The umbrella chart cannot
+check the CRDs: `helm install` fails when they are missing, so leave the switch off there unless
+the Prometheus Operator is installed.
+
 ## Scrape with a plain Prometheus
 
 A scraper in the platform namespace can use the short names. A `scrape_configs` for all twelve
@@ -190,7 +235,8 @@ not part of it: they are pod ports, not Service ports, which is why this page sh
 
 ## What stardelt does not ship
 
-No Prometheus, Grafana, Loki, Jaeger or alertmanager, and no starter dashboards or alert rules. Your
-own stack scrapes, stores, alerts and draws the dashboards; [the licence table](../architecture/licenses)
+No Prometheus, Grafana, Loki, Jaeger or alertmanager, and no dashboards. The scrape objects and the
+six starter alerts are configuration, not a stack: they are rendered into your cluster only when
+you turn them on, and your Prometheus reads them. [The licence table](../architecture/licenses)
 lists what stardelt itself ships. The endpoints above are the whole contract —
 [Production](./production) lists what else an operator team owns.

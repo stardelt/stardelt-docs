@@ -41,6 +41,9 @@ A stardelt platform instance.
 | `spec.ingress.tls.enabled` | boolean | No | `false` | Requires cert-manager. Leave off when TLS ends elsewhere (a cloud load balancer, an edge proxy). |  |
 | `spec.ingress.tls.issuer` | string (nullable) | No |  | Name of a cert-manager ClusterIssuer; written as the `cert-manager.io/cluster-issuer` annotation of every Ingress. | min 1, max 253 |
 | `spec.ingress.tls.secretNameTemplate` | string | No | `{host}-tls` | Name of the Secret that holds the certificate; `{host}` becomes the host name with the dots turned into dashes. | min 1, max 253 |
+| `spec.monitoring` | object | No | `{"enabled":false,"labels":{}}` | The customer's Prometheus: the scrape objects, or a condition that says why not. |  |
+| `spec.monitoring.enabled` | boolean | No | `false` | Render a ServiceMonitor for every component that exposes Prometheus metrics. Needs the monitoring.coreos.com/v1 CRDs; without them the operator renders nothing and reports MonitoringCRDsMissing. |  |
+| `spec.monitoring.labels` | object (map of string) | No | `{}` | Labels added to every rendered object, so the customer's Prometheus selects them (for example `release: kube-prometheus-stack`). |  |
 | `spec.namespace` | string | No | `stardelt` | Namespace the platform's own components are installed into. |  |
 | `spec.pillars` | object | No | `{"batch":false,"dashboards":false,"lakehouse":true,"ml":false,"notebooks":false,"pipelines":false,"streaming":false}` | Which pillars a platform instance enables. |  |
 | `spec.pillars.batch` | boolean | No | `false` |  |  |
