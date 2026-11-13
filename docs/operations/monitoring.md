@@ -26,6 +26,8 @@ any compatible system, scrapes these endpoints, stores the samples and alerts on
 | The operator | `stardelt-operator-metrics:8082/metrics` | `stardelt_operator_build_info` | also `stardelt_operator_leader`, `stardelt_operator_reconcile_errors_total` |
 | Airflow's statsd exporter | `airflow-statsd:9102/metrics` | `airflow_asset_orphaned` | Airflow sends statsd here; `statsd_exporter_lines_total` counts what arrived |
 | Nova | `nova:8081/metrics` | `nova_build_info` | the internal listener; `8080` is the SPA and answers HTML |
+| JupyterHub's hub | `hub:8081/hub/metrics` | `python_gc_objects_collected_total` | the only unauthenticated path on 8081; the hub API still needs a token |
+| OpenBao | `openbao:8200/v1/sys/metrics?format=prometheus` | `vault_core_active` | opt-in (`make openbao`); the path is not `/metrics` |
 
 Every address in the table is a Service port in the platform namespace (`stardelt` in the
 quickstart). A Prometheus that runs in another namespace needs the fully-qualified name,
@@ -62,16 +64,16 @@ Repeat it with the other three cluster names.
 
 ## Who may read them
 
-Two groups. Most endpoints accept a request from any pod in the namespace; three are closed to
+Two groups. Most endpoints accept a request from any pod in the namespace; four are closed to
 everything but a pod that carries the label `app.kubernetes.io/name: prometheus`, in any namespace —
 the label the Prometheus Operator puts on its own pods:
 
 - **Open to any pod in the namespace:** Keycloak `9000`, Reloader `9090`, the Spark operator `8080`,
-  the operator `8082`, Airflow's statsd exporter `9102`, Nova `8081`.
+  the operator `8082`, Airflow's statsd exporter `9102`, Nova `8081`, OpenBao `8200`.
 - **Only a pod labelled `app.kubernetes.io/name: prometheus`:** SeaweedFS `9327`, Lakekeeper `9000`,
-  OpenFGA `2112`.
+  OpenFGA `2112`, JupyterHub's hub `8081` (`/hub/metrics`).
 
-A plain pod gets `connection refused` on those three:
+A plain pod gets `connection refused` on those four:
 
 ```text
 $ curl -s -o /dev/null -w '%{http_code}\n' http://lakekeeper:9000/metrics      # plain pod
@@ -81,7 +83,7 @@ $ curl -s -o /dev/null -w '%{http_code}\n' http://keycloak:9000/metrics       # 
 ```
 
 Run the scraper with that label (`metadata.labels: {app.kubernetes.io/name: prometheus}` on the Pod
-template) or the three endpoints stay dark.
+template) or the four endpoints stay dark.
 
 ## Turn on the scrape objects
 
@@ -201,8 +203,8 @@ The labels on the monitor itself (`prometheus: main` above) must match your Prom
 `serviceMonitorSelector`, or the monitor is never picked up. The same shape works for every row of
 the table; the Service port is named `metrics` for most of them — Reloader's is `http`, Airflow's
 statsd exporter's is `statsd-scrape`, and Nova's is `internal`. The label on the scraper Pod still
-decides on the three gated endpoints: a monitor for SeaweedFS, Lakekeeper or OpenFGA is read only
-when the Prometheus Pod carries `app.kubernetes.io/name: prometheus`.
+decides on the four gated endpoints: a monitor for SeaweedFS, Lakekeeper, OpenFGA or JupyterHub's hub
+is read only when the Prometheus Pod carries `app.kubernetes.io/name: prometheus`.
 
 ## What has no Prometheus endpoint
 
@@ -211,13 +213,6 @@ the entry says so.
 
 - **Trino** — `trino:8080/metrics` answers `403` with "Authentication over HTTP is not enabled". The
   endpoint needs a Trino user with access to system information; not measured past the refusal.
-- **JupyterHub's hub** — `hub:8081/hub/metrics` answers `403`: the chart requires a token unless
-  `hub.authenticatePrometheus` names a user. The hub's NetworkPolicy admits only pods labelled
-  `hub.jupyter.org/network-access-hub: true` and Nova, so a plain scraper gets `connection refused`
-  instead; not measured past the refusal.
-- **OpenBao** — `openbao:8200/v1/sys/metrics?format=prometheus` answers `403`
-  `{"errors":["permission denied"]}`. It needs a token unless the listener enables unauthenticated
-  metrics.
 - **Superset** — no endpoint: `superset:8088/metrics` is `404`.
 - **Airflow's api-server** — no Prometheus endpoint: `/metrics` returns the UI page, and Airflow's
   metrics go to the statsd exporter in the table above.
