@@ -25,11 +25,40 @@ any compatible system, scrapes these endpoints, stores the samples and alerts on
 | Spark operator | `spark-operator-metrics:8080/metrics` | `spark_application_running_count` | |
 | The operator | `stardelt-operator-metrics:8082/metrics` | `stardelt_operator_build_info` | also `stardelt_operator_leader`, `stardelt_operator_reconcile_errors_total` |
 | Airflow's statsd exporter | `airflow-statsd:9102/metrics` | `airflow_asset_orphaned` | Airflow sends statsd here; `statsd_exporter_lines_total` counts what arrived |
+| Nova | `nova:8081/metrics` | `nova_build_info` | the internal listener; `8080` is the SPA and answers HTML |
 
-Every address is a Service port in the platform namespace (`stardelt` in the quickstart). A
-Prometheus that runs in another namespace needs the fully-qualified name,
+Every address in the table is a Service port in the platform namespace (`stardelt` in the
+quickstart). A Prometheus that runs in another namespace needs the fully-qualified name,
 `<service>.<namespace>.svc.cluster.local:<port>`, for example
 `lakekeeper.stardelt.svc.cluster.local:9000`. All of them are HTTP `GET <address>/metrics`.
+
+### Database pods
+
+CloudNative-PG's instance manager answers on a **pod** port, not on a Service. Each of the four
+platform databases — `lakekeeper-pg`, `openfga-pg`, `keycloak-pg`, `nova-pg` — serves Prometheus
+text on `9187/metrics`; the first series are `cnpg_collector_up` and `cnpg_backends_waiting_total`.
+The pods carry `cnpg.io/cluster: <name>` and the container port is named `metrics`.
+
+A plain Prometheus has to scrape the pod IP. A Prometheus Operator selects the pods with a
+`PodMonitor`; this one covers the catalog database:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: cnpg-lakekeeper-pg
+  namespace: stardelt
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: lakekeeper-pg
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+```
+
+Repeat it with the other three cluster names.
 
 ## Who may read them
 
@@ -38,7 +67,7 @@ everything but a pod that carries the label `app.kubernetes.io/name: prometheus`
 the label the Prometheus Operator puts on its own pods:
 
 - **Open to any pod in the namespace:** Keycloak `9000`, Reloader `9090`, the Spark operator `8080`,
-  the operator `8082`, Airflow's statsd exporter `9102`.
+  the operator `8082`, Airflow's statsd exporter `9102`, Nova `8081`.
 - **Only a pod labelled `app.kubernetes.io/name: prometheus`:** SeaweedFS `9327`, Lakekeeper `9000`,
   OpenFGA `2112`.
 
@@ -56,8 +85,8 @@ template) or the three endpoints stay dark.
 
 ## Scrape with a plain Prometheus
 
-A scraper in the platform namespace can use the short names. A `scrape_configs` for all eleven
-endpoints:
+A scraper in the platform namespace can use the short names. A `scrape_configs` for all twelve
+Service endpoints:
 
 ```yaml
 scrape_configs:
@@ -89,6 +118,9 @@ scrape_configs:
   - job_name: airflow-statsd
     static_configs:
       - targets: ['airflow-statsd:9102']
+  - job_name: nova
+    static_configs:
+      - targets: ['nova:8081']
 ```
 
 Every address answers `/metrics`, so `metrics_path` stays at its default. The scraper's Pod needs the
@@ -122,10 +154,10 @@ spec:
 
 The labels on the monitor itself (`prometheus: main` above) must match your Prometheus's
 `serviceMonitorSelector`, or the monitor is never picked up. The same shape works for every row of
-the table; the Service port is named `metrics` for most of them — Reloader's is `http` and Airflow's
-statsd exporter's is `statsd-scrape`. The label on the scraper Pod still decides on the three gated
-endpoints: a monitor for SeaweedFS, Lakekeeper or OpenFGA is read only when the Prometheus Pod
-carries `app.kubernetes.io/name: prometheus`.
+the table; the Service port is named `metrics` for most of them — Reloader's is `http`, Airflow's
+statsd exporter's is `statsd-scrape`, and Nova's is `internal`. The label on the scraper Pod still
+decides on the three gated endpoints: a monitor for SeaweedFS, Lakekeeper or OpenFGA is read only
+when the Prometheus Pod carries `app.kubernetes.io/name: prometheus`.
 
 ## What has no Prometheus endpoint
 
@@ -147,8 +179,14 @@ the entry says so.
 - **JupyterHub's proxy** — no endpoint: `proxy-api:8001/metrics` is `404` once a probe carries the
   label its NetworkPolicy asks for (`hub.jupyter.org/network-access-proxy-api: true`); without it the
   connection is refused.
-- **Nova** — Nova's numbers are in its API (`GET /api/catalog/metrics`, catalog statistics for the
-  UI), not in Prometheus text.
+
+## Check the endpoints
+
+`NS=stardelt make verify-metrics` creates one probe pod with the scraper label, curls every
+installed Service target and prints one `✓` or `✗` line per endpoint, ending with `PASS (N of N)`.
+It skips a component that is not installed, and it leaves no pod behind. The four database pods are
+not part of it: they are pod ports, not Service ports, which is why this page shows their
+`PodMonitor` by hand.
 
 ## What stardelt does not ship
 
