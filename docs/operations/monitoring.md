@@ -6,9 +6,11 @@ slug: /operations/monitoring
 
 # Monitor with your own Prometheus
 
-Every component of an install that can expose Prometheus text does, and each does it on a Service
-port in the platform namespace. stardelt ships no monitoring stack of its own: your Prometheus, or
-any compatible system, scrapes these endpoints, stores the samples and alerts on them.
+The components that serve Prometheus text on a Service port answer in the platform namespace
+(`stardelt` in the quickstart). The four CloudNative-PG databases are the exception: their
+instance manager answers on a **pod** port, described under "Database pods" below. stardelt ships
+no monitoring stack of its own: your Prometheus, or any compatible system, scrapes these
+endpoints, stores the samples and alerts on them.
 
 ## What answers today
 
