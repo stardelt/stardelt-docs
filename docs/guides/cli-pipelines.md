@@ -12,8 +12,10 @@ You need the stardelt package, signed in: see [Python, command line and agents](
 
 `stardelt apply -f pipeline.json` creates a pipeline, or updates it when one of that name exists, so the same file can run on
 every deploy. The file is one JSON or YAML object shaped like the body of the create-pipeline operation (`pipelines_create` in the
-[API reference](../reference/api.md)): `name`, `ownerGroup`, a `sql` statement (or a `notebook`), and optionally `schedule`,
-`params` and `options`.
+[API reference](../reference/api.md)): `name`, `ownerGroup`, a `sql` statement (or a `notebook`) — or a `tasks` list, one
+statement per task — and optionally `schedule`, `params` and `options`. A `tasks` list is passed through unchanged and Nova checks
+the per-task rules and the dependency graph; the shape is the one in
+[A pipeline with several tasks](bundle-reference.md#a-pipeline-with-several-tasks).
 
 ```bash
 cat > pipeline.json <<'JSON'
