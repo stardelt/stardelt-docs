@@ -135,11 +135,14 @@ $ stardelt bundle deploy shop -t prod --allow-breaking
 
 ## A pipeline file
 
-The same shape that `stardelt apply -f` reads, plus `sqlFile`:
+The same shape that `stardelt apply -f` reads, plus `sqlFile`. A pipeline file gives one statement (or a notebook) for the
+whole pipeline, or a `tasks` list in which every task has its own statement. `stardelt apply -f` passes a
+`tasks` list through unchanged and Nova checks the per-task rules and the dependency graph when it creates or updates the
+pipeline:
 
 ```yaml
 name: daily
-sqlFile: sql/daily.sql          # exactly one of sql, sqlFile and notebook
+sqlFile: sql/daily.sql          # one of sql, sqlFile or notebook — or a tasks list
 params:
   catalog: "${var.catalog}"
 schedule:
@@ -149,8 +152,9 @@ schedule:
 
 - `name` is required and must be unique among the pipeline files of the bundle.
 - `ownerGroup` is optional; when it is there it must be the bundle's group.
-- **Exactly one** of `sql` (the statement), `sqlFile` (a file named under `files`; its text is read into `sql` when you plan or
-  deploy) and `notebook` (a published notebook and its version, or a file of the bundle: see below).
+- **One of** `sql` (the statement), `sqlFile` (a file named under `files`; its text is read into `sql` when you plan or
+  deploy) and `notebook` (a published notebook and its version, or a file of the bundle: see below), **or** a `tasks` list
+  that gives each task its own statement ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
 - `schedule` needs both `cron` and `timezone` (an IANA zone such as `Europe/Berlin`); leave it out for an on-demand pipeline.
 - `params` and `options` are the pipeline's parameters and advanced options, as in `stardelt apply`.
 
@@ -169,6 +173,29 @@ letter or a digit and uses only letters, digits, `.`, `_`, `-` and spaces (at mo
 beside it: `deploy` publishes the file to the bundle's group under its file name and pins the version Nova answers. Publishing bytes
 that equal the newest version stores nothing, so a repeated deploy does not create versions. A notebook is never deleted by `prune`
 or `destroy`: its versions are immutable.
+
+### A pipeline with several tasks
+
+A file may give a `tasks` list instead of `sql`/`sqlFile`/`notebook`, when a pipeline is several statements that depend on one
+another. All tasks of the file run in one pipeline, and `dependsOn` gives the order:
+
+```yaml
+name: shop-gold
+schedule: {cron: "0 4 * * *", timezone: Europe/Berlin}
+tasks:
+  - {name: daily_revenue, sqlFile: sql/10_daily_revenue.sql}
+  - {name: customer_ltv,  sqlFile: sql/11_customer_ltv.sql}
+  - {name: product_mix,   sqlFile: sql/12_product_mix.sql, dependsOn: [daily_revenue]}
+```
+
+- At most 30 tasks in one file.
+- A task name matches `^[a-z0-9][a-z0-9_-]{0,62}$` and is unique in the file.
+- Each task gives exactly one of `sql`, `sqlFile` and `notebook`. A `sqlFile` must be among the bundle's `files` (its text is read
+  into `sql` when you plan or deploy); a `notebook` follows the notebook rules above.
+- `dependsOn` is a list of at most 8 task names from the same file, with no cycle.
+- A problem is printed with the file, the target and the task: `resources/gold.yaml (prod), task 'customer_ltv': …`.
+- `tasks` and `sql`/`sqlFile`/`notebook` cannot appear in one file together.
+- `bundle generate` writes one `sql/<pipeline>-<task>.sql` per task.
 
 ### A stream app that is a file of the bundle
 
