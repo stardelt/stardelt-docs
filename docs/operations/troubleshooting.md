@@ -19,7 +19,7 @@ kubectl -n stardelt get events --sort-by=.lastTimestamp | tail -20
 helm list -A                                    # any release stuck in pending-upgrade?
 ```
 
-Nova's **Health** page lists every workload and the image it runs.
+Nova's **Platform** page lists every workload and the image it runs.
 
 ## A pinned image will not pull
 

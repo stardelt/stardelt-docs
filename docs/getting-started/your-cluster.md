@@ -186,7 +186,7 @@ trino> SELECT count(*) FROM system.runtime.nodes;
 The browser hands the token to the CLI (device grant) and you sign in with the same account as in Nova; `8080` answers `403` on purpose.
 
 Then open Nova (through your ingress, or run `kubectl -n stardelt port-forward svc/nova 8080:8080` and open http://localhost:8080).
-Its **Apps** page probes every service, and **Health** lists each workload with the image it runs.
+Its **Platform** page probes every service and lists each workload with the image it runs.
 
 :::note What has been tested
 The chart has been tested on single-node k3s. The cloud and OpenShift rows above are based on what the

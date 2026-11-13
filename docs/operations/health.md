@@ -1,20 +1,22 @@
 ---
-title: "Platform health"
-sidebar_label: "Platform health"
+title: "Platform"
+sidebar_label: "Platform"
 slug: /operations/health
 ---
 
-# Platform health
+# Platform
 
-Nova's **Health** page is one screen of live probes: every service with its status, the images the
-cluster is running, and the Trino cluster's own answer. Each number comes from the backend, which
-asks the cluster; the page keeps no history and stores nothing, so it shows what is true now.
+Nova's **Platform** page is one screen of live probes: every service grouped by category with its
+status, the images the cluster is running, and the query engine's own answer. Each number comes from
+the backend, which asks the cluster; the page keeps no history and stores nothing, so it shows what
+is true now.
 
 ## Where it is
 
-Open Nova as an administrator and choose **Admin → Health** in the left navigation. The path is
-`/health` on Nova's host — the base domain of the install, such as `https://data.example.com/health`.
-The page is administrator-only: a user who is not in the administrator group does not see the
+Open Nova as an administrator and choose **Admin → Platform** in the left navigation. The path is
+`/platform` on Nova's host — the base domain of the install, such as
+`https://data.example.com/platform`. The old `/health` and `/apps` paths redirect here. The page is
+administrator-only: a user who is not in the administrator group does not see the
 **Admin** group in the navigation, and the backend refuses the requests behind the page with `403`.
 
 Every line on the page is read live. The services are probed every 10 seconds, the running images
@@ -40,10 +42,11 @@ The header at the top right counts `N / M services up`: `M` is the number of ins
 
 ## Services
 
-Each row is one service of the platform, as Nova knows it: a status dot, the service's name, its
-description, a status word, and **Open service ↗** when the service has a page a browser can open
-(the button opens it in a new tab). The name is a link to the service's page in Nova, which carries
-the image it runs and its workloads.
+Every service of the platform is one **category card**: the services are grouped by category, and a
+card shows the service's name — a link to its detail page in Nova, which carries the image it runs and
+its workloads — its description, one line per image, and a status badge. **App details** opens the
+detail page, and **Open app ↗** appears only when the app answers: a service that is not `up` shows
+`no link` instead, so a link that would land on a `503` is not offered.
 
 The status word is one of:
 
@@ -91,15 +94,12 @@ When the table is empty and no notice is shown, it says so in words: either "The
 no deployments or statefulsets in Nova's namespace." or "No cluster access — Nova lists images only
 when it can read its own namespace."
 
-## The Trino cluster
+## Query engine
 
-The last block prints the Trino cluster query's answer as JSON, exactly as the backend received it.
-Read the same two values as the tiles: `state` (the coordinator's own state word) and
+The **Query engine** card prints the Trino cluster query's answer as JSON, exactly as the backend
+received it. Read the same two values as the tiles: `state` (the coordinator's own state word) and
 `nodeVersion.version`. When the query fails, the block carries the error instead, which is the
 sentence to quote when Trino is the problem.
-
-**All apps →** opens Nova's platform apps page, the list of every service with its address and
-workloads.
 
 ## What it does not replace
 
