@@ -37,6 +37,8 @@ Click a row to open its details. They are grouped and collapsed, so you read onl
   profile for; a running query, a query older than the profile retention, or one the engine sent no
   profile for says so instead. When the numbers point at a known cause, the group lists **hints** —
   what to change, the numbers behind it, and a link to [Hints in the profile](#hints-in-the-profile).
+  When the same statement has run before, the group also lists its recent runs and says when this one took more than
+  twice their median time.
 - **Tables:** which tables it read and which it wrote.
 - For a failed query: the engine's error name and message.
 
@@ -125,6 +127,29 @@ query pays for the table's layout rather than for its data. Compact the table wi
 the **Maintenance** card on the table's page shows the file count and how many of the files are small. The hint's
 evidence is the split count and the average bytes per split.
 
+## The same statement over time
+
+A statement you run again and again — a nightly job, a report — gets slower for reasons one run cannot show. The
+**Profile** group lists the last runs of the *same statement* beside this one: each run's state, when it ended, its
+wall time and the bytes it read, with the median wall time in the heading. When this run took more than twice the
+median and at least three runs were compared, the line says so, for example `this run took 3.3× the median`.
+
+The statement is compared by its hash, not by its query id: the engine hashes the text it was submitted, so a
+reworded statement is a different statement. Runs of the same statement by another person are never compared — the
+history belongs to the person who ran it.
+
+The API answers the same list:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>/history"
+```
+
+Each run carries `id`, `state`, `endedAt` (epoch milliseconds), `wallMs`, `executionMs`, `inputBytes` and
+`inputRows`; `medianWallMs` is the median of the returned runs' wall times, and `slower` is true when this run is
+more than twice that median and at least three runs were compared. At most the last 20 runs are returned, newest
+first. The visibility rule is the detail's: a query that is not yours to see answers 404 exactly like a missing one,
+and an administrator who opens somebody else's history is audited. The answer is `Cache-Control: no-store`.
+
 ## For developers
 
 The page is a thin view over the API, which you can call with a bearer token of your own:
@@ -133,6 +158,7 @@ The page is a thin view over the API, which you can call with a bearer token of 
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log?limit=20"
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>"
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>/profile"
+curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>/history"
 ```
 
 The list is keyset-paged: a response carries `nextCursor`; pass it as `cursor` to get the next page. It accepts the filters the
@@ -144,3 +170,5 @@ query that is still running, and for one without a stored profile; an administra
 else's profile is audited, and with `NOVA_QUERY_LOG_REDACT_LITERALS=1` the plan shows `'?'` in place of
 every string literal. The profile answer also carries `hints`: each one has a `code` (`spill`, `queue-bound`,
 `join-explosion`, `small-files`), a `title`, the `evidence` it was read from, and the `docsUrl` of its section above.
+The history endpoint answers the same rule for the last runs of the statement, with `medianWallMs` and `slower` as
+described in [The same statement over time](#the-same-statement-over-time).
