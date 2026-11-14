@@ -35,8 +35,9 @@ The **Load data** tab shows a form and a content box:
   `Creates or replaces <schema>.<table>`.
 
 When the load succeeds, the page says `Loaded <N> rows into <catalog>.<schema>.<table>` and offers
-two links: **Open in catalog →** to the new table, and **View job →** to the job in Activity. If the
-schema does not exist yet, it is created.
+**Open in catalog →** to the new table. The load itself appears under **Recent activity** on the
+[Overview](/docs/guides/overview#recent-activity), with its row count. If the schema does not exist
+yet, it is created.
 
 ## What loading does
 
@@ -46,7 +47,7 @@ The **How it works** aside lists the four steps:
 2. A table is created, or replaced, in the selected schema; the schema is created if it does not
    exist.
 3. Rows are written through the engine into Iceberg.
-4. The load appears under Activity with a row count.
+4. The load appears under **Recent activity** on the Overview, with a row count.
 
 CSV and JSON arrays of objects are supported. The whole file is sent in one request, so keep it
 small.
@@ -67,14 +68,15 @@ the source rows into the existing target. Cross-schema copies stay inside the sa
 lineage and policy apply to both ends.
 
 When the transfer succeeds, the page says `Transferred <N> rows → <catalog>.<schema>.<table>` and
-links to the job with **View job →**.
+offers **Open in catalog →** to the target table. The transfer appears under **Recent activity** on
+the Overview.
 
 ## Where the result is
 
 - The table is in the catalog you chose, under the schema and name you typed. Find it in
   **Catalog**, or follow **Open in catalog →** from the success line.
-- The operation is in **Activity** as a job with its row count and its outcome. Follow **View job →**
-  to open it.
+- The operation appears under **Recent activity** on the [Overview](/docs/guides/overview#recent-activity)
+  with its row count and outcome; the row opens the Load data page.
 - The statement the engine ran is in your [query log](/docs/guides/query-log), with source
   **Nova**.
 
