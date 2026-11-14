@@ -60,6 +60,29 @@ and kept. It is never rotated implicitly. CI fails when a known default string i
 (`scripts/check-no-default-secrets.sh`). [Rotating secrets](../operations/rotating-secrets) lists every
 secret, who reads it and how to rotate it.
 
+## AI assistants
+
+Nova can serve a hosted endpoint for AI assistants at `POST /mcp` ([AI assistants](../guides/mcp)).
+It is **off by default**, and an administrator turns it on per install with `spec.mcp.enabled`,
+`nova.mcp.enabled` or `NOVA_MCP_ENABLED`.
+
+An assistant is treated as untrusted code acting for a trusted person:
+
+- **It acts as the person.** Every call carries that person's token; the engine and the catalog
+  authorize the person, with their groups and grants. There is no service account behind the
+  endpoint. Its tools are read-only, and `sql_read` accepts one reading statement and nothing else.
+- **The token is bound to the endpoint.** It must carry the endpoint's audience and the
+  `stardelt:read` scope, and the browser's session cookie is never accepted. A token without the
+  scope is refused before any tool runs.
+- **Answers are limited and audited.** A row cap, a 60-second limit with cancel in the engine, a
+  per-person limit of 60 calls a minute, and 20 000 characters per answer. Every call writes one
+  audit line (person, client, tool, status, duration and a hash of the arguments) and, with a state
+  store, one database row an administrator can read.
+- **Answers are data, never instructions.** The endpoint says so in its `initialize` answer and in
+  every tool description, and no tool returns a secret value.
+- **An administrator can switch it off** and can limit it to named client ids
+  (`spec.mcp.allowedClients`).
+
 ## Known limits
 
 - **One storage key.** Trino, Spark Connect and the catalog read object storage with one platform
@@ -75,3 +98,12 @@ secret, who reads it and how to rotate it.
 - **SeaweedFS sign-in stays off.** The pinned version must not use its own OIDC path (CVE-2026-77298,
   fixed in 4.40). stardelt uses static keys there. See
   [per-component sign-in](./identity-integrations).
+- **An AI assistant's token reaches the engine directly.** The endpoint forwards the caller's token
+  to Trino rather than exchanging it, and the engine checks no engine-specific audience today, so the
+  same token authenticates against Trino's published endpoint. What bounds it is the person's own
+  grants, not the read-only tool surface. A token exchange that mints an engine-bound token is
+  planned.
+- **The endpoint cannot see an assistant's own tools.** It bounds what an assistant reads through
+  the platform; it cannot stop the assistant's client from sending that data elsewhere, and it cannot
+  stop an assistant from following instructions hidden in a table. Read the tool descriptions and the
+  [guide](../guides/mcp) as the contract, and treat every answer as untrusted text.
