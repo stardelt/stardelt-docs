@@ -79,6 +79,8 @@ grants it by default — a client you registered yourself must request it.
 | `query_log_list` | Your own recent queries: state, duration, statement preview |
 | `pipeline_list` | The pipelines you may see: owner group, schedule, state and last run |
 | `pipeline_runs` | Recent runs of those pipelines, newest first; narrow with `pipeline` (`<namespace>/<name>`), `state` (for example `failed`) and `limit` (at most 100) |
+| `pipeline_run` | One run with its tasks and their states — find the task that failed; takes `pipeline` (`<namespace>/<name>`) and `run_id` |
+| `pipeline_task_log` | One page of a task's log, the error and stack frames included; pass `next_token` from the previous answer to read on |
 
 Every tool is read-only and runs as you, with your own grants. An answer is cut at 20 000 characters, and
 each call writes one `audit` line — who called, which tool, ok or error, how long — never the arguments.
@@ -91,6 +93,19 @@ most 200 rows (1 000 at most, `NOVA_MCP_MAX_ROWS` or `spec.mcp.maxRows` on the `
 and a statement that runs longer than 60 seconds is cancelled (`NOVA_MCP_QUERY_TIMEOUT_SECS` or
 `spec.mcp.queryTimeoutSeconds`, 300 at most); a client asking for more rows gets the platform's cap,
 never more.
+
+### Why a run failed
+
+An assistant walks the same path a person does in the interface:
+
+1. `pipeline_runs` with `state: "failed"` lists the runs that failed, newest first.
+2. `pipeline_run` with the `pipeline` (`<namespace>/<name>`) and `run_id` shows the run's tasks and their
+   states — the one marked failed is the one to read.
+3. `pipeline_task_log` with the `task_id` of that task reads its log, the error and the stack frames
+   included. The answer is one page; pass the `next_token` it carries to read on. `try` picks a retry
+   when a task ran more than once.
+
+Each answer is cut at 20 000 characters like every other tool, and each call lands in the audit line.
 
 ### What it does not do
 
