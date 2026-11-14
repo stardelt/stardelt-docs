@@ -71,6 +71,8 @@ A token that fails validation adds `error="invalid_token"` to the same header. `
 | `sql_read` | One read-only SQL statement (`SELECT`, `WITH`, `VALUES`, `SHOW`, `DESCRIBE`, `TABLE` or `EXPLAIN`) as you; at most 200 rows and 60 seconds |
 | `sql_explain` | The plan of one read-only statement, without running it (`EXPLAIN`, never `EXPLAIN ANALYZE`) |
 | `query_log_list` | Your own recent queries: state, duration, statement preview |
+| `pipeline_list` | The pipelines you may see: owner group, schedule, state and last run |
+| `pipeline_runs` | Recent runs of those pipelines, newest first; narrow with `pipeline` (`<namespace>/<name>`), `state` (for example `failed`) and `limit` (at most 100) |
 
 Every tool is read-only and runs as you, with your own grants. An answer is cut at 20 000 characters, and
 each call writes one `audit` line — who called, which tool, ok or error, how long — never the arguments.
