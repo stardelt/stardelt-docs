@@ -6,9 +6,82 @@ slug: /guides/mcp
 
 # AI assistants (MCP)
 
-You need the stardelt package, signed in: see [Python, command line and agents](sdk-cli-mcp.md).
+An assistant can work with the platform in two ways. Through the **hosted endpoint** on Nova, it connects to
+your install directly: nothing to install, and it signs you in once. Through the **local server**, it starts
+`stardelt mcp serve` from the stardelt package on your machine: see
+[Python, command line and agents](sdk-cli-mcp.md).
 
-## For AI assistants (MCP)
+## The hosted endpoint
+
+`POST https://<nova host>/mcp` speaks JSON-RPC 2.0 — `initialize`, `tools/list` and `tools/call` — and offers a
+small set of read tools. It is **off by default**, and there is one client for it: `stardelt-mcp`, the public
+client in the platform's realm. It signs in with PKCE to a loopback address in a desktop assistant and with
+the device grant on a command line; it holds no secret and names no service account, and its tokens carry the
+audience `https://<nova host>/mcp` and the `groups` claim.
+
+### Turn it on
+
+Three switches, one per install path:
+
+- **Operator:** `spec.mcp.enabled: true` on the `PlatformInstance`.
+- **Chart:** `nova.mcp.enabled: true`.
+- **The binary:** `NOVA_MCP_ENABLED=1` together with `NOVA_MCP_AUDIENCE=https://<nova host>/mcp`.
+
+It refuses to start without `NOVA_AUTH_MODE=oidc` and an audience: there is no anonymous mode. With the
+endpoint off, `/mcp` answers `404` as JSON rather than page HTML.
+
+:::note
+The audience must be the resource identifier the identity provider mints, which is
+`https://<nova host>/mcp` by default. Name it yourself with `mcp.audience` in the chart or `spec.mcp.audience`
+on the `PlatformInstance` when Nova's public address is not the install's base domain.
+:::
+
+On a realm that already exists, `make sync-mcp-client` creates or converges the `stardelt-mcp` client;
+`make install-identity` runs it.
+
+### Connect an assistant
+
+A client that supports OAuth protected-resource metadata signs you in on the first call. This is the lab's
+address:
+
+```bash
+claude mcp add --transport http stardelt https://alpha.dev.stardelt.io/mcp
+```
+
+`GET /.well-known/oauth-protected-resource` and `GET /.well-known/oauth-protected-resource/mcp` answer the
+RFC 9728 document: `resource` is `https://<nova host>/mcp` and `authorization_servers` is the configured
+issuer, so the client knows where to sign in and what the token is for. Without a token, a call answers:
+
+```text
+401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://<nova host>/.well-known/oauth-protected-resource/mcp"
+```
+
+A token that fails validation adds `error="invalid_token"` to the same header. `GET` on the endpoint answers
+`405` with `Allow: POST`; it takes JSON-RPC on a `POST` only.
+
+### What it offers
+
+| Tool | What it answers |
+|---|---|
+| `platform_status` | Whether the platform is up, and the version of each component |
+| `catalog_list` | The catalogs, schemas and tables you may see |
+| `catalog_describe` | The columns, types and comment of one table |
+| `catalog_search` | The tables that match a word |
+
+Every tool is read-only and runs as you, with your own grants. An answer is cut at 20 000 characters, and
+each call writes one `audit` line — who called, which tool, ok or error, how long — never the arguments.
+
+### What it does not do
+
+- **No writes.** Nothing on this endpoint creates, changes or drops anything.
+- **No shared identity.** There is no service account behind it: every call is the person in the token.
+- **No browser session.** The cookie from the interface is never accepted; the endpoint wants a bearer token
+  minted for its own audience.
+- **It is not part of the API.** `/mcp` sits outside `/api`, so it is not described in the
+  [API reference](../reference/api.md), and it is not behind the interface's sign-in.
+
+## The local server
 
 `stardelt mcp serve` starts a local [Model Context Protocol](https://modelcontextprotocol.io) server on standard input and
 output. Each tool is one public operation, named by its operation id. It runs as you, with your token, and offers **only
