@@ -77,13 +77,19 @@ grants it by default — a client you registered yourself must request it.
 | `sql_read` | One read-only SQL statement (`SELECT`, `WITH`, `VALUES`, `SHOW`, `DESCRIBE`, `TABLE` or `EXPLAIN`) as you; at most 200 rows and 60 seconds |
 | `sql_explain` | The plan of one read-only statement, without running it (`EXPLAIN`, never `EXPLAIN ANALYZE`) |
 | `query_log_list` | Your own recent queries: state, duration, statement preview |
+| `query_log_profile` | Where a finished query spent its time: the plan, the operator statistics, the bytes spilled and the hints that name what to change; takes the query `id` from `query_log_list` |
+| `query_log_history` | The last 20 runs of the same statement by the same person, with the median wall time and whether this run is slower; takes the query `id` |
 | `pipeline_list` | The pipelines you may see: owner group, schedule, state and last run |
 | `pipeline_runs` | Recent runs of those pipelines, newest first; narrow with `pipeline` (`<namespace>/<name>`), `state` (for example `failed`) and `limit` (at most 100) |
 | `pipeline_run` | One run with its tasks and their states — find the task that failed; takes `pipeline` (`<namespace>/<name>`) and `run_id` |
 | `pipeline_task_log` | One page of a task's log, the error and stack frames included; pass `next_token` from the previous answer to read on |
+| `lineage_get` | Where a table's data comes from and what is made from it, up to `depth` steps each way (`1`–`5`) and `days` back (`1`–`365`); takes `catalog`, `schema` and `table` |
 
 Every tool is read-only and runs as you, with your own grants. An answer is cut at 20 000 characters, and
-each call writes one `audit` line — who called, which tool, ok or error, how long — never the arguments.
+each call writes one `audit` line — who called, which client, which tool, ok or error, how long and a
+SHA-256 of the arguments — never the arguments themselves. With a state store, Nova also keeps one row
+per call for an administrator's audit: when, who, which client, which tool, the status, the duration and
+the same hash, for 30 days (`NOVA_MCP_AUDIT_RETENTION_DAYS`).
 
 `sql_read` and `sql_explain` run one statement and nothing else: a write, a second statement or
 `EXPLAIN ANALYZE` is refused before anything is sent. That check is a first filter — what the
@@ -111,6 +117,22 @@ An assistant walks the same path a person does in the interface:
    when a task ran more than once.
 
 Each answer is cut at 20 000 characters like every other tool, and each call lands in the audit line.
+
+### Where a query spent its time, and what a change to a table touches
+
+Two questions the interface answers, the endpoint answers the same way:
+
+1. `query_log_list` finds the query — state, duration and a preview of the statement.
+2. `query_log_profile` with that `id` shows where it spent its time: the plan, the operators that
+   used the most CPU, the bytes spilled and the deterministic hints that name what to change.
+   `query_log_history` with the same `id` shows the last 20 runs of that statement by that person,
+   with the median wall time and whether this run is slower than the median.
+3. `lineage_get` with `catalog`, `schema` and `table` shows what the table is made from and what is
+   made from it, plus the jobs that write it — read it before changing a table. `depth` (1 to 5)
+   sets how many steps each way, `days` (1 to 365) how far back to look.
+
+The hints are computed from the profile, not written by a model: a plan that spills, a stage whose
+slowest task is much slower than the median and a join that explodes all have their own hint.
 
 ### What it does not do
 
