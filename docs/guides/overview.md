@@ -81,7 +81,7 @@ numbers follow within a few seconds, and the button is disabled while a count is
 
 **Recent activity** merges the newest runs, queries and loads into one list, newest first, each row with
 a badge naming its kind and how long ago it happened. A run opens its pipeline, a query opens that entry
-in the query log, and a load opens the jobs page. **All runs →** opens the full run list.
+in the query log, and a load opens the Load data page. **All runs →** opens the full run list.
 
 The three sources are read separately, so one that cannot be read does not blank the list: the rows that
 arrived still show, and the failed source keeps its own line — `Could not read runs.`, `Could not read
