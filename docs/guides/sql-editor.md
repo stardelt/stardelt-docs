@@ -9,6 +9,12 @@ slug: /guides/sql-editor
 **SQL editor** in the left navigation (`/query`) is where you run ad-hoc SQL against the warehouse. You
 type a statement, run it, read the result, and keep the statements you want to come back to.
 
+:::note Which catalog the examples use
+The examples name `warehouse`, the platform's own catalog. On an install with sign-in it is
+**administrators only** — use a catalog your groups were granted. The **Catalogs** page lists yours, and
+`SHOW CATALOGS` answers the same question in the SQL editor.
+:::
+
 ## What it is
 
 The page has three columns: a **Tables** pane on the left, the editor and its result in the middle, and
@@ -19,7 +25,8 @@ collapsed, so the editor keeps the width.
 The catalog a statement is written against comes from the page's URL, `/query?catalog=<name>`, and the
 Tables pane sets it when you click a catalog. It names the catalog the **Sample** statement is generated
 from and the one written into table names inserted from the pane. It does not change the engine's session
-default, so a statement that names its catalog works wherever you paste it.
+default, so a statement that names its catalog works wherever you paste it. The pane lists the catalogs your
+groups were granted; `warehouse`, the one the examples use, is reserved for administrators.
 
 ## The editor
 

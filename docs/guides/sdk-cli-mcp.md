@@ -11,6 +11,12 @@ three ways: a client for notebooks and scripts, a `stardelt` command for shells 
 AI assistant can use the platform as you. All three read the same list of operations, so a new Nova route is available in
 all of them as soon as the package is refreshed.
 
+:::note Which catalog the examples use
+The examples name `warehouse`, the platform's own catalog. On an install with sign-in it is
+**administrators only** — use a catalog your groups were granted. The **Catalogs** page lists yours, and
+`SHOW CATALOGS` answers the same question in the SQL editor.
+:::
+
 ```bash
 pip install "stardelt @ git+https://github.com/stardelt/stardelt-python@v0.2.0"
 ```

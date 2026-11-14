@@ -10,6 +10,12 @@ Turn a statement from the SQL editor into a **pipeline** that runs on a schedule
 one of your groups and runs as that group's service identity, so it reaches exactly what the group may reach, not what you
 personally may. Its runs, logs and state are on the **Pipelines** page.
 
+:::note Which catalog the examples use
+The examples name `warehouse`, the platform's own catalog. On an install with sign-in it is
+**administrators only** — use a catalog your groups were granted. The **Catalogs** page lists yours, and
+`SHOW CATALOGS` answers the same question in the SQL editor.
+:::
+
 ## Before you start
 
 - You are a member of at least one group (see **Profile**).
