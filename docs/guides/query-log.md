@@ -31,6 +31,11 @@ Click a row to open its details. They are grouped and collapsed, so you read onl
 - **Timing:** time waiting in the queue, planning and executing, and the CPU time used.
 - **Data:** rows and bytes read from storage, rows and bytes returned, rows and bytes written.
 - **Memory:** the peak memory the query used.
+- **Profile:** where the time went — the five operators that used the most CPU (input, finish and
+  output time), the rows each read and produced, the peak memory the engine reported, and the
+  engine's plan behind a collapsed **Plan**. It is kept for finished queries the engine sent a
+  profile for; a running query, a query older than the profile retention, or one the engine sent no
+  profile for says so instead.
 - **Tables:** which tables it read and which it wrote.
 - For a failed query: the engine's error name and message.
 
@@ -87,8 +92,14 @@ The page is a thin view over the API, which you can call with a bearer token of 
 ```bash
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log?limit=20"
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>"
+curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>/profile"
 ```
 
 The list is keyset-paged: a response carries `nextCursor`; pass it as `cursor` to get the next page. It accepts the filters the
 page uses (`scope` = `mine`, `team` or `all`; `all` is for administrators), `state`, `q`, `warehouse` and `limit`). The detail endpoint returns the same groups as the
 page. The API description is at `/api/openapi.json` on your Nova.
+
+The profile endpoint answers 404 for a query that is not yours to see (exactly like a missing one), for a
+query that is still running, and for one without a stored profile; an administrator who opens somebody
+else's profile is audited, and with `NOVA_QUERY_LOG_REDACT_LITERALS=1` the plan shows `'?'` in place of
+every string literal.
