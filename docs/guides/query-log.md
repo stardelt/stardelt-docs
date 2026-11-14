@@ -108,7 +108,7 @@ timing only — the same profile always gives the same hints, and no model is in
 any of the causes below shows no hints, which is the normal case for a healthy query.
 
 The API carries the same list: `GET /api/query-log/<query id>/profile` answers `hints`, an array of objects with
-`code`, `title`, `evidence` and `docsUrl`. Match on `code` when you build on it — the four codes are the four
+`code`, `title`, `evidence` and `docsUrl`. Match on `code` when you build on it — the five codes are the five
 headings below.
 
 ### Spill
@@ -131,6 +131,16 @@ A join produced far more rows than it read — more than ten times its input. Th
 that matches more rows than intended: a missing condition, or keys that are not as unique as assumed. Check the join
 keys and whether the smaller side is unique on them before changing anything else. The hint's evidence is the
 output and input row counts.
+
+### Skew
+
+One task of a stage did most of the work while its siblings finished quickly: the rows are not spread evenly
+over the workers, so most of the stage's time is one task's time and the rest of the cluster waits. That
+happens when a join or an aggregation groups by a key whose values are not evenly distributed — a few large
+tenants, one huge partition, a skew in the join key. Salt the key (append a random suffix and group again),
+repartition before the wide operator, or filter out the dominant value if the query does not need it. The
+hint's evidence is the stage number, the slowest task's CPU time, the median task's CPU time and how many
+times slower the slowest was.
 
 ### Small files
 
