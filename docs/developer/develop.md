@@ -63,6 +63,12 @@ your user in it, and round-trips three rows through `stardelt.write_df`. It neve
 table — dropping is an administrator action in this release. The `warehouse` catalog is
 reserved for administrators, so the notebook does not use it.
 
+The copy in your home is written once, on the first start (`cp -n`): a home that already has the
+notebook keeps the version of the image that created it, so an older home can still hold the earlier
+cells that query the administrator-only `warehouse` catalog. To take the current one, delete the
+copy in your home and restart your server — or copy
+`/opt/stardelt/notebooks/warehouse-quickstart.ipynb` over it, saving your edits first.
+
 The token belongs to your session. When it expires, restart your server from Nova to get a fresh one.
 
 ## VS Code on your laptop
