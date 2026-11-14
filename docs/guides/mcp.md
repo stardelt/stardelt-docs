@@ -89,7 +89,8 @@ Every tool is read-only and runs as you, with your own grants. An answer is cut 
 each call writes one `audit` line — who called, which client, which tool, ok or error, how long and a
 SHA-256 of the arguments — never the arguments themselves. With a state store, Nova also keeps one row
 per call for an administrator's audit: when, who, which client, which tool, the status, the duration and
-the same hash, for 30 days (`NOVA_MCP_AUDIT_RETENTION_DAYS`).
+the same hash, for 30 days (`NOVA_MCP_AUDIT_RETENTION_DAYS`, or `spec.mcp.auditRetentionDays` on the
+`PlatformInstance`).
 
 `sql_read` and `sql_explain` run one statement and nothing else: a write, a second statement or
 `EXPLAIN ANALYZE` is refused before anything is sent. That check is a first filter — what the
@@ -146,6 +147,27 @@ slowest task is much slower than the median and a join that explodes all have th
   missing from the sign-in request.
 - **It is not part of the API.** `/mcp` sits outside `/api`, so it is not described in the
   [API reference](../reference/api.md), and it is not behind the interface's sign-in.
+
+### Who may call, and who can see the calls
+
+Two allowlists narrow who may call `/mcp`, and both are empty by default. `spec.mcp.allowedClients`
+names the client ids the token's `azp` must match, and `spec.mcp.allowedGroups` the group names its
+`groups` claim must include; an empty list accepts every client or group the audience accepts. A caller
+outside a list that is set is refused **before any tool runs**, with `403` and
+`{"error":"client not allowed"}` or `{"error":"group not allowed"}`. They render as
+`NOVA_MCP_ALLOWED_CLIENTS` and `NOVA_MCP_ALLOWED_GROUPS`; on a manifest install the values live in the
+`stardelt-identity` ConfigMap as `mcpAllowedClients` and `mcpAllowedGroups`, and a Nova restart applies
+them.
+
+An administrator reads the calls in Nova's interface, under **Admin → Agent calls**. Only an
+administrator sees that entry, and a non-administrator's `GET /api/admin/mcp-audit` answers `403`. The
+page lists the calls newest first, filterable by person and by tool, 50 rows by default and at most 500;
+each row carries when, the person (`sub`), the client (`azp`), the tool, the status, the duration and a
+SHA-256 of the arguments — never the arguments and never a result.
+
+They are kept for 30 days by default. `spec.mcp.auditRetentionDays` on the `PlatformInstance` sets 0 to
+3650 days, and `0` keeps the rows and switches the purge off; the binary's variable is
+`NOVA_MCP_AUDIT_RETENTION_DAYS`.
 
 ### Turn it off, and revoke a client
 
