@@ -333,6 +333,87 @@
         }
       }
     },
+    "/api/admin/mcp-audit": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "description": "The last calls of the hosted MCP endpoint (`/mcp`), newest first: when, the signed-in subject, the client id (`azp`), the tool, the status, the duration and a SHA-256 of the arguments — never the arguments themselves, and never a result. `limit` is 1 to 500 (50 by default); `sub` and `tool` narrow by exact match. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. Without a state store the answer is 503. Answers `Cache-Control: no-store`.",
+        "operationId": "admin_mcp_audit",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "How many calls, 1 to 500 (default 50)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sub",
+            "in": "query",
+            "description": "Only this subject",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tool",
+            "in": "query",
+            "description": "Only this tool",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The calls, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/McpCalls"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nova has no state store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/teams": {
       "post": {
         "tags": [
@@ -10216,6 +10297,61 @@
           },
           "truncated": {
             "type": "boolean"
+          }
+        }
+      },
+      "McpCall": {
+        "type": "object",
+        "description": "One recorded call. `atMs` is epoch milliseconds, like every other time in Nova's API.",
+        "required": [
+          "atMs",
+          "sub",
+          "tool",
+          "status",
+          "durationMs",
+          "argumentsSha256"
+        ],
+        "properties": {
+          "argumentsSha256": {
+            "type": "string"
+          },
+          "atMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "client": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sub": {
+            "type": "string"
+          },
+          "tool": {
+            "type": "string"
+          }
+        }
+      },
+      "McpCalls": {
+        "type": "object",
+        "description": "The answer of `GET /api/admin/mcp-audit`: the calls, newest first.",
+        "required": [
+          "calls"
+        ],
+        "properties": {
+          "calls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/McpCall"
+            }
           }
         }
       },
