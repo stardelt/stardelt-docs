@@ -125,6 +125,24 @@ Each answer is cut at 20 000 characters like every other tool, and each call lan
 - **It is not part of the API.** `/mcp` sits outside `/api`, so it is not described in the
   [API reference](../reference/api.md), and it is not behind the interface's sign-in.
 
+### Turn it off, and revoke a client
+
+The switches that turn the endpoint on turn it off: `spec.mcp.enabled: false` on the
+`PlatformInstance`, `nova.mcp.enabled: false` in the chart, or `NOVA_MCP_ENABLED=0` on the binary.
+Nova restarts with the new value, and after it `/mcp` and the two `/.well-known/oauth-protected-resource`
+documents answer `404` as JSON — a client that tries to sign in finds no metadata to sign in to.
+
+To revoke one assistant without switching the endpoint off, disable its client in the identity
+provider. On the platform's Keycloak that is `stardelt-mcp` in the `stardelt` realm:
+
+- **Console:** Clients → `stardelt-mcp` → Settings → Enabled off.
+- **Admin API:** `kcadm.sh update clients -r stardelt -q clientId=stardelt-mcp -s enabled=false`.
+
+On another provider, disable or delete the equivalent client. A new sign-in or a token refresh after
+that is refused. An access token that was already issued keeps working until it expires — five minutes
+unless the realm sets another lifespan — so revoking a client is not a way to end a session in
+progress. `stardelt-mcp` holds no secret, so there is no secret to rotate or delete.
+
 ## The local server
 
 `stardelt mcp serve` starts a local [Model Context Protocol](https://modelcontextprotocol.io) server on standard input and
