@@ -26,7 +26,6 @@ const shots = [
   { file: 'lineage.png', route: '/lineage?catalog=retail&schema=bronze&table=orders&depth=1', must: 'lineage' },
   { file: 'sql.png', route: '/query', must: 'sql', runSql: SQL },
   { file: 'catalog.png', route: '/catalog', must: 'catalog' },
-  { file: 'activity.png', route: '/jobs', must: 'activity' },
   // The Dashboards page opens on Superset's welcome; the entry tab lists the dashboards and
   // the first one renders in the same frame. Both clicks are what a person does.
   {
