@@ -54,11 +54,17 @@ issuer, so the client knows where to sign in and what the token is for. Without 
 
 ```text
 401 Unauthorized
-WWW-Authenticate: Bearer resource_metadata="https://<nova host>/.well-known/oauth-protected-resource/mcp"
+WWW-Authenticate: Bearer resource_metadata="https://<nova host>/.well-known/oauth-protected-resource/mcp", scope="stardelt:read"
 ```
 
-A token that fails validation adds `error="invalid_token"` to the same header. `GET` on the endpoint answers
-`405` with `Allow: POST`; it takes JSON-RPC on a `POST` only.
+The metadata document names `stardelt:read` in `scopes_supported`, so a client asks for it in the
+same sign-in. A token that fails validation adds `error="invalid_token"` to the header. A token
+that is valid but carries no `stardelt:read` answers `403` with
+`{"error":"insufficient_scope","required_scope":"stardelt:read"}` and a header naming the scope;
+the client asks the identity provider again with that scope. The realm client `stardelt-mcp`
+grants it by default — a client you registered yourself must request it.
+
+`GET` on the endpoint answers `405` with `Allow: POST`; it takes JSON-RPC on a `POST` only.
 
 ### What it offers
 
@@ -93,6 +99,9 @@ never more.
 - **No shared identity.** There is no service account behind it: every call is the person in the token.
 - **No browser session.** The cookie from the interface is never accepted; the endpoint wants a bearer token
   minted for its own audience.
+- **No unscoped token.** Every call needs `stardelt:read`. A token minted without it is refused
+  before any tool runs; that is not an error in the client's configuration, it is the scope
+  missing from the sign-in request.
 - **It is not part of the API.** `/mcp` sits outside `/api`, so it is not described in the
   [API reference](../reference/api.md), and it is not behind the interface's sign-in.
 
