@@ -5543,6 +5543,86 @@
         }
       }
     },
+    "/api/pipelines/{namespace}/{name}/runs/{run_id}/queries": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The statements one run sent to the query engine, slowest first, read from the `pipeline=` and `run=` client tags the pipeline loader writes. Access is the pipeline's (`load_visible`), not the query log's owner rule: these statements ran as the pipeline's service principal, so the query-log scope would hide them from the person who can see the run. Each answers taskId, startedAt, wallMs, executionMs, inputBytes, inputRows and the statement; with NOVA_QUERY_LOG_REDACT_LITERALS=1 every statement shows '?' in place of its string literals. Answers `Cache-Control: no-store`.",
+        "operationId": "pipelines_run_queries",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The Pipeline's namespace (Nova's own)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "description": "Airflow's run id, for example `scheduled__2026-11-14T03:00:00+00:00`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The run's statements, slowest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunQueriesResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such pipeline for this caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or the state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pipelines/{namespace}/{name}/runs/{run_id}/retry": {
       "post": {
         "tags": [
@@ -6314,13 +6394,66 @@
         }
       }
     },
+    "/api/query-log/{id}/history": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/query-log/{id}/history` — the last runs of the same statement, and whether this\none is slower than their median.",
+        "description": "The last 20 runs of the same statement by the same principal: each one's state, end time, wall and execution time, bytes and rows read, newest first. The same visibility rule as the detail: somebody else's query answers 404, exactly like a missing one, and an administrator who opens another person's history is audited. medianWallMs is the median of the returned runs' wall times; slower is true when this run's wall time is more than twice that median and at least three runs were compared. Answers Cache-Control: no-store.",
+        "operationId": "query_log_history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The engine's query id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The runs of the same statement, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryHistory"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such query, or it is not the caller's to see",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/query-log/{id}/profile": {
       "get": {
         "tags": [
           "public"
         ],
         "summary": "`GET /api/query-log/{id}/profile` — where one finished query spent its time: the engine's\nplan and the per-operator statistics it reported.",
-        "description": "The plan and per-operator statistics of one finished query. The same rule as the detail: somebody else's query answers 404, exactly like a missing one, and an administrator who opens another person's profile is audited. A query without a stored profile answers 404 with a sentence (still running, older than the profile retention, or the engine sent none). With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's plan shows '?' in place of every string literal.",
+        "description": "The plan and per-operator statistics of one finished query. The same rule as the detail: somebody else's query answers 404, exactly like a missing one, and an administrator who opens another person's profile is audited. A query without a stored profile answers 404 with a sentence (still running, older than the profile retention, or the engine sent none). With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's plan shows '?' in place of every string literal. The answer also carries \"hints\", an array of deterministic suggestions computed from the profile and the query's timing, each with its evidence and a documentation link; an empty array means no rule found evidence.",
         "operationId": "query_log_profile",
         "parameters": [
           {
@@ -9672,6 +9805,58 @@
           }
         }
       },
+      "HistoryRun": {
+        "type": "object",
+        "description": "One earlier run of the same statement (nova#788 S4).",
+        "required": [
+          "id",
+          "state"
+        ],
+        "properties": {
+          "endedAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Finished at, epoch milliseconds; null while the engine never reported an end."
+          },
+          "executionMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "id": {
+            "type": "string"
+          },
+          "inputBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "inputRows": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "state": {
+            "type": "string"
+          },
+          "wallMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        }
+      },
       "Job": {
         "type": "object",
         "required": [
@@ -11497,6 +11682,34 @@
           }
         }
       },
+      "QueryHistory": {
+        "type": "object",
+        "description": "The runs of the same statement that the caller can see, newest first.",
+        "required": [
+          "runs",
+          "slower"
+        ],
+        "properties": {
+          "medianWallMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Median wall time of `runs` in milliseconds; null when no run has a timing."
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryRun"
+            }
+          },
+          "slower": {
+            "type": "boolean",
+            "description": "True when this query's wall time is more than twice the median and at least three runs were compared."
+          }
+        }
+      },
       "QueryLogDetail": {
         "type": "object",
         "description": "Everything stored about one query: the whole statement, timing, data volumes, tables.",
@@ -11939,6 +12152,86 @@
               "type": "string",
               "writeOnly": true
             }
+          }
+        }
+      },
+      "RunQueriesResponse": {
+        "type": "object",
+        "description": "`GET …/runs/{run_id}/queries` — the run's statements, slowest first.",
+        "required": [
+          "queries"
+        ],
+        "properties": {
+          "queries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RunQueryView"
+            }
+          }
+        }
+      },
+      "RunQueryView": {
+        "type": "object",
+        "description": "One statement a run's task sent to the engine (nova#788 S5).",
+        "required": [
+          "id",
+          "state",
+          "sql"
+        ],
+        "properties": {
+          "executionMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "id": {
+            "type": "string",
+            "description": "The engine's query id."
+          },
+          "inputBytes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "inputRows": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "sql": {
+            "type": "string",
+            "description": "The statement; string literals are replaced by `?` under NOVA_QUERY_LOG_REDACT_LITERALS=1."
+          },
+          "startedAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Started at, epoch milliseconds."
+          },
+          "state": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The task id from the `task=` client tag, when the loader sent one."
+          },
+          "wallMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
           }
         }
       },

@@ -1491,6 +1491,29 @@ One run of a pipeline with its task instances. The run id is looked up through t
 | `502` | The scheduler or the cluster did not answer |
 | `503` | No cluster connection, or the scheduler is not configured |
 
+### GET /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/queries
+
+Operation id `pipelines_run_queries`: in Python `client.call("pipelines_run_queries", …)`, on the command line `stardelt api pipelines_run_queries`.
+
+The statements one run sent to the query engine, slowest first, read from the `pipeline=` and `run=` client tags the pipeline loader writes. Access is the pipeline's (`load_visible`), not the query log's owner rule: these statements ran as the pipeline's service principal, so the query-log scope would hide them from the person who can see the run. Each answers taskId, startedAt, wallMs, executionMs, inputBytes, inputRows and the statement; with NOVA_QUERY_LOG_REDACT_LITERALS=1 every statement shows '?' in place of its string literals. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+| `run_id` | path | string | Yes | Airflow's run id, for example `scheduled__2026-11-14T03:00:00+00:00` |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The run's statements, slowest first |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller |
+| `503` | No cluster connection, or the state store is not configured |
+
 ### POST /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/retry
 
 Operation id `pipelines_run_retry`: in Python `client.call("pipelines_run_retry", …)`, on the command line `stardelt api pipelines_run_retry`.
@@ -1696,13 +1719,35 @@ One query with its whole statement. Somebody else's query answers 404, exactly l
 | `404` | No such query, or it is not the caller's to see |
 | `503` | The state store is not configured |
 
+### GET /api/query-log/\{id\}/history
+
+Operation id `query_log_history`: in Python `client.call("query_log_history", …)`, on the command line `stardelt api query_log_history`.
+
+`GET /api/query-log/{id}/history` — the last runs of the same statement, and whether this one is slower than their median.
+
+The last 20 runs of the same statement by the same principal: each one's state, end time, wall and execution time, bytes and rows read, newest first. The same visibility rule as the detail: somebody else's query answers 404, exactly like a missing one, and an administrator who opens another person's history is audited. medianWallMs is the median of the returned runs' wall times; slower is true when this run's wall time is more than twice that median and at least three runs were compared. Answers Cache-Control: no-store.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | string | Yes | The engine's query id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The runs of the same statement, newest first |
+| `404` | No such query, or it is not the caller's to see |
+| `503` | The state store is not configured |
+
 ### GET /api/query-log/\{id\}/profile
 
 Operation id `query_log_profile`: in Python `client.call("query_log_profile", …)`, on the command line `stardelt api query_log_profile`.
 
 `GET /api/query-log/{id}/profile` — where one finished query spent its time: the engine's plan and the per-operator statistics it reported.
 
-The plan and per-operator statistics of one finished query. The same rule as the detail: somebody else's query answers 404, exactly like a missing one, and an administrator who opens another person's profile is audited. A query without a stored profile answers 404 with a sentence (still running, older than the profile retention, or the engine sent none). With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's plan shows '?' in place of every string literal.
+The plan and per-operator statistics of one finished query. The same rule as the detail: somebody else's query answers 404, exactly like a missing one, and an administrator who opens another person's profile is audited. A query without a stored profile answers 404 with a sentence (still running, older than the profile retention, or the engine sent none). With NOVA_QUERY_LOG_REDACT_LITERALS=1 somebody else's plan shows '?' in place of every string literal. The answer also carries "hints", an array of deterministic suggestions computed from the profile and the query's timing, each with its evidence and a documentation link; an empty array means no rule found evidence.
 
 **Parameters**
 
