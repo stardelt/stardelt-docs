@@ -21,13 +21,18 @@ Permissions are catalog-wide today. There is no table-level grant, no row or col
 |---|---|
 | `browse` | List the catalog and its schemas and tables |
 | `select` | Read rows |
-| `write` | Add and change data |
+| `write` | Add and change data, and replace a table or view with `CREATE OR REPLACE`; not drop or rename |
 | `create` | Create schemas and tables |
 | `manage` | Change who may use this catalog: grant and revoke the other verbs. It grants no access to the data itself |
 
 A grant also carries the weaker ones: `write` includes `select`, and `select` and `create`
 include `browse`. `manage` includes none of them, which is why an owner without another grant cannot
 read the tables.
+
+`write` does not include **drop** or **rename**. Removing or renaming a schema, table or view is a
+platform-administrator action in this release. A `write` grant covers data changes and
+`CREATE OR REPLACE TABLE` / `CREATE OR REPLACE VIEW`, which is how a table is rebuilt; ask an
+administrator when a table has to go away.
 
 Platform administrators can do everything in every catalog and are not listed anywhere on the page, so a
 catalog with no grants is not open to everyone — administrators still reach it.
