@@ -8,6 +8,12 @@ slug: /guides/sql-statements
 
 You need the stardelt package, signed in: see [Python, command line and agents](sdk-cli-mcp.md).
 
+:::note Which catalog the examples use
+The examples name `warehouse`, the platform's own catalog. On an install with sign-in it is
+**administrators only** — use a catalog your groups were granted. The **Catalogs** page lists yours, and
+`SHOW CATALOGS` answers the same question in the SQL editor.
+:::
+
 ## Long-running SQL: statements
 
 `stardelt sql` holds one request open until the query ends and returns at most 50 000 rows or about 64 MiB of data. For longer queries, or when you need
