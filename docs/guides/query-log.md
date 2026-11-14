@@ -35,7 +35,8 @@ Click a row to open its details. They are grouped and collapsed, so you read onl
   output time), the rows each read and produced, the peak memory the engine reported, and the
   engine's plan behind a collapsed **Plan**. It is kept for finished queries the engine sent a
   profile for; a running query, a query older than the profile retention, or one the engine sent no
-  profile for says so instead.
+  profile for says so instead. When the numbers point at a known cause, the group lists **hints** —
+  what to change, the numbers behind it, and a link to [Hints in the profile](#hints-in-the-profile).
 - **Tables:** which tables it read and which it wrote.
 - For a failed query: the engine's error name and message.
 
@@ -85,6 +86,45 @@ is exactly that case.
 Rows are removed after 90 days by default. An administrator changes this with the environment variable
 `NOVA_QUERY_LOG_RETENTION_DAYS` on Nova (`0` keeps everything).
 
+## Hints in the profile
+
+When a finished query's numbers show a known cause, the **Profile** group lists a hint for it: what to change, the
+numbers the hint was read from, and a link to this section. Hints are computed from the profile and the query's
+timing only — the same profile always gives the same hints, and no model is involved. A profile with no evidence for
+any of the causes below shows no hints, which is the normal case for a healthy query.
+
+The API carries the same list: `GET /api/query-log/<query id>/profile` answers `hints`, an array of objects with
+`code`, `title`, `evidence` and `docsUrl`. Match on `code` when you build on it — the four codes are the four
+headings below.
+
+### Spill
+
+The query needed more memory than its warehouse gave it, so the engine wrote intermediate data to disk and read it
+back ("spilled"). It still finished, but the extra round-trip through disk costs time. Read less data before the wide
+operator — filter earlier, select fewer columns, aggregate before the join — or run the query on a larger warehouse.
+The hint's evidence is the number of bytes spilled.
+
+### Queue-bound
+
+The query waited in the queue longer than it took to execute: the warehouse was busy with other statements, so this
+one was not slow — it was waiting for a slot. Run fewer statements at once, schedule the heavy ones away from each
+other, or lower `spec.concurrency` on the warehouse; a larger warehouse size gives the work more slots. The hint's
+evidence is the queue time and the execution time.
+
+### Join explosion
+
+A join produced far more rows than it read — more than ten times its input. That is almost always a join condition
+that matches more rows than intended: a missing condition, or keys that are not as unique as assumed. Check the join
+keys and whether the smaller side is unique on them before changing anything else. The hint's evidence is the
+output and input row counts.
+
+### Small files
+
+The table was read as many splits of a small average size: every split costs a file open and a metadata read, so the
+query pays for the table's layout rather than for its data. Compact the table with the engine's `optimize` procedure;
+the **Maintenance** card on the table's page shows the file count and how many of the files are small. The hint's
+evidence is the split count and the average bytes per split.
+
 ## For developers
 
 The page is a thin view over the API, which you can call with a bearer token of your own:
@@ -102,4 +142,5 @@ page. The API description is at `/api/openapi.json` on your Nova.
 The profile endpoint answers 404 for a query that is not yours to see (exactly like a missing one), for a
 query that is still running, and for one without a stored profile; an administrator who opens somebody
 else's profile is audited, and with `NOVA_QUERY_LOG_REDACT_LITERALS=1` the plan shows `'?'` in place of
-every string literal.
+every string literal. The profile answer also carries `hints`: each one has a `code` (`spill`, `queue-bound`,
+`join-explosion`, `small-files`), a `title`, the `evidence` it was read from, and the `docsUrl` of its section above.
