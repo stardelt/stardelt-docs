@@ -254,7 +254,7 @@
           "default": {
             "enabled": false
           },
-          "description": "The hosted MCP endpoint (`stardelt-nova#112`, `operator#69` slice 1). Off by default.",
+          "description": "The hosted MCP endpoint on Nova: whether it answers, the audience its tokens carry, the\nrow cap and timeout of `sql_read`, and the client ids allowed to call it. Off by default.",
           "properties": {
             "allowedClients": {
               "description": "Client ids (`azp`) allowed to call `/mcp`, comma separated in the Deployment.\nEmpty = every client the audience accepts. Nova refuses a token without an `azp`\nwhile this list is set.",
@@ -268,6 +268,13 @@
               "description": "The resource identifier tokens must carry. Empty = `https://<baseDomain>/mcp`, the\nvalue the realm client `stardelt-mcp`'s `aud-mcp` mapper mints.",
               "nullable": true,
               "type": "string"
+            },
+            "callsPerMinute": {
+              "description": "`tools/call`s one person may make per minute on `/mcp`; 1–600. Empty = Nova's own default (60).",
+              "format": "uint32",
+              "minimum": 0.0,
+              "nullable": true,
+              "type": "integer"
             },
             "enabled": {
               "default": false,
@@ -544,6 +551,10 @@
         {
           "message": "mcp.queryTimeoutSeconds is from 1 to 300",
           "rule": "!has(self.mcp) || !has(self.mcp.queryTimeoutSeconds) || (self.mcp.queryTimeoutSeconds >= 1 && self.mcp.queryTimeoutSeconds <= 300)"
+        },
+        {
+          "message": "mcp.callsPerMinute is from 1 to 600",
+          "rule": "!has(self.mcp) || !has(self.mcp.callsPerMinute) || (self.mcp.callsPerMinute >= 1 && self.mcp.callsPerMinute <= 600)"
         }
       ]
     },

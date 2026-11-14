@@ -41,9 +41,10 @@ A stardelt platform instance.
 | `spec.ingress.tls.enabled` | boolean | No | `false` | Requires cert-manager. Leave off when TLS ends elsewhere (a cloud load balancer, an edge proxy). |  |
 | `spec.ingress.tls.issuer` | string (nullable) | No |  | Name of a cert-manager ClusterIssuer; written as the `cert-manager.io/cluster-issuer` annotation of every Ingress. | min 1, max 253 |
 | `spec.ingress.tls.secretNameTemplate` | string | No | `{host}-tls` | Name of the Secret that holds the certificate; `{host}` becomes the host name with the dots turned into dashes. | min 1, max 253 |
-| `spec.mcp` | object | No | `{"enabled":false}` | The hosted MCP endpoint (, slice 1). Off by default. |  |
+| `spec.mcp` | object | No | `{"enabled":false}` | The hosted MCP endpoint on Nova: whether it answers, the audience its tokens carry, the row cap and timeout of `sql_read`, and the client ids allowed to call it. Off by default. |  |
 | `spec.mcp.allowedClients` | array of string (nullable) | No |  | Client ids (`azp`) allowed to call `/mcp`, comma separated in the Deployment. Empty = every client the audience accepts. Nova refuses a token without an `azp` while this list is set. |  |
 | `spec.mcp.audience` | string (nullable) | No |  | The resource identifier tokens must carry. Empty = `https://<baseDomain>/mcp`, the value the realm client `stardelt-mcp`'s `aud-mcp` mapper mints. |  |
+| `spec.mcp.callsPerMinute` | integer (nullable) | No |  | `tools/call`s one person may make per minute on `/mcp`; 1–600. Empty = Nova's own default (60). | min 0; format `uint32` |
 | `spec.mcp.enabled` | boolean | No | `false` | Render `NOVA_MCP_ENABLED`/`NOVA_MCP_AUDIENCE` into Nova. Off by default. |  |
 | `spec.mcp.maxRows` | integer (nullable) | No |  | Rows one `sql_read` call may return; 1–1000. Empty = Nova's own default (200). | min 0; format `uint32` |
 | `spec.mcp.queryTimeoutSeconds` | integer (nullable) | No |  | Seconds one `sql_read` call may run before it is cancelled; 1–300. Empty = Nova's own default (60). | min 0; format `uint32` |
@@ -110,6 +111,7 @@ A stardelt platform instance.
 - mcp.enabled needs baseDomain (the default audience is https://\<baseDomain\>/mcp) or an explicit mcp.audience
 - mcp.maxRows is from 1 to 1000
 - mcp.queryTimeoutSeconds is from 1 to 300
+- mcp.callsPerMinute is from 1 to 600
 - platform mode creates its own clients: leave provider, apiAudience and clients out
 - external mode needs issuerUrl
 - external mode needs tokenEndpoint
