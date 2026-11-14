@@ -94,6 +94,11 @@ and a statement that runs longer than 60 seconds is cancelled (`NOVA_MCP_QUERY_T
 `spec.mcp.queryTimeoutSeconds`, 300 at most); a client asking for more rows gets the platform's cap,
 never more.
 
+The endpoint also limits how often one person may call it: 60 `tools/call`s a minute. A call past that
+is refused with `429`, a `Retry-After: 60` header and `{"error": "too_many_requests"}`, and the refusal
+is written to the same audit line as every other call. `NOVA_MCP_CALLS_PER_MINUTE` moves the limit (at
+most 600). `initialize` and `tools/list` never count, so a client may reconnect and list its tools freely.
+
 ### Why a run failed
 
 An assistant walks the same path a person does in the interface:
