@@ -68,13 +68,26 @@ A token that fails validation adds `error="invalid_token"` to the same header. `
 | `catalog_list` | The catalogs, schemas and tables you may see |
 | `catalog_describe` | The columns, types and comment of one table |
 | `catalog_search` | The tables that match a word |
+| `sql_read` | One read-only SQL statement (`SELECT`, `WITH`, `VALUES`, `SHOW`, `DESCRIBE`, `TABLE` or `EXPLAIN`) as you; at most 200 rows and 60 seconds |
+| `sql_explain` | The plan of one read-only statement, without running it (`EXPLAIN`, never `EXPLAIN ANALYZE`) |
+| `query_log_list` | Your own recent queries: state, duration, statement preview |
 
 Every tool is read-only and runs as you, with your own grants. An answer is cut at 20 000 characters, and
 each call writes one `audit` line — who called, which tool, ok or error, how long — never the arguments.
 
+`sql_read` and `sql_explain` run one statement and nothing else: a write, a second statement or
+`EXPLAIN ANALYZE` is refused before anything is sent. That check is a first filter — what the
+statement may read is still decided by the engine, with your own grants, exactly as in the
+interface. The row cap and the timeout are the platform's, not the client's: `sql_read` returns at
+most 200 rows (1 000 at most, `NOVA_MCP_MAX_ROWS` or `spec.mcp.maxRows` on the `PlatformInstance`)
+and a statement that runs longer than 60 seconds is cancelled (`NOVA_MCP_QUERY_TIMEOUT_SECS` or
+`spec.mcp.queryTimeoutSeconds`, 300 at most); a client asking for more rows gets the platform's cap,
+never more.
+
 ### What it does not do
 
-- **No writes.** Nothing on this endpoint creates, changes or drops anything.
+- **No writes.** Nothing on this endpoint creates, changes or drops anything. `sql_read` refuses a
+  write before it is sent, and `query_log_list` shows only your own queries.
 - **No shared identity.** There is no service account behind it: every call is the person in the token.
 - **No browser session.** The cookie from the interface is never accepted; the endpoint wants a bearer token
   minted for its own audience.
