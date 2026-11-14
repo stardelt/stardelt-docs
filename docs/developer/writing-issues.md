@@ -32,6 +32,24 @@ A bug report does not need all this: what you ran, what you expected and what ha
 
 Public issues describe the work and do not compare products.
 
+## Verifying an image pin
+
+A pin's verify answers two different questions: *which commit is in this image?* and *does that
+commit's behavior run?* Answer the first with the image's own label, not with `grep` on a Rust
+binary — rustc lowers a `match` on short strings to 8-byte compares, so the literal is not stored
+contiguously and a match is a length-dependent accident (`sql_explain` and `platform_status` are
+absent from an image that serves them; `catalog_search` happens to be present).
+
+```bash
+docker buildx imagetools inspect ghcr.io/stardelt/nova:dev@sha256:<digest> --format '{{json .Image}}' \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["config"]["Labels"]["org.opencontainers.image.revision"])'
+# expect: the full commit sha the image was built from
+```
+
+Answer the second through the running pod — an endpoint, a served page, a tool list — never by
+reading the binary. Read the `Pin it:` line that `scripts/pin-image.sh` prints for the digest; the
+`Digest:` line in a build log is the export digest and is not the image manifest.
+
 ## Example
 
 > **operator/crd: make the platform install namespace configurable**
