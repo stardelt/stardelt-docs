@@ -73,6 +73,7 @@ grants it by default — a client you registered yourself must request it.
 | `platform_status` | Whether the platform is up, and the version of each component |
 | `catalog_list` | The catalogs, schemas and tables you may see |
 | `catalog_describe` | The columns, types and comment of one table |
+| `table_documentation` | What a table means: its description, owner group, domain, tags and every column's description, as the table's owners wrote them; takes `namespace` and `table` (`catalog` when the name is ambiguous) |
 | `catalog_search` | The tables that match a word |
 | `sql_read` | One read-only SQL statement (`SELECT`, `WITH`, `VALUES`, `SHOW`, `DESCRIBE`, `TABLE` or `EXPLAIN`) as you; at most 200 rows and 60 seconds |
 | `sql_explain` | The plan of one read-only statement, without running it (`EXPLAIN`, never `EXPLAIN ANALYZE`) |
@@ -85,7 +86,7 @@ grants it by default — a client you registered yourself must request it.
 | `pipeline_task_log` | One page of a task's log, the error and stack frames included; pass `next_token` from the previous answer to read on |
 | `lineage_get` | Where a table's data comes from and what is made from it, up to `depth` steps each way (`1`–`5`) and `days` back (`1`–`365`); takes `catalog`, `schema` and `table` |
 
-Every tool is read-only and runs as you, with your own grants. An answer is cut at 20 000 characters, and
+Every tool is read-only and runs as you, with your own grants. Read `table_documentation` before writing SQL against a table: the description, owner group, domain and tags tell you what the table is for. An answer is cut at 20 000 characters, and
 each call writes one `audit` line — who called, which client, which tool, ok or error, how long and a
 SHA-256 of the arguments — never the arguments themselves. With a state store, Nova also keeps one row
 per call for an administrator's audit: when, who, which client, which tool, the status, the duration and
