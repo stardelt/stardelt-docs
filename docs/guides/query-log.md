@@ -88,6 +88,18 @@ is exactly that case.
 Rows are removed after 90 days by default. An administrator changes this with the environment variable
 `NOVA_QUERY_LOG_RETENTION_DAYS` on Nova (`0` keeps everything).
 
+A finished query also keeps its **profile**: the engine's plan, the per-operator statistics, spilled bytes,
+split counts and the connector's input counts. Profiles are large, so they are kept **14 days** by default —
+shorter than the log's 90 — and an administrator changes that with `NOVA_QUERY_PROFILE_RETENTION_DAYS` on Nova
+(`0` keeps everything). A query whose profile has been removed keeps its log row; its Profile group says the
+profile is no longer there.
+
+A profile is cut at **512 KB**. One above that loses its operator list first; if it is still over, the plan is
+cut to half the cap (256 KB). The answer then carries `"truncated": true`, and the Profile group says the list
+is from the part that was kept.
+
+The profile follows the same scopes as the log row it belongs to: **Mine**, **Team** and **Everyone**.
+
 ## Hints in the profile
 
 When a finished query's numbers show a known cause, the **Profile** group lists a hint for it: what to change, the
