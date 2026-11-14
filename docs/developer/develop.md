@@ -57,6 +57,12 @@ is copied into your home directory on the first start; open it in VS Code (throu
 browser in a browser tab, or copy its first code cell), run it, and reuse its `sql()` helper in your own
 notebooks. Its first query, `SELECT current_user`, prints **your** username, not a shared account.
 
+The notebook is written for whoever signs in, not only for administrators: it picks the first
+of the `shared` and `playground` catalogs your account can see, creates a schema named after
+your user in it, and round-trips three rows through `stardelt.write_df`. It never drops a
+table — dropping is an administrator action in this release. The `warehouse` catalog is
+reserved for administrators, so the notebook does not use it.
+
 The token belongs to your session. When it expires, restart your server from Nova to get a fresh one.
 
 ## VS Code on your laptop
