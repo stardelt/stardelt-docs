@@ -67,6 +67,10 @@ GROUP BY pickup_date
   *Pipeline task*.
 - Defaults: one run at a time, **one retry after 5 minutes**, and a limit of **2 hours** per run.
 - A failed run shows the engine's error in its task log on the **Pipelines** page.
+- Expand a run on **Pipelines** to see the tasks it ran and then **Statements this run sent, slowest first**: the
+  task, the state, when it started, the wall time, the bytes it read and the statement text. The list is the query
+  log's rows for that run, found by the tags the run writes, so a run whose statements are older than the log's
+  retention shows its tasks only.
 - Every run of every schedule is also in **Build** → [**Runs**](runs.md).
 
 ## Manage it
