@@ -37,6 +37,9 @@ press `Enter` on does the one thing named below.
   statement in the SQL editor, ready to run.
 - **Actions** — `New query`, `Load data`, `Query log`, `Preferences` and `Switch theme`. The first four
   open their page; `Switch theme` flips the theme in place.
+- **Ask** — when you type a question and a model endpoint is ready, the last row is
+  `Ask: <your question>`. `Enter` opens the [Ask panel](./ask.md) with the question. The row does not
+  appear when nothing is typed.
 
 ## Keyboard
 

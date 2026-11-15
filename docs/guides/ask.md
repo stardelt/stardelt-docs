@@ -38,6 +38,19 @@ panel offers for the tables you read. While it works, the panel names the step i
 
 `↑` in an empty box recalls your last question. `Escape` closes the panel.
 
+## History
+
+**History** in the panel's header lists your last 20 questions, newest first: the question, and the check
+line when the answer had one (`✓ checked`, `✕ not runnable`).
+
+Click one to see the answer again. It is kept as text — opening it does not ask the model and does not run
+SQL.
+
+The list is yours: another person does not see your questions. An installation without a state store shows
+the API's sentence instead of a list.
+
+Empty, the list says `No questions yet.`
+
 ## What comes back
 
 Each answer is one card:
@@ -74,6 +87,7 @@ call: the key never reaches Nova's API and never appears in an answer, a log lin
   budget is spent the answer is a `429` and the panel shows its sentence as a calm notice, not as a
   failure of your question.
 - **Length** — a question is 1 to 2000 characters.
+- **Kept: 20** — the last 20 questions per person; older ones are dropped.
 
 ## What it does not do
 
@@ -81,7 +95,6 @@ call: the key never reaches Nova's API and never appears in an answer, a log lin
   is the `EXPLAIN` of the model's statement.
 - It does not write. A statement that is not a reading statement (`SELECT`, `WITH`, `VALUES`, `SHOW`,
   `DESCRIBE`, `TABLE`) is refused before the check, and `EXPLAIN ANALYZE` is refused with it.
-- It does not remember a conversation: each question stands alone, and the panel has no history view.
 - It does not answer about a table you cannot see, and it does not see a row of the tables it can.
 
 ## When it does not work
