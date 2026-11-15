@@ -260,7 +260,7 @@ Set or remove one column's description. The column must be a field of the curren
 
 Operation id `table_documentation_get`: in Python `client.call("table_documentation_get", …)`, on the command line `stardelt api table_documentation_get`.
 
-A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain` custom properties, and the description and type of every column of the **current** schema. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).
+A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).
 
 **Parameters**
 
@@ -284,7 +284,7 @@ A table's documentation: the Iceberg `comment` as `description`, the `stardelt.t
 
 Operation id `table_documentation_update`: in Python `client.call("table_documentation_update", …)`, on the command line `stardelt api table_documentation_update`.
 
-Set or remove a table's description, tags, owner and domain in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`. Demo mode answers 503.
+Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`. Demo mode answers 503.
 
 **Parameters**
 
@@ -300,6 +300,7 @@ Set or remove a table's description, tags, owner and domain in one Lakekeeper co
 | --- | --- | --- | --- | --- | --- |
 | `description` | string (nullable) | No |  | New table description (`null` removes it). |  |
 | `domain` | string (nullable) | No |  | New domain (`null` removes it). |  |
+| `guide` | string (nullable) | No |  | New guide (`null` or blank removes it). |  |
 | `owner` | string (nullable) | No |  | New owner group (`null` removes it). |  |
 | `tags` | array of string (nullable) | No |  | New tag list (`null` or `[]` removes them). |  |
 
@@ -367,6 +368,67 @@ Move the table's current pointer back to an earlier snapshot (`ALTER TABLE … E
 | `403` | Only the catalog owner group or administrators may roll back |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
+
+### GET /api/catalog/tables/\{ns\}/\{tbl\}/verified-queries
+
+Operation id `verified_queries_list`: in Python `client.call("verified_queries_list", …)`, on the command line `stardelt api verified_queries_list`.
+
+`GET /api/catalog/tables/{ns}/{tbl}/verified-queries` — the table's, newest first.
+
+The verified queries of one table: questions its owners answered with one read-only statement, who verified each and when. Newest first, at most 50. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The table's verified queries, newest first |
+| `400` | A name is not a single path segment, or the catalog name is invalid |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
+
+### POST /api/catalog/tables/\{ns\}/\{tbl\}/verified-queries
+
+Operation id `verified_queries_create`: in Python `client.call("verified_queries_create", …)`, on the command line `stardelt api verified_queries_create`.
+
+`POST /api/catalog/tables/{ns}/{tbl}/verified-queries` — `201` with the stored row.
+
+Verify one answer to a question about this table: the question (at most 500 characters) and one read-only statement (at most 20 000). Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. The statement is checked, never run. `?catalog=` picks the catalog.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `question` | string | Yes |  | The question, at most 500 characters. |  |
+| `sql` | string | Yes |  | One read-only statement, at most 20 000 characters. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The stored row |
+| `400` | The question or the SQL is empty or too long, the catalog name is invalid, or the statement is not one read-only statement |
+| `403` | The caller may not browse that catalog, or only the owner group and administrators may verify a query |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
 
 ### GET /api/catalog/warehouse
 
@@ -2250,6 +2312,32 @@ Stop or resume one stream by setting `spec.stopped` (the one verb a stream has).
 | `404` | No such stream, or the caller may not see it, or the namespace is not Nova's own |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
+
+## /api/verified-queries
+
+### DELETE /api/verified-queries/\{id\}
+
+Operation id `verified_queries_delete`: in Python `client.call("verified_queries_delete", …)`, on the command line `stardelt api verified_queries_delete`.
+
+`DELETE /api/verified-queries/{id}` — `204`; `404` when the id is not a row.
+
+Remove one verified query. Only the owner group of its table and administrators may delete it.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | The verified query's id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Deleted |
+| `403` | Only the owner group and administrators may delete a verified query |
+| `404` | No such verified query, or the id is not a number |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
 
 ## /api/warehouses
 

@@ -1605,7 +1605,7 @@
         "tags": [
           "public"
         ],
-        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain` custom properties, and the description and type of every column of the **current** schema. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).",
+        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).",
         "operationId": "table_documentation_get",
         "parameters": [
           {
@@ -1693,7 +1693,7 @@
         "tags": [
           "public"
         ],
-        "description": "Set or remove a table's description, tags, owner and domain in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`. Demo mode answers 503.",
+        "description": "Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`. Demo mode answers 503.",
         "operationId": "table_documentation_update",
         "parameters": [
           {
@@ -1977,6 +1977,219 @@
           },
           "502": {
             "description": "The catalog or the engine is not reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/tables/{ns}/{tbl}/verified-queries": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/catalog/tables/{ns}/{tbl}/verified-queries` — the table's, newest first.",
+        "description": "The verified queries of one table: questions its owners answered with one read-only statement, who verified each and when. Newest first, at most 50. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.",
+        "operationId": "verified_queries_list",
+        "parameters": [
+          {
+            "name": "ns",
+            "in": "path",
+            "description": "Namespace (schema) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tbl",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The table's verified queries, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VerifiedQuery"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A name is not a single path segment, or the catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/catalog/tables/{ns}/{tbl}/verified-queries` — `201` with the stored row.",
+        "description": "Verify one answer to a question about this table: the question (at most 500 characters) and one read-only statement (at most 20 000). Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. The statement is checked, never run. `?catalog=` picks the catalog.",
+        "operationId": "verified_queries_create",
+        "parameters": [
+          {
+            "name": "ns",
+            "in": "path",
+            "description": "Namespace (schema) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tbl",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewVerifiedQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The stored row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The question or the SQL is empty or too long, the catalog name is invalid, or the statement is not one read-only statement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog, or only the owner group and administrators may verify a query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
             "content": {
               "application/json": {
                 "schema": {
@@ -8270,6 +8483,73 @@
         }
       }
     },
+    "/api/verified-queries/{id}": {
+      "delete": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`DELETE /api/verified-queries/{id}` — `204`; `404` when the id is not a row.",
+        "description": "Remove one verified query. Only the owner group of its table and administrators may delete it.",
+        "operationId": "verified_queries_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The verified query's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "403": {
+            "description": "Only the owner group and administrators may delete a verified query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such verified query, or the id is not a number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/warehouses": {
       "get": {
         "tags": [
@@ -10208,6 +10488,13 @@
             ],
             "description": "New domain (`null` removes it)."
           },
+          "guide": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "New guide (`null` or blank removes it)."
+          },
           "owner": {
             "type": [
               "string",
@@ -11272,6 +11559,24 @@
           "principalCreated": {
             "type": "boolean",
             "description": "False when the principal already existed for another team of the same group."
+          }
+        }
+      },
+      "NewVerifiedQuery": {
+        "type": "object",
+        "description": "`POST /api/catalog/tables/{ns}/{tbl}/verified-queries` body.",
+        "required": [
+          "question",
+          "sql"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "The question, at most 500 characters."
+          },
+          "sql": {
+            "type": "string",
+            "description": "One read-only statement, at most 20 000 characters."
           }
         }
       },
@@ -13928,6 +14233,13 @@
             "type": "string",
             "description": "One sentence for a person: why `canEdit` has the value it has."
           },
+          "guide": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `stardelt.guide` property: how to use this table (joins, filters, definitions), or `null`."
+          },
           "owner": {
             "type": [
               "string",
@@ -14463,6 +14775,39 @@
         "properties": {
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "VerifiedQuery": {
+        "type": "object",
+        "description": "A row as the API returns it. `verified_at` is RFC 3339 in UTC.",
+        "required": [
+          "id",
+          "question",
+          "sql",
+          "verifiedBy",
+          "verifiedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "question": {
+            "type": "string",
+            "description": "The question a person asks, in words."
+          },
+          "sql": {
+            "type": "string",
+            "description": "The one read-only statement that answers it."
+          },
+          "verifiedAt": {
+            "type": "string",
+            "description": "When it was verified, RFC 3339."
+          },
+          "verifiedBy": {
+            "type": "string",
+            "description": "The `sub` of the person who verified it."
           }
         }
       },
