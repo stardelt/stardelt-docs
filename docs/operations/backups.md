@@ -182,6 +182,8 @@ Write down how long each step took. The total is your real recovery time.
 
 ## What still is not covered
 
+- **Notebook homes.** Each person's home (`claim-<username>`) is scratch space and is not copied. Work that matters belongs in Git; published notebooks are in the bucket.
+- **The event log of streams.** The Kafka broker's volume holds in-flight events and is not copied. The durable copy is the Iceberg table a [stream](../guides/streams.md) writes; a lost node loses events not yet written there.
 - **Losing the cluster.** The archive is a second bucket in the *same* SeaweedFS instance. It
   survives a mistake, not a fire. For real off-site protection use SeaweedFS' own replication to a
   remote cluster, or run the sync from a host that holds off-site credentials.
