@@ -2236,6 +2236,107 @@
         }
       }
     },
+    "/api/catalog/tables/{ns}/{tbl}/verified-queries/check": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/catalog/tables/{ns}/{tbl}/verified-queries/check` — run every verified query of\none table as the caller, one after another, and answer the totals.",
+        "description": "Run every verified query of one table as the caller, one after another, in id order and at most 50, and answer how many were checked, how many passed and how many failed, with the rows as the checks left them. Each row is checked exactly as `POST /api/verified-queries/{id}/check` checks it; a scheduled job calls this once instead of once per query. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.",
+        "operationId": "verified_queries_check_all",
+        "parameters": [
+          {
+            "name": "ns",
+            "in": "path",
+            "description": "Namespace (schema) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tbl",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The totals and the rows the checks left",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckAllAnswer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A name is not a single path segment, the catalog name is invalid, or a stored statement is no longer one read-only statement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/catalog/warehouse": {
       "get": {
         "tags": [
@@ -9825,6 +9926,40 @@
           "default": {
             "type": "string",
             "description": "The catalog a request without `?catalog=` works in."
+          }
+        }
+      },
+      "CheckAllAnswer": {
+        "type": "object",
+        "description": "`POST /api/catalog/tables/{ns}/{tbl}/verified-queries/check` answer: every query of one\ntable checked, with the totals.",
+        "required": [
+          "checked",
+          "passed",
+          "failed",
+          "items"
+        ],
+        "properties": {
+          "checked": {
+            "type": "integer",
+            "description": "How many queries were checked.",
+            "minimum": 0
+          },
+          "failed": {
+            "type": "integer",
+            "description": "How many of them failed.",
+            "minimum": 0
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VerifiedQuery"
+            },
+            "description": "The rows as the checks left them, in id order."
+          },
+          "passed": {
+            "type": "integer",
+            "description": "How many of them passed.",
+            "minimum": 0
           }
         }
       },
