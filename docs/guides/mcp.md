@@ -115,6 +115,14 @@ is refused with `429`, a `Retry-After: 60` header and `{"error": "too_many_reque
 is written to the same audit line as every other call. `NOVA_MCP_CALLS_PER_MINUTE` moves the limit (at
 most 600). `initialize` and `tools/list` never count, so a client may reconnect and list its tools freely.
 
+Writes have their own budget: 20 write calls an hour per person. A write costs compute and changes
+data, so `pipeline_start` does not share the read limit — a write past the budget is refused with
+`429`, a `Retry-After: 3600` header and
+`{"error": "too_many_requests", "limit": 20, "window_seconds": 3600, "scope": "stardelt:write"}`,
+and it is audited like every other refusal (`status = "rate_limited"`). `NOVA_MCP_WRITES_PER_HOUR`
+moves the budget (1 to 600). Reads are not affected by it, and `initialize`/`tools/list` count
+against neither limit.
+
 ### Why a run failed
 
 An assistant walks the same path a person does in the interface:
