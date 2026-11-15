@@ -154,9 +154,34 @@ Every call is recorded with the person, the group, the endpoint, the model, the 
 long it took, how it ended, and the byte count and SHA-256 of the prompt and the answer — never the
 text of either.
 
-The refusal and the usage page in the interface arrive with the assistant; until then an
-administrator sets the quota now and reads the recorded numbers now, and the enforcement starts when
-the assistant does.
+The limit is checked before each call. A call that would cross one is refused with `429` and a
+sentence a person can read — for example "Your group used 2,015,000 of its 2,000,000 tokens this
+month. Ask an administrator to raise the quota." Until the assistant asks, an administrator sets the
+quota and reads the recorded numbers on the page below.
+
+## Where to read the calls
+
+**Admin → Models** (`/admin/models`) is the administrator's view of every endpoint and every call.
+It has three parts:
+
+- **The endpoints** — name, model, where prompts go (`on-premise`, or `cloud` with the warning that
+  prompts leave the cluster), the purposes, what the probe last found (`Ready` or `Not ready`, with
+  when it was checked and the status message that says what is missing) and **Probe now**, the same
+  check as `POST /api/model-endpoints/{name}/probe`.
+- **This month — `YYYY-MM`** — tokens in, tokens out and the number of calls, per group and
+  endpoint, largest first. `(none)` is the probe's own rows and callers without a group. A count
+  with "about" after it was estimated from the bytes sent (`ceil(bytes / 4)`) because the endpoint
+  answered without a `usage` object.
+- **Last calls** — newest first: when, the person (`sub`), the group, the feature (`ask`, `agent`,
+  `probe`), the endpoint, the model, tokens in and out, the duration and the outcome (`ok`,
+  `refused` or `error`). Choose 50, 100, 200 or 500 rows.
+
+The page is administrator-only, and the same numbers are one API call away:
+`GET /api/admin/model-usage` answers `{month, groups, calls}`; a non-administrator gets `403`. No
+prompt and no answer text is in either view — the table stores sizes and hashes only.
+
+Rows are pruned once an hour. `NOVA_MODEL_CALL_RETENTION_DAYS` keeps 30 days by default; `0` keeps
+the rows and switches the purge off.
 
 ## When it does not work
 
@@ -175,8 +200,9 @@ A keyless endpoint is probed too; an absent key file is only an error when the e
 
 ## What is not here yet
 
-The resource, the key projection and the probe are what exists today. The **Admin → Models** page
-that creates endpoints, the assistant's panel in Nova and the agent proxy are later slices of the
-same design. Meanwhile the resource is the interface: see the
+The resource, the key projection, the probe and the **Admin → Models** page are what exists today.
+The page lists and probes endpoints and shows the calls; it does not create endpoints. The
+assistant's panel in Nova and the agent proxy are later slices of the same design. Meanwhile the
+resource is the interface: see the
 [`ModelEndpoint` reference](../reference/resources/modelendpoint.md) for every field, and
 [AI assistants (MCP)](./mcp.md) for the assistants that bring their own model.
