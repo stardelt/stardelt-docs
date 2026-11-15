@@ -3865,6 +3865,51 @@
         }
       }
     },
+    "/api/model-endpoints": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/model-endpoints`: the models an administrator connected to the platform.",
+        "description": "Every `ModelEndpoint` of the platform namespace, name order: `name`, `model`, `location` (`on-premise` | `cloud`, default `on-premise`), `purposes` (default `[\"ask\",\"agents\"]`), `sendRows` (may query results be sent to this model; off by default) and the probe's last answer — `reachable`, `toolCalling`, `jsonOutput`, `contextTokens`, `checkedAt`, `message`, each `null` until the probe has run. The endpoint's `url` and its `keyRef` are absent on purpose: the shape says that a model exists, what it is, where prompts go and whether it works, never the internal hostname or the name of the Connection holding the key. Without a cluster connection (demo mode, a local run) the answer is an empty list: no endpoint means no AI feature. A cluster that refuses or fails is a 502, never an empty list that would read as \"no model\". Answers `Cache-Control: no-store`.",
+        "operationId": "model_endpoints_list",
+        "responses": {
+          "200": {
+            "description": "One row per endpoint, name order; empty when none is connected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ModelEndpointRow"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer, or Nova may not list modelendpoints",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notebooks": {
       "get": {
         "tags": [
@@ -10498,6 +10543,76 @@
           },
           "sql": {
             "type": "string"
+          }
+        }
+      },
+      "ModelEndpointRow": {
+        "type": "object",
+        "description": "One endpoint as the UI and Ask need it. No `url`, no `keyRef`.",
+        "required": [
+          "name",
+          "model",
+          "location",
+          "purposes",
+          "sendRows"
+        ],
+        "properties": {
+          "checkedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contextTokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "jsonOutput": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "location": {
+            "type": "string",
+            "description": "`on-premise` | `cloud` (the CRD's default is `on-premise`)."
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "model": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "purposes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reachable": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "sendRows": {
+            "type": "boolean",
+            "description": "May query results be sent to this model? Off by default."
+          },
+          "toolCalling": {
+            "type": [
+              "boolean",
+              "null"
+            ]
           }
         }
       },
