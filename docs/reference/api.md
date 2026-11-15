@@ -13,6 +13,59 @@ The operations Nova tags `public`: the stable surface for tools and scripts. Gen
 
 Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 
+## /api/ask
+
+### POST /api/ask
+
+Operation id `ask_answer`: in Python `client.call("ask_answer", …)`, on the command line `stardelt api ask_answer`.
+
+`POST /api/ask` — a question in, checked SQL out.
+
+A question in words, one Trino statement out. Nova searches the catalog as the caller for at most five tables, sends the question and **the documentation of those tables only** — description, tags, owner, domain, column names and their descriptions — to the first `ModelEndpoint` (name order) whose purpose list contains `ask` and whose probe found it reachable with JSON output, and answers the statement the model writes. No row, no query result and no table data ever leaves the platform, whatever the endpoint's `sendRows` says; never the endpoint's URL or its key either. The statement is **checked with `EXPLAIN` as the caller and is not run**: `explain` is `passed` or `failed`, and a failed check keeps the SQL in the answer with the engine's sentence in `error` (one correction is asked of the model first). No matching table is a `200` with `sql: null` and a sentence saying so; a model endpoint that is refused, unreachable or does not answer in the JSON shape is a `502`. A spent budget is the `429` the model budget answers (see `/api/admin/model-usage`). Every answer carries `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `question` | string | Yes |  | The question, in words, 1 to 2000 characters. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The statement, its sentence, the tables it was written for and the `EXPLAIN` result |
+| `400` | The question is empty or longer than 2000 characters |
+| `401` | Not signed in |
+| `429` | The person's or their group's model budget is spent |
+| `502` | The catalog, the cluster or the model endpoint did not answer |
+| `503` | No state store, no cluster connection, no HTTP client, or no ready `ask` endpoint |
+
+### POST /api/ask/feedback
+
+Operation id `ask_feedback`: in Python `client.call("ask_feedback", …)`, on the command line `stardelt api ask_feedback`.
+
+`POST /api/ask/feedback` — one 👍 or 👎 on the row an Ask answer wrote.
+
+Writes the caller's own 👍 or 👎 on the `model_call` row that `/api/ask` returned as `callId` — the row the answer's model call wrote, and the input of the model check. A vote is `up` or `down`. A call id that belongs to somebody else is a `404`, never a `403`: an id probe learns nothing. The vote overwrites the row's earlier one; retention is the row's own. Every answer carries `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `callId` | integer | Yes |  | The `model_call` row `POST /api/ask` answered as `callId`. | format `int64` |
+| `vote` | string | Yes |  | `up` or `down`. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | The vote is stored |
+| `400` | `vote` is not `up` or `down` |
+| `401` | Not signed in |
+| `404` | No call with that id belongs to the caller |
+| `500` | The vote was not stored |
+| `503` | No state store |
+
 ## /api/auth
 
 ### GET /api/auth/config
@@ -907,7 +960,7 @@ Operation id `model_endpoints_list`: in Python `client.call("model_endpoints_lis
 
 `GET /api/model-endpoints`: the models an administrator connected to the platform.
 
-Every `ModelEndpoint` of the platform namespace, name order: `name`, `model`, `location` (`on-premise` | `cloud`, default `on-premise`), `purposes` (default `["ask","agents"]`), `sendRows` (may query results be sent to this model; off by default) and the probe's last answer — `reachable`, `toolCalling`, `jsonOutput`, `contextTokens`, `checkedAt`, `message`, each `null` until the probe has run. The endpoint's `url` and its `keyRef` are absent on purpose: the shape says that a model exists, what it is, where prompts go and whether it works, never the internal hostname or the name of the Connection holding the key. Without a cluster connection (demo mode, a local run) the answer is an empty list: no endpoint means no AI feature. A cluster that refuses or fails is a 502, never an empty list that would read as "no model". Answers `Cache-Control: no-store`.
+Every `ModelEndpoint` of the platform namespace, name order: `name`, `model`, `location` (`on-premise` | `cloud`, default `on-premise`), `purposes` (default `["ask","agents"]`), `sendRows` (may query results be sent to this model; off by default), the quota of `spec.quota` — `perGroupMonthlyTokens` and `perPersonDailyTokens`, each `null` for no limit — and the probe's last answer — `reachable`, `toolCalling`, `jsonOutput`, `contextTokens`, `checkedAt`, `message`, each `null` until the probe has run. The endpoint's `url` and its `keyRef` are absent on purpose: the shape says that a model exists, what it is, where prompts go and whether it works, never the internal hostname or the name of the Connection holding the key. Without a cluster connection (demo mode, a local run) the answer is an empty list: no endpoint means no AI feature. A cluster that refuses or fails is a 502, never an empty list that would read as "no model". Answers `Cache-Control: no-store`.
 
 **Responses**
 
