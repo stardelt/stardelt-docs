@@ -75,6 +75,7 @@ const sidebars: SidebarsConfig = {
         'guides/command-palette',
         'guides/catalog',
         'guides/sql-editor',
+        'guides/ask',
         'guides/compute',
         'guides/connect-your-tools',
         'guides/lineage',
