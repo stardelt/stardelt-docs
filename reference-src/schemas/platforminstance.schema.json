@@ -309,6 +309,13 @@
               "minimum": 0.0,
               "nullable": true,
               "type": "integer"
+            },
+            "writesPerHour": {
+              "description": "`tools/call`s of a write tool one person may make per hour on `/mcp`\n(`NOVA_MCP_WRITES_PER_HOUR`); 1–600. Empty = Nova's own default (20).",
+              "format": "uint32",
+              "minimum": 0.0,
+              "nullable": true,
+              "type": "integer"
             }
           },
           "type": "object"
@@ -570,6 +577,10 @@
         {
           "message": "mcp.callsPerMinute is from 1 to 600",
           "rule": "!has(self.mcp) || !has(self.mcp.callsPerMinute) || (self.mcp.callsPerMinute >= 1 && self.mcp.callsPerMinute <= 600)"
+        },
+        {
+          "message": "mcp.writesPerHour is from 1 to 600",
+          "rule": "!has(self.mcp) || !has(self.mcp.writesPerHour) || (self.mcp.writesPerHour >= 1 && self.mcp.writesPerHour <= 600)"
         },
         {
           "message": "mcp.auditRetentionDays is from 0 to 3650 (0 keeps the rows)",
