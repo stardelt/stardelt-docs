@@ -78,6 +78,11 @@ that file:
   `{endpoint: default, connection: llm-key, key: api-key}` (the commented example sits at
   `nova.modelKeys` in the chart's `values.yaml`). The chart mounts the same volume at the same path.
 
+**Manifest install:** the Deployment in `manifests/nova-deployment.yaml` carries no model-key
+volume, so a keyed endpoint cannot be used there — Nova starts without the file and the endpoint's
+probe reports the refusal. Connect a keyless endpoint on that install, or install Nova with the
+chart (`nova.modelKeys`) or the operator.
+
 The file is `/var/run/stardelt/models/<endpoint>/key`, and it is readable only by Nova's process. A
 rotated key arrives by itself, within about a minute of the Secret changing — there is no restart.
 A `Connection` whose Secret is not synced yet only leaves the file absent; Nova still starts and the
@@ -164,7 +169,7 @@ Read `status.message` (or `message` in `GET /api/model-endpoints`) and match it 
 | `503: …`, `502: …`, `404: …` | A non-2xx answer; the text after the code is the beginning of the server's own answer. Check the URL and its path, the model id the server knows, and whether the server is up. |
 | `error sending request` or another transport error | Nova's pod could not open the connection. Check the DNS name, the port and whether the pod may reach it; the message carries no URL on purpose. |
 | `checkedAt` is empty | The probe has not run yet — wait a minute. If it stays empty, Nova has no cluster connection (a local run or demo mode), so nothing probes the endpoint. |
-| the key file is missing (`/var/run/stardelt/models/<endpoint>/key`) | The endpoint names a `keyRef` but no file was projected: check that the `Connection` exists in the platform namespace, that its Secret `conn-<connection>` holds the key named in `keyRef.key`, and — on the chart path — that `nova.modelKeys` has this endpoint. |
+| the key file is missing (`/var/run/stardelt/models/<endpoint>/key`) | The endpoint names a `keyRef` but no file was projected: check that the `Connection` exists in the platform namespace, that its Secret `conn-<connection>` holds the key named in `keyRef.key`, and — on the chart path — that `nova.modelKeys` has this endpoint. On a manifest install that volume does not exist at all: `kubectl -n stardelt get deploy nova -o jsonpath='{.spec.template.spec.volumes}'` answers an empty list, which is this limit, not a broken Connection. |
 
 A keyless endpoint is probed too; an absent key file is only an error when the endpoint names one.
 
