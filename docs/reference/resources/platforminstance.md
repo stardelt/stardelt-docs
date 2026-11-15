@@ -50,6 +50,7 @@ A stardelt platform instance.
 | `spec.mcp.enabled` | boolean | No | `false` | Render `NOVA_MCP_ENABLED`/`NOVA_MCP_AUDIENCE` into Nova. Off by default. |  |
 | `spec.mcp.maxRows` | integer (nullable) | No |  | Rows one `sql_read` call may return; 1–1000. Empty = Nova's own default (200). | min 0; format `uint32` |
 | `spec.mcp.queryTimeoutSeconds` | integer (nullable) | No |  | Seconds one `sql_read` call may run before it is cancelled; 1–300. Empty = Nova's own default (60). | min 0; format `uint32` |
+| `spec.mcp.writesPerHour` | integer (nullable) | No |  | `tools/call`s of a write tool one person may make per hour on `/mcp` (`NOVA_MCP_WRITES_PER_HOUR`); 1–600. Empty = Nova's own default (20). | min 0; format `uint32` |
 | `spec.monitoring` | object | No | `{"enabled":false,"labels":{}}` | The customer's Prometheus: the scrape objects, or a condition that says why not. |  |
 | `spec.monitoring.enabled` | boolean | No | `false` | Render a ServiceMonitor for every component that exposes Prometheus metrics. Needs the monitoring.coreos.com/v1 CRDs; without them the operator renders nothing and reports MonitoringCRDsMissing. |  |
 | `spec.monitoring.labels` | object (map of string) | No | `{}` | Labels added to every rendered object, so the customer's Prometheus selects them (for example `release: kube-prometheus-stack`). |  |
@@ -114,6 +115,7 @@ A stardelt platform instance.
 - mcp.maxRows is from 1 to 1000
 - mcp.queryTimeoutSeconds is from 1 to 300
 - mcp.callsPerMinute is from 1 to 600
+- mcp.writesPerHour is from 1 to 600
 - mcp.auditRetentionDays is from 0 to 3650 (0 keeps the rows)
 - platform mode creates its own clients: leave provider, apiAudience and clients out
 - external mode needs issuerUrl

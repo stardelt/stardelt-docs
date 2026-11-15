@@ -32,6 +32,13 @@ The customer's own OpenAI-compatible model endpoint: URL, model, key, where it r
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `status.checkedAt` | string (nullable) | No |  |  |  |
+| `status.conditions` | array of object | No |  | The conditions Nova reports for this endpoint. `Ready` is `True` when the last probe found an endpoint that answers and returns a tool call; `False` with a `reason` and a `message` names what is missing. The `Condition` shape every other status in this file uses — no new type. |  |
+| `status.conditions[].lastTransitionTime` | string (nullable) | No |  |  |  |
+| `status.conditions[].message` | string (nullable) | No |  |  |  |
+| `status.conditions[].observedGeneration` | integer (nullable) | No |  |  | format `int64` |
+| `status.conditions[].reason` | string (nullable) | No |  |  |  |
+| `status.conditions[].status` | string | Yes |  |  |  |
+| `status.conditions[].type` | string | Yes |  |  |  |
 | `status.contextTokens` | integer (nullable) | No |  |  | format `int64` |
 | `status.jsonOutput` | boolean (nullable) | No |  |  |  |
 | `status.message` | string (nullable) | No |  |  |  |

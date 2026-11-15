@@ -414,6 +414,78 @@
         }
       }
     },
+    "/api/admin/model-usage": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "description": "What the platform used of each model endpoint this month (UTC). `month` is the calendar month as `YYYY-MM`; `groups` holds the month's tokens per group and endpoint, the largest total first — `(none)` is `nova`'s probe rows and callers without a group; `estimatedCalls` counts the calls whose tokens were estimated as `ceil(bytes / 4)`, so the page can say \"about\". `calls` holds the last calls, newest first; `limit` is 1 to 500 (50 by default) and `group` narrows `calls` only (the totals are always the whole month). No prompt and no answer text: the table stores sizes and SHA-256 hashes. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. Without a state store the answer is 503. Answers `Cache-Control: no-store`.",
+        "operationId": "admin_model_usage",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "How many calls, 1 to 500 (default 50)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "description": "Only this group in `calls`; the totals stay the whole month",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The month's totals and the last calls",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelUsage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Nova has no state store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/teams": {
       "post": {
         "tags": [
@@ -3899,6 +3971,99 @@
           },
           "502": {
             "description": "The cluster did not answer, or Nova may not list modelendpoints",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/model-endpoints/{name}/probe": {
+      "post": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`POST /api/model-endpoints/{name}/probe` — an administrator asks Nova to check one\nendpoint now, instead of waiting for the minute round.",
+        "description": "Start the same probe the minute round runs, for one endpoint only, and answer at once. Administrator-only (the administrator gate is `main`'s). The answer is **not** the probe's result: a probe makes up to three calls of up to 120 seconds each, so this answers `202` with the endpoint as it is now — `GET /api/model-endpoints` shows the new `checkedAt`, `reachable` and `message` when the probe has written its `status`. A second call while a probe of the same endpoint runs is also `202` and starts nothing: two clicks make one probe. Answers `Cache-Control: no-store`.",
+        "operationId": "model_endpoint_probe",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "The endpoint's name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The probe is running (or was already running); the endpoint as it is now",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelEndpointRow"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such model endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Nova could not build its HTTP client (the platform CA did not load)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection",
             "content": {
               "application/json": {
                 "schema": {
@@ -10616,6 +10781,33 @@
           }
         }
       },
+      "ModelUsage": {
+        "type": "object",
+        "description": "The answer of `GET /api/admin/model-usage`.",
+        "required": [
+          "month",
+          "groups",
+          "calls"
+        ],
+        "properties": {
+          "calls": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageCall"
+            }
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            }
+          },
+          "month": {
+            "type": "string",
+            "description": "`YYYY-MM`, the calendar month the totals cover (UTC)."
+          }
+        }
+      },
       "NamespacesResponse": {
         "type": "object",
         "description": "Iceberg `ListNamespaces` result: each namespace is a list of levels.",
@@ -13832,6 +14024,102 @@
           },
           "table": {
             "type": "string"
+          }
+        }
+      },
+      "UsageCall": {
+        "type": "object",
+        "description": "One recorded call, without `sub`-scoped text.",
+        "required": [
+          "atMs",
+          "sub",
+          "feature",
+          "endpoint",
+          "model",
+          "tokensIn",
+          "tokensOut",
+          "tokensEstimated",
+          "latencyMs",
+          "outcome"
+        ],
+        "properties": {
+          "atMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "feature": {
+            "type": "string"
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latencyMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "model": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "sub": {
+            "type": "string"
+          },
+          "tokensEstimated": {
+            "type": "boolean"
+          },
+          "tokensIn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tokensOut": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "UsageRow": {
+        "type": "object",
+        "description": "The month's tokens, per group and endpoint.",
+        "required": [
+          "group",
+          "endpoint",
+          "tokensIn",
+          "tokensOut",
+          "calls",
+          "estimatedCalls"
+        ],
+        "properties": {
+          "calls": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "estimatedCalls": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Calls whose token counts were estimated (`ceil(bytes / 4)`), so the page can say \"about\"."
+          },
+          "group": {
+            "type": "string",
+            "description": "The group, or `(none)` for `nova`'s probe rows and callers without a group."
+          },
+          "tokensIn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tokensOut": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       },
