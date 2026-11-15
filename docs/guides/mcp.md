@@ -64,6 +64,13 @@ that is valid but carries no `stardelt:read` answers `403` with
 the client asks the identity provider again with that scope. The realm client `stardelt-mcp`
 grants it by default — a client you registered yourself must request it.
 
+The write tool `pipeline_start` needs a second scope, `stardelt:write`. The metadata document lists
+both in `scopes_supported`, but `stardelt:write` is **optional**: the realm client `stardelt-mcp` does
+not put it in a default token, so a client asks for it in the authorization request when it is meant to
+start runs. A call without it answers `403` with
+`{"error":"insufficient_scope","required_scope":"stardelt:write"}` and a header naming the scope; the
+client asks the identity provider again with `stardelt:write` included.
+
 `GET` on the endpoint answers `405` with `Allow: POST`; it takes JSON-RPC on a `POST` only.
 
 ### What it offers
@@ -85,8 +92,9 @@ grants it by default — a client you registered yourself must request it.
 | `pipeline_run` | One run with its tasks and their states — find the task that failed; takes `pipeline` (`<namespace>/<name>`) and `run_id` |
 | `pipeline_task_log` | One page of a task's log, the error and stack frames included; pass `next_token` from the previous answer to read on |
 | `lineage_get` | Where a table's data comes from and what is made from it, up to `depth` steps each way (`1`–`5`) and `days` back (`1`–`365`); takes `catalog`, `schema` and `table` |
+| `pipeline_start` | Start one run of a pipeline now, as you — the interface's **Run now**. Needs the `stardelt:write` scope and a `reason` in one sentence (written to the audit line); takes `pipeline` (`<namespace>/<name>`) and returns the new run |
 
-Every tool is read-only and runs as you, with your own grants. Read `table_documentation` before writing SQL against a table: the description, owner group, domain and tags tell you what the table is for. An answer is cut at 20 000 characters, and
+Every tool runs as you, with your own grants; all but `pipeline_start` are read-only. Read `table_documentation` before writing SQL against a table: the description, owner group, domain and tags tell you what the table is for. An answer is cut at 20 000 characters, and
 each call writes one `audit` line — who called, which client, which tool, ok or error, how long and a
 SHA-256 of the arguments — never the arguments themselves. With a state store, Nova also keeps one row
 per call for an administrator's audit: when, who, which client, which tool, the status, the duration and
@@ -120,6 +128,26 @@ An assistant walks the same path a person does in the interface:
 
 Each answer is cut at 20 000 characters like every other tool, and each call lands in the audit line.
 
+### Starting a run
+
+`pipeline_start` starts one run of a pipeline — the same action as **Run now** in the interface,
+with the same rules. It needs the `stardelt:write` scope and a `reason`: one sentence saying why
+this run should start, which is written to the endpoint's audit line with the call. The tool is
+annotated `destructiveHint`, so a client that honours the annotation asks the person before it
+calls it.
+
+It refuses rather than starting something that looks like it worked:
+
+- `the scheduler has not loaded this pipeline yet` — the pipeline exists but Airflow has no DAG for
+  it yet;
+- `the pipeline is paused: resume it first`;
+- `a run is already active: wait for it or stop it` — unless the pipeline's concurrency is `Allow`;
+- `too many runs started; wait a minute` — the per-person run-start limit, answered as `429`.
+
+The audit line carries who, which client, `pipeline_start`, the status, how long it took and the
+reason. The `mcp_call` row keeps the SHA-256 of the arguments, not the reason's text. It starts one
+run; it does not stop one, change a schedule or edit a pipeline.
+
 ### Where a query spent its time, and what a change to a table touches
 
 Two questions the interface answers, the endpoint answers the same way:
@@ -138,12 +166,15 @@ slowest task is much slower than the median and a join that explodes all have th
 
 ### What it does not do
 
-- **No writes.** Nothing on this endpoint creates, changes or drops anything. `sql_read` refuses a
-  write before it is sent, and `query_log_list` shows only your own queries.
+- **One write, and no data changes.** The only tool that changes state is `pipeline_start`, which
+  starts a run of a pipeline you may already run in the interface. Nothing here writes tables or
+  creates, changes or drops objects: `sql_read` refuses a write before it is sent, and
+  `query_log_list` shows only your own queries.
 - **No shared identity.** There is no service account behind it: every call is the person in the token.
 - **No browser session.** The cookie from the interface is never accepted; the endpoint wants a bearer token
   minted for its own audience.
-- **No unscoped token.** Every call needs `stardelt:read`. A token minted without it is refused
+- **No unscoped token.** Every call needs `stardelt:read`, and `pipeline_start` also needs
+  `stardelt:write`. A token minted without it is refused
   before any tool runs; that is not an error in the client's configuration, it is the scope
   missing from the sign-in request.
 - **It is not part of the API.** `/mcp` sits outside `/api`, so it is not described in the
