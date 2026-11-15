@@ -60,6 +60,9 @@ for that table through the `sql` URL parameter, for example
 and a second tab can open the same statement. Links from the query log and the command palette use the
 same parameter.
 
+**Open in SQL editor** in [Ask about your data](./ask.md) uses the same parameter: the statement Ask
+answers with arrives here filled in and not run.
+
 ## Run a query
 
 Type a statement and press **Run**, or press `⌘/Ctrl+Enter`. The button reads **Running…** while the

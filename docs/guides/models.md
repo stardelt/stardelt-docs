@@ -174,7 +174,8 @@ It has three parts:
   answered without a `usage` object.
 - **Last calls** — newest first: when, the person (`sub`), the group, the feature (`ask`, `agent`,
   `probe`), the endpoint, the model, tokens in and out, the duration and the outcome (`ok`,
-  `refused` or `error`). Choose 50, 100, 200 or 500 rows.
+  `refused` or `error`). Choose 50, 100, 200 or 500 rows. The feature column reads `ask` for
+  questions from [Ask about your data](./ask.md), and a 👍 or 👎 on an answer is stored on that row.
 
 The page is administrator-only, and the same numbers are one API call away:
 `GET /api/admin/model-usage` answers `{month, groups, calls}`; a non-administrator gets `403`. No
@@ -201,8 +202,8 @@ A keyless endpoint is probed too; an absent key file is only an error when the e
 ## What is not here yet
 
 The resource, the key projection, the probe and the **Admin → Models** page are what exists today.
-The page lists and probes endpoints and shows the calls; it does not create endpoints. The
-assistant's panel in Nova and the agent proxy are later slices of the same design. Meanwhile the
-resource is the interface: see the
+The page lists and probes endpoints and shows the calls; it does not create endpoints. An endpoint with
+the `ask` purpose drives [Ask about your data](./ask.md); the agent proxy is a later slice. Meanwhile
+the resource is the interface: see the
 [`ModelEndpoint` reference](../reference/resources/modelendpoint.md) for every field, and
 [AI assistants (MCP)](./mcp.md) for the assistants that bring their own model.
