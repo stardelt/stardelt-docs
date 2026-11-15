@@ -2384,7 +2384,7 @@
           "public"
         ],
         "summary": "`GET /api/compute`: the Spark clusters this caller may use.",
-        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise), the Connect `endpoint` and `startedAt` while it runs, `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse` and `shared`. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
+        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs, `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse` and `shared`. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
         "operationId": "compute_list",
         "responses": {
           "200": {
@@ -10232,6 +10232,13 @@
               "null"
             ],
             "format": "int32"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The operator's reason while the phase is `Failed` or `Starting` (for example a refused\n`SparkConnect`, a runtime that is not in the catalogue, or a driver that cannot start)."
           },
           "name": {
             "type": "string"
