@@ -83,6 +83,30 @@ An assistant is treated as untrusted code acting for a trusted person:
 - **An administrator can switch it off** and can limit it to named client ids
   (`spec.mcp.allowedClients`).
 
+## Your own model endpoint
+
+stardelt ships no model and runs no inference. A model is an external, OpenAI-compatible endpoint
+that an administrator connects with a [`ModelEndpoint`](../reference/resources/modelendpoint); Nova
+is the only component that calls it, and today the probe is the only caller.
+
+- **A prompt goes to the endpoint an administrator named, and nowhere else.** The resource carries
+  the base URL and the model id. When a feature sends a prompt to an endpoint with
+  `location: cloud`, that prompt leaves your cluster. `sendRows` is `false` by default, so query
+  results are not sent to a model unless an administrator turns it on for that endpoint.
+- **The key does not pass through an API.** `spec.keyRef` names a key of a `Connection` in the
+  platform namespace. The operator projects that connection's synced secret into Nova's pod as one
+  file per endpoint — `/var/run/stardelt/models/<endpoint>/key`, mode `0440`, read-only — and Nova
+  never reads the Secret or the key reference through the Kubernetes API. The key is not in a Nova
+  log line, an API answer or the browser.
+- **The read path hides the address.** `GET /api/model-endpoints` answers an endpoint's name, its
+  model, its location, its purposes and the probe's result — never its URL and never its key
+  reference.
+- **The probe sends four fixed requests, never your data.** Best-effort `/models` (for the context
+  window), one chat with the fixed sentence *"Reply with one short sentence about lakes."*, the same
+  with one tool definition, and the same asking for a JSON object. Its result is the endpoint's
+  `status`: an endpoint that does not answer, cannot call a tool or cannot return JSON is marked
+  unusable before a feature relies on it.
+
 ## Known limits
 
 - **One storage key.** Trino, Spark Connect and the catalog read object storage with one platform
@@ -107,3 +131,7 @@ An assistant is treated as untrusted code acting for a trusted person:
   the platform; it cannot stop the assistant's client from sending that data elsewhere, and it cannot
   stop an assistant from following instructions hidden in a table. Read the tool descriptions and the
   [guide](../guides/mcp) as the contract, and treat every answer as untrusted text.
+- **A model endpoint is software outside the platform's control.** stardelt decides what it sends —
+  the prompt, and query results only with `sendRows: true` on a `cloud`-marked endpoint — and the
+  endpoint's operator decides what it keeps. Treat a model's answer as untrusted text, like an
+  assistant's, and prefer an endpoint in your own network when the prompt carries sensitive data.
