@@ -19,6 +19,9 @@ client in the platform's realm. It signs in with PKCE to a loopback address in a
 the device grant on a command line; it holds no secret and names no service account, and its tokens carry the
 audience `https://<nova host>/mcp` and the `groups` claim.
 
+The assistant's model is its own, not the platform's. A model that Nova itself may call is a
+[model endpoint](./models.md).
+
 ### Turn it on
 
 Three switches, one per install path:
