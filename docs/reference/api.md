@@ -899,6 +899,24 @@ What a bundle's migration files would do to one target, and what already ran the
 | `502` | The query engine is not reachable |
 | `503` | The demo has no catalog to plan migrations against |
 
+## /api/model-endpoints
+
+### GET /api/model-endpoints
+
+Operation id `model_endpoints_list`: in Python `client.call("model_endpoints_list", …)`, on the command line `stardelt api model_endpoints_list`.
+
+`GET /api/model-endpoints`: the models an administrator connected to the platform.
+
+Every `ModelEndpoint` of the platform namespace, name order: `name`, `model`, `location` (`on-premise` | `cloud`, default `on-premise`), `purposes` (default `["ask","agents"]`), `sendRows` (may query results be sent to this model; off by default) and the probe's last answer — `reachable`, `toolCalling`, `jsonOutput`, `contextTokens`, `checkedAt`, `message`, each `null` until the probe has run. The endpoint's `url` and its `keyRef` are absent on purpose: the shape says that a model exists, what it is, where prompts go and whether it works, never the internal hostname or the name of the Connection holding the key. Without a cluster connection (demo mode, a local run) the answer is an empty list: no endpoint means no AI feature. A cluster that refuses or fails is a 502, never an empty list that would read as "no model". Answers `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | One row per endpoint, name order; empty when none is connected |
+| `401` | Not signed in |
+| `502` | The cluster did not answer, or Nova may not list modelendpoints |
+
 ## /api/notebooks
 
 ### GET /api/notebooks
