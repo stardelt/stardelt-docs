@@ -53,6 +53,16 @@ lower-case letters, digits, dashes and underscores, at most 32 characters each a
 short lower-case name such as `sales`. An empty description, tag list, owner or domain is shown as absent, not as an
 error. To edit, choose **Edit**, change the fields and choose **Save**.
 
+Below the description the card also holds the table's guide, under the heading **How to use this table**; it is
+absent until someone writes one, and an owner who has not written it yet sees the hint `Add a guide: which columns
+join, which rows to leave out, what the numbers mean. People and agents read it.`. A guide says how to use the table
+rather than what it is: how to join it, which rows to leave out, and what the numbers mean. It is edited with the
+description under the same owner rule — a table without an owner can be claimed by the first editor, and a table that
+has one is edited by that group or by an administrator — as plain text or Markdown whose line breaks are kept, at
+most 16,000 characters; **Edit** shows it in a textarea labelled **How to use this table** with a character counter,
+and clearing it removes the guide. The guide travels as the Iceberg table property `stardelt.guide`, so any Iceberg
+client sees it, and an agent reads it through the [`table_documentation`](./mcp.md) tool.
+
 ### Maintenance
 
 The **Maintenance** card counts the table's files in the object store: how many there are, how many are smaller than

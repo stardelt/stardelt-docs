@@ -83,7 +83,7 @@ client asks the identity provider again with `stardelt:write` included.
 | `platform_status` | Whether the platform is up, and the version of each component |
 | `catalog_list` | The catalogs, schemas and tables you may see |
 | `catalog_describe` | The columns, types and comment of one table |
-| `table_documentation` | What a table means: its description, owner group, domain, tags and every column's description, as the table's owners wrote them; takes `namespace` and `table` (`catalog` when the name is ambiguous) |
+| `table_documentation` | What a table means: its description, owner group, domain, tags and every column's description, as the table's owners wrote them, and the guide its owners wrote on how to use it; takes `namespace` and `table` (`catalog` when the name is ambiguous) |
 | `catalog_search` | The tables that match a word |
 | `sql_read` | One read-only SQL statement (`SELECT`, `WITH`, `VALUES`, `SHOW`, `DESCRIBE`, `TABLE` or `EXPLAIN`) as you; at most 200 rows and 60 seconds |
 | `sql_explain` | The plan of one read-only statement, without running it (`EXPLAIN`, never `EXPLAIN ANALYZE`) |
@@ -97,7 +97,7 @@ client asks the identity provider again with `stardelt:write` included.
 | `lineage_get` | Where a table's data comes from and what is made from it, up to `depth` steps each way (`1`–`5`) and `days` back (`1`–`365`); takes `catalog`, `schema` and `table` |
 | `pipeline_start` | Start one run of a pipeline now, as you — the interface's **Run now**. Needs the `stardelt:write` scope and a `reason` in one sentence (written to the audit line); takes `pipeline` (`<namespace>/<name>`) and returns the new run |
 
-Every tool runs as you, with your own grants; all but `pipeline_start` are read-only. Read `table_documentation` before writing SQL against a table: the description, owner group, domain and tags tell you what the table is for. An answer is cut at 20 000 characters, and
+Every tool runs as you, with your own grants; all but `pipeline_start` are read-only. Read `table_documentation` before writing SQL against a table: the description, owner group, domain and tags tell you what the table is for, and its guide says how to use it. An answer is cut at 20 000 characters, and
 each call writes one `audit` line — who called, which client, which tool, ok or error, how long and a
 SHA-256 of the arguments — never the arguments themselves. With a state store, Nova also keeps one row
 per call for an administrator's audit: when, who, which client, which tool, the status, the duration and
