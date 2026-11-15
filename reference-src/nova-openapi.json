@@ -875,6 +875,41 @@
         }
       }
     },
+    "/api/ask/history": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/ask/history` — the caller's last 20 conversations (nova#891 slice c).",
+        "description": "The caller's own last 20 Ask questions and answers, newest first. Nobody else's conversations are readable, and there is no way to ask for another person's. Every answer carries `Cache-Control: no-store`.",
+        "operationId": "ask_history",
+        "responses": {
+          "200": {
+            "description": "The conversations, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AskConversation"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No state store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/config": {
       "get": {
         "tags": [
@@ -1994,7 +2029,7 @@
           "public"
         ],
         "summary": "`GET /api/catalog/tables/{ns}/{tbl}/verified-queries` — the table's, newest first.",
-        "description": "The verified queries of one table: questions its owners answered with one read-only statement, who verified each and when. Newest first, at most 50. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.",
+        "description": "The verified queries of one table: questions its owners answered with one read-only statement, who verified each and when, its expected result and the last check's outcome. Newest first, at most 50. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.",
         "operationId": "verified_queries_list",
         "parameters": [
           {
@@ -2096,7 +2131,7 @@
           "public"
         ],
         "summary": "`POST /api/catalog/tables/{ns}/{tbl}/verified-queries` — `201` with the stored row.",
-        "description": "Verify one answer to a question about this table: the question (at most 500 characters) and one read-only statement (at most 20 000). Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. The statement is checked, never run. `?catalog=` picks the catalog.",
+        "description": "Verify one answer to a question about this table: the question (at most 500 characters), one read-only statement (at most 20 000) and, optionally, the known answer as up to 100 rows of values. Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. The statement is checked on create and run only by `POST /api/verified-queries/{id}/check`. `?catalog=` picks the catalog.",
         "operationId": "verified_queries_create",
         "parameters": [
           {
@@ -2149,7 +2184,7 @@
             }
           },
           "400": {
-            "description": "The question or the SQL is empty or too long, the catalog name is invalid, or the statement is not one read-only statement",
+            "description": "The question or the SQL is empty or too long, `expected` is not a list of at most 100 rows, the catalog name is invalid, or the statement is not one read-only statement",
             "content": {
               "application/json": {
                 "schema": {
@@ -8550,6 +8585,90 @@
         }
       }
     },
+    "/api/verified-queries/{id}/check": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/verified-queries/{id}/check` — run the statement as the caller and compare it\nwith the expected result; `200` with the updated row either way.",
+        "description": "Run one verified query as the caller and compare its rows with the expected result, store the outcome on the row and answer the row. Without an expected result it passes when the statement runs; with one it passes when the rows are equal as a multiset, numbers compared after rounding to six decimals. A readable difference says what was expected and what came back. Whoever may see the table may check it.",
+        "operationId": "verified_queries_check",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The verified query's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The updated row: `lastCheckPassed` and `lastCheckMessage` say what the check found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedQuery"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The stored SQL is no longer one read-only statement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such verified query, catalog or table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/warehouses": {
       "get": {
         "tags": [
@@ -9172,6 +9291,66 @@
               "$ref": "#/components/schemas/AskTable"
             }
           }
+        }
+      },
+      "AskConversation": {
+        "type": "object",
+        "description": "One conversation from a person's History.",
+        "required": [
+          "id",
+          "question",
+          "endpoint",
+          "sentence",
+          "tables",
+          "explain",
+          "createdAt"
+        ],
+        "properties": {
+          "callId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "explain": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "question": {
+            "type": "string"
+          },
+          "sentence": {
+            "type": "string"
+          },
+          "sql": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tables": {}
         }
       },
       "AskFeedback": {
@@ -11570,6 +11749,19 @@
           "sql"
         ],
         "properties": {
+          "expected": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "description": "The known answer: up to 100 rows, each an array of values, or absent."
+          },
           "question": {
             "type": "string",
             "description": "The question, at most 500 characters."
@@ -14780,7 +14972,7 @@
       },
       "VerifiedQuery": {
         "type": "object",
-        "description": "A row as the API returns it. `verified_at` is RFC 3339 in UTC.",
+        "description": "A row as the API returns it. `verified_at` and `last_check_at` are RFC 3339 in UTC.",
         "required": [
           "id",
           "question",
@@ -14789,9 +14981,43 @@
           "verifiedAt"
         ],
         "properties": {
+          "expected": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "description": "The expected result: one array per row, each holding the row's values, or `null`."
+          },
           "id": {
             "type": "integer",
             "format": "int64"
+          },
+          "lastCheckAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When the query was last checked, RFC 3339, or `null` when it never was."
+          },
+          "lastCheckMessage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "What the last check found, in one sentence, or `null` when it never ran."
+          },
+          "lastCheckPassed": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "Whether the last check passed, or `null` when it never ran."
           },
           "question": {
             "type": "string",

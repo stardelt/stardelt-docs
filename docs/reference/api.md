@@ -66,6 +66,21 @@ Writes the caller's own 👍 or 👎 on the `model_call` row that `/api/ask` ret
 | `500` | The vote was not stored |
 | `503` | No state store |
 
+### GET /api/ask/history
+
+Operation id `ask_history`: in Python `client.call("ask_history", …)`, on the command line `stardelt api ask_history`.
+
+`GET /api/ask/history` — the caller's last 20 conversations.
+
+The caller's own last 20 Ask questions and answers, newest first. Nobody else's conversations are readable, and there is no way to ask for another person's. Every answer carries `Cache-Control: no-store`.
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The conversations, newest first |
+| `503` | No state store |
+
 ## /api/auth
 
 ### GET /api/auth/config
@@ -375,7 +390,7 @@ Operation id `verified_queries_list`: in Python `client.call("verified_queries_l
 
 `GET /api/catalog/tables/{ns}/{tbl}/verified-queries` — the table's, newest first.
 
-The verified queries of one table: questions its owners answered with one read-only statement, who verified each and when. Newest first, at most 50. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.
+The verified queries of one table: questions its owners answered with one read-only statement, who verified each and when, its expected result and the last check's outcome. Newest first, at most 50. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.
 
 **Parameters**
 
@@ -402,7 +417,7 @@ Operation id `verified_queries_create`: in Python `client.call("verified_queries
 
 `POST /api/catalog/tables/{ns}/{tbl}/verified-queries` — `201` with the stored row.
 
-Verify one answer to a question about this table: the question (at most 500 characters) and one read-only statement (at most 20 000). Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. The statement is checked, never run. `?catalog=` picks the catalog.
+Verify one answer to a question about this table: the question (at most 500 characters), one read-only statement (at most 20 000) and, optionally, the known answer as up to 100 rows of values. Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. The statement is checked on create and run only by `POST /api/verified-queries/{id}/check`. `?catalog=` picks the catalog.
 
 **Parameters**
 
@@ -416,6 +431,7 @@ Verify one answer to a question about this table: the question (at most 500 char
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `expected` | array of array of object (nullable) | No |  | The known answer: up to 100 rows, each an array of values, or absent. |  |
 | `question` | string | Yes |  | The question, at most 500 characters. |  |
 | `sql` | string | Yes |  | One read-only statement, at most 20 000 characters. |  |
 
@@ -424,7 +440,7 @@ Verify one answer to a question about this table: the question (at most 500 char
 | Code | Description |
 | --- | --- |
 | `201` | The stored row |
-| `400` | The question or the SQL is empty or too long, the catalog name is invalid, or the statement is not one read-only statement |
+| `400` | The question or the SQL is empty or too long, `expected` is not a list of at most 100 rows, the catalog name is invalid, or the statement is not one read-only statement |
 | `403` | The caller may not browse that catalog, or only the owner group and administrators may verify a query |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable or did not answer |
@@ -2336,6 +2352,31 @@ Remove one verified query. Only the owner group of its table and administrators 
 | `204` | Deleted |
 | `403` | Only the owner group and administrators may delete a verified query |
 | `404` | No such verified query, or the id is not a number |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
+
+### POST /api/verified-queries/\{id\}/check
+
+Operation id `verified_queries_check`: in Python `client.call("verified_queries_check", …)`, on the command line `stardelt api verified_queries_check`.
+
+`POST /api/verified-queries/{id}/check` — run the statement as the caller and compare it with the expected result; `200` with the updated row either way.
+
+Run one verified query as the caller and compare its rows with the expected result, store the outcome on the row and answer the row. Without an expected result it passes when the statement runs; with one it passes when the rows are equal as a multiset, numbers compared after rounding to six decimals. A readable difference says what was expected and what came back. Whoever may see the table may check it.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | The verified query's id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The updated row: `lastCheckPassed` and `lastCheckMessage` say what the check found |
+| `400` | The stored SQL is no longer one read-only statement |
+| `403` | The caller may not browse that catalog |
+| `404` | No such verified query, catalog or table |
 | `502` | The catalog is not reachable or did not answer |
 | `503` | The state store is not configured |
 
