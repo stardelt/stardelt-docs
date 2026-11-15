@@ -1,0 +1,153 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "The customer's own OpenAI-compatible model endpoint: URL, model, key, where it runs, what it is for and how much each group may use.",
+  "properties": {
+    "spec": {
+      "description": "The plug to the customer's own OpenAI-compatible model endpoint (D46). stardelt ships no model.",
+      "properties": {
+        "keyRef": {
+          "description": "The API key: a key of a `Connection` in the same namespace. Absent for a keyless in-cluster endpoint.",
+          "nullable": true,
+          "properties": {
+            "key": {
+              "description": "The key inside that connection's synced Secret.",
+              "maxLength": 63,
+              "minLength": 1,
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+              "type": "string"
+            },
+            "name": {
+              "description": "Name of a `Connection` in the same namespace.",
+              "maxLength": 40,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9-]*$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "key",
+            "name"
+          ],
+          "type": "object"
+        },
+        "location": {
+          "default": "on-premise",
+          "description": "Where a model endpoint runs: in the customer's network, or at a cloud provider (prompts leave the cluster).",
+          "enum": [
+            "on-premise",
+            "cloud"
+          ],
+          "type": "string"
+        },
+        "model": {
+          "description": "The model id the endpoint serves.",
+          "maxLength": 200,
+          "minLength": 1,
+          "type": "string"
+        },
+        "purposes": {
+          "default": [
+            "ask",
+            "agents"
+          ],
+          "items": {
+            "description": "What a model endpoint is used for.",
+            "enum": [
+              "ask",
+              "agents"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "type": "array"
+        },
+        "quota": {
+          "description": "Token limits; absent means no limit.",
+          "nullable": true,
+          "properties": {
+            "perGroupMonthlyTokens": {
+              "format": "int64",
+              "maximum": 10000000000.0,
+              "minimum": 1.0,
+              "nullable": true,
+              "type": "integer"
+            },
+            "perPersonDailyTokens": {
+              "format": "int64",
+              "maximum": 1000000000.0,
+              "minimum": 1.0,
+              "nullable": true,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "sendRows": {
+          "default": false,
+          "description": "May query results (rows) be sent to this model? Off by default.",
+          "type": "boolean"
+        },
+        "url": {
+          "description": "The OpenAI-compatible base URL, for example `https://llm.internal.example/v1`.",
+          "maxLength": 512,
+          "minLength": 8,
+          "pattern": "^https?://",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model",
+        "url"
+      ],
+      "type": "object",
+      "x-kubernetes-validations": [
+        {
+          "message": "a cloud endpoint must use https",
+          "rule": "self.location != 'cloud' || self.url.startsWith('https://')"
+        },
+        {
+          "message": "each purpose may appear once",
+          "rule": "self.purposes.all(p, self.purposes.exists_one(q, q == p))"
+        }
+      ]
+    },
+    "status": {
+      "description": "What Nova's probe found (slice c writes it).",
+      "nullable": true,
+      "properties": {
+        "checkedAt": {
+          "nullable": true,
+          "type": "string"
+        },
+        "contextTokens": {
+          "format": "int64",
+          "nullable": true,
+          "type": "integer"
+        },
+        "jsonOutput": {
+          "nullable": true,
+          "type": "boolean"
+        },
+        "message": {
+          "nullable": true,
+          "type": "string"
+        },
+        "reachable": {
+          "nullable": true,
+          "type": "boolean"
+        },
+        "toolCalling": {
+          "nullable": true,
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "spec"
+  ],
+  "title": "ModelEndpoint",
+  "type": "object"
+}

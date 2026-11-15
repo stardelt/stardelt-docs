@@ -17,6 +17,7 @@ Every custom resource the operator serves, generated from the JSON Schemas it pu
 | [Connection](./connection.md) | A typed connection to an outside system: settings here, the credentials in the secret store. |
 | [IngestionSource](./ingestionsource.md) | An ingestion source: one contract with three domain defaults (saas, enterprise, cdc). |
 | [Lakehouse](./lakehouse.md) | A managed Trino + catalog + Iceberg unit on object storage. |
+| [ModelEndpoint](./modelendpoint.md) | The customer's own OpenAI-compatible model endpoint: URL, model, key, where it runs, what it is for and how much each group may use. |
 | [Pipeline](./pipeline.md) | A pipeline: tasks with dependencies and an optional schedule, run on one engine. |
 | [PlatformInstance](./platforminstance.md) | A stardelt platform instance. |
 | [ServicePrincipal](./serviceprincipal.md) | A non-human identity (client credentials) for pipelines, maintenance and collectors. |
