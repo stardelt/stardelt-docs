@@ -81,7 +81,9 @@ yet` when it has never been checked. A query saved without an expected answer an
 to compare`.
 
 Anyone who may see the table may check a query, not only the people who added it, and a check changes neither
-the statement nor the expected answer. A check runs only when someone presses **Check now**; nothing schedules it.
+the statement nor the expected answer. **Check all** above the list runs every verified query of the table one
+after another, as you, and says how many passed — for example `1 of 2 passed · 1 failed`. Nothing runs a check on
+its own; to check every night, run the same call from a scheduled job (below).
 
 **Open in SQL editor** opens the SQL editor with the statement filled in, ready to run.
 
@@ -92,6 +94,19 @@ these over writing new SQL.
 
 While the list is empty and someone may add one, the card reads `No verified queries yet. Add the question the
 table answers, and the SQL that answers it.`. Everyone else sees no card at all until the first query exists.
+
+#### Check your trusted numbers every night
+
+A scheduled CI job can run the same check with the `stardelt` command. The job signs in with a token of a
+service identity that may read the table (`STARDELT_TOKEN`, see [the CLI guide](./sdk-cli-mcp.md)), and fails when
+any query fails:
+
+```bash
+stardelt api verified_queries_check_all -p ns=shop -p tbl=daily_revenue -q catalog=gold --format json \
+  | python3 -c 'import json,sys; r=json.load(sys.stdin); print("%d of %d passed" % (r["passed"], r["checked"])); sys.exit(1 if r["failed"] else 0)'
+```
+
+Each run updates the rows on the table page, so the next reader sees `✓ Checked <when>` or the difference.
 
 ### Maintenance
 
