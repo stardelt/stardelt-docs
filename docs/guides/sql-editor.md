@@ -128,6 +128,23 @@ To see what was actually run, including statements from notebooks and dashboards
 [The query log](./query-log). To turn a statement into a pipeline that runs on a schedule, see
 [Schedule a SQL statement](./schedule-sql).
 
+## Verified queries
+
+**Verify** beside **Run** opens the dialog `Save as verified query`. Pick the **Table** the question is about,
+write the **Question**, keep the statement in **Statement**, and choose the **Expected answer**: `No expected
+answer`, or `Use this run's result (N rows)` for the result the editor holds now, which the API keeps up to 100
+rows of.
+
+The statement must be one read-only statement, and the same rule as **Run** picks it: the selected text, else
+the statement the cursor is in. **Verify** is disabled while the editor is empty.
+
+An administrator or the table's owner group saves a verified query — the same people who edit its description
+and its guide. Everyone else reads and checks the query on the table's page; see
+[Verified queries](./catalog#verified-queries).
+
+A verified query is text on the table page: opening it never runs it. **Check now** there is the only place the
+statement runs.
+
 ## Sample and Schedule
 
 **Sample** puts a ready-made statement into the editor: the demo table if your catalog has one,

@@ -74,6 +74,17 @@ the guide. Everyone else reads the card. **+ Add a verified query** opens a form
 **Add verified query** keeps it, and **Delete** beside a row removes it. A verified query is one read-only
 statement, and the API accepts nothing else.
 
+A verified query may also carry the answer it should return. **Check now** beside a row runs the statement as
+you and compares the result with the **expected answer** stored with the query. The row then reads `✓ Checked
+<when>`, or `✕` followed by the difference — `row 2 differs: expected [2,"b"], got [2,"c"]` — or `Not checked
+yet` when it has never been checked. A query saved without an expected answer answers `ran, no expected result
+to compare`.
+
+Anyone who may see the table may check a query, not only the people who added it, and a check changes neither
+the statement nor the expected answer. A check runs only when someone presses **Check now**; nothing schedules it.
+
+**Open in SQL editor** opens the SQL editor with the statement filled in, ready to run.
+
 Reading a row never runs the statement: the card shows it as text, to read or to copy into the SQL editor.
 
 An agent on the hosted endpoint reads the same list through the `verified_queries` tool, which tells it to prefer
