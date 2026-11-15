@@ -50,6 +50,33 @@ Answer the second through the running pod — an endpoint, a served page, a tool
 reading the binary. Read the `Pin it:` line that `scripts/pin-image.sh` prints for the digest; the
 `Digest:` line in a build log is the export digest and is not the image manifest.
 
+### A frontend bundle is minified
+
+Counting a bare string in a served asset answers nothing. `grep -c` counts *lines*, and a minified
+bundle is a few hundred very long lines, so the same number can mean different code on every
+build. The same literal also usually lives in more than one component. Measured 2026-11-15 on the
+served bundle of a Nova pin: `grep -c` on one string gave 1, `grep -o … | wc -l` gave 3, and 3 was
+right — three components in the source carry it. A pin ticket that asked for 0 could never pass.
+
+Assert one of these instead:
+
+- **A sentence only that change renders** — the UI text a person reads, for example
+  `No questions yet`. It does not collide with another component and it is what the feature is.
+- **The occurrences in both builds** — count with `grep -o`, and name both numbers in the ticket:
+
+  ```console
+  $ curl -s https://alpha.dev.stardelt.io/assets/index-<old>.js -o /tmp/old.js
+  $ curl -s https://alpha.dev.stardelt.io/assets/index-<new>.js -o /tmp/new.js
+  $ grep -Fo '<literal>' /tmp/old.js | wc -l   # before
+  $ grep -Fo '<literal>' /tmp/new.js | wc -l   # after
+  ```
+
+Use `grep -F` when the literal carries `[`, `]`, `?` or another regular-expression character;
+without it the pattern is a bracket expression and grep prints `Unmatched [`.
+
+A count that does not move between the two builds is not evidence that the change is absent — say
+which string you counted and why it is the change's own.
+
 ## Example
 
 > **operator/crd: make the platform install namespace configurable**
