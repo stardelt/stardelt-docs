@@ -27,6 +27,31 @@ The next line says who may use the cluster — its group, else its person, else 
 Below that, a shared cluster says `Shared · always on · for everyone` and offers no Start or Stop. Any other
 cluster says `Stops after <N> min idle`, with `Running since <time>` in front while it runs.
 
+## When a cluster says Failed
+
+A **Failed** cluster shows a red badge, and under it the operator's own sentence about what went wrong. Read
+that sentence first: it names the runtime, the setting or the resource to change, and on this page it is the
+whole diagnosis you get.
+
+**Starting** is not a failure. A cluster you have just started stays **Starting** while its server pod comes
+up, and the endpoint appears on the card when the cluster turns **Running**. Give it a minute before you
+worry.
+
+Most failures come from one of three things:
+
+- **The runtime is not in the catalogue.** The sentence reads `unknown runtime spark-9.9-py3.13; known:
+  spark-4.1-py3.11`, and the names after `known:` are the ones this install has. Ask an administrator to fix
+  the runtime with **Edit**, then start the cluster.
+- **The runtime catalogue is missing.** The sentence reads `the runtime catalogue stardelt-spark-runtimes is
+  missing`. Nothing on this page fixes that — the install is incomplete — so send it to an administrator.
+- **The cluster's definition was refused, or its driver cannot start.** The sentence names the field, for
+  example `admission webhook "…sparkconnect…" denied the request: sparkConf key … is not allowed`. Change
+  that setting and start the cluster again.
+
+**Start** on a failed cluster asks for another attempt with the definition as it is now, so a cluster that
+keeps failing keeps its message. Change what the sentence names before you start it; if it fails again, copy
+the sentence into the request to your administrator — it is more use than a screenshot of the badge.
+
 ## Start and stop
 
 **Start** appears on a cluster that is **Stopped** or **Failed**; **Stop** appears on one that is
