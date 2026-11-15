@@ -63,6 +63,25 @@ most 16,000 characters; **Edit** shows it in a textarea labelled **How to use th
 and clearing it removes the guide. The guide travels as the Iceberg table property `stardelt.guide`, so any Iceberg
 client sees it, and an agent reads it through the [`table_documentation`](./mcp.md) tool.
 
+### Verified queries
+
+A verified query is a question the table answers, with the one statement that answers it, kept beside the table
+together with who verified it and when. The card lists up to 50 of them, newest first; each row shows the question,
+the statement in a monospace block and `Verified by <sub> · <time>`.
+
+An administrator or the table's owner group adds and removes one — the same people who edit the description and
+the guide. Everyone else reads the card. **+ Add a verified query** opens a form with **Question** and **SQL**;
+**Add verified query** keeps it, and **Delete** beside a row removes it. A verified query is one read-only
+statement, and the API accepts nothing else.
+
+Reading a row never runs the statement: the card shows it as text, to read or to copy into the SQL editor.
+
+An agent on the hosted endpoint reads the same list through the `verified_queries` tool, which tells it to prefer
+these over writing new SQL.
+
+While the list is empty and someone may add one, the card reads `No verified queries yet. Add the question the
+table answers, and the SQL that answers it.`. Everyone else sees no card at all until the first query exists.
+
 ### Maintenance
 
 The **Maintenance** card counts the table's files in the object store: how many there are, how many are smaller than
