@@ -446,6 +446,33 @@ Verify one answer to a question about this table: the question (at most 500 char
 | `502` | The catalog is not reachable or did not answer |
 | `503` | The state store is not configured |
 
+### POST /api/catalog/tables/\{ns\}/\{tbl\}/verified-queries/check
+
+Operation id `verified_queries_check_all`: in Python `client.call("verified_queries_check_all", …)`, on the command line `stardelt api verified_queries_check_all`.
+
+`POST /api/catalog/tables/{ns}/{tbl}/verified-queries/check` — run every verified query of one table as the caller, one after another, and answer the totals.
+
+Run every verified query of one table as the caller, one after another, in id order and at most 50, and answer how many were checked, how many passed and how many failed, with the rows as the checks left them. Each row is checked exactly as `POST /api/verified-queries/{id}/check` checks it; a scheduled job calls this once instead of once per query. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The totals and the rows the checks left |
+| `400` | A name is not a single path segment, the catalog name is invalid, or a stored statement is no longer one read-only statement |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
+
 ### GET /api/catalog/warehouse
 
 Operation id `warehouse_info`: in Python `client.call("warehouse_info", …)`, on the command line `stardelt api warehouse_info`.
