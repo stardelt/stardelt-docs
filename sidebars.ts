@@ -93,6 +93,7 @@ const sidebars: SidebarsConfig = {
         'guides/sql-statements',
         'guides/python',
         'guides/mcp',
+        'guides/models',
         'guides/service-principals',
         'developer/develop',
       ],
