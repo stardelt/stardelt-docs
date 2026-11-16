@@ -6,7 +6,7 @@ slug: /operations/checks
 
 # Checks to run
 
-These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Three are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, and `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`.
+These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Four are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`, and `verify-trino-graceful-shutdown` deletes one worker pod, which the Deployment replaces.
 
 ## After an upgrade
 
@@ -56,6 +56,7 @@ Nova's **Platform** page shows the same state live, including the images the clu
 | Situation | Command | What it proves |
 | --- | --- | --- |
 | After a TLS or sign-in change | `make verify-trino-tls` | The in-cluster Trino path is TLS-only and token-authenticated. |
+| After a Trino worker or shutdown change | `make verify-trino-graceful-shutdown` | A worker deleted while the engine is up logs `Shutdown requested` and a replacement becomes Ready, so the preStop drain works. It deletes one worker pod. `helm test trino` cannot prove this here: its connection pod mounts a Secret this install does not create and signs in as a user it does not have (platform#1536). |
 | After a `Catalog`/role change | `make verify-catalog-permissions` | The live Catalog grants against the OPA bridge. |
 | After a `Cluster` change | `make verify-backups`, `make verify-backups-nova`, `make verify-backups-identity`, or `make verify-backups-openfga` | WAL archiving per database, with a real object in the bucket. |
 | After an External Secrets or `spec.secrets` change | `make verify-external-secrets` | External Secrets Operator is installed, a Fake-provider `ClusterSecretStore` is Ready, one `ExternalSecret` syncs into the Secret it owns, and both scratch objects are deleted. `UNVERIFIED` (exit 3) when ESO is not installed — run `make external-secrets` first; that is not a failure. |
