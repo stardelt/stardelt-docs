@@ -50,6 +50,30 @@ Answer the second through the running pod — an endpoint, a served page, a tool
 reading the binary. Read the `Pin it:` line that `scripts/pin-image.sh` prints for the digest; the
 `Digest:` line in a build log is the export digest and is not the image manifest.
 
+### Never retype a digest
+
+A digest prefix typed by hand is a trap: one missing character turns a correct build into a `0`
+that reads as "the pin is missing" (stardelt-platform#1569: `73aa5fae130c60da` is one `e` short
+of the access-sync constant `73aa5faee130c60da`, so the grep answered 0 on the build that carries
+it). Derive the literal from the constant, then match it:
+
+```bash
+l=$(git -C ../stardelt-operator show origin/main:crates/stardelt-operator/src/access_sync.rs \
+    | sed -n 's/^pub const IMAGE.*sha256:\([0-9a-f]\{16\}\).*/\1/p')
+kubectl -n stardelt exec deploy/stardelt-operator -- grep -ac "$l" /usr/local/bin/stardelt-operator
+# expect: 1
+```
+
+Or match the whole reference and print what matched, which cannot be off by a character:
+
+```bash
+kubectl -n stardelt exec deploy/stardelt-operator -- \
+  grep -ao 'python:3\.13\.16-slim-bookworm@sha256:[0-9a-f]*' /usr/local/bin/stardelt-operator
+```
+
+Say which string you counted and why it is the change's own, and use `grep -ao … | wc -l` when
+the literal can occur more than once on the line `grep -c` counts.
+
 ### A frontend bundle is minified
 
 Counting a bare string in a served asset answers nothing. `grep -c` counts *lines*, and a minified
