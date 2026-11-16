@@ -45,6 +45,33 @@ Click a row to open its details. They are grouped and collapsed, so you read onl
 The **Columns** menu adds more columns to the list: user, source, statement type, error and query id. Your choice is
 remembered in your browser.
 
+## Usage — what the queries cost
+
+The **Queries** / **Usage** switch in the page header changes what the same window reports. **Usage**
+answers the other question: not "what ran" but "what did it cost, and who used the most". It shares
+the **Mine** / **Team** / **Everyone** scopes and the time range with the list, so you can compare the
+two views over the same rows: [Who sees what](#who-sees-what) applies unchanged.
+
+At the top it adds the window up: queries, CPU time, data read and failures. Below, one row per
+person (per **Warehouse** under **Mine**), heaviest CPU first. Under **Team** and **Everyone** the
+table is headed **Who used the most compute**; under **Mine** it is **By warehouse**. The columns:
+
+| Column | Meaning |
+|---|---|
+| Person | The engine user, or the warehouse under **Mine** |
+| Queries | How many ran in the window |
+| CPU time | Time the engine spent on their queries, with a bar relative to the heaviest row |
+| Data read | Bytes read from storage |
+| Data written | Bytes written by inserts, `CREATE TABLE AS` and pipeline writes |
+| Failed | Queries that ended in failure |
+
+**Per day** draws one bar per UTC day of the window, so a spike points at the day to open in the list.
+Rows are not links: switch back to **Queries**, keep the time range, and search for the person or
+warehouse there.
+
+Usage is summed when you open the view and refreshed once a minute, not streamed like the list. An
+empty window says **No queries in this window.** — widen the time range or switch the scope.
+
 ## Finding a query
 
 - **Status** chips filter by outcome, for example only the failures.
@@ -181,11 +208,19 @@ curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>"
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>/profile"
 curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/<query id>/history"
+curl -H "Authorization: Bearer $TOKEN" "https://nova.<your-domain>/api/query-log/usage?scope=mine&by=warehouse&from=$(date -d '-7 days' +%s000)"
 ```
 
 The list is keyset-paged: a response carries `nextCursor`; pass it as `cursor` to get the next page. It accepts the filters the
 page uses (`scope` = `mine`, `team` or `all`; `all` is for administrators), `state`, `q`, `warehouse` and `limit`). The detail endpoint returns the same groups as the
 page. The API description is at `/api/openapi.json` on your Nova.
+
+The usage endpoint is `query_log_usage`: `scope` and `warehouse` filter like the list, `by` is
+`principal` (the default), `warehouse` or `day` (UTC), and `from`/`to` are epoch milliseconds; an
+absent window is the last 7 days. The answer carries `items` (each with `key`, `queries`, `failed`,
+`cpuMs`, `wallMs`, `inputBytes`, `writtenBytes`) and `total`, which is the same object with
+`key: "total"`. `scope=all` by somebody who is not an administrator is 403; without a state store the
+route is 503, like the rest of the log.
 
 The profile endpoint answers 404 for a query that is not yours to see (exactly like a missing one), for a
 query that is still running, and for one without a stored profile; an administrator who opens somebody
