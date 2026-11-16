@@ -34,8 +34,12 @@ promises: a component is named on this site when it is built.
 - **Install:** `make platform` installs everything in one command, and `make upgrade` upgrades it. The
   operator installs a growing part of the platform from `PlatformInstance` and `Lakehouse` resources.
 - **Query and store:** Trino over Iceberg tables, the Lakekeeper catalog, SeaweedFS or your own S3.
-- **Work:** the Nova interface (catalog, SQL editor, loads, connections, pipelines, query log,
-  lineage), notebooks, dashboards, scheduled pipelines, Spark Connect.
+- **Work:** the Nova interface (catalog with table guides and verified queries, SQL editor, loads,
+  connections, pipelines, query log and its usage view, lineage, warehouse states with Start now),
+  notebooks, dashboards, scheduled pipelines, Spark Connect.
+- **Ask and models:** [Admin → Models](guides/models) connects a model endpoint by URL and key,
+  shows the probe's checks and each group's monthly token budget, and lists the last calls. With an
+  endpoint connected, the [assistant](guides/ask) answers a question as checked SQL, with history.
 - **Automate:** an API, a Python package, a command line and a local MCP server.
 - **Access:** sign-in through your OIDC provider (Keycloak, deployed by stardelt, or your own), and table permissions by group.
 - **Keep it running:** backups of the databases and the data, with commands that check them.
