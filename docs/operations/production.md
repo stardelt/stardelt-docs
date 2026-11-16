@@ -18,7 +18,7 @@ Measured on a single node:
 
 | Component | Footprint | Scales by |
 |---|---|---|
-| Trino coordinator and one worker | about 1.9 GB together, with the slim settings | adding workers; raise the heap and `query.maxMemoryPerNode` together |
+| Trino coordinator and one worker | about 4.5 GiB together at the default settings (2 × 2.3 GiB reserved); about 3.5 GiB with `SLIM=1` | adding workers; raise the heap and `query.maxMemoryPerNode` together |
 | SeaweedFS | about 200 MB when idle | more volume servers and disks |
 | CloudNativePG and one PostgreSQL | about 200 MB | more instances, more storage |
 | Lakekeeper | about 200 MB | more replicas (stateless) |
