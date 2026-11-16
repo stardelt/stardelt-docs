@@ -4,7 +4,7 @@ Do not edit these files by hand. `npm run sync:reference` rewrites them from the
 
 | Source | Repository | Commit | Synced |
 |---|---|---|---|
-| `schemas/*.json`, `examples/*.yaml` | [`stardelt/stardelt-operator`](https://github.com/stardelt/stardelt-operator) | `5de4c65e8dbc7cc353224dac2240afacff3280be` | 2026-11-16 |
+| `schemas/*.json`, `examples/*.yaml` | [`stardelt/stardelt-operator`](https://github.com/stardelt/stardelt-operator) | `2c38e6ef010cb3a7c89025829070b7091119542f` | 2026-11-16 |
 | `nova-openapi.json` | [`stardelt/stardelt-nova`](https://github.com/stardelt/stardelt-nova) | `4042f1db3a886dcaacfee174a20db8a8c495e006` | 2026-11-16 |
 
 `npm run gen:reference` turns these snapshots into `docs/reference/`; CI fails when the committed pages and
