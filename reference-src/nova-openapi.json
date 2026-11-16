@@ -8877,7 +8877,7 @@
           "public"
         ],
         "summary": "`GET /api/warehouses`: the compute classes of the platform, which one this caller may use\nand which one a query will land in.",
-        "description": "Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `medium`, `small`, `xs`; name order inside one size), each row carrying the class `size`, the numbers the resource group is rendered with (`running`, `queued`, `memoryShare`: the class defaults, overridden by `spec.concurrency`), `default`, `canUse` (one of the caller's groups is in `spec.grants`) and `yours` (the first usable row — the class the engine's first matching selector picks — or the default class when nothing is granted). An administrator gets one synthetic row first (`name: \"admin\"`, `displayName: \"Administrators\"`, `size: null`, 50/100/100 %: the `admin` root group access-sync renders) with `yours` on it and `yours: false` on every other row. Non-authoritative: the engine selects by identity, Nova only shows it. Without a cluster connection (demo mode, a local run) the answer is the one `small` class. A cluster that refuses or fails is a 502. Answers `Cache-Control: no-store`.",
+        "description": "Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `medium`, `small`, `xs`; name order inside one size), each row carrying the class `size`, the numbers the resource group is rendered with (`running`, `queued`, `memoryShare`: the class defaults, overridden by `spec.concurrency`), `default`, `canUse` (one of the caller's groups is in `spec.grants`) and `yours` (the first usable row — the class the engine's first matching selector picks — or the default class when nothing is granted). An administrator gets one synthetic row first (`name: \"admin\"`, `displayName: \"Administrators\"`, `size: null`, 50/100/100 %: the `admin` root group access-sync renders) with `yours` on it and `yours: false` on every other row. `scale` is the scaler's verdict on the one engine the classes share (`phase`, `workers`, `queriesInFlight`, `lastQueryAt`), read from `status.scale`; `null` until the scaler has written one. Non-authoritative: the engine selects by identity, Nova only shows it. Without a cluster connection (demo mode, a local run) the answer is the one `small` class. A cluster that refuses or fails is a 502. Answers `Cache-Control: no-store`.",
         "operationId": "warehouses_list",
         "responses": {
           "200": {
@@ -8905,6 +8905,89 @@
           },
           "502": {
             "description": "The cluster did not answer, or Nova may not list sqlwarehouses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/warehouses/{name}/start": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/warehouses/{name}/start`: keep a class warm.",
+        "description": "Wake the engine for one SQL compute class by writing the class's `stardelt.io/last-query-at` annotation (the scaler reads it on its two-minute tick; the replica count is the scaler's, not Nova's). The answer is `202` with `phase: \"Starting\"` — `status.scale.phase` is written by the scaler, not by Nova. An administrator may start any class; a person needs one of their groups in `spec.grants`. Without a cluster connection the answer is `503`; a class that does not exist is `404`.",
+        "operationId": "warehouses_start",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "The `SqlWarehouse` (class) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "The annotation is written; the scaler wakes the engine on its next tick",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarehouseStart"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "None of the caller's groups is granted this class",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such warehouse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection (demo mode, a local run)",
             "content": {
               "application/json": {
                 "schema": {
@@ -14084,6 +14167,17 @@
             "description": "Queries that run at the same time (the resource group's hard concurrency limit).",
             "minimum": 0
           },
+          "scale": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WarehouseScale",
+                "description": "The scaler's verdict on the engine (`status.scale`); `None` before it has one."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "size": {
             "type": [
               "string",
@@ -15331,6 +15425,56 @@
           "name": {
             "type": "string",
             "description": "The configured warehouse name (`NOVA_WAREHOUSE_NAME`)."
+          }
+        }
+      },
+      "WarehouseScale": {
+        "type": "object",
+        "description": "What the engine is doing for one class: `status.scale`, which the platform's access-sync job\nwrites (`patch_scale_status`) and Nova only reads. `None` until the scaler has reached the\nobject, or without a cluster.",
+        "required": [
+          "phase",
+          "workers",
+          "queriesInFlight"
+        ],
+        "properties": {
+          "lastQueryAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The last completed query's end, RFC 3339 (`stardelt.io/last-query-at`); `null` while the\nclass has no measurement."
+          },
+          "phase": {
+            "type": "string",
+            "description": "`Stopped`, `Starting` or `Running` — the scaler's words."
+          },
+          "queriesInFlight": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Queries the class reported as running at its last report (`stardelt.io/queries-in-flight`).",
+            "minimum": 0
+          },
+          "workers": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Worker replicas the scaler last set for the one engine every class shares, so every row of\none answer carries the same number.",
+            "minimum": 0
+          }
+        }
+      },
+      "WarehouseStart": {
+        "type": "object",
+        "description": "The answer to `POST /api/warehouses/{name}/start`: the class, and the phase the scaler will\nreport once it has woken the engine. Nova never writes `status` — 202 is the whole promise.",
+        "required": [
+          "name",
+          "phase"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string"
           }
         }
       },
