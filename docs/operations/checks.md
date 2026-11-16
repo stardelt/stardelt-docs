@@ -6,7 +6,7 @@ slug: /operations/checks
 
 # Checks to run
 
-These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Two are not strict read-only: `verify-pgdump` restores into a scratch database and drops it, and `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`.
+These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Three are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, and `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`.
 
 ## After an upgrade
 
@@ -48,6 +48,7 @@ Nova's **Platform** page shows the same state live, including the images the clu
 | `make verify-realm-admin` | The realm-admin Secret still signs in. | The realm-admin Secret can no longer sign in. |
 | `make verify-oidc-clients` | Every confidential client's secret still authenticates. | One or more confidential client secrets no longer authenticate. |
 | `make verify-pgdump PG_DUMP=all` | The pg_dump CronJobs produce restorable dumps. | A dump cannot be produced or restored successfully. |
+| `make verify-restore` | The catalog database restores from the barman-cloud plugin's backup into a scratch namespace, has tables, and the namespace is deleted again. | The backup finished but does not restore: a different PostgreSQL major version, a missing object, or a credential that cannot read the backup prefix. The command prints the restored cluster's logs when it does not become Ready; the guide is [Backups and restore](./backups#restore). |
 | `make check-pins` | The registry's `dev`/`demo` digests against every checked-in pin, and the operator's golden values against this repository's pins. Needs no cluster. | A merge published an image that is not pinned (or a pin was changed in one place only). The failing row names the file; run `./scripts/pin-image.sh <app>` and open a pin PR. |
 
 ## When you change one thing

@@ -116,6 +116,23 @@ recover into a namespace of its own, check the result, and only then decide to c
    the object store;
 3. wait for `Cluster in healthy state`, then query the data.
 
+The same recipe is one command:
+
+```bash
+make verify-restore          # restore into namespace stardelt-restore, check it, delete it
+KEEP=1 make verify-restore   # keep the namespace to look at it
+```
+
+It restores `lakekeeper-pg` from the barman-cloud plugin's object store (the mechanism
+[How it works](#how-it-works) describes), counts the tables in the `lakekeeper` database, prints
+`verify-restore: PASS (catalog database restored, N tables)` and deletes the namespace. A run whose
+restored cluster does not become Ready says `FAIL` and prints that cluster's logs; `TIMEOUT` (default
+`900s`) and `RESTORE_NS` (default `stardelt-restore`) are overridable. `KEEP=1` leaves the namespace
+behind, so the next plain run refuses (`exit 2`) until it is deleted or `RESTORE_NS` names another.
+It covers the catalog database only; the Superset and Airflow dumps are not CloudNativePG — prove those
+with `make verify-pgdump PG_DUMP=all`, which restores each dump into a scratch database
+([Checks to run](./checks)).
+
 Three details that silently matter:
 
 - **`serverName`** must be the *source* cluster's name (`lakekeeper-pg`). It is the folder in the
