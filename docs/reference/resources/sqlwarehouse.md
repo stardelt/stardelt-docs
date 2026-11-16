@@ -15,6 +15,7 @@ A compute class for SQL: size, caps and the groups that may use it.
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `spec.autoStop` | string (nullable) | No |  | How long the engine may sit idle before its workers scale to zero, for example `15m` or `2h`. Absent: the warehouse is always on. | pattern `^([1-9][0-9]*)(m\|h)$` |
 | `spec.concurrency` | object (nullable) | No |  | Overrides of the class defaults. An absent field keeps the class value. |  |
 | `spec.concurrency.memoryShare` | string (nullable) | No |  | Share of the engine's memory the class may use, for example `40%`. | pattern `^([1-9][0-9]?\|100)%$` |
 | `spec.concurrency.queued` | integer (nullable) | No |  | Queries that may wait (the resource group's queue limit). | min 0, max 10000; format `int32` |
@@ -26,6 +27,8 @@ A compute class for SQL: size, caps and the groups that may use it.
 | `spec.grants[].group` | string | Yes |  |  | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.lakehouseRef` | object | Yes |  | The `Lakehouse` that hosts a catalog or a warehouse. |  |
 | `spec.lakehouseRef.name` | string | Yes |  |  | min 1, max 63; pattern `^[a-z0-9]([-a-z0-9]*[a-z0-9])?$` |
+| `spec.maxWorkers` | integer | No | `1` | The most workers the engine may run for this class. | min 1, max 10; format `int32` |
+| `spec.minWorkers` | integer | No | `1` | The workers the engine keeps ready while this class may be used. `0` is only legal with `autoStop` (a class that never stops cannot ask for no workers). | min 0, max 10; format `int32` |
 | `spec.size` | string | No | `small` | The platform's compute classes. A class is a name for four numbers (running, queued, memory share, scheduling), not a promise about hardware: the query engine has resource groups, not separate clusters. | `xs`, `small`, `medium`, `large` |
 
 ## Status
@@ -43,7 +46,15 @@ A compute class for SQL: size, caps and the groups that may use it.
 | `status.observedGeneration` | integer (nullable) | No |  |  | format `int64` |
 | `status.phase` | string | No | `""` |  |  |
 | `status.renderedGroup` | string (nullable) | No |  | The resource group actually written. |  |
+| `status.scale` | object (nullable) | No |  | The worker scaling of the engine that serves this class. |  |
+| `status.scale.lastQueryAt` | string (nullable) | No |  | The last query the engine saw, RFC 3339. |  |
+| `status.scale.phase` | string | No | `""` | `Running`, `Starting` or `Stopped`. |  |
+| `status.scale.queriesInFlight` | integer | No | `0` | Queries in flight, as Nova last reported them. | format `int32` |
+| `status.scale.workers` | integer | No | `0` | Worker replicas the engine currently asks for. | format `int32` |
 
 ## Validation rules
 
 - each group may appear once in grants
+- autoStop must be at most 24h
+- minWorkers: 0 needs autoStop — a warehouse that never stops cannot ask for no workers
+- maxWorkers must be at least minWorkers

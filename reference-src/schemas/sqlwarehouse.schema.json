@@ -5,6 +5,12 @@
     "spec": {
       "description": "The query-serving plug: one named compute class inside the engine of a `Lakehouse`, with its size,\nits caps and the groups that may use it (decision D21, internal note `design/multitenant-catalogs.md`\n§4.3). Exactly one warehouse per `Lakehouse` is the default.",
       "properties": {
+        "autoStop": {
+          "description": "How long the engine may sit idle before its workers scale to zero, for example\n`15m` or `2h` (platform#131 step A). Absent: the warehouse is always on.",
+          "nullable": true,
+          "pattern": "^([1-9][0-9]*)(m|h)$",
+          "type": "string"
+        },
         "concurrency": {
           "description": "Overrides of the class defaults. An absent field keeps the class value.",
           "nullable": true,
@@ -91,6 +97,22 @@
           ],
           "type": "object"
         },
+        "maxWorkers": {
+          "default": 1,
+          "description": "The most workers the engine may run for this class.",
+          "format": "int32",
+          "maximum": 10.0,
+          "minimum": 1.0,
+          "type": "integer"
+        },
+        "minWorkers": {
+          "default": 1,
+          "description": "The workers the engine keeps ready while this class may be used. `0` is only legal\nwith `autoStop` (a class that never stops cannot ask for no workers).",
+          "format": "int32",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "type": "integer"
+        },
         "size": {
           "default": "small",
           "description": "The platform's compute classes. A class is a name for four numbers (running, queued, memory\nshare, scheduling), not a promise about hardware: the query engine has resource groups, not\nseparate clusters (internal note `design/multitenant-catalogs.md` §4.3).",
@@ -111,6 +133,18 @@
         {
           "message": "each group may appear once in grants",
           "rule": "self.grants.all(g, self.grants.exists_one(h, h.group == g.group))"
+        },
+        {
+          "message": "autoStop must be at most 24h",
+          "rule": "!has(self.autoStop) || duration(self.autoStop) <= duration('24h')"
+        },
+        {
+          "message": "minWorkers: 0 needs autoStop — a warehouse that never stops cannot ask for no workers",
+          "rule": "self.minWorkers != 0 || has(self.autoStop)"
+        },
+        {
+          "message": "maxWorkers must be at least minWorkers",
+          "rule": "self.maxWorkers >= self.minWorkers"
         }
       ]
     },
@@ -171,6 +205,35 @@
           "description": "The resource group actually written.",
           "nullable": true,
           "type": "string"
+        },
+        "scale": {
+          "description": "The worker scaling of the engine that serves this class.",
+          "nullable": true,
+          "properties": {
+            "lastQueryAt": {
+              "description": "The last query the engine saw, RFC 3339.",
+              "nullable": true,
+              "type": "string"
+            },
+            "phase": {
+              "default": "",
+              "description": "`Running`, `Starting` or `Stopped`.",
+              "type": "string"
+            },
+            "queriesInFlight": {
+              "default": 0,
+              "description": "Queries in flight, as Nova last reported them.",
+              "format": "int32",
+              "type": "integer"
+            },
+            "workers": {
+              "default": 0,
+              "description": "Worker replicas the engine currently asks for.",
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          "type": "object"
         }
       },
       "type": "object"

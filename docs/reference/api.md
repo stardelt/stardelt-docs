@@ -1873,6 +1873,33 @@ The statements run on the engine, newest first, a page at a time. A person sees 
 | `403` | scope=all by somebody who is not an administrator |
 | `503` | The state store is not configured |
 
+### GET /api/query-log/usage
+
+Operation id `query_log_usage`: in Python `client.call("query_log_usage", …)`, on the command line `stardelt api query_log_usage`.
+
+`GET /api/query-log/usage?scope=&by=&warehouse=&from=&to=` — compute and bytes added up.
+
+Compute and bytes added up per person, warehouse or day, with the query log's visibility: your own, your team's service principals, or everyone's for administrators. The window defaults to the last 7 days.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `by` | query | string | No | principal (default), warehouse or day (UTC) |
+| `from` | query | integer | No | Created at or after this time; the last 7 days by default |
+| `scope` | query | string | No | mine (default), team or all. team is the service principals owned by the caller's groups; all is for administrators |
+| `to` | query | integer | No | Created at or before this time; now by default |
+| `warehouse` | query | string | No | Only usage of this warehouse |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The rows of the window and their total |
+| `400` | A parameter is not valid; the message names it |
+| `403` | scope=all by somebody who is not an administrator |
+| `503` | The state store is not configured |
+
 ### GET /api/query-log/\{id\}
 
 Operation id `query_log_detail`: in Python `client.call("query_log_detail", …)`, on the command line `stardelt api query_log_detail`.
