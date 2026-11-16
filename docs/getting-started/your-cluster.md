@@ -118,6 +118,26 @@ seaweedfs.volume.dataDirs[0].storageClass=fast` silently drops that entry's `nam
 instead.
 :::
 
+### High availability
+
+Two settings change how a failure behaves, and both default to `1`.
+
+| Setting | Default | Effect |
+|---|---|---|
+| `postgres.instances` | `1` | CloudNativePG instances behind the catalog's database; `3` keeps the catalog writable when one pod is gone |
+| `lakekeeper.catalog.replicas` | `1` | the catalog is stateless; a second replica keeps engines resolving tables through a pod restart |
+
+**Nova stays at one replica while sign-in is on.** Its sessions live in memory, so a second
+replica signs people out at random.
+
+**The chart renders no PodDisruptionBudget and no affinity or anti-affinity rule.** On one node
+neither can help; with three or more nodes a rolling drain is still a short maintenance window,
+not a zero-downtime operation.
+
+**The operator sets its own availability** with `replicaCount: 2` in
+`helm-values/operator.yaml` — one leader, one standby. What a failure of each component means is in
+[Going to production](../operations/production).
+
 ## Sizing
 
 `chart/values.yaml` is tuned for a normal cluster. For a small single node (8 GB) there is
