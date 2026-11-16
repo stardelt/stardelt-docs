@@ -51,6 +51,7 @@ Nova's **Platform** page shows the same state live, including the images the clu
 | `make verify-pgdump PG_DUMP=all` | The pg_dump CronJobs produce restorable dumps. | A dump cannot be produced or restored successfully. |
 | `make verify-restore` | The catalog database restores from the barman-cloud plugin's backup into a scratch namespace, has tables, and the namespace is deleted again. | The backup finished but does not restore: a different PostgreSQL major version, a missing object, or a credential that cannot read the backup prefix. The command prints the restored cluster's logs when it does not become Ready; the guide is [Backups and restore](./backups#restore). |
 | `make check-pins` | The registry's `dev`/`demo` digests against every checked-in pin, and the operator's golden values against this repository's pins. Needs no cluster. | A merge published an image that is not pinned (or a pin was changed in one place only). The failing row names the file; run `./scripts/pin-image.sh <app>` and open a pin PR. |
+| `make verify-cronjobs` | Every CronJob's newest Job succeeded, is running, is waiting (no Job yet, or a fresh install), or the CronJob is suspended. Read-only; 0.5 s on the lab. | A scheduled job's newest run failed: the row names the Job and prints `kubectl -n stardelt logs job/<job> --tail=20`. `UNVERIFIED` (exit 3) means the namespace does not exist or `kubectl` cannot list Jobs — not a failure, but not proof either. |
 
 ## When you change one thing
 
