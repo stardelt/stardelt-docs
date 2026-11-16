@@ -127,7 +127,8 @@ Everything else is manual. `verify-images` needs the cluster's pull credential, 
 CI job. The daily `Pin freshness` workflow runs `scripts/check_pin_freshness.py` for the
 registry's `dev`/`demo` digests and, against a checkout of `stardelt-operator`,
 `scripts/check-operator-pins.sh` for the golden values both install paths share; when either
-reports a difference it files one issue (label `bug`, `P2`) with both outputs.
+reports a difference it files one issue (label `bug`, `P2`) with both outputs, and a run where
+both pass again closes that issue with the commit it checked.
 `scripts/pin-rollup.sh` pushes the `chore/pin-rollup` branch, whose PR is opened by hand while
 GitHub forbids Actions from creating pull requests.
 
