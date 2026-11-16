@@ -37,12 +37,12 @@ StorageClass whose volumes can follow a pod to another node. `local-path` cannot
 | OpenFGA | Permission checks fail closed: reads of real tables answer 503 until it is back | Run more than one replica and give it room; it depends on its own PostgreSQL |
 | SeaweedFS volume | One volume server holds the data: losing its disk loses the files | More volume servers with replication, or your own S3 |
 | Trino coordinator | Queries stop, and nothing is lost | It reschedules; run two workers so one can drain |
-| Lakekeeper | Engines cannot resolve tables | More replicas and a PodDisruptionBudget |
+| Lakekeeper | Engines cannot resolve tables | Raise `lakekeeper.catalog.replicas`; a PodDisruptionBudget is not rendered yet |
 | Nova | With sign-in on, a restart signs everyone out | Keep one replica |
-| A whole node | Everything on it | Three or more nodes, anti-affinity, a tested restore |
+| A whole node | Everything on it | Three or more nodes and a tested restore; the chart renders no anti-affinity |
 
-The charts do not set these up by default. The settings are in
-[Install on your own cluster](../getting-started/your-cluster).
+The values that exist, and what the chart does not render, are in
+[Install on your own cluster](../getting-started/your-cluster#high-availability).
 
 ## Stages: dev and prod
 
