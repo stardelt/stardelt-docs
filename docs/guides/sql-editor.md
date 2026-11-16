@@ -74,7 +74,9 @@ The statement that ran is selected, so you can see which. A selection with two o
 refused: select one, or put the cursor in it. **Schedule** takes the same statement.
 
 At the right of the toolbar a muted line names the SQL warehouse — the compute class the engine puts this
-person's queries in — as `Warehouse: <name> (<size>)`. A statement does not set it.
+person's queries in — as `Warehouse: <name> (<size>)`. A statement does not set it. When the engine has
+stopped, the line adds `· Stopped (starts on the first query)` and a **Start now** button; the next
+section explains the wait.
 
 Results appear below the editor:
 
@@ -92,6 +94,37 @@ Before the first run the panel is empty and reads `Run a query to see results he
 engine are shown in place of the result, with the engine's message.
 
 Every statement also lands in the query log; see [The query log](./query-log).
+
+## A warehouse that stops when idle
+
+An installation can let the engine sleep when nobody is querying it. `spec.autoStop` on a
+[`SqlWarehouse`](../reference/resources/sqlwarehouse) says how long a class may sit idle (`15m`, `2h`);
+with it unset — every default install — the engine is always on and nothing in this section happens.
+`autoStop` is for development and test stages, where a first query may wait.
+
+When the engine has stopped, the toolbar's line reads
+`Warehouse: Small (xs) · Stopped (starts on the first query)`. **Start now** wakes it before you need it,
+and the line reads `Starting — this can take up to 3 minutes` until a worker is up. The scaler checks
+every two minutes, so that is the wait — up to about three minutes, not a hang.
+
+A query you run while the engine is starting is not lost. The editor shows:
+
+> Starting the warehouse — this can take up to 3 minutes. Your query runs as soon as it is up.
+
+The engine holds the statement until a worker joins (Trino's `query-manager.required-workers-max-wait`,
+five minutes by default) and then runs it. If no worker arrives, the wait expires and the editor says:
+
+> The warehouse did not start in 5 minutes. Try again, or ask an administrator to look at the Platform page.
+
+The engine's own message — `Insufficient active worker nodes. Waited 5.00m for at least 1 workers, but
+only 0 workers are active` — is in the same box under **Engine message**.
+
+An administrator changes this on the resource, not in the editor. `spec.autoStop`, `spec.minWorkers` and
+`spec.maxWorkers` are described on the [`SqlWarehouse` reference page](../reference/resources/sqlwarehouse);
+`minWorkers: 0` requires `autoStop`, because a class that never stops cannot ask for no workers.
+
+The line names the class a query lands in; it is not a choice. If it names a class you did not expect,
+your groups' grants decide it — see [Catalogs and access](./catalog).
 
 ## History
 
