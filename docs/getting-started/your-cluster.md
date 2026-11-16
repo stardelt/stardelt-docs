@@ -127,9 +127,10 @@ instead.
 helm upgrade --install stardelt chart -n stardelt -f chart/values-slim.yaml --wait
 ```
 
-Trino enforces its own arithmetic: `query.max-memory-per-node` must fit inside the JVM heap the
-chart gives the coordinator and workers (the slim overlay keeps the chart's 1 GB per node inside a
-1.5 GB heap). The two keys live in different places, which is easy to get wrong:
+Trino enforces its own arithmetic: `query.max-memory-per-node` plus
+`memory.heap-headroom-per-node` must fit inside the JVM heap the chart gives the coordinator and
+workers. The defaults are 800 MB + 600 MB in a 2G heap; `chart/values-slim.yaml` sets 600 MB + 450 MB
+in a 1500m heap. The two keys live in different places, which is easy to get wrong:
 
 ```yaml
 trino:
