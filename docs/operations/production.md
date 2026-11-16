@@ -24,6 +24,8 @@ Measured on a single node:
 | Lakekeeper | about 200 MB | more replicas (stateless) |
 | Nova | about 80 MB | one replica only with sign-in on, because sessions live in memory |
 
+To measure your own node, run the baseline in [Performance baseline](./performance).
+
 The core fits an 8 GB node. The whole platform needs about 16 GB, and Airflow is the largest consumer.
 
 A single node is for trying things out. For anything real, run at least **three** nodes and use a

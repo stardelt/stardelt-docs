@@ -109,6 +109,7 @@ const sidebars: SidebarsConfig = {
         'operations/backups',
         'operations/checks',
         'operations/health',
+        'operations/performance',
         'operations/logs',
         'operations/monitoring',
         'operations/pod-security',
