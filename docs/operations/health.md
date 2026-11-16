@@ -94,6 +94,29 @@ When the table is empty and no notice is shown, it says so in words: either "The
 no deployments or statefulsets in Nova's namespace." or "No cluster access — Nova lists images only
 when it can read its own namespace."
 
+## Warehouses
+
+The **Warehouses** table lists the install's warehouse classes — the named compute classes an
+administrator declares, each with its own size and idle timeout (see
+[A warehouse that stops when idle](../guides/sql-editor#a-warehouse-that-stops-when-idle)) — and
+says what each one is doing now. There is one row per class, with five columns:
+
+- **Class** — the class's display name, or its name when it has none.
+- **State** — `Running` while the engine serves the class; `Starting` while the engine is coming up,
+  shown in amber because a query waits for it; `Stopped` when the engine is scaled to zero; and `—`
+  before the class's state has been written for the first time.
+- **Workers** — how many query workers the engine currently runs for the class.
+- **In flight** — how many queries are running right now.
+- **Last query** — when the class last ran one, as an ISO-8601 timestamp, or `—` if it never has.
+
+The numbers are what the platform wrote on its last pass, not a live reading: a query you have just
+run can take up to two minutes to appear, and reloading the page sooner shows the older number
+rather than an error. That is what the `·` line in `make verify-warehouse-scale` means too — a value
+waiting for the next pass ([Checks to run](./checks)).
+
+An install that declares no classes shows no table, and an install that has just created a class
+shows `—` in that class's cells until the first pass writes them.
+
 ## Query engine
 
 The **Query engine** card prints the Trino cluster query's answer as JSON, exactly as the backend
