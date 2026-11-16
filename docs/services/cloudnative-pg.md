@@ -44,5 +44,25 @@ The chart version is not in a values file: it is fixed in the `Makefile` and in 
 - **Operator logs:** `kubectl -n stardelt logs deploy/cnpg-cloudnative-pg`.
 - **Plugin:** the `cnpg` kubectl plugin makes the cluster status easier to read, but it is not required.
 - **Restore:** the procedure and its limits are on [Backups](../operations/backups).
+- **Change the PostgreSQL image:** edit the `Cluster`'s `spec.imageName`, apply the manifest, then
+  run `make roll-cnpg-image`. Applying a digest the running pod does not carry does not restart a
+  single-instance `Cluster`: the instance manager reports
+  `Detected drift between the bootstrap images and the configuration. Skipping configuration reload`
+  and refuses to start Postgres, so the pod sits out its 1800-second termination grace period with
+  the database down (platform#1619). The script force-deletes only a primary whose pod image
+  differs from `spec.imageName`, then waits for `Ready=True` and re-reads the image. On a healthy
+  install it writes nothing and touches no pod; `CLUSTERS=nova-pg` limits it to one cluster and
+  `NAMESPACE=lab` to another namespace. A Cluster whose pod already carries the digest prints
+  `✓ <name> <digest>`; one that needs the rollout prints
+  `› <name> <pod> runs <old>; the Cluster names <new> — force deleting the primary` first.
+
+  ```console
+  $ make roll-cnpg-image
+  ✓ lakekeeper-pg  sha256:08775f8bdeb112878b8f2ef63578c47959ee332fc9e076d5d6735a710c4500e2
+  ✓ keycloak-pg    sha256:0f29b435fb501ee534cd0c555d122a6b8e90de477de8e8381c82c5e10d9a9de4
+  ✓ nova-pg        sha256:0f29b435fb501ee534cd0c555d122a6b8e90de477de8e8381c82c5e10d9a9de4
+  ✓ openfga-pg     sha256:0f29b435fb501ee534cd0c555d122a6b8e90de477de8e8381c82c5e10d9a9de4
+  roll-cnpg-image: PASS (every Cluster runs its pinned Postgres image)
+  ```
 
 **Related pages.** [Backups](../operations/backups), [Operator](operator), [PlatformInstance reference](../reference/resources/platforminstance), [Lakehouse reference](../reference/resources/lakehouse), [Licenses](../architecture/licenses).
