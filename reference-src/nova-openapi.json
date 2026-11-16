@@ -7138,6 +7138,107 @@
         }
       }
     },
+    "/api/query-log/usage": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/query-log/usage?scope=&by=&warehouse=&from=&to=` — compute and bytes added up.",
+        "description": "Compute and bytes added up per person, warehouse or day, with the query log's visibility: your own, your team's service principals, or everyone's for administrators. The window defaults to the last 7 days.",
+        "operationId": "query_log_usage",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "mine (default), team or all. team is the service principals owned by the caller's groups; all is for administrators",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "by",
+            "in": "query",
+            "description": "principal (default), warehouse or day (UTC)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "warehouse",
+            "in": "query",
+            "description": "Only usage of this warehouse",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Created at or after this time; the last 7 days by default",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Created at or before this time; now by default",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The rows of the window and their total",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsagePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A parameter is not valid; the message names it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "scope=all by somebody who is not an administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/query-log/{id}": {
       "get": {
         "tags": [
@@ -15009,6 +15110,42 @@
           "tokensOut": {
             "type": "integer",
             "format": "int64"
+          }
+        }
+      },
+      "UsagePage": {
+        "type": "object",
+        "description": "Compute and bytes added up, with the window that was used.",
+        "required": [
+          "by",
+          "from",
+          "to",
+          "items",
+          "total"
+        ],
+        "properties": {
+          "by": {
+            "type": "string",
+            "description": "principal, warehouse or day."
+          },
+          "from": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The window that was added up, epoch milliseconds."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageRow"
+            }
+          },
+          "to": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "total": {
+            "$ref": "#/components/schemas/UsageRow",
+            "description": "Every item added together; its `key` is `total`."
           }
         }
       },
