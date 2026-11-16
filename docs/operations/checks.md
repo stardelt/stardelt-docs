@@ -60,10 +60,31 @@ Nova's **Platform** page shows the same state live, including the images the clu
 | After a `Cluster` change | `make verify-backups`, `make verify-backups-nova`, `make verify-backups-identity`, or `make verify-backups-openfga` | WAL archiving per database, with a real object in the bucket. |
 | After an External Secrets or `spec.secrets` change | `make verify-external-secrets` | External Secrets Operator is installed, a Fake-provider `ClusterSecretStore` is Ready, one `ExternalSecret` syncs into the Secret it owns, and both scratch objects are deleted. `UNVERIFIED` (exit 3) when ESO is not installed — run `make external-secrets` first; that is not a failure. |
 | After an Airflow RBAC or service-user change | `make verify-airflow-actions` | Nova's Airflow service user can sign in, read a DAG and pause/resume it. |
-| After a Compute change (a `SparkCluster`, the Spark runtime catalogue) | `make verify-compute` | Every `SparkCluster` the CRD accepts is `Running`, carries `spc-<name>-ingress` admitting exactly the owner's pods, Nova and Airflow, and the runtime catalogue is the repository's. A failure means a `SparkCluster` runs without its ingress policy (Spark Connect is open to every pod), the catalogue drifted from `chart/files/spark-runtimes.json`, or the CRD rejects the fields the Compute page writes: run `make install-operator` or `make install-spark`. |
+| After a Compute change (a `SparkCluster`, the Spark runtime catalogue) | `make verify-compute`, `make verify-spark-cluster` | `verify-compute` reads the existing state: every `SparkCluster` the CRD accepts is `Running`, carries `spc-<name>-ingress` admitting exactly the owner's pods, Nova and Airflow, and the runtime catalogue is the repository's. `verify-spark-cluster` creates one of its own and deletes it again. A failure means a `SparkCluster` runs without its ingress policy (Spark Connect is open to every pod), the catalogue drifted from `chart/files/spark-runtimes.json`, or the CRD rejects the fields the Compute page writes: run `make install-operator` or `make install-spark`. |
 
 `make verify-compute` is not part of `make step-verify`; it is manual today and `make install-spark`
 runs it after a Spark install.
+
+`make verify-spark-cluster` is the deeper check: it creates a `small` SparkCluster named
+`verify-spark-cluster`, waits for `Running`, asserts ten things — the endpoint, the server pod's
+readiness and identity, the driver's ServiceAccount/Role/RoleBinding, the two admission
+policies with their bindings, the group's ingress policy, a TLS-clean log, the executor path on
+7078/7079 and the driver's reach of the catalog on `lakekeeper:8181` — and deletes the CR and
+every object it owns on every exit path. It takes about a minute and is manual.
+
+## Security and exposure
+
+None of these is part of `make step-verify`; they are manual. `verify-seaweedfs-ports` and
+`verify-metrics` create and delete their probe pods, and the pod-security pair creates and deletes
+namespace `stardelt-pss-probe`; the rest read the cluster only.
+
+| Command | What it proves | A failure means |
+| --- | --- | --- |
+| `make verify-pod-security` | Every Running pod's spec is re-admitted with a server-side dry run into a scratch namespace that enforces Pod Security `restricted`, except the Makefile's named exceptions (`^seaweedfs-`, `^lakekeeper-` — the chart's defaults declare no `securityContext`). | A pod would be refused by a `restricted` namespace and is not an accepted exception: the printout names the pod and the violated field. The install's floor is `baseline` (next row), so this one is the stricter, aspirational check. |
+| `make verify-pod-security-baseline` | The same for `baseline`, the level the install's namespace enforces (#1096). | A pod is refused at `baseline`, so the namespace's own admission would refuse it after a restart: name the pod in the issue and fix its `securityContext`, do not lower the level. |
+| `make verify-seaweedfs-ports` | Only SeaweedFS's own pods reach the filer (8888), master (9333) and volume (8080) ports; the S3 gateway (8333) and the bucket hook keep working (#1100). | A foreign pod can open one of the unsigned ports — the NetworkPolicy was removed or a new label matches it. Re-apply `manifests/seaweedfs-network-policy.yaml` (or `make step-storage`). |
+| `make verify-spark-guard` | The admission policy on a Spark Connect driver: it may create executor pods only, with the executor ServiceAccount and the chart's labels (#1096). | A driver can create a pod the policy was meant to stop, or the policy/binding is gone: run `make install-spark` and read the policy's name in the printout. |
+| `make verify-metrics` | Every metrics endpoint a scraper can reach answers Prometheus text; the NetworkPolicy admits a pod labelled `app.kubernetes.io/name: prometheus` and nothing else (#607). | A scrape target is unreachable from the scraper's namespace or answers non-Prometheus text: the row names the endpoint; see [Monitoring](./monitoring). |
 
 ## How to read a failure
 
