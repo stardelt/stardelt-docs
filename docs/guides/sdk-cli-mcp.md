@@ -18,10 +18,10 @@ The examples name `warehouse`, the platform's own catalog. On an install with si
 :::
 
 ```bash
-pip install "stardelt @ git+https://github.com/stardelt/stardelt-python@v0.2.0"
+pip install "stardelt @ git+https://github.com/stardelt/stardelt-python@v0.3.0"
 ```
 
-The package is not on PyPI: this installs the release `v0.2.0`, the first one that contains the `stardelt` command, straight from
+The package is not on PyPI: this installs the current release `v0.3.0`, straight from
 its repository. A newer release has a newer tag.
 
 ## Sign in
