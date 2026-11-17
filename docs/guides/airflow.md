@@ -42,4 +42,4 @@ You cannot add DAG files of your own to the platform's Airflow. If your team alr
 
 ## Notebooks and Spark
 
-A notebook that calls `stardelt.spark()` needs the pipeline principal's token to carry the `lakekeeper` audience (the `ServicePrincipal` default is `[trino, lakekeeper]`; see the [reference](../reference/resources/serviceprincipal) and [Service principals](./service-principals)).
+A notebook that uses `spark` needs the pipeline principal's token to carry the `lakekeeper` audience (the `ServicePrincipal` default is `[trino, lakekeeper]`; see the [reference](../reference/resources/serviceprincipal) and [Service principals](./service-principals)).

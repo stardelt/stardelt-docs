@@ -34,7 +34,7 @@ zero. Beside the name are the buttons that start the work:
   reads **Query view**.
 - **Show lineage** opens the Lineage page for the table.
 - **Use in a notebook** copies the two lines that run the same query from a notebook: `import stardelt` and a
-  `stardelt.sql("SELECT * FROM … LIMIT 100")` call.
+  `%sql SELECT * FROM … LIMIT 100` cell.
 - **Copy for the CLI** copies `stardelt sql "SELECT * FROM … LIMIT 100"`.
 - **Load data** opens the page that loads a file into a new table.
 
