@@ -79,7 +79,7 @@ of its own for it, so check that row after a notebook has run.
 
 ## The exceptions
 
-Six of the 44 running pods are refused, in two groups. Each row is what the API server answers when
+Six pods are refused, in two groups. Each row is what the API server answers when
 the live pod's spec is re-admitted into a `restricted` namespace.
 
 | Group | Pods | Why it cannot pass | Where the setting lives |
