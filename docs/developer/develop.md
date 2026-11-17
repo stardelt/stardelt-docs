@@ -24,7 +24,7 @@ editor — JupyterLab in the browser, or VS Code on your workspace or on your la
    server signs you in with the same account as Nova.
 2. Clone your repository with JupyterLab's **Git panel** on the left, or in a terminal; see
    [Notebooks and pipelines in git](../guides/notebooks-in-git).
-3. Query with `%%sql` or `stardelt.sql()` — both run as you: `SELECT current_user` prints your username.
+3. Query with `%sql` or `spark` — both run as you: `SELECT current_user` prints your username.
    To publish and schedule a notebook, see [Published notebooks](../guides/published-notebooks).
 
 ## VS Code on your workspace

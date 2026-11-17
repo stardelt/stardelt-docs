@@ -222,7 +222,7 @@ const storySteps: StoryStep[] = [
     alt: 'Nova catalog: the mobility catalog with its bronze, silver and gold schemas, and a Load data button.',
     code: {
       lang: 'python',
-      text: 'stardelt.write_df(df, "mobility.bronze.trips", bronze=True)',
+      text: 'spark.createDataFrame(df).writeTo("mobility.bronze.trips").append()',
     },
     behind: ['Nova', 'Iceberg', 'Lakekeeper', 'your S3 storage'],
     why: 'A file becomes a table with a schema and a history from the first minute, not a folder someone has to remember.',

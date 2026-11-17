@@ -40,16 +40,17 @@ rows = requests.get("https://api.example.com/accounts",
 df = pd.DataFrame(rows)
 ```
 
-Write the DataFrame with the `stardelt` package. It writes as you, so your table permissions apply:
+Write the DataFrame as a table. `spark` is already in every notebook and writes as you:
 
 ```python
-import stardelt
-stardelt.write_df(df, "mobility.bronze.accounts", bronze=True)   # adds _ingested_at, _source, _batch_id
+from pyspark.sql import functions as F
+(spark.createDataFrame(df)
+     .withColumn("_ingested_at", F.current_timestamp())
+     .writeTo("mobility.bronze.accounts").createOrReplace())   # .append() for the next batch
 ```
 
-Above 200,000 rows it refuses and points you to `stardelt.spark()`, which needs Spark on your platform.
-Spark checks your catalog permissions with your token, but row and column masks apply only in Trino, and
-it writes files with the platform's storage key. See [Known limits](../architecture/security-model#known-limits).
+Spark checks your catalog permissions with your token. Row and column masks apply only in SQL (`%sql`); see
+[Known limits](../architecture/security-model#known-limits).
 
 **Connections.** Create one on **Connections** in Nova: type, settings, owner group and secret. The
 settings stay visible; the password is written once and never shown again. A Python notebook reads
@@ -107,7 +108,7 @@ order by accounts desc
 The token is read again on every request, so a kernel that stays open keeps working after your
 access token rotates. A Python variable of that name binds as `:name` in the statement, and
 JupySQL's own `%sql --connections`, `%sqlcmd tables`, `%sqlcmd columns -t <table>` and
-`%sqlplot` work too. The query runs as you, exactly like `stardelt.sql()`.
+`%sqlplot` work too. The query runs as you.
 
 ## 4. Show it
 

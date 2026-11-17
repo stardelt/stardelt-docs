@@ -111,10 +111,10 @@ is the only component that calls it, and today the probe is the only caller.
 
 - **One storage key.** Trino, Spark Connect and the catalog read object storage with one platform
   key. Anything that holds that key can read every file, whatever the table permissions say.
-- **Spark has weaker protection than Trino.** `stardelt.spark()` passes your token, so the catalog decides
+- **Spark has weaker protection than Trino.** `spark` in a notebook passes your token, so the catalog decides
   which tables you may use. But row and column masks apply only in Trino, Spark writes files with the shared
-  key, and Spark Connect has no authentication of its own, so it stays inside the cluster. Prefer the SQL
-  engine or `stardelt.write_df` when permissions matter.
+  key, and Spark Connect has no authentication of its own, so it stays inside the cluster. Use `%sql` when
+  a table has row or column masks. The plan to close these gaps is stardelt-platform#1670.
 - **Network isolation is partial.** NetworkPolicies protect Lakekeeper, OpenFGA, JupyterHub and
   Superset's database on a `make` install. The rest of the namespace is flat, and the umbrella chart's
   core renders none.
