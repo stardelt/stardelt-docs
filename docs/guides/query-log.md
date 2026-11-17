@@ -66,11 +66,17 @@ table is headed **Who used the most compute**; under **Mine** it is **By warehou
 | Failed | Queries that ended in failure |
 
 **Per day** draws one bar per UTC day of the window, so a spike points at the day to open in the list.
-Rows are not links: switch back to **Queries**, keep the time range, and search for the person or
-warehouse there.
+The compute rows are not links: switch back to **Queries**, keep the time range, and search for the person or
+warehouse there. A storage row opens that catalog's page.
 
 Usage is summed when you open the view and refreshed once a minute, not streamed like the list. An
 empty window says **No queries in this window.** — widen the time range or switch the scope.
+
+**Storage by catalog** lists each catalog you may browse, largest first, with its tables, records
+and size. The size is what the catalog's own Iceberg metadata reports — the data files its tables
+know about — not the object store's total, so a bucket that also holds backups or other files does
+not inflate it. It is refreshed with the rest of the view, and a catalog whose first scan has not
+finished yet is left out. A person who may browse no catalog sees no section.
 
 ## Finding a query
 
