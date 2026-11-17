@@ -61,6 +61,14 @@ target can pass having compared the image pins only — clone `stardelt-operator
 `stardelt-platform` (or set `OPERATOR_DIR`) before trusting a green `make check-pins`. The nightly
 workflow clones it and passes `OPERATOR_DIR`.
 
+The `dev` and `demo` tags move on **every** push to the repository that builds them, including
+commits that ship nothing (a frontend test, a workflow edit), so a `✗` from the freshness half
+means "a newer build exists", not "the cluster is behind". Before pinning, read the commits
+between the pinned build and the tag: `<app>` needs a pin only when one of them touches a shipped
+path. Measured 2026-11-17: Nova's `dev` was one end-to-end test ahead of the pin, and the airflow
+`demo` tag was a rebuild after a CI-only demos commit; both rows were red and neither was a live
+gap.
+
 ## When you change one thing
 
 | Situation | Command | What it proves |
