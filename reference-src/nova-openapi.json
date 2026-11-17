@@ -3571,6 +3571,141 @@
         }
       }
     },
+    "/api/deployments": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/deployments` — the caller's rows, newest first, at most 50.",
+        "description": "The deployment records the caller may see: an administrator sees every row, anybody else the rows of their own groups. Newest first, at most 50, a bare JSON array. `?bundle=` and `?target=` narrow the list to one bundle and one stage.",
+        "operationId": "deployments_list",
+        "parameters": [
+          {
+            "name": "bundle",
+            "in": "query",
+            "description": "Only rows of this bundle",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target",
+            "in": "query",
+            "description": "Only rows of this stage",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The rows, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Deployment"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The caller has no identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/deployments` — `201` with the stored row.",
+        "description": "Record one bundle deploy: the bundle, the owner group of its pipelines, the stage it went to, the commit and repository, whether it applied or failed, and the pipelines it touched. Only an administrator or a member of the owner group may record one; the caller is stored as `actor`.",
+        "operationId": "deployments_record",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewDeployment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The stored row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deployment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A name is empty, too long or carries a `/`, the status or an action is not one of the known values, or there are more than 200 pipelines",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The caller has no identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only a member of the pipeline's owner group may record a deployment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/destinations": {
       "get": {
         "tags": [
@@ -8517,6 +8652,68 @@
           }
         }
       },
+      "delete": {
+        "tags": [
+          "public"
+        ],
+        "description": "Delete one StreamApp that the caller's group owns. The stream's Kafka topic is not deleted; what a deletion does to it is the operator's decision. Answers 204 when the object is gone, including when it was already gone.",
+        "operationId": "streams_delete",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "Namespace (must be the platform namespace)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "StreamApp name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The StreamApp is gone"
+          },
+          "404": {
+            "description": "No such stream, another namespace, or the caller may not act on it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": [
           "public"
@@ -10858,6 +11055,86 @@
           }
         }
       },
+      "Deployment": {
+        "type": "object",
+        "description": "A row as the API returns it. `created_at` is RFC 3339 in UTC.",
+        "required": [
+          "id",
+          "bundle",
+          "ownerGroup",
+          "target",
+          "status",
+          "pipelines",
+          "actor",
+          "createdAt"
+        ],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "description": "The `sub` of the person who recorded the deploy."
+          },
+          "bundle": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When it was recorded, RFC 3339."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ownerGroup": {
+            "type": "string"
+          },
+          "pipelines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentPipeline"
+            },
+            "description": "The pipelines the deploy touched, as the caller sent them."
+          },
+          "repository": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
+      "DeploymentPipeline": {
+        "type": "object",
+        "description": "One pipeline of a deploy: what changed in it.",
+        "required": [
+          "namespace",
+          "name",
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`created`, `updated`, `deleted` or `unchanged`."
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          }
+        }
+      },
       "DeploymentView": {
         "type": "object",
         "description": "What `view_of` shows of a [`Provenance`], with who deployed and when.",
@@ -11956,6 +12233,55 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "NewDeployment": {
+        "type": "object",
+        "description": "`POST /api/deployments` body: one deploy.",
+        "required": [
+          "bundle",
+          "ownerGroup",
+          "target",
+          "status"
+        ],
+        "properties": {
+          "bundle": {
+            "type": "string",
+            "description": "The bundle that was deployed, 1 to 64 characters, no `/`."
+          },
+          "ownerGroup": {
+            "type": "string",
+            "description": "The owner group of the deployed pipelines; the caller must be a member."
+          },
+          "pipelines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentPipeline"
+            },
+            "description": "The pipelines the deploy touched, at most 200."
+          },
+          "repository": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The bundle's repository, or absent."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The commit that was deployed, or absent when it is not known."
+          },
+          "status": {
+            "type": "string",
+            "description": "`applied` or `failed`."
+          },
+          "target": {
+            "type": "string",
+            "description": "The stage the deploy went to, 1 to 64 characters, no `/`."
           }
         }
       },
