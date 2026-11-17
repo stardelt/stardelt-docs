@@ -10,7 +10,7 @@
             "trino",
             "lakekeeper"
           ],
-          "description": "What the principal's tokens are valid for; at least one, both engines by default\n(`trino` for SQL, `lakekeeper` for `stardelt.spark()` in a notebook).",
+          "description": "What the principal's tokens are valid for; at least one, both engines by default\n(`trino` for SQL, `lakekeeper` for the `spark` session in a notebook).",
           "items": {
             "description": "What a principal's tokens are valid for (the `aud` claim of its access token).",
             "enum": [
