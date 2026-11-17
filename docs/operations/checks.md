@@ -6,7 +6,7 @@ slug: /operations/checks
 
 # Checks to run
 
-These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Four are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`, and `verify-trino-graceful-shutdown` deletes one worker pod, which the Deployment replaces.
+These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Five are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`, and `verify-trino-graceful-shutdown` deletes one worker pod, which the Deployment replaces, and `verify-spark-cluster` creates a `SparkCluster` named `verify-spark-cluster` and deletes it and every object it owns.
 
 ## After an upgrade
 
@@ -52,6 +52,14 @@ Nova's **Platform** page shows the same state live, including the images the clu
 | `make verify-restore` | The catalog database restores from the barman-cloud plugin's backup into a scratch namespace, has tables, and the namespace is deleted again. | The backup finished but does not restore: a different PostgreSQL major version, a missing object, or a credential that cannot read the backup prefix. The command prints the restored cluster's logs when it does not become Ready; the guide is [Backups and restore](./backups#restore). |
 | `make check-pins` | The registry's `dev`/`demo` digests against every checked-in pin, and the operator's golden values against this repository's pins: nine named images — Nova, the loader, Spark, Superset, the notebook, External Secrets, the Spark operator, the Strimzi cluster operator and the Kafka broker — Lakekeeper's catalog image (its platform file's first digest is the OPA bridge, which the operator path does not render), and the whole digest set of the thirteen values files both install paths share (26 digests: airflow 4, JupyterHub 7, Superset 4, barman-cloud 2, and one each in External Secrets, the CNPG operator, Trino, OpenBao, OpenFGA, SeaweedFS, the Spark operator, Strimzi's Kafka and the Trino identity gate). Needs no cluster. | A merge published an image that is not pinned (or a pin was changed in one place only). The failing row names the file. A set row prints `platform only: sha256:…` or `operator only: sha256:…` with the path to bump; run `./scripts/pin-image.sh <app>` and open a pin PR, or bump the operator's `crates/stardelt-operator/values/<component>.yaml` in the operator repository when the `✗` names that path. |
 | `make verify-cronjobs` | Every CronJob's newest Job succeeded, is running, is waiting (no Job yet, or a fresh install), or the CronJob is suspended. Read-only; 0.5 s on the lab. | A scheduled job's newest run failed: the row names the Job and prints `kubectl -n stardelt logs job/<job> --tail=20`. `UNVERIFIED` (exit 3) means the namespace does not exist or `kubectl` cannot list Jobs — not a failure, but not proof either. |
+
+`make check-pins` is two checks: `scripts/check_pin_freshness.py` and
+`scripts/check-operator-pins.sh`. The second reads a checkout of the operator repository at
+`../stardelt-operator`, or `$OPERATOR_DIR` when it is set. Without that checkout it prints
+`check-operator-pins: SKIP (no operator checkout at ../stardelt-operator)` and exits 0, so the
+target can pass having compared the image pins only — clone `stardelt-operator` next to
+`stardelt-platform` (or set `OPERATOR_DIR`) before trusting a green `make check-pins`. The nightly
+workflow clones it and passes `OPERATOR_DIR`.
 
 ## When you change one thing
 
