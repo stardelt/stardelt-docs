@@ -7,7 +7,7 @@
 // It never runs in CI; generated pages are checked against the committed
 // snapshots by scripts/gen-reference.mjs.
 
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,12 +40,30 @@ async function text(url) {
   return (await request(url)).text();
 }
 
-async function commitSha(repo) {
-  const commit = await json(`https://api.github.com/repos/${repo}/commits/main`);
-  if (typeof commit.sha !== 'string' || commit.sha.length < 7) {
-    throw new Error(`no commit SHA for ${repo}`);
+/**
+ * The newest commit that touched any of `paths` — the revision the snapshot really came from.
+ * The branch head is the wrong answer for the README's `Commit` column: it moves on every merge,
+ * including the many that never touch the artifact, so the row is stale the same day it is synced
+ * (docs#847, #850). `GET /repos/{repo}/commits?path=` answers with the commits that changed a path.
+ */
+async function artifactSha(repo, paths) {
+  const commits = await Promise.all(
+    paths.map(async (path) => {
+      const list = await json(
+        `https://api.github.com/repos/${repo}/commits?path=${path}&per_page=1`,
+      );
+      if (!Array.isArray(list) || list.length === 0) {
+        throw new Error(`no commit touches ${repo}/${path}`);
+      }
+      return list[0];
+    }),
+  );
+  commits.sort((a, b) => (a.commit.committer.date < b.commit.committer.date ? 1 : -1));
+  const sha = commits[0].sha;
+  if (typeof sha !== 'string' || sha.length < 7) {
+    throw new Error(`no commit SHA for ${repo}/${paths.join(',')}`);
   }
-  return commit.sha;
+  return sha;
 }
 
 /** Contents of a directory at a commit, or null when the repo has no such directory. */
@@ -71,8 +89,8 @@ async function writeDownload(file, url) {
 
 async function main() {
   const [operatorSha, novaSha] = await Promise.all([
-    commitSha(operatorRepo),
-    commitSha(novaRepo),
+    artifactSha(operatorRepo, ['schemas', 'examples']),
+    artifactSha(novaRepo, ['openapi/nova.json']),
   ]);
 
   const schemas = await directory(operatorRepo, 'schemas', operatorSha);
@@ -114,14 +132,30 @@ async function main() {
   );
 
   const synced = new Date().toISOString().slice(0, 10);
+  const previous = await readFile(join(srcDir, 'README.md'), 'utf8').catch(() => '');
+  const keepDate = (repo, sha, row) =>
+    previous
+      .split('\n')
+      .find((line) => line.includes(`https://github.com/${repo})`) && line.includes(`\`${sha}\``)) ??
+    row;
+  const operatorRow = keepDate(
+    operatorRepo,
+    operatorSha,
+    `| \`schemas/*.json\`${exampleFiles.length > 0 ? ', `examples/*.yaml`' : ''} | [\`${operatorRepo}\`](https://github.com/${operatorRepo}) | \`${operatorSha}\` | ${synced} |`,
+  );
+  const novaRow = keepDate(
+    novaRepo,
+    novaSha,
+    `| \`nova-openapi.json\` | [\`${novaRepo}\`](https://github.com/${novaRepo}) | \`${novaSha}\` | ${synced} |`,
+  );
   const readme = `# Reference snapshots
 
 Do not edit these files by hand. \`npm run sync:reference\` rewrites them from the public repositories.
 
 | Source | Repository | Commit | Synced |
 |---|---|---|---|
-| \`schemas/*.json\`${exampleFiles.length > 0 ? ', `examples/*.yaml`' : ''} | [\`${operatorRepo}\`](https://github.com/${operatorRepo}) | \`${operatorSha}\` | ${synced} |
-| \`nova-openapi.json\` | [\`${novaRepo}\`](https://github.com/${novaRepo}) | \`${novaSha}\` | ${synced} |
+${operatorRow}
+${novaRow}
 
 \`npm run gen:reference\` turns these snapshots into \`docs/reference/\`; CI fails when the committed pages and
 the snapshots disagree. The snapshots are byte copies, but the generator drops references to internal design
