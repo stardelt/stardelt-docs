@@ -26,11 +26,13 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-connections` | The Pipeline CRD carries `spec.tasks[].connection`, the Airflow pipeline reader may read `Connection` resources, and the DAG processor's image resolves a connection into `CONN_<NAME>_<KEY>` variables. | A merge moved one of the three links (operator CRD, platform Role, loader image) without a rollout: run `./scripts/pin-image.sh stardelt-operator` for the `crd` row, `make step-airflow` for `role` and `loader`. |
 | `make verify-maintenance` | Every `Catalog` with a `pipeline-<ownerGroup>` principal has the `maint-<catalog>` CronJob the operator intends: the staggered default schedule (never `0 2 * * *`), `stardelt maintenance run --catalog <name>`, the principal's token Secret, and `MaintenanceReady=True`. Prints the newest Job and warns when two catalogs share a minute or a catalog has no principal. It also proves that every Ready `Catalog` has a `<name>.properties` key in ConfigMap `trino-catalog`: a Catalog created from Nova or `kubectl apply` and never passed to `make catalogs` has a warehouse and a maintenance job but no Trino catalog, and its run fails with `CATALOG_NOT_FOUND` (`platform#914`). | A catalog with a principal has no maintenance job, its schedule is not the staggered default, an env var or the principal reference drifted (a stale operator: `make install-operator`), or the newest run failed: the row names the job to read. Or a Ready Catalog has no Trino catalog: run `make catalogs` (it restarts the Trino coordinator when the set changes). |
 
-One check is deliberately not part of `step-verify` because it writes: `make verify-airflow-actions` signs
+Two checks are deliberately not part of `step-verify`. `make verify-airflow-actions` writes: it signs
 in as Nova's Airflow service user, reads one DAG, pauses and resumes it, and restores the state it found
 (`DAG`, `NS` and `PORT` select the target; default `pegelonline_hourly` in `stardelt`). It is `PASS`, `FAIL`
 or `UNVERIFIED` — a namespace without the `Pipelines` pillar has no `airflow-nova-api` Secret, and that is
 `UNVERIFIED`, not a failure. Run it after an upgrade and whenever Nova's pipeline buttons misbehave.
+`make verify-airflow-runs` only reads (it reports every unpaused DAG's newest run) and it is not in
+`step-verify` yet.
 
 `verify-streaming` also compares every running `StreamApp`'s job script with the ConfigMap the
 operator wrote for it. A stream that predates the comparison, or that runs an older script, is
@@ -51,16 +53,23 @@ Nova's **Platform** page shows the same state live, including the images the clu
 | `make verify-oidc-clients` | Every confidential client's secret still authenticates. | One or more confidential client secrets no longer authenticate. |
 | `make verify-pgdump PG_DUMP=all` | The pg_dump CronJobs produce restorable dumps. | A dump cannot be produced or restored successfully. |
 | `make verify-restore` | The catalog database restores from the barman-cloud plugin's backup into a scratch namespace, has tables, and the namespace is deleted again. | The backup finished but does not restore: a different PostgreSQL major version, a missing object, or a credential that cannot read the backup prefix. The command prints the restored cluster's logs when it does not become Ready; the guide is [Backups and restore](./backups#restore). |
-| `make check-pins` | The registry's `dev`/`demo` digests against every checked-in pin, and the operator's golden values against this repository's pins: nine named images — Nova, the loader, Spark, Superset, the notebook, External Secrets, the Spark operator, the Strimzi cluster operator and the Kafka broker — Lakekeeper's catalog image (its platform file's first digest is the OPA bridge, which the operator path does not render), and the whole digest set of the thirteen values files both install paths share (26 digests: airflow 4, JupyterHub 7, Superset 4, barman-cloud 2, and one each in External Secrets, the CNPG operator, Trino, OpenBao, OpenFGA, SeaweedFS, the Spark operator, Strimzi's Kafka and the Trino identity gate). Needs no cluster. | A merge published an image that is not pinned (or a pin was changed in one place only). The failing row names the file. A set row prints `platform only: sha256:…` or `operator only: sha256:…` with the path to bump; run `./scripts/pin-image.sh <app>` and open a pin PR, or bump the operator's `crates/stardelt-operator/values/<component>.yaml` in the operator repository when the `✗` names that path. |
+| `make check-pins` | The registry's `dev`/`demo` digests against every checked-in pin, and the operator's golden values against this repository's pins: nine named images — Nova, the loader, Spark, Superset, the notebook, External Secrets, the Spark operator, the Strimzi cluster operator and the Kafka broker — Lakekeeper's catalog image (its platform file's first digest is the OPA bridge, which the operator path does not render), and the whole digest set of the thirteen values files both install paths share (26 digests: airflow 4, JupyterHub 7, Superset 4, barman-cloud 2, and one each in External Secrets, the CNPG operator, Trino, OpenBao, OpenFGA, SeaweedFS, the Spark operator, Strimzi's Kafka and the Trino identity gate), and the golden image: the digest pinned in `helm-values/operator.yaml`, resolved to its `org.opencontainers.image.revision` label, ships a `NOVA_IMAGE` equal to the Nova pin in `manifests/nova-deployment.yaml`. Needs no cluster. | A merge published an image that is not pinned (or a pin was changed in one place only). The failing row names the file. A set row prints `platform only: sha256:…` or `operator only: sha256:…` with the path to bump; run `./scripts/pin-image.sh <app>` and open a pin PR, or bump the operator's `crates/stardelt-operator/values/<component>.yaml` in the operator repository when the `✗` names that path. The golden row names the operator digest, the revision and the two Nova digests: bump `NOVA_IMAGE` in the operator, build it, then pin that operator image in `helm-values/operator.yaml`. |
 | `make verify-cronjobs` | Every CronJob's newest Job succeeded, is running, is waiting (no Job yet, or a fresh install), or the CronJob is suspended. Read-only; 0.5 s on the lab. | A scheduled job's newest run failed: the row names the Job and prints `kubectl -n stardelt logs job/<job> --tail=20`. `UNVERIFIED` (exit 3) means the namespace does not exist or `kubectl` cannot list Jobs — not a failure, but not proof either. |
+| `make verify-airflow-runs` | Every unpaused DAG's newest run is `success`; each row prints the state, `run_after` and the run's age. A paused DAG and a DAG with no run print `·` and never fail the check. Read-only: two reads per DAG through Nova's Airflow service user and the port-forward of `svc/airflow-api-server`, like `make verify-airflow-actions`. | The row names the DAG and prints its newest run's state and age: open the Airflow UI or read `kubectl -n stardelt logs <task pod>` for the failing task. `UNVERIFIED` (exit 3) means the check could not see its subject — an install without pipelines has no Secret `airflow-nova-api` — not a failure. |
 
-`make check-pins` is two checks: `scripts/check_pin_freshness.py` and
-`scripts/check-operator-pins.sh`. The second reads a checkout of the operator repository at
-`../stardelt-operator`, or `$OPERATOR_DIR` when it is set. Without that checkout it prints
-`check-operator-pins: SKIP (no operator checkout at ../stardelt-operator)` and exits 0, so the
-target can pass having compared the image pins only — clone `stardelt-operator` next to
-`stardelt-platform` (or set `OPERATOR_DIR`) before trusting a green `make check-pins`. The nightly
-workflow clones it and passes `OPERATOR_DIR`.
+`make check-pins` is three checks: `scripts/check_pin_freshness.py`,
+`scripts/check-operator-pins.sh` and `scripts/check_golden_image.py`. The third resolves the
+operator digest pinned in `helm-values/operator.yaml` to its
+`org.opencontainers.image.revision` label, reads `NOVA_IMAGE` at that commit in the operator
+checkout, and compares it with `manifests/nova-deployment.yaml` — so an operator install cannot
+render a Nova the platform does not pin. The second and third read a checkout of the operator
+repository at `../stardelt-operator`, or `$OPERATOR_DIR` when it is set. Without that checkout, or
+when the pinned commit is not in it, only the second prints
+`check-operator-pins: SKIP (no operator checkout at ../stardelt-operator)` and exits 0; the third
+prints `✗ operator <digest> revision <rev>: <rev> is not in ../stardelt-operator — run git fetch there`
+and exits 3, so `make check-pins` fails — clone `stardelt-operator` next to `stardelt-platform` (or
+set `OPERATOR_DIR`) before trusting a green `make check-pins`. The nightly workflow clones it and
+passes `OPERATOR_DIR`.
 
 The `dev` and `demo` tags move on **every** push to the repository that builds them, including
 commits that ship nothing (a frontend test, a workflow edit), so a `✗` from the freshness half
