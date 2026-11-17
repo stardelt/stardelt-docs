@@ -12,6 +12,11 @@ declare them, with two measured exceptions named below, so a namespace labelled
 `pod-security.kubernetes.io/enforce=restricted` admits the platform's pods. `make verify-pod-security`
 in the platform repository re-admits every running pod and tells you whether your own cluster does.
 
+The install's own floor is `baseline`, not `restricted`: `manifests/namespace.yaml` labels the
+namespace `pod-security.kubernetes.io/enforce=baseline` with `warn` and `audit` at `restricted`, and
+`make install` applies it first through `step-namespace`. A fresh install therefore admits its own
+pods; the sweep below says what a `restricted` floor would still refuse.
+
 ## What stardelt runs as
 
 Every pod the platform installs declares the fields a `restricted` namespace checks:
@@ -98,8 +103,10 @@ From the platform repository, with the namespace the platform runs in:
 ```console
 $ NS=<your-namespace> make verify-pod-security
 …
-PASS (38 of 44 pods admitted by restricted, 6 known exceptions)
+PASS (43 of 49 pods admitted by restricted, 6 known exceptions)
 ```
+
+The count follows the pods your install runs; the six exceptions are the two groups named above.
 
 The target runs `scripts/verify-pod-security.sh`. For every running pod it takes the spec as the
 API server sees it, strips only what a scratch namespace cannot carry (its name, its node, its
