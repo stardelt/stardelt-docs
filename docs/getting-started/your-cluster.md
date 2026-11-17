@@ -15,6 +15,8 @@ The chart installs the core with `identity.mode: none`, and Lakekeeper runs with
 who reaches it can do everything. Set `identity.mode` before you expose it. The chart does not include
 the permission store (OpenFGA) or Spark. For table permissions by group, install with
 `IDENTITY=1 BASE_DOMAIN=<your domain> make platform` instead.
+An external OIDC provider signs people in, but group-derived table permissions need the platform's
+own Keycloak: see [what does not follow the token](../architecture/identity#bring-your-own-oidc-provider).
 :::
 
 ## What your cluster must provide
