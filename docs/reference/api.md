@@ -863,6 +863,64 @@ Rotate some fields of one of the caller's own connections; the fields that are n
 | `502` | The secret store did not answer |
 | `503` | The secret store is not configured |
 
+## /api/deployments
+
+### GET /api/deployments
+
+Operation id `deployments_list`: in Python `client.call("deployments_list", …)`, on the command line `stardelt api deployments_list`.
+
+`GET /api/deployments` — the caller's rows, newest first, at most 50.
+
+The deployment records the caller may see: an administrator sees every row, anybody else the rows of their own groups. Newest first, at most 50, a bare JSON array. `?bundle=` and `?target=` narrow the list to one bundle and one stage.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `bundle` | query | string | No | Only rows of this bundle |
+| `target` | query | string | No | Only rows of this stage |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The rows, newest first |
+| `401` | The caller has no identity |
+| `503` | The state store is not configured |
+
+### POST /api/deployments
+
+Operation id `deployments_record`: in Python `client.call("deployments_record", …)`, on the command line `stardelt api deployments_record`.
+
+`POST /api/deployments` — `201` with the stored row.
+
+Record one bundle deploy: the bundle, the owner group of its pipelines, the stage it went to, the commit and repository, whether it applied or failed, and the pipelines it touched. Only an administrator or a member of the owner group may record one; the caller is stored as `actor`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `bundle` | string | Yes |  | The bundle that was deployed, 1 to 64 characters, no `/`. |  |
+| `ownerGroup` | string | Yes |  | The owner group of the deployed pipelines; the caller must be a member. |  |
+| `pipelines` | array of object | No |  | The pipelines the deploy touched, at most 200. |  |
+| `pipelines[].action` | string | Yes |  | `created`, `updated`, `deleted` or `unchanged`. |  |
+| `pipelines[].name` | string | Yes |  |  |  |
+| `pipelines[].namespace` | string | Yes |  |  |  |
+| `repository` | string (nullable) | No |  | The bundle's repository, or absent. |  |
+| `revision` | string (nullable) | No |  | The commit that was deployed, or absent when it is not known. |  |
+| `status` | string | Yes |  | `applied` or `failed`. |  |
+| `target` | string | Yes |  | The stage the deploy went to, 1 to 64 characters, no `/`. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The stored row |
+| `400` | A name is empty, too long or carries a `/`, the status or an action is not one of the known values, or there are more than 200 pipelines |
+| `401` | The caller has no identity |
+| `403` | Only a member of the pipeline's owner group may record a deployment |
+| `503` | The state store is not configured |
+
 ## /api/health
 
 ### GET /api/health
@@ -2380,6 +2438,28 @@ Stop or resume one stream by setting `spec.stopped` (the one verb a stream has).
 | `200` | The stream, with `spec.stopped` applied |
 | `401` | No token to sign in with |
 | `404` | No such stream, or the caller may not see it, or the namespace is not Nova's own |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+### DELETE /api/streams/\{namespace\}/\{name\}
+
+Operation id `streams_delete`: in Python `client.call("streams_delete", …)`, on the command line `stardelt api streams_delete`.
+
+Delete one StreamApp that the caller's group owns. The stream's Kafka topic is not deleted; what a deletion does to it is the operator's decision. Answers 204 when the object is gone, including when it was already gone.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | StreamApp name |
+| `namespace` | path | string | Yes | Namespace (must be the platform namespace) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | The StreamApp is gone |
+| `404` | No such stream, another namespace, or the caller may not act on it |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
 
