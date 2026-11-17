@@ -106,6 +106,7 @@ stardelt has no bundled monitoring. Watch these with your own tools. See [Checks
 | Signal | Why it matters |
 |---|---|
 | Pods not `Running` or `Completed` | Catches most breakage |
+| `make verify-restarts` | A pod that restarts is `Running` again within seconds, so no other check sees it; the restart count and the last exit are the only signal |
 | `make verify-backups-all` | A backup that stopped looks exactly like one that works |
 | `make verify-images` | A pin can name a digest the registry stopped serving, or a package your pull credential cannot read |
 | Failed queries and memory pressure in Trino | The first sign of undersized heaps |
