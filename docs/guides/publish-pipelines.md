@@ -87,6 +87,7 @@ stardelt bundle deploy shop -t dev
 ```text
 {"action": "would-create", "name": "dev-alice-daily"}
 {"action": "created", "name": "dev-alice-daily"}
+{"action": "recorded", "id": 7}
 ```
 
 Each pipeline file gets the target's variables, its `sqlFile` is read into `sql`, and the bundle's group is its `ownerGroup` when the
@@ -136,6 +137,7 @@ stardelt bundle deploy shop -t prod
 
 ```text
 {"action": "created", "name": "daily"}
+{"action": "recorded", "id": 7}
 ```
 
 `deploy` runs the same check as `plan` first. Only when Nova accepts every pipeline does it create or update them; a refusal
@@ -145,7 +147,7 @@ schedules.
 Every pipeline is sent with where it came from: the bundle's name, the target and the Git commit of the bundle directory (`-dirty`
 is appended when files are uncommitted; outside a Git checkout there is no commit). Nova stamps that on the pipeline, and the
 pipeline page shows it under **Deployed from**, with who deployed it and when. A pipeline made in the interface or with
-`stardelt apply` has no such stamp. To go back to an earlier state, check out the earlier commit and deploy again.
+`stardelt apply` has no such stamp. To go back to an earlier state, check out the earlier commit and deploy again. Each deploy is also recorded — the bundle, the stage, the commit, who ran it and what it touched — and the Deployments page lists those rows newest first.
 
 The Pipelines page answers the same question in its **Source** column: `Git · shop-etl/prod @ 0123abc` for a pipeline a deploy
 stamped, `Nova` for one made in the interface, and an amber **changed by hand** badge on a pipeline someone edited after the

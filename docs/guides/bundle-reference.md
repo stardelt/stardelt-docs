@@ -106,6 +106,7 @@ $ stardelt bundle deploy shop -t prod --allow-breaking
 {"action": "migration-in-ledger", "name": "001_init.sql"}
 {"action": "migration-applied", "name": "002_add.sql"}
 {"action": "created", "name": "daily"}
+{"action": "recorded", "id": 7}
 ```
 
 Without the flag, a breaking file stops the deploy before any pipeline is written:
@@ -132,6 +133,13 @@ $ stardelt bundle deploy shop -t prod --allow-breaking
 {"action": "migration-in-ledger", "name": "001_init.sql"}
 {"action": "migration-applied", "name": "002_drop.sql"}
 ```
+
+A deploy that finishes is recorded once in Nova's deployment record: the bundle, the stage, the
+commit and repository, the person, and the pipelines it wrote or removed. The last line of a
+successful deploy says so (`{"action": "recorded", "id": 7}`). A deploy whose record cannot be
+written still succeeds — the pipelines are what matter — and its last line is
+`{"action": "not-recorded", "reason": "…"}`. The Deployments page lists the record under
+[Recorded deployments](/docs/guides/deployments#recorded-deployments).
 
 ## A pipeline file
 
@@ -225,6 +233,7 @@ $ stardelt bundle plan shop -t prod
 {"action": "would-create", "name": "measurements"}
 $ stardelt bundle deploy shop -t prod
 {"action": "created", "name": "measurements"}
+{"action": "recorded", "id": 7}
 $ stardelt bundle summary shop -t prod
 {"name": "measurements", "kind": "StreamApp", "revision": "0123abc", "deployedBy": "ada", "deployedAt": "2026-11-01T08:00:02Z"}
 ```
@@ -241,7 +250,7 @@ sign-in; the others talk to Nova.
 | `bundle init [DIR] --name NAME --group GROUP` | writes a small bundle that passes `validate` | no |
 | `bundle validate [DIR] [-t TARGET]` | checks the bundle offline (every target, or one) | no |
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
-| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them; `--dry-run` is `plan` | yes |
+| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan` | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
