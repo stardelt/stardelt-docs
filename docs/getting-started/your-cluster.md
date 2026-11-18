@@ -2,7 +2,7 @@
 title: "Install on your own cluster"
 sidebar_label: "Your own cluster"
 slug: /getting-started/your-cluster
-pagination_next: guides/source-to-dashboard
+pagination_next: guides/load-and-transfer
 ---
 
 # Install on your own cluster
@@ -229,6 +229,6 @@ chart assumes, not on a real install. If you try one, an
 `kubectl get events -n stardelt` helps a lot.
 :::
 
-<NextStep to="/docs/guides/source-to-dashboard" title="From source to dashboard">
+<NextStep to="/docs/guides/load-and-transfer" title="Load data and the path to a dashboard">
   Load data, model it in bronze, silver and gold, and show it in a dashboard.
 </NextStep>

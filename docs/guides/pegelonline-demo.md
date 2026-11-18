@@ -65,7 +65,7 @@ FROM shared.bronze.pegelonline_measurements;
 
 The schedule is `7 * * * *` (seven minutes past every hour), so `newest` advances once an hour and `landed` is the run's own time.
 
-For the modelling steps onward, see [From source to dashboard](source-to-dashboard).
+For the modelling steps onward, see [Load data and the path to a dashboard](load-and-transfer).
 
 ## The same rows on the bus
 
@@ -134,4 +134,4 @@ the checkpoint is kept and a later resume continues from it.
 ## Why bronze only
 
 The demo stops at bronze so the streaming path and the hourly path can be compared row for
-row. Modelling onward is the [source-to-dashboard](source-to-dashboard) guide's job.
+row. Modelling onward is the [load data](load-and-transfer) guide's job.

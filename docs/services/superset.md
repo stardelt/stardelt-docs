@@ -12,7 +12,7 @@ slug: /services/superset
 
 **How it fits.** Superset lives in the application layer and queries Trino via the SQLAlchemy Trino driver. It signs in through the platform IdP (Keycloak) and is consumed by users for dashboards and ad hoc SQL. See [Services](../architecture/services) and [How it works](../architecture/how-it-works).
 
-**Who can use it.** Users sign in at `https://superset.<base domain>` with the same Keycloak account used for Nova. `stardelt-admins` map to Superset Admin; `stardelt-users` map to Gamma and `stardelt-analyst`. Per-group catalog access is granted via roles `stardelt-group-<group>` created by `manifests/superset-group-roles.yaml` (cron every 5 min) based on Catalog grants; roles sync at login (`AUTH_ROLES_SYNC_AT_LOGIN`). See [Dashboards and SQL Lab](../guides/source-to-dashboard).
+**Who can use it.** Users sign in at `https://superset.<base domain>` with the same Keycloak account used for Nova. `stardelt-admins` map to Superset Admin; `stardelt-users` map to Gamma and `stardelt-analyst`. Per-group catalog access is granted via roles `stardelt-group-<group>` created by `manifests/superset-group-roles.yaml` (cron every 5 min) based on Catalog grants; roles sync at login (`AUTH_ROLES_SYNC_AT_LOGIN`). See [Load data](../guides/load-and-transfer).
 
 **What you can tune.** Key settings from `helm-values/superset.yaml`:
 

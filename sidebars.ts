@@ -32,7 +32,7 @@ const sidebars: SidebarsConfig = {
     'use',
     cat('Find and understand data', ['guides/tour-of-nova', 'guides/catalog', 'guides/query-log']),
     cat('Query', ['guides/sql-editor', 'guides/ask', 'guides/connect-your-tools']),
-    cat('Bring data in', ['guides/source-to-dashboard', 'guides/load-and-transfer', 'guides/connections', 'guides/connections-secret-stores']),
+    cat('Bring data in', ['guides/load-and-transfer', 'guides/connections', 'guides/connections-secret-stores']),
     cat('Schedule and run', ['guides/schedule', 'guides/runs', 'guides/airflow']),
     cat('Streams', ['guides/streams']),
   ],

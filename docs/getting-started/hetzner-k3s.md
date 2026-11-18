@@ -2,7 +2,7 @@
 title: "Install on a single Hetzner node"
 sidebar_label: "Single Hetzner node"
 slug: /getting-started/hetzner-k3s
-pagination_next: guides/source-to-dashboard
+pagination_next: guides/load-and-transfer
 ---
 
 # Install on a single Hetzner node
@@ -76,6 +76,6 @@ This deletes the node and everything on it:
 make dev-down
 ```
 
-<NextStep to="/docs/guides/source-to-dashboard" title="From source to dashboard">
+<NextStep to="/docs/guides/load-and-transfer" title="Load data and the path to a dashboard">
   Load data, model it in bronze, silver and gold, and show it in a dashboard.
 </NextStep>

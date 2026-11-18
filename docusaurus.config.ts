@@ -62,6 +62,7 @@ const config: Config = {
           { from: '/docs/guides/destinations', to: '/docs/guides/runs#notification-destinations' },
           { from: '/docs/guides/sdk-cli-mcp', to: '/docs/guides/python' },
           { from: '/docs/guides/sql-statements', to: '/docs/guides/python#long-running-sql' },
+          { from: '/docs/guides/source-to-dashboard', to: '/docs/guides/load-and-transfer#from-a-file-to-a-dashboard' },
         ],
       },
     ],

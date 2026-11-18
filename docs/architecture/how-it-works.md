@@ -46,7 +46,7 @@ Build once, deploy many: a stage never copies objects to another stage; Git carr
 |---|---|
 | Try it | [Quickstart](../getting-started/quickstart.md) |
 | Install it for real | [Prerequisites](../getting-started/prerequisites.md) |
-| Go from a source to a dashboard | [Source to dashboard](../guides/source-to-dashboard.md) |
+| Go from a source to a dashboard | [Load data](../guides/load-and-transfer.md) |
 | Keep source credentials out of pipelines | [Connections](../guides/connections.md) |
 | Run SQL on a schedule | [Schedule SQL](../guides/schedule.md#schedule-a-sql-statement) |
 | Keep notebooks in Git | [Keep notebooks in Git](../guides/schedule.md#keep-notebooks-in-git) |

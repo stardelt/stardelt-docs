@@ -27,7 +27,7 @@ dashboards, deployment status, health and the applications in the namespace. It 
 | Database URL | `manifests/nova-deployment.yaml` | `NOVA_DATABASE_URL` | From Secret `nova-pg-app` key `uri` (via CNPG) | Postgres connection string for Nova state. |
 | Base domain | `manifests/nova-deployment.yaml` | `NOVA_BASE_DOMAIN` | Set per install | Base domain used by Nova. |
 
-**Related pages.** [Nova API](../reference/api), [From source to dashboard](../guides/source-to-dashboard), [The query log](../guides/query-log), [Connections](../guides/connections), [How it works](../architecture/how-it-works).
+**Related pages.** [Nova API](../reference/api), [Load data](../guides/load-and-transfer), [The query log](../guides/query-log), [Connections](../guides/connections), [How it works](../architecture/how-it-works).
 
 **Operating it.**
 
