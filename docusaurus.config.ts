@@ -57,6 +57,7 @@ const config: Config = {
           { from: '/docs/guides/connections-access', to: '/docs/guides/connections' },
           { from: '/docs/guides/connections-notebooks', to: '/docs/guides/connections' },
           { from: '/docs/guides/connections-troubleshooting', to: '/docs/guides/connections' },
+          { from: '/docs/guides/lineage', to: '/docs/guides/query-log' },
         ],
       },
     ],

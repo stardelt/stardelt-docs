@@ -249,3 +249,36 @@ six starter alerts are configuration, not a stack: they are rendered into your c
 you turn them on, and your Prometheus reads them. [The licence table](../architecture/licenses)
 lists what stardelt itself ships. The endpoints above are the whole contract —
 [Production](./production) lists what else an operator team owns.
+
+## What the queries cost
+
+The **Queries** / **Usage** switch in the query log's header changes what the same window reports. **Usage**
+answers the other question: not "what ran" but "what did it cost, and who used the most". It shares the **Mine** /
+**Team** / **Everyone** scopes and the time range with the list, so you can compare the two views over the same
+rows: [Who sees what](../guides/query-log#who-sees-what) applies unchanged.
+
+At the top it adds the window up: queries, CPU time, data read and failures. Below, one row per
+person (per **Warehouse** under **Mine**), heaviest CPU first. Under **Team** and **Everyone** the
+table is headed **Who used the most compute**; under **Mine** it is **By warehouse**. The columns:
+
+| Column | Meaning |
+|---|---|
+| Person | The engine user, or the warehouse under **Mine** |
+| Queries | How many ran in the window |
+| CPU time | Time the engine spent on their queries, with a bar relative to the heaviest row |
+| Data read | Bytes read from storage |
+| Data written | Bytes written by inserts, `CREATE TABLE AS` and pipeline writes |
+| Failed | Queries that ended in failure |
+
+**Per day** draws one bar per UTC day of the window, so a spike points at the day to open in the list.
+The compute rows are not links: switch back to **Queries**, keep the time range, and search for the person or
+warehouse there. A storage row opens that catalog's page.
+
+Usage is summed when you open the view and refreshed once a minute, not streamed like the list. An
+empty window says **No queries in this window.** — widen the time range or switch the scope.
+
+**Storage by catalog** lists each catalog you may browse, largest first, with its tables, records
+and size. The size is what the catalog's own Iceberg metadata reports — the data files its tables
+know about — not the object store's total, so a bucket that also holds backups or other files does
+not inflate it. It is refreshed with the rest of the view, and a catalog whose first scan has not
+finished yet is left out. A person who may browse no catalog sees no section.

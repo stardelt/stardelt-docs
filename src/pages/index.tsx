@@ -711,7 +711,7 @@ const features: Feature[] = [
     line: 'Every table: what made it, and what uses it.',
     parts: [{name: 'Nova', kind: 'core'}],
     why: 'Queries and OpenLineage events draw it inside your cluster; nothing is sent elsewhere.',
-    to: '/docs/guides/lineage',
+    to: '/docs/guides/query-log#on-a-table-page',
   },
   {
     title: 'Query log',
