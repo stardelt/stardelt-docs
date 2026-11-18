@@ -125,8 +125,12 @@ KEEP=1 make verify-restore   # keep the namespace to look at it
 ```
 
 It restores `lakekeeper-pg` from the barman-cloud plugin's object store (the mechanism
-[How it works](#how-it-works) describes), counts the tables in the `lakekeeper` database, prints
-`verify-restore: PASS (catalog database restored, N tables)` and deletes the namespace. A run whose
+[How it works](#how-it-works) describes), counts the relations in the `lakekeeper` database and the
+`warehouse`, `namespace` and `tabular` rows the catalog cannot work without, prints
+`verify-restore: PASS (catalog database restored, 55 relations, 18 warehouses, 15 namespaces, 39 tabulars)`
+and deletes the namespace. A restore that carries only the schema — relations but no warehouse or no
+tabular — says `verify-restore: FAIL (the restored catalog is empty: …)` and exits non-zero, because
+`information_schema.tables` alone is satisfied by the migration table. A run whose
 restored cluster does not become Ready says `FAIL` and prints that cluster's logs; `TIMEOUT` (default
 `900s`) and `RESTORE_NS` (default `stardelt-restore`) are overridable. `KEEP=1` leaves the namespace
 behind, so the next plain run refuses (`exit 2`) until it is deleted or `RESTORE_NS` names another.
