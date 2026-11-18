@@ -83,7 +83,7 @@ run's task instances.
 **What it does not contain.** A run that failed before its first task started — the DAG did not
 parse, the scheduler is down — is only in the scheduler's UI, not on the **Runs** page.
 
-Related guides: [Schedule a SQL pipeline](../guides/schedule-sql), [Published notebooks](../guides/published-notebooks).
+Related guides: [Schedule SQL and notebooks](../guides/schedule).
 
 ## Table maintenance
 
