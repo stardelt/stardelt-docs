@@ -1,5 +1,6 @@
 ---
 title: "Roadmap"
+description: "What is built, what comes next and in which milestone, and what is explicitly not planned."
 sidebar_label: "Roadmap"
 slug: /roadmap
 ---

@@ -10,6 +10,8 @@ The public documentation site for stardelt, built with Docusaurus.
   never edit them by hand.
 - Check claims against `main` of the repository concerned, and against a running install when you can.
 - Run `npm run build` before a pull request. It fails on broken links.
+- `npm run check:sidebars` and `npm run check:page-budget` must pass. A new page needs a
+  `description:` and a row in `scripts/page-budgets.json` (`node scripts/check-page-budget.mjs --write`).
 - Work on a branch and open a pull request. Never push to `main`: a merge publishes the site.
 
 ## Skills

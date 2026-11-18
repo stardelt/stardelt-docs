@@ -1,5 +1,6 @@
 ---
 title: "Operate stardelt"
+description: "Install, upgrade, secure and run the platform: prerequisites, sign-in, backups, checks, monitoring and the components."
 sidebar_label: "Overview"
 slug: /operate
 ---

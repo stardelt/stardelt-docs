@@ -1,5 +1,6 @@
 ---
 title: "Build on stardelt"
+description: "Drive stardelt from code: the command line, the Python package, the MCP server and AI agents, and publishing pipelines from Git."
 sidebar_label: "Overview"
 slug: /build
 ---
