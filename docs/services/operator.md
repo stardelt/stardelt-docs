@@ -33,6 +33,12 @@ token Secret and the newest run's verdict.
 
 **How you reach it.** The operator runs in the cluster as a controller (no public HTTP endpoint by default). Manage it by applying CRDs and by using its CLI subcommands where installed.
 
+**Availability.** The chart runs **two** replicas. One holds a Lease in the operator's own namespace and reconciles every resource; the other is a standby that reconciles nothing and reports its leader metric as 0. A replica renews the Lease every 5 seconds and **stands down** when it cannot: it stops its controllers, sets the metric to 0 and waits for the Lease to become free. It does not restart, and the waiting replica takes over about 15 seconds after the leader's last renewal. A pod restart therefore means the API server was unreachable, not that leadership moved (`Kubernetes API unreachable; exiting so the container restarts`); a rising `restartCount` on its own does not say the operator is broken. The one command that answers "who leads":
+
+```console
+$ kubectl -n stardelt get lease stardelt-operator-leader -o jsonpath='{.spec.holderIdentity}{" "}{.spec.renewTime}'
+```
+
 **What you can tune.** Settings from `helm-values/operator.yaml` and CRD defaults:
 
 | Setting | Where | Key | Default | What it changes |

@@ -22,6 +22,7 @@ Measured on a single node:
 | SeaweedFS | about 200 MB when idle | more volume servers and disks |
 | CloudNativePG and one PostgreSQL | about 200 MB | more instances, more storage |
 | Lakekeeper | about 200 MB | more replicas (stateless) |
+| stardelt Operator | about 50 m CPU and 64 Mi per replica | two replicas, one leader; the standby waits on the Lease and reconciles nothing |
 | Nova | about 10 MB when idle (7 Mi measured) | one replica: the background loops (catalog scan, model probe, pipeline notices) run in every process |
 
 To measure your own node, run the baseline in [Performance baseline](./performance).
@@ -41,6 +42,7 @@ StorageClass whose volumes can follow a pod to another node. `local-path` cannot
 | Trino coordinator | Queries stop, and nothing is lost | It reschedules; run two workers so one can drain |
 | Lakekeeper | Engines cannot resolve tables | Raise `lakekeeper.catalog.replicas`; a PodDisruptionBudget is not rendered yet |
 | Nova | A restart keeps people signed in: sessions are rows in the `browser_session` table, sealed and keyed by the cookie's hash | One replica, because the background loops run in every process |
+| stardelt Operator | The leader's pod goes away or stops renewing | The second replica takes over in about 15 s. The old leader stands down and waits for the Lease; it does not restart. A restarting pod means the API server was unreachable — `make verify-restarts` prints the count and never fails on it |
 | A whole node | Everything on it | Three or more nodes and a tested restore; the chart renders no anti-affinity |
 
 Nova keeps each signed-in browser as a row in `browser_session` since migration 0015, sealed and
@@ -50,6 +52,10 @@ loops that make one replica the right number are `catalog_metrics::spawn_refresh
 every catalog every five minutes), `model_probe::spawn_loop` (one `model_call` row per probe) and
 `pipeline_notice::spawn`; each runs in every process, so scaling Nova out needs them to become a
 single-writer job first.
+
+The stardelt Operator is the one workload in the platform that already runs two replicas with a
+single writer: the replica that holds the `stardelt-operator-leader` Lease reconciles, the other
+waits. The [operator page](../services/operator) describes the takeover and what a restart means.
 
 The values that exist, and what the chart does not render, are in
 [Install on your own cluster](../getting-started/your-cluster#high-availability).
