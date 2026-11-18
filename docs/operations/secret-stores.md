@@ -1,16 +1,17 @@
 ---
-title: "An enterprise secret store"
-sidebar_label: "An enterprise secret store"
-slug: /guides/connections-secret-stores
+title: "Secret stores"
+sidebar_label: "Secret stores"
+slug: /operations/secret-stores
+description: "The external secrets mode: how a Connection names a path in the enterprise store, and a worked PlatformInstance fragment per provider."
 ---
 
-# An enterprise secret store
+# Secret stores
 
 The `external` secrets mode: how a `Connection` names a path in the enterprise's store, the worked
 example, and the providers stardelt documents today. The connection itself, its scopes and how a
-notebook reads it are on [Connections and secrets](./connections).
+notebook reads it are on [Connections and secrets](../guides/connections).
 
-## An enterprise secret store (external mode)
+## The `external` mode
 
 An installation with `spec.secrets.mode: external` installs no secret store of its own: the
 External Secrets Operator syncs the values of each connection from the enterprise's store into the

@@ -91,6 +91,7 @@ const config: Config = {
           { from: '/docs/architecture/identity-blocks-core', to: '/docs/architecture/identity#nova-trino-lakekeeper-and-superset' },
           { from: '/docs/architecture/identity-blocks-platform', to: '/docs/architecture/identity#airflow-jupyterhub-and-seaweedfs' },
           { from: '/docs/api-versions', to: '/docs/operations/upgrade' },
+          { from: '/docs/guides/connections-secret-stores', to: '/docs/operations/secret-stores' },
         ],
       },
     ],
