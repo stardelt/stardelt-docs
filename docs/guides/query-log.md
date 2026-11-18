@@ -26,7 +26,7 @@ Edges are kept 365 days and the raw events 90 by default; `NOVA_LINEAGE_EDGE_RET
 
 ## From the command line
 
-`stardelt lineage CATALOG.SCHEMA.TABLE` answers the same question as the **Lineage** tab, so a shell or a CI job can do an impact check. Off the platform it needs `stardelt login`; on a notebook server it reuses the server's sign-in ([Python, command line and agents](./sdk-cli-mcp)).
+`stardelt lineage CATALOG.SCHEMA.TABLE` answers the same question as the **Lineage** tab, so a shell or a CI job can do an impact check. Off the platform it needs `stardelt login`; on a notebook server it reuses the server's sign-in ([the command line](./cli)).
 
 `--depth` sets how many hops each way (`1` to `5`, default `2`) and `--days` the window (`1` to `365`, default `30`). `--upstream` or `--downstream` keeps one side of the graph; the two cannot be combined. `--format table` is the default; `--format json` prints the answer Nova's graph API returns.
 

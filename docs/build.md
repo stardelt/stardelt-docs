@@ -8,9 +8,8 @@ slug: /build
 
 For developers and AI agents who drive stardelt from code. I want to …
 
-- **[install the command line and sign in](/docs/guides/sdk-cli-mcp)**
-- **[use stardelt from Python](/docs/guides/python)**
-- **[run a long SQL statement from a script](/docs/guides/sql-statements)**
+- **[install the command line and sign in](/docs/guides/cli)**
+- **[use stardelt from Python, and run long SQL](/docs/guides/python)**
 - **[let an AI assistant work as me](/docs/guides/mcp)**
 - **[connect a model endpoint](/docs/guides/models)**
 - **[publish pipelines from Git](/docs/guides/publish-pipelines)**

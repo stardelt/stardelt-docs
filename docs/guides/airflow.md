@@ -38,7 +38,7 @@ A pipeline is a `Pipeline` resource: tasks, their order, a schedule, parameters,
 
 It is not a program. It has no branching, no loops over data, no values passed between tasks and no sensors. Logic of that kind belongs inside a task: a SQL statement or a notebook.
 
-You cannot add DAG files of your own to the platform's Airflow. If your team already runs an orchestrator, let it start a pipeline and wait for it: `stardelt run <namespace> <name> --wait` exits 0 only when the run succeeded. See [SDK, CLI and MCP](sdk-cli-mcp.md).
+You cannot add DAG files of your own to the platform's Airflow. If your team already runs an orchestrator, let it start a pipeline and wait for it: `stardelt run <namespace> <name> --wait` exits 0 only when the run succeeded. See [The command line](cli.md).
 
 ## Notebooks and Spark
 

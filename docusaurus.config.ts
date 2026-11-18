@@ -60,6 +60,8 @@ const config: Config = {
           { from: '/docs/guides/lineage', to: '/docs/guides/query-log' },
           { from: '/docs/guides/compute', to: '/docs/guides/connect-your-tools#your-own-spark-clusters' },
           { from: '/docs/guides/destinations', to: '/docs/guides/runs#notification-destinations' },
+          { from: '/docs/guides/sdk-cli-mcp', to: '/docs/guides/python' },
+          { from: '/docs/guides/sql-statements', to: '/docs/guides/python#long-running-sql' },
         ],
       },
     ],

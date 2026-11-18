@@ -175,7 +175,7 @@ stardelt mcp serve       # read-only tools unless you allow more`}</CodeBlock>
           <p className={styles.apiNote}>
             <strong>Read operations only by default. Every call is checked
             against your groups, exactly as in the interface.</strong>{' '}
-            <Link to="/docs/guides/sdk-cli-mcp">
+            <Link to="/docs/guides/cli">
               API, Python, CLI and MCP →
             </Link>
             .

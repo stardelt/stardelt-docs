@@ -24,7 +24,7 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 ## Five things to remember
 
 - **One sign-in.** The OIDC provider you already run holds users and groups; small installs can start with the bundled Keycloak. The browser uses the sign-in page, the command line uses the device code flow (`stardelt login`), and the same token reaches Nova, Trino and the catalog. See [Identity](./identity.md).
-- **One API.** Whatever you can click, you can call. See [Python, command line and agents](../guides/sdk-cli-mcp.md).
+- **One API.** Whatever you can click, you can call. See [Python](../guides/python.md).
 - **Nova acts as you.** With sign-in on, your token goes on to the engines, so what you may read is decided by the engine and the catalog for you, not by Nova's own power.
 - **Plugs, not a monolith.** The engine, the catalog, the identity provider and the object store are replaceable behind open contracts (SQL, the Iceberg REST catalog, OIDC, S3).
 - **Known limits.** Results Nova keeps in memory are capped (100 000 rows or about 64 MiB per statement); storage credentials are one platform key today, not yet one short-lived key per person.
@@ -52,6 +52,6 @@ Build once, deploy many: a stage never copies objects to another stage; Git carr
 | Keep notebooks in Git | [Keep notebooks in Git](../guides/schedule.md#keep-notebooks-in-git) |
 | Publish pipelines from Git to a stage | [Publish pipelines from Git](../guides/publish-pipelines.md) |
 | See what was run and why it failed | [Query log](../guides/query-log.md) |
-| Use it from a script, CI or an AI assistant | [Python, command line and agents](../guides/sdk-cli-mcp.md) |
+| Use it from a script, CI or an AI assistant | [The command line](../guides/cli.md), [Python](../guides/python.md) |
 | Know what is installed and what is only planned | [Services](./services.md) |
 | Understand who may do what | [Security model](./security-model.md) |

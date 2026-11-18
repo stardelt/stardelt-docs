@@ -107,7 +107,7 @@ permissions by group are needed; bringing another provider to parity is tracked 
   them, and sets a session cookie. The cookie holds a reference, and tokens stay on the server.
 - **Scripts and tools.** Send `Authorization: Bearer <access token>` on any `/api/*` route. `stardelt
   login` gets a token with the device code flow. See
-  [Python, command line and agents](../guides/sdk-cli-mcp).
+  [Python](../guides/python).
 - **Check yourself.** `GET /api/me` returns your claims and whether your identity is forwarded
   (`identity_forwarding`).
 
