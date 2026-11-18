@@ -1,7 +1,8 @@
 ---
 title: "Develop on stardelt"
 sidebar_label: "Develop on stardelt"
-slug: /developer/vscode
+slug: /guides/develop
+description: "Work on the platform as yourself: JupyterLab in the browser, VS Code against your workspace or a local kernel, and notebooks that stay thin."
 ---
 
 # Develop on stardelt
