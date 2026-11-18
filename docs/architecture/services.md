@@ -34,7 +34,7 @@ the table says otherwise.
 | Service | What it does | Chart and version | Where it is configured | License |
 |---|---|---|---|---|
 | Keycloak | Sign-in. Optional: the OIDC provider stardelt can deploy | Deployment, image tag in `chart/values.yaml` | `manifests/keycloak.yaml` · `make install-identity` | Apache 2.0 |
-| OpenFGA | Stores who may do what on which table | `openfga/openfga` chart 0.4.1, image v1.14.0 | `helm-values/openfga.yaml` · `make install` | Apache 2.0 |
+| OpenFGA | Stores who may do what on which table | `openfga/openfga` chart 0.4.1, image v1.22.1 | `helm-values/openfga.yaml` · `make install` | Apache 2.0 |
 | Open Policy Agent | Answers Trino's permission questions, next to Lakekeeper | Sidecar container in the Lakekeeper Deployment | `helm-values/lakekeeper.yaml`, `helm-values/trino-identity.yaml` · `make step-lakekeeper` | Apache 2.0 |
 | Apache Airflow | Runs scheduled pipelines | Apache Airflow chart 1.22.0, appVersion 3.2.2 | `helm-values/airflow.yaml` · `make step-airflow` | Apache 2.0 |
 | Apache Superset | Dashboards over Trino | Apache Superset chart 0.15.5, appVersion 5.0.0 | `helm-values/superset.yaml` · `make step-superset` | Apache 2.0 |
@@ -42,7 +42,7 @@ the table says otherwise.
 | Apache Spark (Spark Connect + Spark Operator) | Distributed compute for jobs that outgrow Trino | Deployment, image pinned by digest | `manifests/spark.yaml` · `make install-spark` | Apache 2.0 |
 | Apache Kafka | The streaming bus: a `StreamApp` reads its topics and writes Iceberg tables | Strimzi chart 1.3.1, one KRaft broker | `helm-values/strimzi.yaml`, `manifests/kafka.yaml` · `make step-kafka` and `make step-spark-operator` | Apache 2.0 |
 | OpenBao | Stores connection secrets. Not installed by `make platform` | `openbao/openbao` chart, single-node store | `helm-values/openbao.yaml` · `make openbao` | MPL 2.0, the one [license exception](./licenses) |
-| External Secrets Operator | Copies secret values from an external store into Kubernetes `Secret`s | `external-secrets/external-secrets` 2.13.0 | `helm-values/external-secrets.yaml` · `make external-secrets` | Apache 2.0 |
+| External Secrets Operator | Copies secret values from an external store into Kubernetes `Secret`s | `external-secrets/external-secrets` 2.15.0 | `helm-values/external-secrets.yaml` · `make external-secrets` | Apache 2.0 |
 | [cert-manager](https://cert-manager.io) | Issues TLS certificates. A cluster prerequisite for sign-in, not installed by stardelt | Installed by the cluster | [Prerequisites](../getting-started/prerequisites) | Apache 2.0 |
 
 ## stardelt's own control plane
