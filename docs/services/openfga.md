@@ -10,7 +10,7 @@ slug: /services/openfga
 
 **What it decides.** OpenFGA answers relationship checks about which subjects may act on warehouses, namespaces, tables, and views. Lakekeeper is configured with `authz.backend: openfga` and consults OpenFGA for catalog operations; the answer is fail-closed, so when OpenFGA cannot be reached or cannot answer, protected catalog requests are refused.
 
-**How it fits.** OpenFGA sits in the data/control plane next to the catalog. Lakekeeper calls OpenFGA on every protected operation, and the authorization model is managed as part of the catalog authorization setup. See [Security model](../architecture/security-model) for how authorization fits the platform.
+**How it fits.** OpenFGA sits in the data/control plane next to the catalog. Lakekeeper calls OpenFGA on every protected operation, and the authorization model is managed as part of the catalog authorization setup. See [Security](../operations/security) for how authorization fits the platform.
 
 **What happens when it is down.** OpenFGA is load-bearing for authorization. Because Lakekeeper uses fail-closed authorization with OpenFGA, if the store cannot answer, a table read becomes `503 Authorization service is unavailable`. Restarting OpenFGA is a catalog outage rather than a cosmetic event, which is why the release deliberately has **no liveness probe**: on a node-wide stall every pod on the host times out at once and the process is starved, not hung, so a liveness probe kills a store that would have recovered. Readiness stays strict, so a store that cannot answer leaves the Service and Lakekeeper fails fast; a crashed or OOM-killed process is still restarted by the kubelet.
 

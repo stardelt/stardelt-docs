@@ -54,4 +54,4 @@ Build once, deploy many: a stage never copies objects to another stage; Git carr
 | See what was run and why it failed | [Query log](../guides/query-log.md) |
 | Use it from a script, CI or an AI assistant | [The command line](../guides/cli.md), [Python](../guides/python.md) |
 | Know what is installed and what is only planned | [Services](./services.md) |
-| Understand who may do what | [Security model](./security-model.md) |
+| Understand who may do what | [Security](../operations/security.md) |

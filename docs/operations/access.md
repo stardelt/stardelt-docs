@@ -30,7 +30,7 @@ an owner without another grant cannot read the tables. `write` does not include 
 removing or renaming a schema, table or view is a platform-administrator action in this release.
 
 Platform administrators can do everything in every catalog and are not listed on the page, so a catalog
-with no grants is not open to everyone. [Security model](../architecture/security-model) describes what
+with no grants is not open to everyone. [Security model](./security) describes what
 the platform enforces and what an install without sign-in does not;
 [the catalog and the table page](../guides/catalog) is the reader's view.
 

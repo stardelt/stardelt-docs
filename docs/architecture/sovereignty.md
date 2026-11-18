@@ -36,7 +36,7 @@ These are goals, not features. Do not rely on them today.
 | **Tests on sovereign-cloud Kubernetes** | Verified on k3s on a single node only |
 | **Pinned digests for every upstream image** | stardelt's own images are pinned. Upstream components are pinned by chart version |
 | **Evidence kits for audits** (such as ISO 27001, BSI C5, SOC 2) | Not started. Certifying remains your responsibility |
-| **Short-lived storage credentials per person** | Not built: see [Security model](./security-model#known-limits) |
+| **Short-lived storage credentials per person** | Not built: see [Security](../operations/security#known-limits) |
 
 ## What stardelt does not do
 
