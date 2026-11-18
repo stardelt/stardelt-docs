@@ -2,6 +2,7 @@
 title: "Current generation only"
 sidebar_label: "Current generation only"
 slug: /architecture/current-generation
+description: "Why every component in stardelt is a current-generation project, and the bar a new one has to meet."
 ---
 
 ## The rule

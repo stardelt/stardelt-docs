@@ -2,6 +2,7 @@
 title: "Checks to run"
 sidebar_label: "Checks to run"
 slug: /operations/checks
+description: "The checks to run after an upgrade and nightly, what each proves and what a failure means."
 ---
 
 # Checks to run

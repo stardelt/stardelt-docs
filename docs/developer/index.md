@@ -2,6 +2,7 @@
 title: "Contribute to stardelt"
 sidebar_label: "Overview"
 slug: /developer
+description: "Ways to contribute to stardelt, the rules for a change, and how to report a bug or ask a question."
 ---
 
 # Contribute to stardelt

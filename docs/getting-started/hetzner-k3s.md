@@ -2,6 +2,7 @@
 title: "Install on a single Hetzner node"
 sidebar_label: "Single Hetzner node"
 slug: /getting-started/hetzner-k3s
+description: "Create a single-node Hetzner cluster, install stardelt on it and delete it again with one command."
 pagination_next: guides/load-and-transfer
 ---
 

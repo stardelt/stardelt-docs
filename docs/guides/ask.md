@@ -2,6 +2,7 @@
 title: "Ask about your data"
 sidebar_label: "Ask about your data"
 slug: /guides/ask
+description: "Turn a question in words into one read-only SQL statement that Nova checks as you before you run it."
 ---
 
 # Ask about your data

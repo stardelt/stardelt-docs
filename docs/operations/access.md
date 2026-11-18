@@ -2,6 +2,7 @@
 title: "Access to catalogs and the network"
 sidebar_label: "Catalogs and network access"
 slug: /operations/access
+description: "Which groups may use which catalogs, and which addresses reach the platform, as grants and one Ingress annotation."
 ---
 
 # Access to catalogs and the network

@@ -2,6 +2,7 @@
 title: "The Streams page"
 sidebar_label: "Streams"
 slug: /guides/streams
+description: "What the Streams page shows for each stream that reads a Kafka topic and writes an Iceberg table."
 ---
 
 # The Streams page

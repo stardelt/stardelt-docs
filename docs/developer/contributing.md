@@ -2,6 +2,7 @@
 title: "Contributing"
 sidebar_label: "Contributing"
 slug: /developer/contributing
+description: "How a change gets from a branch to main in the stardelt repositories, and what a pull request must contain."
 ---
 
 # Contributing

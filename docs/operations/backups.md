@@ -2,6 +2,7 @@
 title: "Backups and restore"
 sidebar_label: "Backups and restore"
 slug: /operations/backups
+description: "What the platform backs up and what it does not, how to verify a backup and how to restore one."
 ---
 
 # Backups and restore

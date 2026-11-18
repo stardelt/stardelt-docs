@@ -2,6 +2,7 @@
 title: "A demo that updates itself: PEGELONLINE"
 sidebar_label: "Live demo: PEGELONLINE"
 slug: /guides/pegelonline-demo
+description: "The hourly demo pipeline that fetches German waterway gauge data and appends it to an Iceberg table."
 ---
 
 # A demo that updates itself: PEGELONLINE

@@ -2,6 +2,7 @@
 title: "Service principals"
 sidebar_label: "Service principals"
 slug: /guides/service-principals
+description: "Create a non-human identity for jobs and automation, and see what its token may reach."
 ---
 
 ## What a service principal is

@@ -2,6 +2,7 @@
 title: "What is stardelt"
 sidebar_label: "What is stardelt"
 slug: /intro/overview
+description: "An open-source data platform on your own Kubernetes cluster, with one sign-in, one interface and one API."
 ---
 
 # What is stardelt

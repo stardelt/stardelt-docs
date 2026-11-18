@@ -2,6 +2,7 @@
 title: "License policy"
 sidebar_label: "Licenses"
 slug: /architecture/licenses
+description: "The permissive-only license policy, what a component may use, the two documented exceptions, and how to report a problem."
 ---
 
 # License policy

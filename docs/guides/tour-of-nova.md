@@ -2,6 +2,7 @@
 title: "A tour of Nova"
 sidebar_label: "A tour of Nova"
 slug: /guides/tour-of-nova
+description: "A walk through Nova's first page, which answers whether the platform works and what your team ran."
 ---
 
 # A tour of Nova

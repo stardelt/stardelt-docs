@@ -2,6 +2,7 @@
 title: "Load data"
 sidebar_label: "Load data"
 slug: /guides/load-and-transfer
+description: "Load a CSV or JSON file into Iceberg, or copy one table into another, and follow the job afterwards."
 pagination_next: guides/schedule
 ---
 

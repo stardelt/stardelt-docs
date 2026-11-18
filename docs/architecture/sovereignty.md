@@ -2,6 +2,7 @@
 title: "Sovereignty"
 sidebar_label: "Sovereignty"
 slug: /architecture/sovereignty
+description: "What stardelt does today, and what is still a goal, to keep data inside your own perimeter and reversible."
 ---
 
 # Sovereignty

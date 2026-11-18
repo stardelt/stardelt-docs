@@ -2,6 +2,7 @@
 title: "Install on your own cluster"
 sidebar_label: "Your own cluster"
 slug: /getting-started/your-cluster
+description: "Install the umbrella Helm chart on a cluster you operate, with every cluster-specific decision as a value."
 pagination_next: guides/load-and-transfer
 ---
 

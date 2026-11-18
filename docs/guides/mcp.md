@@ -2,6 +2,7 @@
 title: "AI assistants (MCP)"
 sidebar_label: "AI assistants (MCP)"
 slug: /guides/mcp
+description: "Connect an AI assistant to your install, through the hosted Nova endpoint or the local MCP server."
 ---
 
 # AI assistants (MCP)

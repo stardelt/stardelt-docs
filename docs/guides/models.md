@@ -2,6 +2,7 @@
 title: "Connect a model endpoint"
 sidebar_label: "Connect a model endpoint"
 slug: /guides/models
+description: "Describe the language model server that writes SQL for Ask, as a ModelEndpoint resource with its URL and key."
 ---
 
 # Connect a model endpoint

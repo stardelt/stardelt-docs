@@ -2,6 +2,7 @@
 title: "Architecture overview"
 sidebar_label: "Overview"
 slug: /architecture/overview
+description: "What stardelt installs on top of a Kubernetes cluster and how the components fit together into one lakehouse."
 ---
 
 # stardelt Architecture

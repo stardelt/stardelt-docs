@@ -2,6 +2,7 @@
 title: "Your own tools"
 sidebar_label: "Your own tools"
 slug: /guides/connect-your-tools
+description: "Connect a desktop SQL client, a BI tool or your own Spark clusters to the platform with your own grants."
 ---
 
 # Your own tools

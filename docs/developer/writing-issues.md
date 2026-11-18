@@ -2,6 +2,7 @@
 title: "Writing a good issue"
 sidebar_label: "Writing a good issue"
 slug: /developer/writing-issues
+description: "What makes an issue ready to implement, with the template and the sections a stranger needs."
 ---
 
 # Writing a good issue
