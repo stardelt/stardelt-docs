@@ -159,7 +159,7 @@ A run is also in your **Query log** with the source *Pipeline task*; the default
   that failed.
 - **Edit schedule** changes the statement and the schedule; name and group cannot change. Its **Tell …
   when a run ends** block offers **When it fails**, **When it succeeds** and **When it recovers**, each
-  with the [destinations](destinations.md) of the pipeline's group only.
+  with the [destinations](runs.md#notification-destinations) of the pipeline's group only.
 - **Delete pipeline** removes it; past runs disappear from the page.
 
 Only members of the owning group see and manage it; a pipeline written in YAML is changed where it came
