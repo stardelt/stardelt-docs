@@ -66,17 +66,17 @@ above still applies — this value is the one endpoint stardelt cannot discover 
 |---|---|---|
 | Keycloak | `identity.mode: platform` | tested in CI and on the dev cluster |
 
-Other providers are expected to work when they meet the requirements; testing them is tracked in stardelt/stardelt-platform#611.
+Other providers are expected to work when they meet the requirements; testing them is tracked in stardelt/stardelt#61.
 
 **What does not follow the token.** Nova, Superset and Airflow map a person's `groups` claim to
 roles at every sign-in, so they work with any provider. The rest of the permission model does not:
 Trino's group file, the catalog's role memberships and the OPA table are written by the `access-sync`
 job from the list of groups and their members in a Keycloak realm. A provider that is not the
 Keycloak stardelt deploys has no such list — the standard interface for one, SCIM 2.0, is not
-implemented yet (`stardelt/stardelt-platform#143`) — so `identity.mode: external` gives you sign-in
+implemented yet (`stardelt/stardelt#39`) — so `identity.mode: external` gives you sign-in
 and role mapping, not group-derived table permissions. Use `identity.mode: platform` where table
 permissions by group are needed; bringing another provider to parity is tracked in
-`stardelt/stardelt-platform#611`.
+`stardelt/stardelt#61`.
 
 ## Names
 
