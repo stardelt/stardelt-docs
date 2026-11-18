@@ -46,8 +46,8 @@ kubectl get crd certificates.cert-manager.io     # must answer; otherwise instal
 ```
 
 ```bash
-git clone https://github.com/stardelt/stardelt-platform
-cd stardelt-platform
+git clone https://github.com/stardelt/stardelt
+cd stardelt/platform
 helm dependency update chart
 
 cat > my-values.yaml <<'YAML'
@@ -225,7 +225,7 @@ Its **Platform** page probes every service and lists each workload with the imag
 :::note What has been tested
 The chart has been tested on single-node k3s. The cloud and OpenShift rows above are based on what the
 chart assumes, not on a real install. If you try one, an
-[issue](https://github.com/stardelt/stardelt-platform/issues) with the output of
+[issue](https://github.com/stardelt/stardelt/issues) with the output of
 `kubectl get events -n stardelt` helps a lot.
 :::
 

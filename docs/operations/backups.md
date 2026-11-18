@@ -61,7 +61,7 @@ kubectl -n stardelt run s3ls --rm -it --restart=Never --image=amazon/aws-cli:2.1
 Secret for you.) You should see a `base/<timestamp>/data.tar.gz` and a growing `wals/` tree.
 
 Those checks are also automated, from a checkout of
-[stardelt-platform](https://github.com/stardelt/stardelt-platform):
+[stardelt/platform](https://github.com/stardelt/stardelt/tree/main/platform):
 
 ```bash
 make verify-backups                # spec.backup + a fresh WAL object + agreement with pg_stat_archiver

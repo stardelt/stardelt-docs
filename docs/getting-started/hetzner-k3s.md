@@ -29,11 +29,11 @@ a cluster you already operate, see [Install on your own cluster](./your-cluster)
 
 You need the [tools from the prerequisites](./prerequisites#tools), an SSH key pair and a Hetzner
 API token. The scripts live in
-[`stardelt-platform/dev/hetzner-k3s`](https://github.com/stardelt/stardelt-platform/tree/main/dev/hetzner-k3s).
+[`stardelt/platform/dev/hetzner-k3s`](https://github.com/stardelt/stardelt/tree/main/platform/dev/hetzner-k3s).
 
 ```sh
-git clone https://github.com/stardelt/stardelt-platform
-cd stardelt-platform
+git clone https://github.com/stardelt/stardelt
+cd stardelt/platform
 
 export HCLOUD_TOKEN=...          # or keep it in ~/.config/stardelt/hetzner.env
 make dev-up
@@ -58,7 +58,7 @@ IDENTITY=1 BASE_DOMAIN=data.example.com make platform
 ```
 
 To reach the platform through that domain, set up ingress and TLS from
-[`dev/playground`](https://github.com/stardelt/stardelt-platform/tree/main/dev/playground).
+[`dev/playground`](https://github.com/stardelt/stardelt/tree/main/platform/dev/playground).
 
 ## 3. Open it
 
