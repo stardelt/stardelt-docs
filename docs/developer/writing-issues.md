@@ -27,10 +27,20 @@ A bug report does not need all this: what you ran, what you expected and what ha
 | One issue is one pull request, up to about 150 lines | Small changes get merged |
 | **Run every command yourself** first | A command that fails as written teaches people to improvise |
 | **Paste, don't point:** copy text from other repositories into the issue; give tests as code | A pointer forces a guess |
+| **Name the rule you rely on, not a pattern you retyped** | A step that depends on how an existing script finds something (a regex, a marker walk) names the function and pastes its code; a retyped literal drifted from the script and stopped the whole rollup (platform#1732) |
 | Say **where** an addition goes, and give concrete output (`2 passed; 0 failed`) | A loose test filter can match something else |
 | **Try it out:** give the issue to someone or something with no context, and ask what they had to guess | It finds the gaps before an implementer does |
 
 Public issues describe the work and do not compare products.
+
+### When a step changes what a script rewrites
+
+A script that rewrites files keeps a list of them. A step that adds a file to that script's
+output must extend every list in the same step, or the boilerplate commits a half-change and
+its own check fails the branch. platform#1732: `pin-image.sh jupyter` rewrites three files,
+the step named one `git add`, and `check-notebook-image-pin.sh` would have failed after the
+commit. Name the list (`grep -n 'git add' .github/workflows/*.yml`) and give the expected
+`git diff --stat` of the whole change.
 
 ## Verifying an image pin
 
