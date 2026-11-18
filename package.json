@@ -13,7 +13,8 @@
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
     "typecheck": "tsc",
-    "check:sidebars": "npx tsx scripts/check-sidebars.mjs",
+    "check:sidebars": "tsx scripts/check-sidebars.mjs",
+    "check:page-budget": "node scripts/check-page-budget.mjs",
     "wallpapers": "node scripts/wallpapers/render.mjs",
     "sync:reference": "node scripts/sync-reference.mjs",
     "gen:reference": "node scripts/gen-reference.mjs",
@@ -38,6 +39,7 @@
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
     "@playwright/test": "^1.65.0",
+    "tsx": "^4.23.15",
     "typescript": "~5.9.3"
   },
   "browserslist": {

@@ -1,5 +1,6 @@
 ---
 title: "Use stardelt"
+description: "Use stardelt in Nova: find and query data, develop with SQL and notebooks, load and connect, schedule, and follow streams."
 sidebar_label: "Overview"
 slug: /use
 ---
