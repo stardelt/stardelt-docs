@@ -1,7 +1,7 @@
 ---
 title: "Bundle reference: the file and the commands"
 sidebar_label: "Bundle reference"
-slug: /guides/bundle-reference
+slug: /reference/bundle
 description: "Every key of bundle.yaml, the shape of a pipeline file, and what each stardelt bundle command does."
 ---
 

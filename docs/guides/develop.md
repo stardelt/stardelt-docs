@@ -130,7 +130,7 @@ daily_totals(stardelt.sql("select day, amount from mobility.gold.trips")).head()
 Publish a notebook from JupyterLab with `stardelt.publish("my.ipynb")` in a cell (a one-click button in a
 stardelt panel is coming); see [Schedule SQL and notebooks](../guides/schedule). Keep pipelines as files in
 Git and let CI run `stardelt bundle deploy -t dev`: see [Publish pipelines from Git](../guides/publish-pipelines)
-and the [bundle reference](../guides/bundle-reference).
+and the [bundle reference](/docs/reference/bundle).
 
 ## Troubleshooting
 

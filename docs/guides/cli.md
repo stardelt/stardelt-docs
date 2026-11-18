@@ -48,15 +48,15 @@ sign-in is needed, so scripts can tell the cases apart.
 | `stardelt mcp serve` | serve the read-only tools on stdio, for an MCP client | [AI assistants (MCP)](./mcp) |
 | `stardelt mcp config` | print how to register the server in an MCP client | [AI assistants (MCP)](./mcp) |
 | `stardelt skill` | print the agent skill (`SKILL.md`); with `--write DIR` install it | [AI assistants (MCP)](./mcp) |
-| `stardelt bundle init` | write a small bundle that passes validate | [Bundle reference](./bundle-reference) |
-| `stardelt bundle validate` | check a bundle offline: no host, no sign-in | [Bundle reference](./bundle-reference) |
-| `stardelt bundle plan` | ask Nova what deploying one target would do; writes nothing | [Bundle reference](./bundle-reference) |
-| `stardelt bundle deploy` | deploy one target: Nova checks every pipeline first, then creates or updates them | [Bundle reference](./bundle-reference) |
-| `stardelt bundle approve` | approve a migration plan a production deploy needs a second person for | [Bundle reference](./bundle-reference) |
-| `stardelt bundle summary` | show what a deploy of one target left on the stage | [Bundle reference](./bundle-reference) |
-| `stardelt bundle run` | start a deploy's pipelines and wait for each; stops at the first failure | [Bundle reference](./bundle-reference) |
-| `stardelt bundle destroy` | remove what a deploy of one target put on the stage; only with `--yes` | [Bundle reference](./bundle-reference) |
-| `stardelt bundle generate` | write a pipeline made in the interface into the bundle, with its SQL file | [Bundle reference](./bundle-reference) |
+| `stardelt bundle init` | write a small bundle that passes validate | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle validate` | check a bundle offline: no host, no sign-in | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle plan` | ask Nova what deploying one target would do; writes nothing | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle deploy` | deploy one target: Nova checks every pipeline first, then creates or updates them | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle approve` | approve a migration plan a production deploy needs a second person for | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle summary` | show what a deploy of one target left on the stage | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle run` | start a deploy's pipelines and wait for each; stops at the first failure | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle destroy` | remove what a deploy of one target put on the stage; only with `--yes` | [Bundle reference](/docs/reference/bundle) |
+| `stardelt bundle generate` | write a pipeline made in the interface into the bundle, with its SQL file | [Bundle reference](/docs/reference/bundle) |
 | `stardelt maintenance run` | optimize small files, expire snapshots and remove orphan files for one catalog's tables | — |
 | `stardelt notebook publish` | publish a notebook as a new version that a schedule can pin | [Publish a notebook version](./schedule#publish-a-notebook-version) |
 
