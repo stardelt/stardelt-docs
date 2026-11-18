@@ -134,7 +134,8 @@ The **Compute** page in Nova lists the Spark clusters you may use. A Spark clust
 when it needs it and stops when it is done — for a notebook that needs more memory, a job that takes longer
 than a statement should, or a set of experiments. It sits next to the SQL warehouse, which answers the
 statements you run by hand and on a schedule
-([Schedule a SQL statement](/docs/guides/schedule#schedule-a-sql-statement)).
+([Schedule a SQL statement](/docs/guides/schedule#schedule-a-sql-statement)). For the cells that use a
+cluster from a notebook, see [Spark in notebooks](/docs/guides/spark#a-bigger-cluster).
 
 ### A cluster's card
 
