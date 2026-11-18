@@ -88,6 +88,8 @@ const config: Config = {
           { from: '/docs/services/spark', to: '/docs/architecture/services' },
           { from: '/docs/services/superset', to: '/docs/architecture/services' },
           { from: '/docs/services/trino', to: '/docs/architecture/services' },
+          { from: '/docs/architecture/identity-blocks-core', to: '/docs/architecture/identity#nova-trino-lakekeeper-and-superset' },
+          { from: '/docs/architecture/identity-blocks-platform', to: '/docs/architecture/identity#airflow-jupyterhub-and-seaweedfs' },
         ],
       },
     ],

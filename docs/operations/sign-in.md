@@ -9,9 +9,9 @@ description: "Keycloak, or your own OIDC provider: the two modes, the clients to
 
 stardelt supports two identity modes: `platform`, where stardelt deploys Keycloak, and `external`,
 the customer's OIDC provider, chiefly Microsoft Entra ID. In both, every building
-block authenticates users against one OIDC issuer. The per-block mechanics are on the three
-pages under [Where the mechanics are](#where-the-mechanics-are); the Nova-side contract is the
-[Identity](../architecture/identity) page, authoritative when the two disagree.
+block authenticates users against one OIDC issuer. The per-component mechanics and the Nova-side
+contract are both on the [Identity](../architecture/identity) page, authoritative when the two
+disagree.
 
 ## Two modes, one knob
 
@@ -207,8 +207,7 @@ notebooks, PyIceberg) present the user's own token to Lakekeeper.
 
 ## Where the mechanics are
 
-- [Nova, Trino, Lakekeeper and Superset](../architecture/identity-blocks-core)
-- [Airflow, JupyterHub and SeaweedFS](../architecture/identity-blocks-platform)
+- [How each component signs in](../architecture/identity)
 - [Keycloak, Entra ID and several instances on one IdP](#one-idp-several-platform-instances)
 
 ## Forwarding at a glance

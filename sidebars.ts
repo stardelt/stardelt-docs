@@ -38,7 +38,7 @@ const sidebars: SidebarsConfig = {
   operate: [
     'operate',
     cat('Install and upgrade', ['getting-started/prerequisites', 'getting-started/your-cluster', 'getting-started/hetzner-k3s', 'operations/production', 'api-versions']),
-    cat('Sign-in and access', ['operations/sign-in', 'architecture/identity-blocks-core', 'architecture/identity-blocks-platform', 'operations/access']),
+    cat('Sign-in and access', ['operations/sign-in', 'operations/access']),
     cat('Keep it running', ['operations/backups', 'operations/checks', 'operations/monitoring', 'operations/troubleshooting']),
     'operations/security',
   ],
