@@ -87,19 +87,20 @@ function renderTable(headers, rows) {
   ].join('\n');
 }
 
-function frontMatter(title, sidebarLabel) {
+function frontMatter(title, sidebarLabel, slug) {
   return [
     '---',
     `title: ${JSON.stringify(title)}`,
     `sidebar_label: ${JSON.stringify(sidebarLabel)}`,
+    ...(slug ? [`slug: ${slug}`] : []),
     'generated: true',
     'custom_edit_url: null',
     '---',
   ].join('\n');
 }
 
-function page(title, sidebarLabel, body) {
-  return `${frontMatter(title, sidebarLabel)}\n\n${HEADER}\n\n${body.trim()}\n`;
+function page(title, sidebarLabel, body, slug) {
+  return `${frontMatter(title, sidebarLabel, slug)}\n\n${HEADER}\n\n${body.trim()}\n`;
 }
 
 /** Resolve a local JSON pointer (`#/$defs/X`, `#/components/schemas/X`). */
@@ -482,6 +483,14 @@ function main() {
   }
   writeFileSync(join(resourceDir, 'index.md'), renderIndex(schemas));
   writeFileSync(join(outDir, 'api.md'), renderApi(nova));
+
+  // The Reference tab's landing page is prose, not a snapshot: it is kept in
+  // reference-src/index.md, outside the generated folder, and copied through here
+  // so that docs/reference/ stays entirely generated (CI regenerates and diffs it).
+  writeFileSync(
+    join(outDir, 'index.md'),
+    page('Reference', 'Overview', readFileSync(join(srcDir, 'index.md'), 'utf8'), '/reference'),
+  );
 
   console.log(
     `generated ${schemas.length} resource pages, the index and the API page in docs/reference/`,
