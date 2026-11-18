@@ -40,7 +40,7 @@ const sidebars: SidebarsConfig = {
     'build',
     cat('Command line and Python', ['guides/cli', 'guides/python', 'guides/cli-pipelines']),
     cat('AI agents', ['guides/mcp', 'guides/models', 'guides/service-principals']),
-    cat('Publish from Git', ['guides/publish-pipelines', 'guides/deployments', 'guides/bundle-reference']),
+    cat('Publish from Git', ['guides/publish-pipelines', 'guides/bundle-reference']),
     'developer/develop',
   ],
   operate: [

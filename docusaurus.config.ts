@@ -63,6 +63,7 @@ const config: Config = {
           { from: '/docs/guides/sdk-cli-mcp', to: '/docs/guides/python' },
           { from: '/docs/guides/sql-statements', to: '/docs/guides/python#long-running-sql' },
           { from: '/docs/guides/source-to-dashboard', to: '/docs/guides/load-and-transfer#from-a-file-to-a-dashboard' },
+          { from: '/docs/guides/deployments', to: '/docs/guides/publish-pipelines#the-deployments-page' },
         ],
       },
     ],

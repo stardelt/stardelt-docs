@@ -6,9 +6,9 @@ slug: /guides/publish-pipelines
 
 # Publish pipelines from Git
 
-A team keeps its pipelines as files in Git and publishes them to a stage with one command. This page walks one example end to
-end: a *bundle* with one SQL pipeline that you describe, try in your own development stage, check in a pull request and publish to
-production, and keep in step with Git afterwards. Everything on this page is built; the last section says what is not.
+A team keeps its pipelines as files in Git and publishes them to a stage with one command. This page walks one example: a *bundle*
+with one SQL pipeline that you describe, try in your own development stage, check in a pull request, publish to
+production and keep in step with Git. The last section says what is not built.
 
 You need the `stardelt` package ([install and sign in](python.md#sign-in)) and, for everything except `init` and `validate`, a host
 and a sign-in: `stardelt login`, or `STARDELT_TOKEN` in a CI job.
@@ -65,15 +65,12 @@ schedule:
   timezone: UTC
 ```
 
-A pipeline can run a notebook instead of SQL: give `notebook: {file: notebooks/explore.ipynb}` (a file named under `files`), and
-`deploy` publishes it and pins the version; [Bundle reference](bundle-reference.md#a-notebook-that-is-a-file-of-the-bundle) has the
-details.
+A pipeline can run a notebook instead of SQL: give `notebook: {file: notebooks/explore.ipynb}` (a file named under `files`);
+see [Bundle reference](bundle-reference.md#a-notebook-that-is-a-file-of-the-bundle).
 
 `validate` prints one sentence per problem and exits `2`: an unknown key, a variable without a value in some target, a pipeline file
-that is not a pipeline or has none (or two) of `sql`, `sqlFile` and `notebook`, a `sqlFile` that is not among the bundle's files, a
-`schedule` without both `cron` and `timezone`, a `production` target without `runAs: pipeline-<group>`, a path that leaves the
-bundle, a symbolic link, a file over 5 MiB. It checks what needs no cluster; whether the group's pipeline identity is ready is for
-Nova to say when you plan or deploy.
+with none (or two) of `sql`, `sqlFile` and `notebook`, a `schedule` without both `cron` and `timezone`, a `production` target without
+`runAs: pipeline-<group>`, a path that leaves the bundle, a symbolic link, a file over 5 MiB. It checks what needs no cluster.
 
 ## 2. Try it in your own development stage
 
@@ -91,8 +88,7 @@ stardelt bundle deploy shop -t dev
 ```
 
 Each pipeline file gets the target's variables, its `sqlFile` is read into `sql`, and the bundle's group is its `ownerGroup` when the
-file names none. Then Nova checks every pipeline with the rules of a create (your group, the group's pipeline identity, the
-statement, the schedule). A `development` target deploys under `dev-<your sign-in name>-<pipeline>` and without a schedule, so two
+file names none. A `development` target deploys under `dev-<your sign-in name>-<pipeline>` and without a schedule, so two
 people can deploy one bundle side by side and nothing runs on its own. Start it yourself and wait for it:
 
 ```bash
@@ -103,10 +99,9 @@ stardelt bundle run shop -t dev
 {"action": "ran", "name": "dev-alice-daily", "runId": "manual__2026-11-01T08:00:00.000000+00:00", "state": "success"}
 ```
 
-`bundle run` starts every pipeline the deploy left in your stage, one after the other, and stops at the first that does not succeed
-(exit code `1`, with the failed tasks in the line); `--only daily` runs one, written without the `dev-alice-` prefix. To start any
-single pipeline by its namespace and name, see
-[Run a pipeline and wait for it](cli-pipelines.md#run-a-pipeline-and-wait-for-it).
+`bundle run` starts every pipeline the deploy left in your stage in turn and stops at the first that does not succeed
+(exit code `1`); `--only daily` runs one, written without the `dev-alice-` prefix; to start any
+pipeline, see [Run a pipeline and wait for it](cli-pipelines.md#run-a-pipeline-and-wait-for-it).
 
 ## 3. Check a change in a pull request
 
@@ -119,15 +114,12 @@ stardelt bundle plan pipelines/ -t prod        # STARDELT_NOVA_URL and STARDELT_
 
 `plan` prints one line per pipeline, the same lines as `stardelt apply --dry-run`: `would-create` or `would-update`, with
 `changes` (which of `statement`, `schedule`, `params`, `options` and `deployment` would change) and, for a scheduled pipeline, the
-next runs. A pipeline someone changed by hand after its last deploy also carries `"modified": true`, with one warning on standard
-error, so the reviewer sees that the deploy would overwrite that change. If Nova refuses any pipeline, **nothing would be written**: the sentences are shown
-(`prod: daily: you are not a member of the group shop`), what passed is still listed, and the command exits `2`, so the job fails.
-The token is one Nova accepts for a member of the bundle's owner group; keep it in the CI system's secret store, never in a file
-of the repository.
+next runs. If Nova refuses any pipeline, **nothing would be written**: the sentences are shown
+(`prod: daily: you are not a member of the group shop`) and the command exits `2`, so the job fails.
+The token is one Nova accepts for a member of the bundle's owner group; keep it in the CI system's secret store.
 
-`plan` names the field that changes; add `--diff` to see the change itself. For every update it prints, on standard error after
-the JSON lines, a unified diff of each changed field (the statement line by line, a schedule or parameters as YAML), so the
-pull request log shows what a reviewer reviews. The JSON lines on standard output stay as they are.
+`plan` names the field that changes; add `--diff` to see the change itself: a unified diff of each changed field on standard error,
+after the JSON lines, which stay as they are.
 
 ## 4. Publish to production
 
@@ -140,66 +132,92 @@ stardelt bundle deploy shop -t prod
 {"action": "recorded", "id": 7}
 ```
 
-`deploy` runs the same check as `plan` first. Only when Nova accepts every pipeline does it create or update them; a refusal
-anywhere means nothing is written. A `production` target deploys the pipelines under the names the files give, with their
-schedules.
+`deploy` runs the same check as `plan` first, and a refusal anywhere means nothing is written. A `production` target uses the names the files give, with their schedules.
 
 Every pipeline is sent with where it came from: the bundle's name, the target and the Git commit of the bundle directory (`-dirty`
-is appended when files are uncommitted; outside a Git checkout there is no commit). Nova stamps that on the pipeline, and the
-pipeline page shows it under **Deployed from**, with who deployed it and when. A pipeline made in the interface or with
-`stardelt apply` has no such stamp. To go back to an earlier state, check out the earlier commit and deploy again. Each deploy is also recorded — the bundle, the stage, the commit, who ran it and what it touched — and the Deployments page lists those rows newest first.
-
-The Pipelines page answers the same question in its **Source** column: `Git · shop-etl/prod @ 0123abc` for a pipeline a deploy
-stamped, `Nova` for one made in the interface, and an amber **changed by hand** badge on a pipeline someone edited after the
-deploy. The select above the list narrows it to `From Git`, `Made in Nova` or `Changed by hand`, and the choice stays in the
-address (`?source=modified`), so a reload keeps it.
+is appended when files are uncommitted; outside a Git checkout there is no commit). Nova stamps that on the pipeline, and its
+page shows it under **Deployed from**, with who deployed it and when. The Pipelines page shows it in its **Source** column
+(`Git · shop-etl/prod @ 0123abc`; `Nova` for a pipeline made in the interface). Each deploy is also recorded (the bundle, the stage, the commit, who ran it and what it touched); [what the page shows](#the-deployments-page).
 
 To read it for the whole bundle at once, `stardelt bundle summary shop -t prod` prints one line per pipeline the target left on the
-stage: its `name`, the Git `revision` it was deployed from, `deployedBy`, `deployedAt` and `"modified": true` when someone changed
-it after the deploy. A release job can compare the revision with the commit it just deployed. The command only reads, and a
-development target shows only your own pipelines.
-
-The same view for a whole bundle is in Nova under **Admin**, **Deployments** ([what the page
-shows](/docs/guides/deployments)): one block per bundle and stage with the commit, who
-deployed each pipeline and when, and a **Changed since deploy** badge on a pipeline someone changed afterwards. A pipeline deployed
-before that check existed shows a dash there, not "unchanged".
+stage: its `name`, the Git `revision`, `deployedBy`, `deployedAt` and `"modified": true` when someone changed
+it after the deploy. The command only reads.
 
 ## 5. Keep Git and the stage in step
 
-**Remove what the bundle dropped.** `--prune` (on `plan` and `deploy`) also handles the pipelines an earlier deploy of this bundle
+**Remove what the bundle dropped.** `--prune` (on `plan` and `deploy`) handles the pipelines an earlier deploy of this bundle
 target stamped and the bundle no longer names: `plan` lists them as `would-delete`, and `deploy` removes them (`deleted`) only
-after every create and update succeeded. A pipeline made by hand, or stamped by another bundle or target, is never touched, and a
-development target removes only your own `dev-<your name>-` pipelines.
+after every create and update succeeded. A pipeline made by hand, or stamped by another bundle or target, is never touched.
 
 **Empty a stage.** `stardelt bundle destroy shop -t dev` lists, as `would-delete`, every pipeline an earlier deploy of this bundle
 target put on the stage, and `--yes` removes them (`deleted`). In a development target it removes only your own
-`dev-<your name>-` pipelines, so you can clean up after a finished branch without touching a colleague's; in `prod` it removes what
-the bundle published there. Pipelines made by hand or stamped by another bundle or target stay, and so do the files of the bundle.
+`dev-<your name>-` pipelines. Pipelines made by hand or stamped by another bundle or target stay, and so do the files of the bundle.
 
 **Bring in what was made in the interface.** `stardelt bundle generate NAMESPACE NAME shop` writes a pipeline made on the
 Pipelines page into the bundle in `shop`: `resources/<name>.yaml`, and for a statement `sql/<name>.sql` with `sqlFile` pointing at
 it (the bundle's group stands in for `ownerGroup`). It never overwrites a file, and when it writes nothing it says why in one
-sentence: the pipeline belongs to another group than the bundle, cannot be changed from a file, or the bundle's `include`
-or `files` would not pick the new file up. Run `stardelt bundle validate shop`, commit, and the next `deploy -t prod` updates that pipeline
-and stamps it, so **Deployed from** appears and the next change goes through Git. To look at a pipeline without putting it in a
+sentence. Run `stardelt bundle validate shop`, commit, and the next `deploy -t prod` updates and stamps that pipeline. To look at a pipeline without putting it in a
 bundle, `stardelt export NAMESPACE NAME` prints it as a file that `stardelt apply -f` accepts (see
 [Python](python.md)).
 
-**See what was changed by hand.** When someone changes a deployed pipeline after its deploy, with the form, the YAML editor or
-`kubectl`, its page says **Changed since the last deploy** under **Deployed from**. The next deploy of the bundle overwrites that
-change, so the page tells you whether a deploy would lose work; `bundle plan` and `bundle deploy` say the same with `"modified": true`
-and a warning on standard error, and `deploy` still goes ahead. It compares the statement or notebook, the schedule, the
-parameters and the options; the pause state and the group are not part of it. A pipeline that was deployed before this check
-existed shows nothing until its next deploy.
+**See what was changed by hand.** When someone changes a deployed pipeline after its deploy, its page says **Changed since the last deploy** under **Deployed from**, and `bundle plan` and `bundle deploy` print `"modified": true` with a warning; the next deploy overwrites that change, and `deploy` still goes ahead.
 
 For a production stage you usually want more than a warning. Put `drift: block` on the target in `bundle.yaml`
 (`prod: {mode: production, runAs: pipeline-shop, drift: block}`; the default is `drift: warn`): then `bundle plan` and
-`bundle deploy` exit with `2` and name every pipeline that was changed after its deploy, a deploy writes nothing, and the plan
-still lists everything it would do, so a pull request check shows the whole picture before it fails. Look at the change, keep it
+`bundle deploy` exit with `2` and name every pipeline that was changed after its deploy, and a deploy writes nothing. Keep the change
 in the bundle if it is right, and pass `--accept-drift` to overwrite what is left.
+
+## The Deployments page
+
+The **Deployments** page answers one question for the whole stage: what did `stardelt bundle deploy` publish, and does it still match Git? It is for administrators (the **Admin** group of the navigation) and re-reads every 30 seconds. It has one section per bundle and stage; a pipeline made in the interface or with `stardelt apply` carries no stamp and is not in one.
+
+### A stage
+
+A section is headed `<bundle> · <target>`, for example `shop · prod`. A line under it reads `N pipelines · commit <short sha>`; when the pipelines run different commits it says `N different commits`, and when none recorded a commit, `no commit recorded`. Six columns follow:
+
+- **Pipeline**: the name, linked to its page.
+- **State**: the Pipelines page's badge.
+- **Commit**: the short commit; a dash means the bundle directory was outside a Git checkout.
+- **Deployed by**: who ran the deploy.
+- **Deployed**: how long ago.
+- **Since then**: **Changed since deploy** when someone edited the pipeline in Nova after the deploy, a dash otherwise. Git holds the older version, so the next deploy overwrites the edit.
+
+### Recorded deployments
+
+Below the sections is the deploy record: one row per finished `stardelt bundle deploy`, newest first, at most 50. A row is kept for at least ten days even when newer ones push it past 50. Six columns:
+
+- **When**: how long ago.
+- **Bundle · stage**: the bundle and the target.
+- **Commit**: the short commit, `(uncommitted changes)` for a dirty tree, a dash outside a Git checkout.
+- **Deployed by**: the name the sign-in provided, or the sign-in subject for a row recorded before Nova stored the name.
+- **Status**: **Applied** for a finished deploy, or **Failed** for a row a writer recorded for a failed one.
+- **Pipelines**: how many pipelines the deploy wrote or removed.
+
+The record lives in Nova's database; an install without one shows a sentence saying so in place of the table.
+
+### Not in Git
+
+The **Not in Git** card is a warning and appears only when it has something to say: `A rebuild of this stage from Git would not bring these back. Add them to a bundle, or export them with stardelt export.` It lists the unstamped pipelines, each linked, and how many deployed ones were changed since deploy. To keep them, run `stardelt bundle generate` or `stardelt export` and commit the result.
+
+### Compare two stages
+
+When the install is configured with peer stages, a row of **Compare with** buttons sits above the sections, one per peer. Choose one and the page asks that stage for its pipelines with your own sign-in and shows the two side by side. The table has five columns: `Bundle · stage`, `Pipeline`, `Here`, a column named after the peer, and `Status`, which is one of:
+
+- `only here`: this stage has the pipeline, the peer does not.
+- `only in <peer>`: the peer has it, this stage does not.
+- `changed in <peer>`: both have it, and the peer's copy was edited after its deploy.
+- `same`: both run the same commit.
+- `different commit`: both have it and run different commits.
+
+When a row's commit differs and the stage has a repository URL, the row carries a **Promote via pull request** link to your forge's compare page, from the peer's commit to this stage's. Nova compares commits only and deploys nothing to the peer.
+
+### When nothing has been deployed
+
+A stage where no deploy has run shows `Nothing was deployed from a bundle yet. Pipelines made here or with stardelt apply are on the Pipelines page.` The link goes to the **Pipelines** page.
+
+The page is built on `GET /api/pipelines` (the `deployment` stamp), `GET /api/stages/compare?peer=<name>` (`status: ok`, `unauthorized` or `unreachable`) and `GET /api/deployments`; [the API reference](../reference/api.md) lists the fields.
 
 ## What is not there yet
 
-- A record of what was deployed when, and a rollback button: the stamp on each pipeline says which commit it runs; to go back,
-  deploy the earlier commit.
+- A rollback button: to go back, check out the earlier commit and deploy again.
 - A temporary stage per pull request.

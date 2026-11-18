@@ -139,7 +139,7 @@ commit and repository, the person, and the pipelines it wrote or removed. The la
 successful deploy says so (`{"action": "recorded", "id": 7}`). A deploy whose record cannot be
 written still succeeds — the pipelines are what matter — and its last line is
 `{"action": "not-recorded", "reason": "…"}`. The Deployments page lists the record under
-[Recorded deployments](/docs/guides/deployments#recorded-deployments).
+[Recorded deployments](/docs/guides/publish-pipelines#recorded-deployments).
 
 ## A pipeline file
 
