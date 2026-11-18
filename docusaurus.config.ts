@@ -58,6 +58,7 @@ const config: Config = {
           { from: '/docs/guides/connections-notebooks', to: '/docs/guides/connections' },
           { from: '/docs/guides/connections-troubleshooting', to: '/docs/guides/connections' },
           { from: '/docs/guides/lineage', to: '/docs/guides/query-log' },
+          { from: '/docs/guides/compute', to: '/docs/guides/connect-your-tools#your-own-spark-clusters' },
           { from: '/docs/guides/destinations', to: '/docs/guides/runs#notification-destinations' },
         ],
       },
