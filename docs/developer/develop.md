@@ -76,7 +76,7 @@ The token belongs to your session. When it expires, restart your server from Nov
 A local kernel reaches the warehouse through Nova's statement API with a sign-in you store once — no workspace:
 
 ```console
-$ pip install "stardelt @ git+https://github.com/stardelt/stardelt-python@v0.4.0"
+$ pip install "stardelt @ git+https://github.com/stardelt/stardelt-python@v0.4.1"
 $ stardelt login --host https://<your-nova>
 ```
 
