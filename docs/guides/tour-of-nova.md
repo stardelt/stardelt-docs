@@ -1,10 +1,10 @@
 ---
-title: "The Overview page"
-sidebar_label: "Overview"
-slug: /guides/overview
+title: "A tour of Nova"
+sidebar_label: "A tour of Nova"
+slug: /guides/tour-of-nova
 ---
 
-# The Overview page
+# A tour of Nova
 
 The **Overview** is the first page after you sign in. It answers four questions at once: is the
 platform working, what is in my catalogs, what did my team run, and are the tables I read fresh. Two
@@ -92,6 +92,56 @@ An administrator also sees a **Platform apps** card — one line per service wit
 status word, **All apps →** opens the **Platform** page — and a **Platform** shortcut card next to the
 other two shortcuts.
 
+## Find anything with ⌘K
+
+From any page it searches the pages, tables, pipelines and queries you may open, and takes you there
+without a trip through the navigation.
+
+### Open it
+
+Press `⌘K` on macOS, `Ctrl+K` on Windows and Linux, on any page; `Escape` closes it and focus returns where it
+was. The field starts empty each time, so an old search does not come back.
+
+### What it searches
+
+Groups appear in this order; typing filters the rows, and `Enter` opens the row.
+
+- **Pages** — the left navigation's pages, matched on label or path; only those you may see, an
+  administrator also getting the admin pages, at most eight rows per group.
+- **Catalogs** — those you may browse, matched on name, the default catalog saying so; `Enter` opens the
+  catalog explorer on it.
+- **Schemas** — their schemas, matched on `catalog.schema`, every word you type present; `Enter` opens the
+  schema's page with its tables.
+- **Tables** — tables and views in the default catalog, from two characters, a moment after you stop
+  typing; `Enter` opens the catalog explorer with it selected.
+- **Pipelines** — matched on name; `Enter` opens the pipeline's page.
+- **Queries** — your own recent queries, the newest twenty, matched on statement or query type from two
+  characters, each row showing the statement's start; `Enter` opens the query log with it expanded.
+- **Saved queries** — matched on title or statement; `Enter` puts the statement in the SQL editor.
+- **Actions** — `New query`, `Load data`, `Query log`, `Preferences`, `Switch theme`: the first four open
+  their page, the last flips the theme.
+- **Ask** — with a question typed and a model endpoint ready, the last row is `Ask: <your question>`,
+  opening the [Ask panel](./ask.md); nothing typed, no row.
+
+### Keyboard
+
+`↑` and `↓` move the highlight, `Enter` opens it, `Escape` closes; the mouse works too — click a row to
+open it, hover to move the highlight.
+
+### Empty result
+
+When nothing matches, the palette says so and names what you typed:
+
+> Nothing matches “&lt;query&gt;”.
+
+### What it does not do
+
+- It does not run SQL — there is no free-text statement box; use the SQL editor.
+- It does not search other people's saved queries; **Queries** covers only what you ran yourself.
+- **Tables** does not search other catalogs yet: open the catalog from **Catalogs** or **Schemas**, then
+  filter in the explorer.
+- Nothing it does changes data: `Load data` opens the load page, and nothing runs, uploads or deletes.
+
 ## Your first pipeline
 
 While the instance has no tables at all, a card titled **Publish your first pipeline from Git** sits at
@@ -113,3 +163,5 @@ how it started when it restarts.
 - [The catalog and the table page](./catalog) — browse what the numbers count.
 - [Table lineage](./lineage) — follow a table's sources and its readers.
 - [The SQL editor](./sql-editor) — write and run your own statements.
+
+Every page above is also a `⌘K` away: see **Find anything with ⌘K**.

@@ -36,7 +36,7 @@ The **Load data** tab shows a form and a content box:
 
 When the load succeeds, the page says `Loaded <N> rows into <catalog>.<schema>.<table>` and offers
 **Open in catalog →** to the new table. The load itself appears under **Recent activity** on the
-[Overview](/docs/guides/overview#recent-activity), with its row count. If the schema does not exist
+[Overview](/docs/guides/tour-of-nova#recent-activity), with its row count. If the schema does not exist
 yet, it is created.
 
 ## What loading does
@@ -75,7 +75,7 @@ the Overview.
 
 - The table is in the catalog you chose, under the schema and name you typed. Find it in
   **Catalog**, or follow **Open in catalog →** from the success line.
-- The operation appears under **Recent activity** on the [Overview](/docs/guides/overview#recent-activity)
+- The operation appears under **Recent activity** on the [Overview](/docs/guides/tour-of-nova#recent-activity)
   with its row count and outcome; the row opens the Load data page.
 - The statement the engine ran is in your [query log](/docs/guides/query-log), with source
   **Nova**.
