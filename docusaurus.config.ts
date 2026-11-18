@@ -41,6 +41,18 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          { from: '/docs/guides/overview', to: '/docs/guides/tour-of-nova' },
+          { from: '/docs/guides/command-palette', to: '/docs/guides/tour-of-nova' },
+        ],
+      },
+    ],
+  ],
+
   presets: [
     [
       'classic',

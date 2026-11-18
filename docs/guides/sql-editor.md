@@ -50,7 +50,7 @@ Click a table to insert its fully qualified name, `catalog.schema.table`, at the
 the row does the same. Either way the caret lands after the name, so typing continues the statement.
 
 Press ⌘K (Ctrl+K on Windows and Linux) to jump to any page, table or saved query — see
-[Find anything with ⌘K](./command-palette).
+[Find anything with ⌘K](./tour-of-nova#find-anything-with-k).
 
 ## From a link
 
