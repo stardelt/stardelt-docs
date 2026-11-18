@@ -1,73 +1,81 @@
 ---
-title: "Connections and secrets"
-sidebar_label: "Connections and secrets"
+title: "Connections"
+sidebar_label: "Connections"
 slug: /guides/connections
 ---
 
-# Connections and secrets
+# Connections
 
 A **connection** keeps the settings and the secret your code needs to reach a system outside the
-platform: a database, an API, an object store, a message broker, an SFTP server, or just a token
-you want out of a notebook. Create it once on **Connections** in Nova, then read it from a Python
-notebook by name. The value never enters the notebook file, the image or Git.
-
-Open **Connections** in the left navigation. The page lists what you may see, grouped by scope,
-with the settings and the names of the secret fields. It records names and settings, not values:
-Nova does not return a secret value to the page or to the API.
+platform. Create it on **Connections**, read it from a Python notebook by name; no value enters the
+notebook, the image or Git.
 
 ## What a connection is
 
-A connection is a named bundle of two kinds of field:
+**Settings** are not secret. **Secret fields** go to the platform's secret store and are **never shown
+again** — not in the page, the API, the logs or the query history; only their names appear, for example
+`password, user`.
 
-- **Settings** — not secret: host, port, database, bucket, endpoint, base URL, region, bootstrap
-  servers. The page shows them to everyone who may see the connection.
-- **Secret fields** — the values that must stay hidden: user, password, token, access key, private
-  key. You write them when you create the connection; Nova stores them in the platform's secret
-  store and **never shows them again** — not to you, not to another member of your group, not in the
-  page, the API, the logs or the query history. The page shows only the field names, for example
-  `password, user`.
-
-There is one deliberate exception: an administrator can perform a **break-glass read** of a *group*
-connection, with a written reason, and the group is told.
-[What administrators can do](./connections-access#what-administrators-can-and-cannot-do) describes
-it. Personal and managed values have no such path.
-
-Keeping the value in the store means a notebook contains a name, not a password:
+One exception: an administrator's **break-glass read** of a *group* connection, with a written reason;
+the group is told.
 
 ```python
-import sqlalchemy
-import stardelt
-
 crm = stardelt.connection("crm-db")
-engine = sqlalchemy.create_engine(crm.sqlalchemy_url(driver="psycopg"))
+crm.sqlalchemy_url(driver="psycopg")  # 'postgresql+psycopg://…:…@db.example.invalid:5432/crm'
 ```
 
-Rotating the password changes it in one place; the next `crm.value(...)` or `crm.sqlalchemy_url()`
-reads the new value. Nothing secret is copied into a repository, and deleting the connection
-removes the value from the store.
+Rotating changes the password in one place; deleting removes the value.
 
-A connection is personal, for a group, or managed by administrators. [Who may see and use a
-connection](./connections-access) explains the three scopes.
+## Who may see and use one
+
+> **Personal** — Only you can see and use these, from a Python notebook. They are never used by pipelines or SQL.
+
+> **Group: &lt;group name&gt;** — Every member of the group can use and rotate these from a Python notebook.
+
+> **Managed** — For platform services only. Nobody can read the values.
+
+| | Personal | Group | Managed |
+|---|---|---|---|
+| **Who creates it** | You | Any member of the group | Administrators only |
+| **Who may use it** | Only you | Every member of the group | Platform-run work only: a scheduled notebook whose pipeline names it and whose `ownerGroup` is in `usableBy`. |
+| **Who sees its name and settings** | Only you | Members and administrators | Administrators |
+| **Who may rotate or delete it** | You | Members rotate and delete; an administrator outside the group may delete but not create or rotate | Administrators |
+| **Where it can be used today** | A Python notebook only | A Python notebook, and a scheduled notebook whose pipeline runs as that group | Platform-run work, as above |
+
+A group connection belongs to one of your groups; with none, the dialog offers none. An administrator
+outside it cannot create or rotate the connection:
+
+```text
+an administrator may delete a connection of the group `analytics` but not create or rotate one
+```
+
+**Break-glass read**, on group rows only, needs a **Reason** of 20 to 500 characters:
+
+> The group `<group>` is told that you read this credential, with your reason.
+>
+> The read is recorded in the audit log.
+>
+> Rotate the credential afterwards.
+
+It shows once, masked until **Show**, closes in 60 seconds; five reads per administrator per ten
+minutes, a sixth refused. The group sees a banner with **Rotate now**:
+
+> Read by &lt;administrator&gt; on &lt;date and time&gt;: &lt;reason&gt;. Consider rotating the credential.
+
+The audit record carries administrator, group, connection, reason and outcome, never a value.
 
 ## Create a connection
 
-1. Open **Connections** and choose **New connection**.
-2. Choose the **Scope**: **Personal**, **Group** or **Managed**.
-   - For **Group**, pick the **Owner group**.
-   - For **Managed**, type a group under **Used by** and press Enter. At least one group is required;
-     at most 20 are accepted.
-3. Choose the **Type**. The form changes to that type's settings and secret fields.
-4. Choose a **Name**. It is 1 to 40 lower-case letters, digits and dashes, starting with a letter;
-   the dialog repeats the rule under the field.
-5. Fill the **Settings** and the **Secret fields**. Required fields are marked; a field left empty
-   is not sent.
-6. For a group or managed connection, **Advanced** sets the **Refresh interval** (1m to 24h, default
-   15m). It is how often the operator refreshes the synced Kubernetes Secret.
+1. Open **Connections**, choose **New connection**.
+2. Choose the **Scope**: **Personal**, **Group** (pick an **Owner group**) or **Managed** (one to 20
+   groups under **Used by**).
+3. Choose the **Type**.
+4. **Name**: 1 to 40 lower-case letters, digits and dashes, starting with a letter.
+5. Fill **Settings** and **Secret fields**; required ones are marked, empty ones are not sent.
+6. **Advanced** sets the **Refresh interval** (1m to 24h, default 15m).
 7. Choose **Create connection**.
 
 ### Types and their fields
-
-The labels and required fields are the dialog's. A field without "required" is optional.
 
 | Type | Settings | Secret fields |
 |---|---|---|
@@ -81,101 +89,139 @@ The labels and required fields are the dialog's. A field without "required" is o
 | **SFTP** | Host (required), Port (default 22) | **Password:** User (required), Password (required). **Private key:** User (required), Private key (required) |
 | **Other secret (any fields)** | None fixed: you name the settings | None fixed: you name the secret fields; at least one is required |
 
-**Other secret (any fields)** is the type for "I just need to keep a secret". Its API value is
-`generic`; the dialog shows the hint *For any secret that is not one of the types above: name the
-settings and secret fields yourself.* Name up to 32 settings and up to 16 secret fields. A setting
-name starts with a letter and uses letters, digits, dots, dashes or underscores; a secret field name
-starts with a letter and uses letters, digits or underscores. A setting whose name contains
-`password`, `passwd`, `passphrase`, `secret`, `token` or `credential` is refused — it belongs under
-**Secret fields**.
+**Other secret (any fields)** keeps any secret (API value `generic`): up to 32 settings and 16 secret
+fields, named with a letter then letters, digits, dots, dashes or underscores; a secret field takes no
+dot or dash. A setting named with `password`, `passwd`, `passphrase`, `secret`, `token` or `credential`
+is refused: it belongs under **Secret fields**.
 
 ### If the name is taken
 
-Names are unique within a scope. A second connection with the same name in the same place answers:
-
-```text
-a connection with this name already exists
-```
-
-Choose another name, or open the existing connection and rotate or delete it. The same name in
-different scopes is allowed: a personal `crm-db` and a group `crm-db` can coexist, and the notebook
-helper then asks which one you mean (see
-[Use a connection in a notebook](./connections-notebooks)). A group connection's name is also the
-name of the platform resource behind it, so two groups cannot both own a connection with the same
-name; the second attempt answers the same sentence.
+Names are unique within a scope; a duplicate answers `a connection with this name already exists`. A
+personal and a group `crm-db` may coexist; the helper asks which. A group name is its resource name,
+so two groups cannot share it.
 
 ## Rotate and delete
 
-**Rotate** opens a dialog named after the connection. It lists the connection's secret fields and
-takes new values:
+**Rotate** takes new values for the secret fields: a personal or group connection accepts one or more
+and keeps empty fields; a managed connection cannot be read back, so a rotation sends every field, and
+a partial one is refused with `a managed connection cannot be read back, so a rotation sends every
+field`; no secret fields means nothing to rotate. A rotation clears a break-glass notice.
 
-- A personal or group connection accepts one or more fields; the fields you leave empty keep their
-  current value. The dialog asks for the new value of at least one field.
-- A managed connection cannot be read back, so every field is required. A partial request is
-  refused with `a managed connection cannot be read back, so a rotation sends every field`.
-- A connection with no secret fields has nothing to rotate.
-
-A successful rotation clears a break-glass notice on a group connection
-([what administrators can do](./connections-access#what-administrators-can-and-cannot-do)).
-
-**Delete** asks once, in a dialog titled `Delete <name>?`. It names the connection and says what
-stops working:
-
-- Personal: that notebooks using it will fail.
-- Group and managed: *Notebooks that use it will fail. Pipelines and catalogs that use it will stop
-  working.*
-
-Catalogs do not consume connections yet ([not available yet](#not-available-yet)); notebooks and
-pipelines do. Deleting removes the value from the secret store and, for a group or managed
-connection, the `Connection` resource.
-An administrator who is not a member of the owning group can delete a group connection; the audit
-record names the administrator.
+**Delete** asks once in `Delete <name>?`: for personal, that notebooks using it will fail; for group
+and managed, *Notebooks that use it will fail. Pipelines and catalogs that use it will stop working.*
+An administrator outside the owning group may delete a group connection; the audit record names them.
 
 ## Status
 
-The **Status** column says whether the platform has a usable copy of the connection:
-
 | Status | Meaning |
 |---|---|
-| **Stored** | A personal connection. The value is in the secret store; there is no Kubernetes sync to report. |
-| **Ready** | A group or managed connection whose secret has been synced into the Kubernetes Secret the platform uses. |
-| **Not ready** | The resource exists but the sync has not produced a usable Secret. The page shows the operator's sentence under the status. |
-| **Unknown** | The platform has no sync status for the row yet; the next reconcile fills it. |
+| **Stored** | A personal connection; the value is in the store, no sync to report. |
+| **Ready** | Synced into the Kubernetes Secret the platform uses. |
+| **Not ready** | No usable Secret yet; the page shows the operator's sentence. |
+| **Unknown** | No sync status yet; the next reconcile fills it. |
 
-A newly created group or managed connection typically starts as **Not ready** with *waiting for the
-first sync from the secret store*, then becomes **Ready**. When a Secret is missing, the page shows
-*the value does not exist in the secret store yet: create the connection in Nova or write the value
-first*. When the store cannot supply the value, it shows *could not get secret data from provider*;
-in the checked installation this happened for a group that has no secret store configured yet. Ask
-an administrator to check the store for that group.
+A new group or managed connection starts as **Not ready** (*waiting for the first sync from the secret
+store*). A missing Secret shows *the value does not exist in the secret store yet: create the
+connection in Nova or write the value first*; a store that cannot supply it shows *could not get secret
+data from provider*.
 
-The **Changed** column is when the connection or its value last changed; hover for the exact time.
+## Use a connection in a notebook
+
+`stardelt` signs in with the notebook's own platform token: nothing to paste. It looks at your
+personal connections, then your groups; an ambiguous name refuses:
+
+```text
+'shared-secret' exists in more than one place (personal, stardelt-users); pass group=... or scope=... to choose.
+```
+
+A group you are not in is refused with `you are not a member of the group 'analytics'.`; an unknown
+name:
+
+```text
+no connection 'no-such-connection' that you may read. Check the name on the Connections page. Connections that administrators manage are used by the platform for you (a catalog, an ingestion template) and are not revealed to notebooks.
+```
+
+**`value(name)`** reads the store on every call; `KeyError` for an unknown field,
+`stardelt.ConnectionUnavailable` when it is gone.
+
+```python
+crm.value("password")  # '…'
+```
+
+**`sqlalchemy_url(driver=None)`** builds a quoted database URL; a driver goes after a `+`.
+
+```python
+crm.sqlalchemy_url(driver="psycopg")  # 'postgresql+psycopg://…'
+```
+
+**`requests_session()`** returns a `requests.Session` with `Authorization` from the `token` field and
+`base_url` from **Base URL**.
+
+```python
+session = stardelt.connection("crm-api").requests_session()
+session.headers["Authorization"]  # 'Bearer …'
+```
+
+**`s3_options()`** gives `s3fs`/`storage_options`: `key`, `secret` and `client_kwargs` (endpoint,
+region).
+
+```python
+stardelt.connection("bucket-scratch").s3_options()
+# {'key': '…', 'secret': '…', 'client_kwargs': {'endpoint_url': 'https://s3.example.invalid', 'region_name': 'eu-central-1'}}
+```
+
+Printing shows name, scope, type and field *names*, never a value: `Connection('shared-secret', scope=personal, type='generic', keys=['token'])`
+
+Managed connections have no reader: `scope must be 'personal' or 'group' (managed connections are not
+revealed).`
+
+### In a scheduled notebook
+
+A `notebook` task names one with `connection: <name>` next to `kind`, not inside `config`:
+
+```yaml
+spec:
+  ownerGroup: analytics
+  runAs: pipeline-analytics
+  tasks:
+    - name: ingest
+      kind: notebook
+      connection: crm-db
+      config:
+        notebook: ingest.ipynb
+        objectVersion: v7
+```
+
+The pod gets one variable per secret field, `CONN_<NAME>_<KEY>` (upper case, `-` as `_`): `crm-db`
+with `user` and `password` gives `CONN_CRM_DB_USER` and `CONN_CRM_DB_PASSWORD` from the Secret
+`conn-<name>`.
+
+A personal connection is refused (a pipeline is a service principal); a group connection must be its
+`ownerGroup`, a managed one must list it under **Used by** (`usableBy`).
+
+## When it does not work
+
+| Message | Where | What it means | What to do |
+|---|---|---|---|
+| `the secret store is not configured` | Nova, Connections page and API (503) | This installation has no secret store. | Ask an administrator to set it up. |
+| `the secret store is unavailable: …` | Nova (502) | Nova could not reach the store. | Retry. If it persists, ask an administrator to check the store. |
+| `the secret store refused the request: …` | Nova (502) | The store refused the operation, usually a policy or permission. | Check that you are in the owning group and that the connection still exists; ask an administrator if it persists. |
+| ``you are not a member of the group `…` `` | Nova (403) | You tried to create, rotate or delete a connection of a group you are not in. | Use a connection of your own group, or ask a member of that group. |
+| `a connection with this name already exists` | Nova (409) | The name is taken in that scope. | Choose another name, or rotate or delete the existing connection. |
+| `no such connection` | Nova (404) | The connection was deleted, or the scope/group in the request is wrong. | Refresh the page. |
+| `could not record the notice; nothing was returned` | Nova, break-glass (502) | Nova could not write the notice that tells the group, so it returned no value. | Retry. If it persists, ask an administrator to check the cluster. |
+| `the secret store is not reachable (ConnectionError)` | Notebook | The notebook cannot reach the store. | Restart the server from the hub. If it persists, ask an administrator. |
+| `the secret store refused your sign-in (…) — restart this server from the hub to get a fresh token.` | Notebook | The notebook's platform token is no longer accepted. | Restart the server from the hub. |
+| `no connection '…' that you may read.` | Notebook | The name is wrong, the connection is not yours, or it is managed. | Check the name on the Connections page. |
+| `'…' exists in more than one place (…); pass group=... or scope=... to choose.` | Notebook | The same name exists in your personal connections and in a group. | Pass `scope="personal"` or `group="<group>"`. |
+| `scope must be 'personal' or 'group' (managed connections are not revealed).` | Notebook | You asked for a managed connection; notebooks cannot read one. | Use a personal or group connection. |
 
 ## Not available yet
 
-- **SQL tasks and other task kinds.** A `sql` task cannot name a connection (it runs inside the
-  engine), and `python`, `dbt` and `quality` tasks have no runtime yet. Only a `notebook` task
-  receives the variables.
-- **SQL.** There is deliberately no secret function in SQL: statements are logged, here and in the
-  engine. A database or API source will become a catalog that an administrator sets up from a
-  managed connection, not a value a query can read.
-- **Spark notebooks.** A Spark session does not receive connection values. `stardelt.connection()`
-  is for the Python kernel; use it to fetch a value and pass what the job needs explicitly.
-- **Managed connections.** A scheduled notebook whose pipeline names one and whose `ownerGroup` is
-  in `usableBy` uses it (see [Use a connection in a notebook](./connections-notebooks)). Connection
-  tests, federated catalogs and a catalog-backed ingestion template are not built.
-
-  The pod reads `CONN_<NAME>_<KEY>` from the Kubernetes Secret `conn-<name>`, which the External
-  Secrets Operator syncs when it is installed (`make external-secrets`, then wait for the next sync —
-  the ExternalSecret refreshes every 15 minutes by default). A connection whose `status.ready` is
-  false has no Secret yet; the pipeline is then refused with the sync's own sentence instead of a pod
-  that never starts.
-
-The remaining consumers are not built yet; the page and the notebook helper say what exists today.
-
-## Where the rest is
-
-- [Who may see and use a connection](./connections-access)
-- [Use a connection in a notebook](./connections-notebooks)
-- [An enterprise secret store](./connections-secret-stores)
-- [Troubleshooting connections](./connections-troubleshooting)
+- **SQL tasks and other task kinds.** No `sql` task names a connection (it runs inside the engine), and
+  `python`, `dbt` and `quality` have no runtime; only a `notebook` task receives the variables.
+- **SQL.** No secret function in SQL: statements are logged.
+- **Spark notebooks.** A Spark session receives no values; `stardelt.connection()` is for the Python
+  kernel.
+- **Managed connections.** Connection tests, federated catalogs and a catalog-backed ingestion template
+  are not built.
