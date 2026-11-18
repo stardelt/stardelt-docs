@@ -1,13 +1,15 @@
 ---
-title: "API versions and upgrades"
-sidebar_label: "API versions and upgrades"
+title: "Upgrade and versions"
+sidebar_label: "Upgrade and versions"
+slug: /operations/upgrade
+description: "Which apiVersion you write, what an upgrade does to your resources, and the commands that upgrade a running platform."
 ---
 
-# API versions and upgrades
+# Upgrade and versions
 
 Before you write your own resource files, two questions matter: which `apiVersion` do you put in
 the file, and what happens to that file when you upgrade the platform? This page answers both. The
-fields of each kind are on the [resource reference](reference/resources).
+fields of each kind are on the [resource reference](../reference/resources).
 
 ## The version you write today
 
@@ -62,10 +64,26 @@ An operator older than the self-applying behaviour needs the schemas applied onc
 kubectl apply --server-side -f chart/crds/
 ```
 
+## Upgrade a running platform
+
+```bash
+cd platform
+git pull
+make upgrade              # moves pins, runs migrations, runs the verify targets
+```
+
+With the umbrella chart, run `helm upgrade --install stardelt chart -n stardelt -f my-values.yaml`.
+
+- **Running it twice is safe.** `make platform-idempotence` proves that for your cluster.
+- **CRDs upgrade with the operator.** See [Who installs the schemas](#who-installs-the-schemas).
+- **Put digests in your values.** A moving tag can serve an old image.
+
+There is no migration guide or compatibility promise before the first tagged release, so upgrade your
+dev install first and prod after it has run for a day.
+
 ## Upgrading a resource
 
-Upgrade the platform, not the resources. The
-[Upgrades section of the production guide](operations/production#upgrades) has the commands.
+Upgrade the platform, not the resources.
 
 1. Upgrade the platform. This rolls the operator image.
 2. Until the new operator has started, resources stay with the schema they were written against.
@@ -83,7 +101,7 @@ kubectl -n <namespace> get deploy stardelt-operator
 kubectl -n <namespace> rollout status deploy/stardelt-operator
 ```
 
-The [troubleshooting page on an ignored CRD field](operations/troubleshooting#a-new-crd-field-is-ignored)
+The [troubleshooting page on an ignored CRD field](./troubleshooting#a-new-crd-field-is-ignored)
 lists the fixes.
 
 ## What is not promised yet
@@ -92,7 +110,7 @@ lists the fixes.
 
 - A field may be renamed or removed between releases without a migration for existing resources.
 - Because there is no conversion, a resource written for one version of a field is not rewritten
-  for you. Re-read the [resource reference](reference/resources) after an upgrade and update
+  for you. Re-read the [resource reference](../reference/resources) after an upgrade and update
   your files when a field changes.
 
 There is no `v1beta1` yet, and no guarantee about when one arrives. When it does, this page is

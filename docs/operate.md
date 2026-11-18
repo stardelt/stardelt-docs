@@ -17,5 +17,5 @@ For administrators who install, secure and run stardelt. I want to …
 - **[monitor it with our Prometheus](/docs/operations/monitoring)**
 - **[find the logs](/docs/operations/monitoring#logs)**
 - **[fix a problem](/docs/operations/troubleshooting)**
-- **[upgrade](/docs/api-versions)**
+- **[upgrade](/docs/operations/upgrade)**
 - **[get ready for production](/docs/operations/production)**
