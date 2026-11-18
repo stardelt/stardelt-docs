@@ -43,7 +43,7 @@ sign-in is needed, so scripts can tell the cases apart.
 | `stardelt run` | start a pipeline run now; `--wait` waits for its end | [Pipelines from the command line](./cli-pipelines) |
 | `stardelt apply` | create or update a pipeline from a JSON or YAML file | [Pipelines from the command line](./cli-pipelines) |
 | `stardelt export` | write a pipeline as a file that `apply` accepts, YAML by default | [Pipelines from the command line](./cli-pipelines) |
-| `stardelt lineage` | where a table comes from and what depends on it | [Table lineage](./lineage) |
+| `stardelt lineage` | where a table comes from and what depends on it | [Table lineage](./query-log#from-the-command-line) |
 | `stardelt api` | call any public operation by its `operationId` | [API reference](../reference/api) |
 | `stardelt mcp serve` | serve the read-only tools on stdio, for an MCP client | [AI assistants (MCP)](./mcp) |
 | `stardelt mcp config` | print how to register the server in an MCP client | [AI assistants (MCP)](./mcp) |

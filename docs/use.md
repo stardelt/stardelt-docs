@@ -15,5 +15,5 @@ For people who find, query, load and schedule data in Nova. I want to …
 - **[connect a database or an API](/docs/guides/connections)**
 - **[run SQL or a notebook on a schedule](/docs/guides/schedule)**
 - **[see what ran and why it failed](/docs/guides/runs)**
-- **[see where a table's data comes from](/docs/guides/lineage)**
+- **[see where a table's data comes from](/docs/guides/query-log#on-a-table-page)**
 - **[use my own SQL client or BI tool](/docs/guides/connect-your-tools)**

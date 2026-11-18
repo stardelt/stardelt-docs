@@ -152,4 +152,4 @@ still copies a query for a notebook or the CLI.
 
 - [A tour of Nova](./tour-of-nova) — the numbers, the timeline, the freshness of your tables and ⌘K.
 - [The SQL editor](./sql-editor) — write and run your own statements.
-- [Table lineage](./lineage) — follow a table's sources and its readers.
+- [Table lineage](./query-log#on-a-table-page) — follow a table's sources and its readers.

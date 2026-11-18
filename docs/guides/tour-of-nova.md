@@ -161,7 +161,7 @@ how it started when it restarts.
 ## Where to go next
 
 - [The catalog and the table page](./catalog) — browse what the numbers count.
-- [Table lineage](./lineage) — follow a table's sources and its readers.
+- [Table lineage](./query-log#on-a-table-page) — follow a table's sources and its readers.
 - [The SQL editor](./sql-editor) — write and run your own statements.
 
 Every page above is also a `⌘K` away: see **Find anything with ⌘K**.
