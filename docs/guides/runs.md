@@ -32,13 +32,14 @@ once.
 |---|---|
 | Pipeline | The pipeline's name; its owner group underneath, or `administrators` when it has none |
 | Kind | **SQL**, **Notebook** or **Pipeline** |
-| State | The run's outcome: **Queued**, **Running**, **Succeeded**, **Failed**, **Upstream failed**, **Skipped** or **Up for retry** |
+| State | The run's outcome: **Queued**, **Running**, **Succeeded**, **Failed**, **Not run (an earlier task failed)**, **Skipped** or **Retrying** |
 | Started | When it started ("3 minutes ago"; hover for the exact time) |
 | Duration | How long it took, for example `850 ms`, `2.3 s` or `1 m 04 s` |
 | Trigger | Who or what started it: the person's name for a manual run, the scheduler's own label for a scheduled one |
 
-The pipeline's name is a link and opens the schedule; the rest of the row is not clickable. **Upstream
-failed** means an earlier task of the same run failed, so this one never ran.
+The pipeline's name is a link and opens the schedule, and the started time opens the run's own page; the
+rest of the row is not clickable. **Not run (an earlier task failed)** means an earlier task of the same run
+failed, so this one never ran.
 
 ## Filter the list
 
@@ -46,7 +47,7 @@ Three selects above the table narrow it:
 
 - **Kind:** all kinds, **SQL**, **Notebook** or **Pipeline**.
 - **State:** all states, or one of `running`, `queued`, `success`, `failed`, `skipped` and
-  `upstream_failed`. **Up for retry** is a badge a row may show, not a filter of its own.
+  `upstream_failed`. **Retrying** is a badge a row may show, not a filter of its own.
 - **Group:** all groups, or one group. The list is every group you can see, not only the groups left on screen
   after the other filters, so a choice never hides its own alternatives.
 
@@ -59,6 +60,24 @@ While at least one listed run is **Running** or **Queued**, the page re-reads th
 when none is, it stops asking and stays as it is. **Run now** on a schedule therefore shows up here within a
 few seconds. A new schedule's first run appears once the scheduler has started it, not when you save the
 schedule.
+
+## Open one run
+
+Click the started time of a row to open that run on its own page, or follow the run link on the pipeline's
+page. The address is `/pipelines/<group>/<pipeline>/runs/<run id>`.
+
+The page repeats the run's state, trigger and duration, and gives three views of the same execution:
+
+- **Timeline** — one bar per task on the run's own span, so the slow task and the waiting time are visible.
+- **Task graph** — the tasks as boxes laid out left to right from their dependencies, each coloured by its
+  state. Below 700 px the graph is dropped and the task table answers: a graph of boxes is a smear on a
+  phone.
+- **Tasks** — one row per task with its state, the attempt (`Try`), start, duration and kind, a **log**
+  button per attempt, and the notebook when the task ran one; below it, the statements the run sent,
+  slowest first, with their wall time and bytes read.
+
+A run that is still **Queued** or **Running** re-reads itself every five seconds. A run or pipeline that no
+longer exists answers a **Not found** card with the way back to the pipeline.
 
 ## Where the runs come from
 
