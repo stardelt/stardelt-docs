@@ -640,7 +640,7 @@ const features: Feature[] = [
       {name: 'Lakekeeper', kind: 'core'},
     ],
     why: 'Trino reads Iceberg tables in place and scales out.',
-    to: '/docs/services/trino',
+    to: '/docs/architecture/services',
   },
   {
     title: 'Storage',
@@ -650,7 +650,7 @@ const features: Feature[] = [
       {name: 'SeaweedFS', kind: 'starter'},
     ],
     why: 'Enterprises already run object storage, and stardelt uses it.',
-    to: '/docs/services/seaweedfs',
+    to: '/docs/architecture/services',
   },
   {
     title: 'Load and connect',
@@ -677,7 +677,7 @@ const features: Feature[] = [
     line: 'Python and Spark jobs without a Spark cluster per person.',
     parts: [{name: 'Spark Connect', kind: 'default'}],
     why: 'A thin client talks to a shared Spark server: no spark-submit, no driver on your laptop.',
-    to: '/docs/services/spark',
+    to: '/docs/architecture/services',
   },
   {
     title: 'Notebooks',
@@ -704,7 +704,7 @@ const features: Feature[] = [
       {name: 'Your BI tool', kind: 'plug'},
     ],
     why: "Dashboards query through Trino with the viewer's permissions, so there is no copy of the data.",
-    to: '/docs/services/superset',
+    to: '/docs/architecture/services',
   },
   {
     title: 'Lineage',
@@ -740,7 +740,7 @@ const features: Feature[] = [
       {name: 'OpenBao', kind: 'starter'},
     ],
     why: 'Secrets come from the store you already run, through External Secrets.',
-    to: '/docs/services/openbao',
+    to: '/docs/architecture/services',
   },
 ];
 

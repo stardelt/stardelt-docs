@@ -12,10 +12,10 @@ slug: /architecture/overview
 
 | Layer | What it is | Services |
 |---|---|---|
-| Control plane | the CRDs and the UI that plan and observe everything | [stardelt Operator](../services/operator), [stardelt Nova](../services/nova) |
-| Data plane | storage, the catalog, the query engine | [SeaweedFS](../services/seaweedfs), [Lakekeeper](../services/lakekeeper), [Apache Iceberg](../architecture/services), [Apache Trino](../services/trino) |
-| Applications | opt-in workloads over the same storage | [Apache Airflow](../services/airflow), [Apache Superset](../services/superset), [JupyterHub](../services/jupyterhub), [Apache Spark (Spark Connect)](../services/spark) |
-| Platform services | identity, policy and secrets the others depend on | [Keycloak](../services/keycloak), [OpenFGA](../services/openfga), [Open Policy Agent (OPA)](../services/open-policy-agent) (the Lakekeeper sidecar), [OpenBao](../services/openbao), [CloudNativePG](../architecture/services) |
+| Control plane | the CRDs and the UI that plan and observe everything | [stardelt Operator](../architecture/services), [stardelt Nova](../architecture/services) |
+| Data plane | storage, the catalog, the query engine | [SeaweedFS](../architecture/services), [Lakekeeper](../architecture/services), [Apache Iceberg](../architecture/services), [Apache Trino](../architecture/services) |
+| Applications | opt-in workloads over the same storage | [Apache Airflow](../architecture/services), [Apache Superset](../architecture/services), [JupyterHub](../architecture/services), [Apache Spark (Spark Connect)](../architecture/services) |
+| Platform services | identity, policy and secrets the others depend on | [Keycloak](../architecture/services), [OpenFGA](../architecture/services), [Open Policy Agent (OPA)](../architecture/services) (the Lakekeeper sidecar), [OpenBao](../architecture/services), [CloudNativePG](../architecture/services) |
 
 ```mermaid
 graph LR

@@ -9,14 +9,6 @@ const referenceResources = fs
   .sort()
   .map((file) => `reference/resources/${file.slice(0, -3)}`);
 
-// One page per service; adding a page adds it to the sidebar (stardelt-docs#4).
-const servicePages = fs
-  .readdirSync(path.join(process.cwd(), 'docs', 'services'))
-  .filter((file) => file.endsWith('.md'))
-  .sort()
-  .map((file) => `services/${file.slice(0, -3)}`);
-const streamingBus = 'services/kafka';
-
 const cat = (label: string, items: any[], collapsed = false) => ({ type: 'category' as const, label, collapsed, items });
 
 const sidebars: SidebarsConfig = {
@@ -49,7 +41,6 @@ const sidebars: SidebarsConfig = {
     cat('Sign-in and access', ['operations/sign-in', 'architecture/identity-blocks-core', 'architecture/identity-blocks-platform', 'operations/access']),
     cat('Keep it running', ['operations/backups', 'operations/checks', 'operations/monitoring', 'operations/troubleshooting']),
     'operations/security',
-    cat('Components', servicePages.filter((p) => p !== streamingBus).flatMap((p) => (p === 'services/spark' ? [p, streamingBus] : [p])), true),
   ],
   reference: [
     'reference/index',

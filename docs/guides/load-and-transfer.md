@@ -205,7 +205,7 @@ administrators). A dashboard that spans two catalogs is administrators-only unti
   in Airflow, and **Graph in Airflow ↗** opens the graph, Gantt view and task logs. Run now, Pause,
   Resume and Stop are on the pipeline page in Nova, checked against your group.
 
-- **Maintenance runs on its own** every night. The catalog page shows when it last ran. Administrators: see the [operator page](../services/operator).
+- **Maintenance runs on its own** every night. The catalog page shows when it last ran. Administrators: see the [operator page](../architecture/services).
 
 ### Not available yet
 

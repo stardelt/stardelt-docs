@@ -55,7 +55,7 @@ single-writer job first.
 
 The stardelt Operator is the one workload in the platform that already runs two replicas with a
 single writer: the replica that holds the `stardelt-operator-leader` Lease reconciles, the other
-waits. The [operator page](../services/operator) describes the takeover and what a restart means.
+waits. The [operator page](../architecture/services) describes the takeover and what a restart means.
 
 The values that exist, and what the chart does not render, are in
 [Install on your own cluster](../getting-started/your-cluster#high-availability).
