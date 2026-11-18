@@ -69,6 +69,8 @@ const config: Config = {
           { from: '/docs/guides/deployments', to: '/docs/guides/publish-pipelines#the-deployments-page' },
           { from: '/docs/architecture/identity-providers', to: '/docs/operations/sign-in' },
           { from: '/docs/architecture/identity-integrations', to: '/docs/operations/sign-in' },
+          { from: '/docs/operations/logs', to: '/docs/operations/monitoring#logs' },
+          { from: '/docs/operations/performance', to: '/docs/operations/monitoring#performance-baseline' },
         ],
       },
     ],
