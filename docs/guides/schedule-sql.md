@@ -53,6 +53,8 @@ instead of reaching the engine:
 | `${run.id}` | the id of the run |
 | `${params.<name>}` | a parameter of the pipeline (set in the pipeline's YAML; the dialog does not offer parameters yet) |
 
+The schedule dialog does not offer parameters; the pipeline page's **Run now** form does, for one run.
+
 ```sql
 INSERT INTO warehouse.analytics.daily_trips
 SELECT pickup_date, count(*) AS trips
@@ -65,6 +67,7 @@ GROUP BY pickup_date
 
 - The statement runs on the query engine as the group's identity. Every run is also in your **Query log** with the source
   *Pipeline task*.
+- A run started for another date fills `${run.date}` with the date you chose, not today.
 - Defaults: one run at a time, **one retry after 5 minutes**, and a limit of **2 hours** per run.
 - A failed run shows the engine's error in its task log on the **Pipelines** page.
 - Expand a run on **Pipelines** to see the tasks it ran and then **Statements this run sent, slowest first**: the
@@ -77,7 +80,10 @@ GROUP BY pickup_date
 
 Open the pipeline under **Pipelines**:
 
-- **Run now** starts a run at once (refused while the pipeline is paused or a run is already active).
+- **Run now** on the pipeline page asks for the run date and the pipeline's parameters, then starts one
+  run with them; the values apply to this run only and the schedule does not change. The **Run now**
+  button on a row of the **Pipelines** list is the fast path: a run for today at once. Both are refused
+  while the pipeline is paused or a run is already active.
 - **Pause** and **Resume** stop and restart the schedule.
 - **Stop run** cancels the running statement and skips what follows. A change the engine already committed is not undone.
 - **Retry failed tasks**, on the row of a failed run, re-runs only the tasks that failed in that run instead of repeating the ones
