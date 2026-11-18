@@ -84,6 +84,7 @@ gap.
 | Situation | Command | What it proves |
 | --- | --- | --- |
 | After a TLS or sign-in change | `make verify-trino-tls` | The in-cluster Trino path is TLS-only and token-authenticated. |
+| After an operator install, an operator upgrade or a `PlatformInstance` delete | `make verify-fresh-node` | The operator install is a platform, not only a Deployment: the `PlatformInstance` and `Lakehouse` are Ready, the namespace carries the Pod Security floor, every Deployment is available, no pod is waiting to start, and Nova, Trino and the identity provider answer on their real ports. On a cluster installed with `make install` there is no `PlatformInstance`, so the row prints `? instance …` and the check exits `3` (`UNVERIFIED`, "not installed", not a failure). |
 | After a Trino worker or shutdown change | `make verify-trino-graceful-shutdown` | A worker deleted while the engine is up logs `Shutdown requested` and a replacement becomes Ready, so the preStop drain works. It deletes one worker pod. `helm test trino` cannot prove this here: its connection pod mounts a Secret this install does not create and signs in as a user it does not have (platform#1536). |
 | After a `SqlWarehouse` or a scale-setting change | `make verify-warehouse-scale` | The three writers of a class's scale state agree: the `stardelt.io/queries-in-flight` and `stardelt.io/last-query-at` annotations Nova reports, `status.scale` the access-sync job writes, and the worker Deployment's replica count. A `·` line is not a failure and names its own reason: `— pending` is a value waiting for the next access-sync tick (up to two minutes after a query), `— skipped` is a class whose `status.phase` is not `Ready`, and `no deploy/trino-worker` is an install whose engine runs on the coordinator, where only the annotations are checked. A `✗` names the class and the disagreement. Read-only. |
 | After a `Catalog`/role change | `make verify-catalog-permissions` | The live Catalog grants against the OPA bridge. |
@@ -97,6 +98,12 @@ gap.
 
 `make verify-compute` is not part of `make step-verify`; it is manual today and `make install-spark`
 runs it after a Spark install.
+
+`make verify-fresh-node` is not part of `make step-verify` either: it needs a cluster installed by
+the operator (a `PlatformInstance`), and the lab is installed with `make install`. Run it after an
+operator install or upgrade. Its `upgrade` and `delete` phases are run directly —
+`scripts/verify-fresh-node.sh upgrade` and `… delete` — because they change the cluster; the make
+target runs the readiness checks only.
 
 `make verify-spark-cluster` is the deeper check: it creates a `small` SparkCluster named
 `verify-spark-cluster`, waits for `Running`, asserts ten things — the endpoint, the server pod's
