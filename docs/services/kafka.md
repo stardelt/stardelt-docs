@@ -41,8 +41,8 @@ the topic and its messages. To keep the topic, annotate the `KafkaTopic` with
   `kubectl -n <namespace> get kafka kafka` must print `READY=True`, and
   `kubectl -n <namespace> get pods -l name=strimzi-cluster-operator` must show `1/1`; the restart
   count is history, so read its age. A restart inside the last ten minutes means topic and broker
-  changes are not being reconciled, even though `get kafka` stays green
-  (stardelt/stardelt-platform#665); one that came back hours ago is a past failure.
+  changes are not being reconciled, even though `get kafka` stays green; one that came
+  back hours ago is a past failure.
   `make verify-streaming` prints the newest restart with its age and only warns inside that window,
   so it is the quickest way to tell the two apart.
 - **Spark runtime:** `kubectl -n <namespace> get deploy spark-operator-controller spark-operator-webhook` must print `1/1` for both. The controller must watch the namespace a `StreamApp` lives in: `kubectl -n <namespace> get deploy spark-operator-controller -o jsonpath='{.spec.template.spec.containers[0].args}'` carries `--namespaces=""` (all namespaces) or the namespace in the list. A stream in a namespace the controller does not watch never runs; `make verify-streaming` checks this and names it `spark-operator`.
