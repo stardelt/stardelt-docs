@@ -50,6 +50,7 @@ const config: Config = {
           { from: '/docs/guides/command-palette', to: '/docs/guides/tour-of-nova' },
           { from: '/docs/operations/catalogs-access', to: '/docs/operations/access' },
           { from: '/docs/operations/network-access', to: '/docs/operations/access' },
+          { from: '/docs/operations/health', to: '/docs/operations/troubleshooting' },
         ],
       },
     ],
