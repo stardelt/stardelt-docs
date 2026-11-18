@@ -10,7 +10,7 @@ slug: /services/open-policy-agent
 
 **What it decides.** OPA answers Trino's authorization questions through the Lakekeeper OPA bridge. It evaluates policies for operations like session properties, function visibility, impersonation, and catalog access. Trino points to it via `opa.policy.uri` and `opa.policy.batched-uri` on the `lakekeeper-opa` service. A catalog decision table published by the `access-sync` CronJob every two minutes accelerates hot paths, but policies still fall back to the bridge's rules when needed.
 
-**How it fits.** OPA runs alongside Lakekeeper as the authorization bridge (`OPABridge`) exposed by Service `lakekeeper-opa` on port 8282. Trino uses OPA as its access control (OPA access control) with the stardelt front entry points so that policy decisions are enforced at the query engine. See [Security model](../architecture/security-model) and [The query log](../guides/query-log) for context on how decisions surface.
+**How it fits.** OPA runs alongside Lakekeeper as the authorization bridge (`OPABridge`) exposed by Service `lakekeeper-opa` on port 8282. Trino uses OPA as its access control (OPA access control) with the stardelt front entry points so that policy decisions are enforced at the query engine. See [Security](../operations/security) and [The query log](../guides/query-log) for context on how decisions surface.
 
 **What happens when it is down.** The bridge is part of the authorization path; failures in policy evaluation affect whether Trino can perform operations. Because catalog authorization is enforced through this path, policy questions that cannot be answered will be refused according to the fail-closed behavior of the bridge. Specific symptoms depend on the operation being attempted.
 

@@ -98,12 +98,12 @@ dev install first and prod after it has run for a day.
 
 ## Security
 
-Read the [security model](../architecture/security-model), and its known limits in particular.
+Read the [security model](./security), and its known limits in particular.
 
 - **Turn sign-in on.** Without it there is no access control, so never expose such an install.
 - **Images:** mirror `ghcr.io/stardelt/*` into your own registry and pin digests.
 - **Secrets:** generated at install as Kubernetes Secrets, so encrypt etcd. OpenBao is optional and
-  holds connection secrets. See [Rotating secrets](./rotating-secrets).
+  holds connection secrets. See [Rotating secrets](./security#rotating-secrets).
 - **Network:** add NetworkPolicies for your own cluster, because only some components have one.
 
 ## What to watch
