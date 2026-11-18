@@ -82,7 +82,7 @@ stardelt mcp config                                         # the line an MCP cl
 ### Deploy a pipeline from a file
 
 `stardelt apply -f pipeline.json` takes one JSON or YAML object shaped like the body of the create-pipeline operation
-(`pipelines_create` in the [API reference](../reference/api.md)): `name`, `ownerGroup`, a `sql` statement (or a
+(`pipelines_create` in the [API reference](/docs/reference/api)): `name`, `ownerGroup`, a `sql` statement (or a
 `notebook`) — or a `tasks` list, one statement per task — and optionally `schedule`, `params` and `options`. A `tasks`
 list is passed through unchanged and Nova checks the per-task rules and the dependency graph; the shape is the one in
 [A pipeline with several tasks](bundle-reference.md#a-pipeline-with-several-tasks).

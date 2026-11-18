@@ -9,6 +9,13 @@ const referenceResources = fs
   .sort()
   .map((file) => `reference/resources/${file.slice(0, -3)}`);
 
+// One generated page per API path prefix; the index stays first in the category.
+const apiPages = fs
+  .readdirSync(path.join(process.cwd(), 'docs', 'reference', 'api'))
+  .filter((file) => file.endsWith('.md') && file !== 'index.md')
+  .sort()
+  .map((file) => `reference/api/${file.slice(0, -3)}`);
+
 const cat = (label: string, items: any[], collapsed = false) => ({ type: 'category' as const, label, collapsed, items });
 
 const sidebars: SidebarsConfig = {
@@ -45,7 +52,7 @@ const sidebars: SidebarsConfig = {
   reference: [
     'reference/index',
     cat('Resources', ['reference/resources/index', ...referenceResources]),
-    'reference/api',
+    cat('API', ['reference/api/index', ...apiPages], true),
     'guides/bundle-reference',
     cat('Architecture', ['architecture/overview', 'architecture/spark-connection', 'architecture/services', 'architecture/identity', 'architecture/licenses']),
     'glossary',

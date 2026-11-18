@@ -375,6 +375,57 @@ function requestBodyRows(operation, resolve) {
   return collectRows(schema, '', 1, resolve);
 }
 
+/**
+ * The page an operation belongs to. One page per path prefix, except
+ * `/api/pipelines`, which is far too large for one page and splits into the
+ * collection, its runs subtree and the single-pipeline routes.
+ */
+function apiPageId(path) {
+  const prefix = pathPrefix(path);
+  if (prefix === '/api/pipelines') {
+    const rest = path.slice('/api/pipelines'.length);
+    if (!rest.includes('{')) return 'pipelines';
+    if (rest.includes('/runs')) return 'pipelines-runs';
+    return 'pipelines-item';
+  }
+  return prefix.replace(/^\/api\//, '');
+}
+
+/** Title, sidebar label, intro name and index link text for one API page. */
+function apiPageLabels(id) {
+  if (id === 'pipelines') {
+    return {
+      title: 'Nova API — /api/pipelines',
+      sidebar: '/api/pipelines',
+      group: '/api/pipelines',
+      index: '/api/pipelines',
+    };
+  }
+  if (id === 'pipelines-runs') {
+    return {
+      title: 'Nova API — /api/pipelines runs',
+      sidebar: 'pipeline runs',
+      group: '/api/pipelines/{id}/runs',
+      index: '/api/pipelines runs',
+    };
+  }
+  if (id === 'pipelines-item') {
+    return {
+      title: 'Nova API — one pipeline',
+      sidebar: 'one pipeline',
+      group: '/api/pipelines/{id}',
+      index: 'one pipeline',
+    };
+  }
+  return {
+    title: `Nova API — /api/${id}`,
+    sidebar: `/api/${id}`,
+    group: `/api/${id}`,
+    index: `/api/${id}`,
+  };
+}
+
+/** One page per API group, plus the index; id → page content. */
 function renderApi(document) {
   const resolve = makeResolver(document);
   const operations = [];
@@ -394,21 +445,23 @@ function renderApi(document) {
 
   const groups = new Map();
   for (const entry of operations) {
-    const prefix = pathPrefix(entry.path);
-    if (!groups.has(prefix)) groups.set(prefix, []);
-    groups.get(prefix).push(entry);
+    const id = apiPageId(entry.path);
+    if (!groups.has(id)) groups.set(id, []);
+    groups.get(id).push(entry);
   }
 
-  const sections = [
-    '# Nova API',
-    'The operations Nova tags `public`: the stable surface for tools and scripts. Generated from `reference-src/nova-openapi.json`.',
-    'Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.',
-  ];
+  const ids = [...groups.keys()].sort(byName);
+  const pages = new Map();
 
-  for (const prefix of [...groups.keys()].sort(byName)) {
-    sections.push(`## ${mdText(prefix)}`);
-    for (const { path, method, operation, pathItem } of groups.get(prefix)) {
-      sections.push(`### ${method.toUpperCase()} ${mdText(path)}`);
+  for (const id of ids) {
+    const { title, sidebar, group } = apiPageLabels(id);
+    const sections = [
+      `# ${mdText(title)}`,
+      `The operations Nova tags \`public\` under \`${group}\`. Generated from \`reference-src/nova-openapi.json\`.`,
+    ];
+
+    for (const { path, method, operation, pathItem } of groups.get(id)) {
+      sections.push(`## ${method.toUpperCase()} ${mdText(path)}`);
 
       if (operation.operationId) {
         sections.push(
@@ -456,9 +509,30 @@ function renderApi(document) {
         );
       }
     }
+
+    pages.set(id, page(title, sidebar, sections.join('\n\n'), `/reference/api/${id}`));
   }
 
-  return page('Nova API', 'Nova API', sections.join('\n\n'));
+  const indexRows = ids.map((id) => [
+    `[${apiPageLabels(id).index}](/docs/reference/api/${id})`,
+    String(groups.get(id).length),
+  ]);
+  pages.set(
+    'index',
+    page(
+      'Nova API',
+      'Nova API',
+      [
+        '# Nova API',
+        'The operations Nova tags `public`: the stable surface for tools and scripts. Generated from `reference-src/nova-openapi.json`.',
+        'Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.',
+        renderTable(['Page', 'Operations'], indexRows),
+      ].join('\n\n'),
+      '/reference/api',
+    ),
+  );
+
+  return pages;
 }
 
 function main() {
@@ -482,7 +556,13 @@ function main() {
     writeFileSync(join(resourceDir, resourceFileName(schema.title)), renderResource(schema));
   }
   writeFileSync(join(resourceDir, 'index.md'), renderIndex(schemas));
-  writeFileSync(join(outDir, 'api.md'), renderApi(nova));
+
+  const apiPages = renderApi(nova);
+  const apiDir = join(outDir, 'api');
+  mkdirSync(apiDir, { recursive: true });
+  for (const [id, content] of apiPages) {
+    writeFileSync(join(apiDir, `${id}.md`), content);
+  }
 
   // The Reference tab's landing page is prose, not a snapshot: it is kept in
   // reference-src/index.md, outside the generated folder, and copied through here
@@ -493,7 +573,7 @@ function main() {
   );
 
   console.log(
-    `generated ${schemas.length} resource pages, the index and the API page in docs/reference/`,
+    `generated ${schemas.length} resource pages, the index and ${apiPages.size} API pages in docs/reference/`,
   );
 }
 

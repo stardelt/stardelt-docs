@@ -216,7 +216,7 @@ When a row's commit differs and the stage has a repository URL, the row carries 
 
 A stage where no deploy has run shows `Nothing was deployed from a bundle yet. Pipelines made here or with stardelt apply are on the Pipelines page.` The link goes to the **Pipelines** page.
 
-The page is built on `GET /api/pipelines` (the `deployment` stamp), `GET /api/stages/compare?peer=<name>` (`status: ok`, `unauthorized` or `unreachable`) and `GET /api/deployments`; [the API reference](../reference/api.md) lists the fields.
+The page is built on `GET /api/pipelines` (the `deployment` stamp), `GET /api/stages/compare?peer=<name>` (`status: ok`, `unauthorized` or `unreachable`) and `GET /api/deployments`; [the API reference](/docs/reference/api) lists the fields.
 
 ## What is not there yet
 
