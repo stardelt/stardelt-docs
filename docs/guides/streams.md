@@ -6,7 +6,7 @@ slug: /guides/streams
 
 # The Streams page
 
-Nova's **Streams** page shows the `StreamApp` resources that run on the [streaming bus](../services/kafka). A stream reads one Kafka topic and writes one Iceberg table.
+Nova's **Streams** page shows the `StreamApp` resources that run on the [streaming bus](../architecture/services). A stream reads one Kafka topic and writes one Iceberg table.
 
 ## What you see
 

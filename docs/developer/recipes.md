@@ -80,8 +80,8 @@ It has to pass [these criteria](../architecture/services#service-selection-crite
 
 **Docs:**
 
-8. Add a page at `docs/services/<component>.md`; the sidebar picks it up. Add a row to
-   [Services](../architecture/services).
+8. Add a row to [Services](../architecture/services): what it does, its chart and version, the
+   values file and `make` target, and the licence.
 9. If it signs users in, add it to [Sign-in](../operations/sign-in).
 
 **To upgrade only:** Renovate proposes most pins. Read the upstream license and release notes, and update

@@ -69,7 +69,7 @@ For the modelling steps onward, see [Load data and the path to a dashboard](load
 
 ## The same rows on the bus
 
-The DAG also publishes each fetched row to the [bus](../services/kafka) on the topic
+The DAG also publishes each fetched row to the [bus](../architecture/services) on the topic
 `pegelonline.measurements`. A `StreamApp` reads that topic and writes
 `mobility.bronze.pegelonline_stream`, merging on `(station_uuid, timeseries, measured_at)`.
 

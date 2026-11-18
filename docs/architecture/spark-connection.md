@@ -93,7 +93,7 @@ mostly about.
   mismatch is refused with a sentence that names both versions.
 - **Streams do not use this path.** A `StreamApp` is run by the Spark Operator as a
   `SparkApplication` with its own driver and executors, not through Spark Connect; see
-  [Spark Connect and the Spark Operator](../services/spark).
+  [Spark Connect and the Spark Operator](../architecture/services).
 
 ## What changes next
 

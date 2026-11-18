@@ -31,7 +31,7 @@ docs/getting-started/  install and first steps
 docs/guides/           how to work with data on the platform
 docs/operations/       how to keep it running
 docs/architecture/     how it fits together
-docs/services/         one page per service
+docs/architecture/services.md  the component table: chart, values file, make target, licence
 docs/reference/        generated from reference-src/; never edit by hand
 docs/developer/        how to contribute
 sidebars.ts            the navigation
