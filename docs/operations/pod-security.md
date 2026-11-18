@@ -8,7 +8,7 @@ slug: /operations/pod-security
 
 A cluster that enforces the `restricted` [Pod Security Standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/)
 admits a pod only when its spec declares the fields the standard asks for. stardelt's workloads
-declare them, with two measured exceptions named below, so a namespace labelled
+declare them, with one measured exception named below, so a namespace labelled
 `pod-security.kubernetes.io/enforce=restricted` admits the platform's pods. `make verify-pod-security`
 in the platform repository re-admits every running pod and tells you whether your own cluster does.
 
@@ -26,7 +26,7 @@ pods also pin the user by number instead of leaving it to the image: Spark and t
 185, Trino and Superset 1000, Airflow 50000, Nova, the operator and OpenFGA 65532, OpenBao 100,
 Reloader 65534.
 
-Measured on 2026-11-13 with `NS=stardelt make verify-pod-security` against a full lab install:
+Measured on 2026-11-18 with `NS=stardelt make verify-pod-security` against a full lab install:
 
 | Component | Pods | Declared by | `restricted` |
 |---|---|---|---|
@@ -50,6 +50,7 @@ Measured on 2026-11-13 with `NS=stardelt make verify-pod-security` against a ful
 | Lakekeeper init containers, migration Job | `lakekeeper-db-migration-…` (0) | `make platform` | — |
 | OpenFGA | `openfga-…` (1) | `make platform` | yes |
 | OpenBao | `openbao-0` (1) | `make platform` | yes |
+| SeaweedFS master, volume, filer, s3, admin | `seaweedfs-master-0`, `-volume-0`, `-filer-0`, `seaweedfs-s3-…`, `seaweedfs-admin-0` (5) | `make platform` | yes |
 | Reloader | `reloader-reloader-…` (1) | `make platform` | yes |
 | Kafka broker | `kafka-kafka-0` (1) | `make platform` | yes |
 | Kafka entity operator | `kafka-entity-operator-…` (1) | `make platform` | yes |
@@ -79,17 +80,22 @@ of its own for it, so check that row after a notebook has run.
 
 ## The exceptions
 
-Six pods are refused, in two groups. Each row is what the API server answers when
-the live pod's spec is re-admitted into a `restricted` namespace.
+One pod is refused: the `opa` sidecar of the Lakekeeper catalog pod. The row is what the API server
+answers when the live pod's spec is re-admitted into a `restricted` namespace.
 
 | Group | Pods | Why it cannot pass | Where the setting lives |
 |---|---|---|---|
-| SeaweedFS | `seaweedfs-master-0`, `-volume-0`, `-filer-0`, `-admin-0`, `seaweedfs-s3-…` | the chart's defaults declare no security context — `allowPrivilegeEscalation != false`, `unrestricted capabilities`, `runAsNonRoot != true` and `seccompProfile` — and `master`, `filer` and `s3` add a fifth: `restricted volume types` for their `hostPath` log volume. `volume` and `admin` log to `emptyDir` and fail on the four | `helm-values/seaweedfs.yaml` sets none of the chart's keys. Chart 4.25.1 exposes `master`/`volume`/`filer`/`s3`/`admin` `podSecurityContext` and `containerSecurityContext` and a `logs.type` per component; with them set (and the log volume on `emptyDir`) the rendered pod is admitted — that was measured with the same dry run, and whether SeaweedFS then runs as that user on its existing volumes was not |
 | Lakekeeper's policy sidecar | the `opa` container of `lakekeeper-…` | `allowPrivilegeEscalation != false` and `unrestricted capabilities` on the `opa` sidecar; the chart hardcodes its `securityContext` and exposes no value key for it | the `opa` sidecar only. The catalog container and its init containers, in the same pod, declare the fields and pass |
 
-A cluster that enforces `restricted` must admit these two groups under `baseline`, or run them with
-values that declare the fields. The sweep names them so a cluster operator sees them before the
-install does.
+The five SeaweedFS pods are admitted. `helm-values/seaweedfs.yaml` sets each component's
+`podSecurityContext` and `containerSecurityContext` (uid/gid 65534, `RuntimeDefault` seccomp, all
+capabilities dropped) and its log volume to `emptyDir`, so no `hostPath` remains; measured on the lab
+2026-11-18 with the same server-side dry run (platform#1758). The operator path renders the same
+blocks from `crates/stardelt-operator/values/seaweedfs.yaml` for `master`, `volume`, `filer` and
+`s3`; its `admin` stays at the chart default (`enabled: false`).
+
+A cluster that enforces `restricted` must admit this pod under `baseline`, or run it with values that
+declare the fields. The sweep names it so a cluster operator sees it before the install does.
 
 The StreamApp driver used to be a third exception: an operator build older than the one the platform
 pins submitted the driver without the container fields. The pinned build declares them, and a driver
@@ -103,10 +109,10 @@ From the platform repository, with the namespace the platform runs in:
 ```console
 $ NS=<your-namespace> make verify-pod-security
 …
-PASS (43 of 49 pods admitted by restricted, 6 known exceptions)
+PASS (46 of 47 pods admitted by restricted, 1 known exception)
 ```
 
-The count follows the pods your install runs; the six exceptions are the two groups named above.
+The count follows the pods your install runs; the one exception is the pod named above.
 
 The target runs `scripts/verify-pod-security.sh`. For every running pod it takes the spec as the
 API server sees it, strips only what a scratch namespace cannot carry (its name, its node, its
@@ -115,16 +121,15 @@ priority class), and creates it with `--dry-run=server` in a namespace labelled
 platform's namespace is changed. A refusal that no `--allow` pattern matches fails the run; a
 `--allow` pattern that matches no refusal is reported so it can be dropped.
 
-`--allow <regex>` names a known exception. Today the target passes two:
+`--allow <regex>` names a known exception. Today the target passes one:
 
 ```make
 verify-pod-security: _context ## Every running pod is admitted by a `restricted` Pod Security namespace (#1096)
 	@NS=$(NAMESPACE) bash scripts/verify-pod-security.sh \
-	  --allow '^seaweedfs-' \
 	  --allow '^lakekeeper-'
 ```
 
-Each pattern has its reason beside it in the `Makefile`. The StreamApp driver was the third; it
+Each pattern has its reason beside it in the `Makefile`. The StreamApp driver was the second; it
 declares the `restricted` fields on its own pinned operator build and is admitted, so its pattern was
 dropped (platform#1211). A pattern that matches no refusal is still reported so it can be dropped.
 
