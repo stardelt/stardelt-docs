@@ -39,7 +39,7 @@ sign-in is needed, so scripts can tell the cases apart.
 | `stardelt whoami` | who Nova thinks you are, as JSON | [Sign in](#sign-in) |
 | `stardelt login` | sign in once with a code approved in a browser | [Sign in](#sign-in) |
 | `stardelt logout` | forget the stored sign-in | [Sign in](#sign-in) |
-| `stardelt sql` | run one statement as you | [Long-running SQL](./sql-statements) |
+| `stardelt sql` | run one statement as you | [Long-running SQL](./python#long-running-sql) |
 | `stardelt run` | start a pipeline run now; `--wait` waits for its end | [Pipelines from the command line](./cli-pipelines) |
 | `stardelt apply` | create or update a pipeline from a JSON or YAML file | [Pipelines from the command line](./cli-pipelines) |
 | `stardelt export` | write a pipeline as a file that `apply` accepts, YAML by default | [Pipelines from the command line](./cli-pipelines) |

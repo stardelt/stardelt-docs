@@ -6,7 +6,7 @@ slug: /guides/cli-pipelines
 
 # Pipelines from the command line
 
-You need the stardelt package, signed in: see [Python, command line and agents](sdk-cli-mcp.md).
+You need the stardelt package, signed in: see [The command line](cli.md).
 
 ## Deploy a pipeline from a file
 

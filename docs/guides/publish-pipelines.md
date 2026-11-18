@@ -10,7 +10,7 @@ A team keeps its pipelines as files in Git and publishes them to a stage with on
 end: a *bundle* with one SQL pipeline that you describe, try in your own development stage, check in a pull request and publish to
 production, and keep in step with Git afterwards. Everything on this page is built; the last section says what is not.
 
-You need the `stardelt` package ([install and sign in](sdk-cli-mcp.md)) and, for everything except `init` and `validate`, a host
+You need the `stardelt` package ([install and sign in](python.md#sign-in)) and, for everything except `init` and `validate`, a host
 and a sign-in: `stardelt login`, or `STARDELT_TOKEN` in a CI job.
 
 Your group also needs a *pipeline identity*: the service identity `pipeline-<group>` that its pipelines run as, which an
@@ -183,7 +183,7 @@ sentence: the pipeline belongs to another group than the bundle, cannot be chang
 or `files` would not pick the new file up. Run `stardelt bundle validate shop`, commit, and the next `deploy -t prod` updates that pipeline
 and stamps it, so **Deployed from** appears and the next change goes through Git. To look at a pipeline without putting it in a
 bundle, `stardelt export NAMESPACE NAME` prints it as a file that `stardelt apply -f` accepts (see
-[Python, command line and agents](sdk-cli-mcp.md)).
+[Python](python.md)).
 
 **See what was changed by hand.** When someone changes a deployed pipeline after its deploy, with the form, the YAML editor or
 `kubectl`, its page says **Changed since the last deploy** under **Deployed from**. The next deploy of the bundle overwrites that

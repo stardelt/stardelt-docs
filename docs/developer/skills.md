@@ -8,7 +8,7 @@ slug: /developer/skills
 
 A *skill* is a short instruction file that tells an AI assistant how a kind of work is done here. These
 skills are for **building** stardelt. To **use** a stardelt platform from an assistant, see
-[Python, command line and agents](../guides/sdk-cli-mcp) instead.
+[Python](../guides/python) instead.
 
 They live in [`skills/`](https://github.com/stardelt/stardelt-docs/tree/main/skills) in this repository.
 Each is plain Markdown, so any assistant or any person can read it.

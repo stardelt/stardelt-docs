@@ -9,7 +9,7 @@ slug: /guides/mcp
 An assistant can work with the platform in two ways. Through the **hosted endpoint** on Nova, it connects to
 your install directly: nothing to install, and it signs you in once. Through the **local server**, it starts
 `stardelt mcp serve` from the stardelt package on your machine: see
-[Python, command line and agents](sdk-cli-mcp.md).
+[Python](python.md).
 
 ## The hosted endpoint
 

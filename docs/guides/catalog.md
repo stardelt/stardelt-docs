@@ -98,7 +98,7 @@ table answers, and the SQL that answers it.`. Everyone else sees no card at all 
 #### Check your trusted numbers every night
 
 A scheduled CI job can run the same check with the `stardelt` command. The job signs in with a token of a
-service identity that may read the table (`STARDELT_TOKEN`, see [the CLI guide](./sdk-cli-mcp.md)), and fails when
+service identity that may read the table (`STARDELT_TOKEN`, see [the CLI guide](./cli.md)), and fails when
 any query fails:
 
 ```bash
