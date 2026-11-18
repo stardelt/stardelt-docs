@@ -55,7 +55,7 @@ const sidebars: SidebarsConfig = {
     'reference/index',
     cat('Resources', ['reference/resources/index', ...referenceResources]),
     'reference/api',
-    cat('Architecture', ['architecture/overview', 'architecture/services', 'architecture/identity', 'architecture/licenses']),
+    cat('Architecture', ['architecture/overview', 'architecture/spark-connection', 'architecture/services', 'architecture/identity', 'architecture/licenses']),
     'glossary',
   ],
   contribute: [

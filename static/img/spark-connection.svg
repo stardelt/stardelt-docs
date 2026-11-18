@@ -1,0 +1,161 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" width="1200" height="1000" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
+<title id="title">How a notebook reaches Spark</title>
+<desc id="desc">A notebook kernel holds a lazy spark object. On first use it asks Trino for the catalogs the signed-in person may see, takes that person's token, and creates a new Spark Connect session at sc://spark-connect.stardelt.svc.cluster.local:15002. The session configures one Iceberg REST catalog per name, each pointing at Lakekeeper with the person's token, and reads and writes files through S3FileIO. The long-running Spark Connect driver checks the token and the grants with Lakekeeper and creates executor pods per query, which drop to zero when idle and reach object storage with the platform's shared storage key. A NetworkPolicy around port 15002 admits members' notebook pods only. A named cluster takes a side path: Nova's compute API answers the cluster's endpoint.</desc>
+<defs>
+  <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 Z" class="head"/></marker>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f4f6ff;
+      --panel-strong: #e9edff;
+      --boxline: #5b6cff;
+      --edge: #5b6cff;
+      --text: #1e2a78;
+      --body: #5b6476;
+      --num: #ffffff;
+      --dash: #b9c0d4;
+      --warn-bg: #fff4e5;
+      --warn-line: #d97706;
+      --warn-text: #92400e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #18191b;
+        --panel: #282a2e;
+        --panel-strong: #303338;
+        --boxline: #3e4147;
+        --edge: #7d8bff;
+        --text: #f1f2f4;
+        --body: #b0b5bd;
+        --num: #18191b;
+        --dash: #4a4f58;
+        --warn-bg: #3a2e14;
+        --warn-line: #fcd34d;
+        --warn-text: #fcd34d;
+      }
+    }
+    .bg { fill: var(--bg); }
+    .box { fill: var(--panel); stroke: var(--boxline); stroke-width: 1.4; }
+    .box-strong { fill: var(--panel-strong); stroke: var(--boxline); stroke-width: 1.6; }
+    .t { fill: var(--text); font-size: 15px; font-weight: 700; }
+    .m { fill: var(--text); font-size: 12px; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .d { fill: var(--body); font-size: 12px; }
+    .s { fill: var(--body); font-size: 10.5px; font-style: italic; }
+    .h1 { fill: var(--text); font-size: 24px; font-weight: 800; }
+    .h2 { fill: var(--body); font-size: 13px; }
+    .n { fill: var(--edge); }
+    .nt { fill: var(--num); font-size: 12px; font-weight: 800; }
+    .edge { stroke: var(--edge); stroke-width: 2; fill: none; }
+    .edge-dash { stroke: var(--edge); stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+    .head { fill: var(--edge); }
+    .boundary { fill: none; stroke: var(--dash); stroke-width: 1.5; stroke-dasharray: 8 6; }
+    .warn { fill: var(--warn-bg); stroke: var(--warn-line); stroke-width: 1.4; }
+    .warnt { fill: var(--warn-text); font-size: 12px; font-weight: 700; }
+  </style>
+</defs>
+
+<rect class="bg" width="1200" height="1000"/>
+
+<text x="40" y="46" class="h1">How a notebook reaches Spark</text>
+<text x="40" y="72" class="h2">One path per person: the catalogs you may see, a session of your own, and a server behind a network boundary.</text>
+
+<!-- 1 kernel -->
+<rect x="40" y="110" width="250" height="120" rx="12" class="box"/>
+<circle cx="68" cy="142" r="14" class="n"/><text x="68" y="147" class="nt" text-anchor="middle">1</text>
+<text x="92" y="147" class="t">Notebook kernel</text>
+<text x="60" y="178" class="m">spark = _LazySpark</text>
+<text x="60" y="198" class="d">the session opens on first</text>
+<text x="60" y="215" class="d">use, never at spawn</text>
+
+<!-- 2 catalogs -->
+<rect x="330" y="110" width="250" height="120" rx="12" class="box"/>
+<circle cx="358" cy="142" r="14" class="n"/><text x="358" y="147" class="nt" text-anchor="middle">2</text>
+<text x="382" y="147" class="t">Trino: SHOW CATALOGS</text>
+<text x="350" y="178" class="d">asked as you, through</text>
+<text x="350" y="195" class="d">_catalog_names(): which</text>
+<text x="350" y="212" class="d">catalogs you may see</text>
+
+<!-- 3 token -->
+<rect x="620" y="110" width="250" height="120" rx="12" class="box"/>
+<circle cx="648" cy="142" r="14" class="n"/><text x="648" y="147" class="nt" text-anchor="middle">3</text>
+<text x="672" y="147" class="t">Your token</text>
+<text x="640" y="178" class="m">TRINO_TOKEN</text>
+<text x="640" y="198" class="d">from the hub, renewed by</text>
+<text x="640" y="215" class="d">_token() before it expires</text>
+
+<!-- 4 builder -->
+<rect x="910" y="110" width="250" height="120" rx="12" class="box"/>
+<circle cx="938" cy="142" r="14" class="n"/><text x="938" y="147" class="nt" text-anchor="middle">4</text>
+<text x="962" y="147" class="t">A session of your own</text>
+<text x="930" y="176" class="d">SparkSession.builder</text>
+<text x="930" y="193" class="d">.remote("sc://…:15002")</text>
+<text x="930" y="210" class="m">.create()</text>
+
+<path d="M294,170 L324,170" class="edge" marker-end="url(#ah)"/>
+<path d="M584,170 L614,170" class="edge" marker-end="url(#ah)"/>
+<path d="M874,170 L904,170" class="edge" marker-end="url(#ah)"/>
+
+<!-- 7 side path: Nova compute -->
+<path d="M165,230 L165,290" class="edge-dash" marker-end="url(#ah)"/>
+<text x="180" y="264" class="s">only for a named cluster</text>
+<rect x="40" y="290" width="340" height="120" rx="12" class="box"/>
+<circle cx="68" cy="322" r="14" class="n"/><text x="68" y="327" class="nt" text-anchor="middle">7</text>
+<text x="92" y="327" class="t">Nova: the compute API</text>
+<text x="60" y="358" class="m">GET /api/compute</text>
+<text x="60" y="378" class="d">the named cluster's phase and</text>
+<text x="60" y="395" class="d">endpoint, read by _remote_for_cluster()</text>
+
+<!-- 5 session settings -->
+<path d="M1035,230 L1035,290" class="edge" marker-end="url(#ah)"/>
+<rect x="620" y="290" width="540" height="120" rx="12" class="box-strong"/>
+<circle cx="648" cy="322" r="14" class="n"/><text x="648" y="327" class="nt" text-anchor="middle">5</text>
+<text x="672" y="327" class="t">One Iceberg catalog per name, with your token</text>
+<text x="640" y="358" class="m">spark.sql.catalog.&lt;name&gt; = org.apache.iceberg.spark.SparkCatalog</text>
+<text x="640" y="380" class="d">type=rest · uri=&lt;Lakekeeper&gt; · token=&lt;yours&gt; · io-impl=S3FileIO · s3.endpoint=&lt;storage&gt;</text>
+<text x="640" y="398" class="d">a fresh Connect session per person; a catalog that refuses you is left out</text>
+
+<path d="M380,345 L614,345" class="edge-dash" marker-end="url(#ah)"/>
+<text x="392" y="337" class="s">the endpoint it reports</text>
+
+<!-- network boundary -->
+<rect x="560" y="440" width="480" height="180" rx="14" class="boundary"/>
+<text x="44" y="512" class="t">NetworkPolicy spark-connect-ingress</text>
+<text x="44" y="533" class="d">inbound port 15002: members'</text>
+<text x="44" y="550" class="d">notebook pods only</text>
+<path d="M420,505 L554,505" class="edge-dash"/>
+
+<!-- driver -->
+<path d="M700,410 L700,470" class="edge" marker-end="url(#ah)"/>
+<text x="712" y="436" class="s">gRPC 15002</text>
+<rect x="620" y="470" width="380" height="110" rx="12" class="box-strong"/>
+<text x="648" y="504" class="t">Spark Connect driver</text>
+<text x="648" y="530" class="d">one Deployment, Kubernetes as the</text>
+<text x="648" y="547" class="d">cluster manager</text>
+<text x="648" y="566" class="m">sc://spark-connect.&lt;ns&gt;:15002</text>
+
+<!-- driver to Lakekeeper -->
+<path d="M720,580 L720,690" class="edge" marker-end="url(#ah)"/>
+<text x="732" y="666" class="s">your token, your grants</text>
+<rect x="440" y="690" width="340" height="110" rx="12" class="box"/>
+<text x="464" y="722" class="t">Lakekeeper — the catalog</text>
+<text x="464" y="748" class="d">answers the first catalog call:</text>
+<text x="464" y="765" class="d">what this token may read and write</text>
+
+<!-- driver to executors -->
+<path d="M960,580 L1020,690" class="edge" marker-end="url(#ah)"/>
+<rect x="830" y="690" width="330" height="110" rx="12" class="box"/>
+<text x="854" y="722" class="t">Executors</text>
+<text x="854" y="748" class="d">created per query, at most two,</text>
+<text x="854" y="765" class="d">released when the query is done</text>
+
+<!-- executors to storage -->
+<path d="M995,800 L995,850" class="edge" marker-end="url(#ah)"/>
+<rect x="440" y="850" width="720" height="100" rx="12" class="box"/>
+<text x="464" y="882" class="t">Object storage — the table files</text>
+<text x="464" y="908" class="d">read and written by Iceberg's S3FileIO with the platform's own storage key,</text>
+<text x="464" y="925" class="d">not yours: the engine cannot tell your files from anyone else's</text>
+
+<!-- the gap -->
+<rect x="440" y="962" width="330" height="26" rx="13" class="warn"/>
+<text x="458" y="980" class="warnt">known gap · one shared storage key</text>
+</svg>
