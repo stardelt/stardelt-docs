@@ -52,11 +52,8 @@ const sidebars: SidebarsConfig = {
   ],
   contribute: [
     'developer/index',
-    'developer/how-it-is-built',
-    'developer/recipes',
     'developer/writing-issues',
     'developer/diagrams',
-    'developer/skills',
     'community/wallpapers',
   ],
 };

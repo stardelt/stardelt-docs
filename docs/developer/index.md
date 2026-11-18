@@ -83,7 +83,7 @@ such as `nova`, `operator` or `chart`. A pull request's title follows the same s
 - Run the repository's check from [the table](#the-repositories), and paste the command and
   its result into the description.
 - If a reader would see a difference, update the docs in the same pull request.
-- Follow the [recipe](./recipes.md) if there is one for your change.
+- Follow the [recipe](https://github.com/stardelt/stardelt/blob/main/CONTRIBUTING.md#recipes) if there is one for your change.
 - Drawing a diagram? Start from [Diagrams](./diagrams.md) so it matches the palette and the rules.
 - Keep dependencies within the [license policy](../architecture/licenses.md).
 
@@ -97,7 +97,7 @@ A reviewer asks:
 1. Does it do what the description says, no more and no less?
 2. Does it change something a user or operator can see? Does it say so?
 3. Is there evidence that it works?
-4. Does it fit the [rules](./how-it-is-built.md#rules-that-hold-everywhere) and the license policy?
+4. Does it fit the [rules](https://github.com/stardelt/stardelt/blob/main/CONTRIBUTING.md#rules-that-hold-everywhere) and the license policy?
 
 A change to how the platform is designed starts with an issue, so the discussion happens before the
 code. Breaking changes are allowed during pre-alpha, if the title says so and the docs change with them.
@@ -111,7 +111,7 @@ Welcome, on two conditions:
 - **You are the author.** Run the checks yourself and answer the review yourself. A green transcript is
   not evidence.
 
-[Skills for AI assistants](./skills.md) help an assistant follow the project's conventions.
+[Skills for AI assistants](https://github.com/stardelt/stardelt/blob/main/CONTRIBUTING.md#skills-for-ai-assistants) help an assistant follow the project's conventions.
 
 ## Writing a ticket
 
@@ -138,7 +138,5 @@ kubectl -n stardelt set image deploy/nova nova=ghcr.io/stardelt/nova@sha256:…
 
 ## Read next
 
-- [How it is built](./how-it-is-built.md): where things live and which rules hold everywhere.
-- [Recipes](./recipes.md): the steps for common changes, so nothing gets forgotten.
 - [Writing a good issue](./writing-issues.md): how to describe work so that anyone can do it.
-- [Skills for AI assistants](./skills.md): the same recipes, ready for an assistant to follow.
+- [Contributing in the repository](https://github.com/stardelt/stardelt/blob/main/CONTRIBUTING.md): where a change goes, what is generated, the recipes for common changes, and the skills for AI assistants.
