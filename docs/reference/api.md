@@ -1680,7 +1680,7 @@ Resume a pipeline. Idempotent: resuming a running pipeline answers 200. Changing
 
 Operation id `pipelines_run_trigger`: in Python `client.call("pipelines_run_trigger", …)`, on the command line `stardelt api pipelines_run_trigger`.
 
-Start a run now. A viewer (`spec.viewers`) may run the owner's statement and stop its runs: running cannot change what the pipeline does. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). `logicalDate` is always now, UTC, whole seconds, so the run has tasks; the note is `Started from Nova by <display name>`. Every attempt, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.
+Start a run now. A viewer (`spec.viewers`) may run the owner's statement and stop its runs: running cannot change what the pipeline does. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). The body is optional: `runDate` (a `YYYY-MM-DD` calendar date, past or future) applies to this run only, as does `params`, this run's values of the schedule's `${params.<name>}` placeholders (at most 16, lower-case names, values up to 256 characters); the stored schedule never changes, and neither value is audited. `logicalDate` stays now, UTC, whole seconds, so the run has tasks — the date travels as Airflow's `dag_run.conf` instead. An absent body or `{}` starts a run for now with the schedule's parameters, exactly as before. Every attempt that reaches the run logic, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.
 
 **Parameters**
 
@@ -1689,11 +1689,19 @@ Start a run now. A viewer (`spec.viewers`) may run the owner's statement and sto
 | `name` | path | string | Yes | Pipeline name |
 | `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
 
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `params` | object (map of string) (nullable) | No |  |  |  |
+| `runDate` | string (nullable) | No |  |  |  |
+
 **Responses**
 
 | Code | Description |
 | --- | --- |
 | `201` | The new run, queued |
+| `400` | The body is not JSON, the run date is not `YYYY-MM-DD`, or a parameter is refused |
 | `401` | No token to sign in with |
 | `404` | No such pipeline for this caller |
 | `409` | The pipeline is not loaded, is paused, or already has an active run |
