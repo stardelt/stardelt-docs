@@ -6,7 +6,7 @@ Nobody here gatekeeps on polished prose, perfect English, or having read everyth
 question, open the rough draft pull request, paste the half-working manifest.
 
 Contributions made with AI assistants are welcome, on the two conditions in
-[the contributing guide](https://stardelt.io/docs/developer/contributing#using-an-ai-assistant): name the
+[the contributing guide](https://stardelt.io/docs/developer#using-an-ai-assistant): name the
 model, and own the change.
 
 Everything below is the Contributor Covenant 2.1, unchanged except for the contact address.

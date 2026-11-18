@@ -51,7 +51,6 @@ const sidebars: SidebarsConfig = {
   ],
   contribute: [
     'developer/index',
-    'developer/contributing',
     'developer/how-it-is-built',
     'developer/recipes',
     'developer/writing-issues',

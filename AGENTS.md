@@ -17,4 +17,4 @@ The public documentation site for stardelt, built with Docusaurus.
 `skills/<name>/SKILL.md` holds how recurring work is done across the stardelt repositories. Read the
 matching one before you start. `docs/developer/skills.md` lists them.
 
-Conventions for contributors are in `docs/developer/contributing.md`.
+Conventions for contributors are in `docs/developer/index.md`.
