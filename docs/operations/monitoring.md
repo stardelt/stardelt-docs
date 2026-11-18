@@ -1,10 +1,11 @@
 ---
-title: "Monitor with your own Prometheus"
-sidebar_label: "Monitoring"
+title: "Monitoring and logs"
+sidebar_label: "Monitoring and logs"
 slug: /operations/monitoring
+description: "Scrape the platform's metrics, find the log that answers your question, and measure your own node."
 ---
 
-# Monitor with your own Prometheus
+# Monitoring and logs
 
 The components that serve Prometheus text on a Service port answer in the platform namespace
 (`stardelt` in the quickstart). The four CloudNative-PG databases are the exception: their
@@ -32,8 +33,7 @@ endpoints, stores the samples and alerts on them.
 | Spark Connect driver | `spark-connect:4040/metrics/executors/prometheus` | `spark_info` | the driver's UI port; the body has no `# TYPE` lines |
 | OpenBao | `openbao:8200/v1/sys/metrics?format=prometheus` | `vault_core_active` | opt-in (`make openbao`); the path is not `/metrics` |
 
-Every address in the table is a Service port in the platform namespace (`stardelt` in the
-quickstart). A Prometheus that runs in another namespace needs the fully-qualified name,
+A Prometheus that runs in another namespace needs the fully-qualified name,
 `<service>.<namespace>.svc.cluster.local:<port>`, for example
 `lakekeeper.stardelt.svc.cluster.local:9000`. All of them are HTTP `GET <address>/metrics`.
 
@@ -282,3 +282,201 @@ and size. The size is what the catalog's own Iceberg metadata reports — the da
 know about — not the object store's total, so a bucket that also holds backups or other files does
 not inflate it. It is refreshed with the rest of the view, and a catalog whose first scan has not
 finished yet is left out. A person who may browse no catalog sees no section.
+
+## Logs
+
+Every part of the platform writes its logs where the component already keeps them; this page says
+which one to open for which question. The commands use the namespace `stardelt` — replace it with
+your namespace.
+
+### Who changed what (audit)
+
+Nova writes one structured line per **mutating** request to its API on the `audit` target: actor,
+subject, how they authenticated, method, path and status. Reads are not recorded — they are the
+overwhelming majority of the traffic and would bury the signal. The line carries the action, never
+its content: no query string, no request body, no secret value.
+
+```bash
+kubectl -n stardelt logs deploy/nova | grep 'target=audit'
+```
+
+```text
+INFO audit: mutating request actor="admin" sub="52f3331c…" via=session method=POST path=/query status=200
+```
+
+The audit target is on at `info` in the deployed Nova, so the lines are already in its stdout. To
+send them somewhere else, route the target apart from the application log with
+`RUST_LOG=audit=info,info`: everything `audit` stays a separate stream a log collector can pick up.
+
+Refusals land on the same target, from the middleware that refused: a `403` names the caller and the
+path. So does opening another person's query as an administrator. Connection events are on the target
+too, and they carry the *names* of the fields that changed, never a value.
+
+**Retention.** Nothing keeps these lines beyond the container's own log on the node; a pod restart
+ends them. `kubectl -n stardelt logs deploy/nova --previous` reads the last container that ended.
+
+**What it does not contain.** No statement text (that is the query log, below), no request or
+response bodies, and no value of a secret.
+
+### Which statements ran (query log)
+
+The **Query log** page in Nova lists the statements the engine ran — what, where it came from, how
+long it took, how many rows, and why it failed — with the whole statement in the row's details. The
+same data is the API `GET /api/query-log`, and `GET /api/query-log/{id}` is one query.
+
+| `scope` | What it returns |
+| --- | --- |
+| `mine` (default) | The statements the caller ran, whoever sent them |
+| `team` | The statements of the service principals the caller's groups own — in practice the scheduled pipelines and notebook runs of the group |
+| `all` | Everyone's; administrators only, everyone else gets `403` |
+
+The list takes `state`, `warehouse`, `q`, `from`, `to`, `limit` and `cursor` as well, which is what
+the page's chips, search and paging fill in. [The query log](../guides/query-log) explains what each
+column means.
+
+**Retention.** `NOVA_QUERY_LOG_RETENTION_DAYS` days, `90` by default; Nova purges hourly, and `0`
+turns the purge off so rows are kept until the database is cleaned by hand.
+
+**Somebody else's query** is visible to an administrator only, and opening one writes an audit line
+(above). With `NOVA_QUERY_LOG_REDACT_LITERALS=1`, another person's statement shows `?` in place of
+every string literal; the owner always sees their own text in full.
+
+**What it does not contain.** No result rows, and nothing at all when Nova runs without a state store
+(`NOVA_DATABASE_URL` unset): the log lives in that database. The engine's events reach Nova on a
+best-effort path, so a lost event costs one row and never delays a query.
+
+### Why a run failed (pipelines and notebooks)
+
+The **Runs** page in Nova lists every run you can see. Open one run:
+
+- its **tasks**, each with its log — that is the task's own output from the scheduler, paged, one
+  attempt at a time (`GET /api/pipelines/{namespace}/{name}/runs/{run_id}/tasks/{task_id}/logs`);
+- for a notebook run, the **executed notebook** with every cell's output — that is the run's real log.
+
+The scheduler's own UI is the other view: DAG parsing, queueing and task attempts before and around
+the run. It is for administrators.
+
+**Retention.** Nova copies nothing: a task log is the scheduler's and lives as long as it keeps the
+run's task instances.
+
+**What it does not contain.** A run that failed before its first task started — the DAG did not
+parse, the scheduler is down — is only in the scheduler's UI, not on the **Runs** page.
+
+Related guides: [Schedule SQL and notebooks](../guides/schedule).
+
+### Table maintenance
+
+Every Catalog in the platform runs maintenance on a schedule. To see how the last run went:
+
+```bash
+kubectl -n stardelt get catalogs
+```
+
+Each one's `status.maintenance` names the last run, its result and how many tables it handled. The
+job is the CronJob `maint-<catalog>`; its newest Job's log is the run itself:
+
+```bash
+kubectl -n stardelt get jobs --sort-by=.metadata.creationTimestamp | grep 'maint-<catalog>'
+kubectl -n stardelt logs job/<job-name>
+```
+
+`make verify-maintenance` proves the job, the schedule and the newest run in one go — see
+[Checks to run](./checks).
+
+**What it does not contain.** The Catalog keeps the last run only; earlier ones are their Jobs' logs,
+subject to the CronJob's history limit.
+
+### The platform's own components
+
+The components run as ordinary workloads, so `kubectl` is the reader:
+
+| Component | Command |
+| --- | --- |
+| Trino | `kubectl -n stardelt logs deploy/trino-coordinator` and `deploy/trino-worker` |
+| Lakekeeper | `kubectl -n stardelt logs deploy/lakekeeper` |
+| Airflow | `kubectl -n stardelt logs deploy/airflow-scheduler`, `deploy/airflow-api-server`, `deploy/airflow-dag-processor`, `deploy/airflow-triggerer` |
+| Superset | `kubectl -n stardelt logs deploy/superset` and `deploy/superset-worker` |
+| Keycloak | `kubectl -n stardelt logs deploy/keycloak` |
+| Nova | `kubectl -n stardelt logs deploy/nova` |
+| The operator | `kubectl -n stardelt logs deploy/stardelt-operator` |
+
+`kubectl -n stardelt get pods` names the rest. Add `--tail=100` for the end of a long log, `-f` to
+follow it, and `--previous` after a crash to read the container that ended.
+
+What the cluster itself says about a workload — scheduling, image pulls, probe failures, restarts —
+is an event:
+
+```bash
+kubectl -n stardelt get events --sort-by=.lastTimestamp | tail -20
+```
+
+The **Platform** page in Nova is the quickest overall view for administrators: it lists the
+platform's services with their live status.
+
+### What is not here
+
+There is no central log store and no search across components. This page is the index and `kubectl`
+is the reader, so each source is only as complete as the component that wrote it. Collecting and
+searching them in one place is planned, not promised: the [roadmap](../roadmap) names the work that
+is planned.
+
+## Performance baseline
+
+The sizing numbers on [Running stardelt in production](./production) come from this harness, and
+they are node-specific: CPU, memory, disks and the network between them decide what a query costs.
+Run the baseline on the node you plan to use before you choose its size, and again after you change
+it.
+
+### What it measures
+
+Engine wall time for three fixed TPC-H queries — `q1_aggregate`, `q6_filter` and `q3_join` — on the
+`tpch` connector: planning, scheduling, execution and result paging, timed on the client from the
+`POST /v1/statement` to the last `nextUri` page.
+
+It measures the engine and nothing else. It does not measure permission overhead, Iceberg or
+Lakekeeper, or Spark. The `tpch` and `tpcds` catalogs are administrator-only by design
+(`helm-values/trino-identity.yaml`), so a run uses an administrator token and its numbers are the
+engine's alone.
+
+### Run it
+
+Mint an administrator token with the existing script, then run the baseline:
+
+```bash
+MINT_ONLY=1 TOKEN_FILE=/tmp/perf.token \
+  ISSUER=https://id.alpha.dev.stardelt.io/realms/stardelt \
+  USER=<admin user> PASSWORD=<its password> \
+  CLIENT_SECRET_FILE=<(kubectl -n stardelt get secret stardelt-oidc-clients -o jsonpath='{.data.trino}' | base64 -d) \
+  python3 scripts/verify-trino-auth.py
+TRINO_URL=https://trino.alpha.dev.stardelt.io TRINO_TOKEN="$(cat /tmp/perf.token)" \
+  python3 perf/baseline.py
+```
+
+`make perf-baseline` runs `perf/baseline.py` with `TRINO_URL` and `TRINO_TOKEN` read from the
+environment (`Makefile:131-132`). Credentials are never committed: the token file is temporary and
+the secret is read from the cluster at mint time.
+
+### Settings
+
+| Variable | Default | Effect |
+|---|---|---|
+| `PERF_CATALOG` | `tpch` | the catalog the three queries run in |
+| `PERF_SCHEMA` | `sf1` | the schema; `sf10` needs only `PERF_SCHEMA=sf10`, no code change |
+| `PERF_RUNS` | `3` | runs per query; the first run of each is discarded (cold JVM, cache, S3 listing), and `PERF_RUNS=1` reports the single run as-is |
+| `PERF_CONCURRENCY` | `1,2,4,8` | one table of N people running `q6_filter` at the same moment, with p50/p95/max and errors per level; `0` skips it |
+| `PERF_PER_WORKER` | `5` | statements per person at each concurrency level |
+
+### How to read it
+
+The single-query table reports rows, median, p95 and min in milliseconds. The concurrency table
+reports p50, p95, max, errors and wall time for each level. Read the level where p95 bends upwards:
+that is the concurrency this node holds before people wait, and the number to size against.
+
+Results are written to `perf/results/<UTC timestamp>.json` and are git-ignored. Tables for a release
+belong in the internal repository, not in a pull request.
+
+### What it does not replace
+
+This is a baseline for one node, not a benchmark suite: it runs three fixed queries, with one
+administrator identity, against a synthetic catalog. Re-run it after a resize, a node change or a
+Trino upgrade. A broader benchmark suite is not available yet.

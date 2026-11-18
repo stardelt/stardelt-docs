@@ -25,7 +25,7 @@ Measured on a single node:
 | stardelt Operator | about 50 m CPU and 64 Mi per replica | two replicas, one leader; the standby waits on the Lease and reconciles nothing |
 | Nova | about 10 MB when idle (7 Mi measured) | one replica: the background loops (catalog scan, model probe, pipeline notices) run in every process |
 
-To measure your own node, run the baseline in [Performance baseline](./performance).
+To measure your own node, run the baseline in [Performance baseline](./monitoring#performance-baseline).
 
 The core fits an 8 GB node. The whole platform needs about 16 GB, and Airflow is the largest consumer.
 

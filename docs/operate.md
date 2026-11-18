@@ -15,7 +15,7 @@ For administrators who install, secure and run stardelt. I want to …
 - **[decide who sees which catalog](/docs/operations/access)**
 - **[back up and restore](/docs/operations/backups)**
 - **[monitor it with our Prometheus](/docs/operations/monitoring)**
-- **[find the logs](/docs/operations/logs)**
+- **[find the logs](/docs/operations/monitoring#logs)**
 - **[fix a problem](/docs/operations/troubleshooting)**
 - **[upgrade](/docs/api-versions)**
 - **[get ready for production](/docs/operations/production)**

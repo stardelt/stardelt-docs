@@ -36,7 +36,7 @@ sit four tiles:
   ([Checks to run](./checks)).
 
 A dash in **Engine state** or **Engine version** means Trino has not answered yet: wait for the
-next read and, if it stays, read Trino's logs ([Where the logs are](./logs)).
+next read and, if it stays, read Trino's logs ([Where the logs are](./monitoring#logs)).
 
 **The three status words.** Each service row is one of:
 
@@ -62,7 +62,7 @@ means the image was not pinned where it runs.
 ## Where to look first
 
 Before you guess: the audit trail, the query log, run logs and component logs are indexed in
-[Where the logs are](./logs).
+[Where the logs are](./monitoring#logs).
 
 Start with the blunt checks. They catch most problems:
 
