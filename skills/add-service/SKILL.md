@@ -6,7 +6,7 @@ when_to_use: Adding a new upstream component, moving a chart version, or changin
 
 # Add or upgrade a service
 
-Full recipe: `docs/developer/recipes.md`, "Add or upgrade a service".
+Full recipe: `CONTRIBUTING.md` in stardelt/stardelt, "Add or upgrade a service".
 
 ## First
 

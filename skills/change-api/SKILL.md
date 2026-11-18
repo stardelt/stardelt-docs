@@ -6,7 +6,7 @@ when_to_use: Adding, changing or removing a route in stardelt-nova's backend, or
 
 # Change the Nova API
 
-Full recipe: `docs/developer/recipes.md`, "Change the API".
+Full recipe: `CONTRIBUTING.md` in stardelt/stardelt, "Change the API".
 
 ## Steps
 

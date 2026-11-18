@@ -6,7 +6,7 @@ when_to_use: Changing a type or field in stardelt-operator's crd.rs, or its vali
 
 # Change a resource
 
-Full recipe: `docs/developer/recipes.md`, "Change a resource".
+Full recipe: `CONTRIBUTING.md` in stardelt/stardelt, "Change a resource".
 
 ## Steps
 
