@@ -39,8 +39,9 @@ run never changes the notebook.
 
 In JupyterLab, open the notebook and press **Publish** in its toolbar. The dialog saves the
 notebook, prefills the name, lets you pick the group, and says that scheduled runs use the group's
-principal, not you. If the file has uncommitted Git changes it warns that the published version will
-not match a commit; it still publishes. The notification after it offers **Open in Nova**.
+principal, not you. If the file has uncommitted Git changes the dialog says `Uncommitted changes: the
+published version will not match a commit.`; it still publishes. The notification after it offers
+**Open in Nova**.
 
 The same from a cell, in the file's directory:
 
@@ -61,6 +62,12 @@ stardelt notebook publish daily_trips.ipynb --group analytics
 ```
 
 `stardelt.publish()` works there too: off the platform it uses the same sign-in.
+
+A version records where the file came from when the notebook is inside a Git checkout: the
+repository, the full commit, the path in the repository and whether the file was clean.
+`stardelt.publish` and `stardelt notebook publish` send the same fact in the `X-Stardelt-Source`
+header, a JSON object `{repository, commit, path, clean}`. Nova stores it and does not check it
+against a Git server: it is the publisher's claim.
 
 The rules:
 
@@ -104,8 +111,14 @@ cannot date the run differently from the run the scheduler started.
 
 **Notebooks** → the notebook's name opens its page: the newest version, its publisher and time, and
 the **Versions** table. Versions are listed newest first, at most 50, and each row carries its
-`objectVersion`, size, publish time, publisher and the first 12 characters of the `sha256` of the
-stored bytes.
+`objectVersion`, size, publish time, publisher, the source it came from and the first 12 characters
+of the `sha256` of the stored bytes.
+
+The **From Git** column shows `commit abc1234 · host/org/repo`: the short commit and the repository
+the publisher claimed, and the repository is a link when it starts `https://`. A version published
+without a source says `published by hand`. Above the table the notebook page shows the latest
+version's source as `From Git: commit abc1234 · host/org/repo`, or
+`Not from Git — published by hand.`
 
 A version is immutable. A correction is a new publish, which becomes a new version — the old one stays
 as it was, so a schedule that pinned it keeps running the old bytes. Pick a version's row to see its
@@ -168,6 +181,12 @@ It is not you who runs when the clock fires.
 
 The schedule **pins** the version it was created with: publishing again does not change what it runs.
 Each edit can pin another version; in edit mode the Version list also offers *Use newest version*.
+
+**Production.** In a stage whose mode is production, creating or editing a schedule for a notebook
+that no bundle deploy stamped is refused with `In production a notebook comes from Git. Deploy it
+with a bundle.` The dialog still lists the versions and fills the fields; the check happens when you
+save. A schedule that already exists in a production stage keeps running, and its pipeline page's
+**Deployed from** fact says `Not from Git — this notebook was published by hand.`
 
 On the notebook page, **Where it is used** marks a schedule that runs an older version (“2 versions
 behind”). **Move to newest** opens that schedule's edit dialog on the newest version, so you see its
