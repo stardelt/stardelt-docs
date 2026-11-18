@@ -190,7 +190,7 @@ slowest task is much slower than the median and a join that explodes all have th
   before any tool runs; that is not an error in the client's configuration, it is the scope
   missing from the sign-in request.
 - **It is not part of the API.** `/mcp` sits outside `/api`, so it is not described in the
-  [API reference](../reference/api.md), and it is not behind the interface's sign-in.
+  [API reference](/docs/reference/api), and it is not behind the interface's sign-in.
 
 ### Who may call, and who can see the calls
 

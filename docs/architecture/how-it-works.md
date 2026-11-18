@@ -16,7 +16,7 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 ## Read the picture from the top
 
 1. **You and your tools.** A person works in the browser (the Nova interface), a script or a CI job uses the `stardelt` command line or the Python package, an AI assistant uses the local MCP server, a notebook runs in JupyterHub. All of them sign in once.
-2. **One front door: Nova.** The interface and the public API are the same thing: the command line, the Python package and the MCP tools are generated from the one OpenAPI contract Nova publishes (`/api/openapi.json`, described in the [API reference](../reference/api.md)). A feature that exists in the interface exists in the API.
+2. **One front door: Nova.** The interface and the public API are the same thing: the command line, the Python package and the MCP tools are generated from the one OpenAPI contract Nova publishes (`/api/openapi.json`, described in the [API reference](/docs/reference/api)). A feature that exists in the interface exists in the API.
 3. **Engines and apps.** Trino answers SQL. Airflow runs scheduled pipelines and sends their SQL to Trino. Superset draws dashboards from Trino. Spark Connect takes the heavy jobs. Nova asks them for you; notebooks talk to the engines directly with your token.
 4. **Catalog and access.** Lakekeeper is the Iceberg catalog: it knows which tables exist and which files belong to them, and every engine asks it first. OpenFGA, when it is on, decides who may see which table.
 5. **Storage.** Tables are open Iceberg files (Parquet) in SeaweedFS, or in your own S3. Nothing is locked into a stardelt format.
