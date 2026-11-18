@@ -33,5 +33,5 @@ Check out the repositories side by side, then:
 - **Other assistants** that read `AGENTS.md` are pointed to `skills/` by the file in this repository's
   root. You can also paste a skill into the conversation.
 
-Skills do not replace your judgment: you stay [the author](./contributing#using-an-ai-assistant) of what
+Skills do not replace your judgment: you stay [the author](./index.md#using-an-ai-assistant) of what
 you submit.

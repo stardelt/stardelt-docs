@@ -93,6 +93,7 @@ const config: Config = {
           { from: '/docs/api-versions', to: '/docs/operations/upgrade' },
           { from: '/docs/guides/connections-secret-stores', to: '/docs/operations/secret-stores' },
           { from: '/docs/developer/vscode', to: '/docs/guides/develop' },
+          { from: '/docs/developer/contributing', to: '/docs/developer' },
         ],
       },
     ],
