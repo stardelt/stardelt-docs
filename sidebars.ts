@@ -89,6 +89,7 @@ const sidebars: SidebarsConfig = {
         'guides/publish-pipelines',
         'guides/bundle-reference',
         'guides/deployments',
+        'guides/cli',
         'guides/sdk-cli-mcp',
         'guides/cli-pipelines',
         'guides/sql-statements',

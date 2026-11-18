@@ -13,6 +13,6 @@ describes what the platform is and how to run it.
 - **[Quickstart](/docs/getting-started/quickstart)** — install it, load a file, query it.
 - **[Work with data](/docs/guides/catalog)** — catalog, SQL editor, notebooks, pipelines, dashboards.
 - **[Operate](/docs/operations/health)** — health, checks, backups, upgrades.
-- **[Reference](/docs/reference/api)** — the HTTP API, the resources and the command line.
+- **[Reference](/docs/reference/api)** — the HTTP API, the resources, the [command line](/docs/guides/cli) and the glossary.
 
 The sidebar on every page is the full list; the [roadmap](/docs/roadmap) says what works today.
