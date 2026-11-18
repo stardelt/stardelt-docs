@@ -47,7 +47,7 @@ stardelt may not suit you if you want a managed service or do not want to operat
 | See it working | [Quickstart](../getting-started/quickstart) |
 | Understand the parts | [How it works](../architecture/how-it-works) |
 | Install it for real | [Prerequisites](../getting-started/prerequisites) |
-| Work with data | [From source to dashboard](../guides/source-to-dashboard) |
+| Work with data | [Load data](../guides/load-and-transfer) |
 | Run it | [Running stardelt in production](../operations/production) |
 | Help build it | [Developer guide](/docs/developer) |
 | Know what comes next | [Roadmap](../roadmap) |
