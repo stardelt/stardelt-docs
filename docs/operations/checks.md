@@ -41,7 +41,7 @@ operator upgrade, wait one reconcile (about a minute) and run the check again be
 it as a problem.
 
 Nova's **Platform** page shows the same state live, including the images the cluster runs
-([the Platform page](./health)).
+([the Platform page](./troubleshooting#the-platform-page)).
 
 ## Nightly
 

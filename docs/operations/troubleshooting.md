@@ -6,6 +6,59 @@ slug: /operations/troubleshooting
 
 # Troubleshooting
 
+## The Platform page
+
+Nova's **Platform** page is one screen of live probes: every service with its status, the images
+the cluster is running, and the query engine's own answer. Each number comes from the backend,
+which asks the cluster; the page keeps no history and stores nothing, so it shows what is true now.
+
+**Where it is.** Open Nova as an administrator and choose **Admin → Platform**. The path is
+`/platform` on Nova's host — the base domain of the install, such as
+`https://data.example.com/platform`; the old `/health` and `/apps` paths redirect here. The page is
+administrator-only: a user who is not in the administrator group does not see the **Admin** group
+in the navigation, and the backend refuses the requests behind the page with `403`.
+
+**How fresh it is.** Every line is read live: the services every 10 seconds, the running images and
+the Trino cluster every 15 seconds, and the warehouse name once when you open the page.
+
+**The four numbers.** The header at the top right counts `N / M services up`: `M` is the number of
+installed services and `N` how many of those answer. It is green only when all of them do. Under it
+sit four tiles:
+
+- **Engine state** — Trino's `state`, green at `ACTIVE`. `unreachable` means the backend could not
+  ask Trino; anything else is Trino's own word for a coordinator that is starting, draining or
+  stopped.
+- **Engine version** — the `nodeVersion.version` Trino reports; compare it with the version you
+  meant to run.
+- **Services** — the same `N/M` as the header, with the hint `probing every 10s`.
+- **Warehouse** — the warehouse name, with the hint `Iceberg REST`. A `—` here points at the
+  catalog rather than at a service: check the catalog and its sign-in
+  ([Checks to run](./checks)).
+
+A dash in **Engine state** or **Engine version** means Trino has not answered yet: wait for the
+next read and, if it stays, read Trino's logs ([Where the logs are](./logs)).
+
+**The three status words.** Each service row is one of:
+
+- `up` — the service answered;
+- `unreachable` — the probe failed or the service answered `5xx`: it is installed and running the
+  wrong thing, or not reachable from Nova;
+- `not installed` — the cluster holds no workload for this service at all. This is not a fault:
+  the platform ships more services than an install turns on, so a row for a pillar that is off is
+  expected, and it is not counted as down — neither in the header nor in the **Services** tile.
+
+So `unreachable` is the one to chase, and a row that says `not installed` needs nothing from you.
+
+**Running images.** The table answers what the cluster runs right now: one row per Deployment
+(`deploy`) and StatefulSet (`sts`) in Nova's namespace, with the workload's name, its image and
+`ready/desired` replicas — green when every desired replica is ready. The image column shows the
+repository name and the first eight characters of the digest; hover it to read the full reference.
+Because the table is read from the cluster and not from the repository, it is how you check a
+rollout: compare its digest with the digest in the pin the repository carries (`helm-values/` for a
+chart install, `manifests/` for an install from the manifests). Equal digests mean the pin is what
+runs; different digests mean the pin was merged but never rolled out; a tag instead of a digest
+means the image was not pinned where it runs.
+
 ## Where to look first
 
 Before you guess: the audit trail, the query log, run logs and component logs are indexed in
@@ -19,7 +72,8 @@ kubectl -n stardelt get events --sort-by=.lastTimestamp | tail -20
 helm list -A                                    # any release stuck in pending-upgrade?
 ```
 
-Nova's **Platform** page lists every workload and the image it runs.
+Nova's **Platform** page lists every workload and the image it runs
+([the Platform page](#the-platform-page)).
 
 ## A pinned image will not pull
 
@@ -27,7 +81,8 @@ Nova's **Platform** page lists every workload and the image it runs.
 - `403 Forbidden` / `permission_denied: The token provided does not match expected scopes` — the pull credential cannot read the package (a private package with a token that lacks `read:packages`).
 - `404` / `manifest unknown` on a digest — the package or that digest is gone.
 
-**Check it.** `make verify-images`, with the real output block above (keep it verbatim, indenting it as a code block); one sentence on what each verdict means (✓ readable, ✗ not readable with the registry's code, `UNVERIFIED` exit 3 when the Secret cannot be read).
+**Check it.** Run `make verify-images`. ✓ is readable, ✗ is not readable with the registry's code,
+and `UNVERIFIED` (exit 3) means the Secret cannot be read.
 
 ```text
 ✓ jupyter-singleuser   ghcr.io/stardelt/jupyter-singleuser@sha256:c3d45ec4…   readable
@@ -204,7 +259,7 @@ kubectl -n <namespace> get pods \
 A `Pending` executor with a `PodScheduled=False` condition is the cause. Free CPU on the node
 (stop another stream) and the pod schedules; the checkpoint makes the stream continue.
 
-This page does not cover the Kafka side (`kubectl -n <namespace> exec kafka-kafka-0 -- bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic <topic> --time -1` shows the topic's end offset) or a stalled node, which looks like every check failing at once — see `## A pinned image will not pull` and `docs/operations/checks.md`.
+This page does not cover the Kafka side (`kubectl -n <namespace> exec kafka-kafka-0 -- bin/kafka-get-offsets.sh --bootstrap-server localhost:9092 --topic <topic> --time -1` shows the topic's end offset) or a stalled node, which looks like every check failing at once — see [a pinned image will not pull](#a-pinned-image-will-not-pull) and [checks to run](./checks).
 
 ## A new CRD field is ignored
 
