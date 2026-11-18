@@ -48,6 +48,8 @@ const config: Config = {
         redirects: [
           { from: '/docs/guides/overview', to: '/docs/guides/tour-of-nova' },
           { from: '/docs/guides/command-palette', to: '/docs/guides/tour-of-nova' },
+          { from: '/docs/operations/catalogs-access', to: '/docs/operations/access' },
+          { from: '/docs/operations/network-access', to: '/docs/operations/access' },
         ],
       },
     ],

@@ -51,7 +51,7 @@ port-forward, with data you do not mind everyone on the cluster reading.
 :::
 
 Administrators grant catalog access, catalog-wide, on the **Catalogs** page
-([Catalogs and access](../operations/catalogs-access)).
+([Access to catalogs and the network](../operations/access.md)).
 
 ## Credentials
 
