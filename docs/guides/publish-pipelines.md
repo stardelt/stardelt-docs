@@ -8,7 +8,7 @@ slug: /guides/publish-pipelines
 
 A team keeps its pipelines as files in Git and publishes them to a stage with one command. This page walks one example: a *bundle*
 with one SQL pipeline that you describe, try in your own development stage, check in a pull request, publish to
-production and keep in step with Git. The last section says what is not built.
+production and keep in step with Git.
 
 You need the `stardelt` package ([install and sign in](python.md#sign-in)) and, for everything except `init` and `validate`, a host
 and a sign-in: `stardelt login`, or `STARDELT_TOKEN` in a CI job.
