@@ -9,10 +9,10 @@ slug: /
 stardelt is an open-source data platform that runs in your own Kubernetes cluster. This site
 describes what the platform is and how to run it.
 
-- **[What is stardelt](/docs/intro/overview)** — what it does and what it is made of.
-- **[Quickstart](/docs/getting-started/quickstart)** — install it, load a file, query it.
-- **[Work with data](/docs/guides/catalog)** — catalog, SQL editor, notebooks, pipelines, dashboards.
-- **[Operate](/docs/operations/health)** — health, checks, backups, upgrades.
-- **[Reference](/docs/reference/api)** — the HTTP API, the resources, the [command line](/docs/guides/cli) and the glossary.
+- **[Start](/docs/intro/overview)**: what stardelt is, the quickstart, a live demo.
+- **[Use](/docs/use)**: find, query, load and schedule data in Nova.
+- **[Build](/docs/build)**: the command line, Python, AI agents, publishing from Git.
+- **[Operate](/docs/operate)**: install, sign-in, backups, monitoring, troubleshooting.
+- **[Reference](/docs/reference)**: resources, the API, architecture, glossary.
 
-The sidebar on every page is the full list; the [roadmap](/docs/roadmap) says what works today.
+Each tab at the top has its own sidebar. Search (Ctrl K) covers every page.
