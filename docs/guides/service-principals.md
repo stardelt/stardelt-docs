@@ -68,5 +68,5 @@ Expect one row per principal, with `READY` true.
 
 - [ServicePrincipal reference](../reference/resources/serviceprincipal)
 - [Airflow](./airflow)
-- [Identity integrations](../architecture/identity-integrations)
+- [Sign-in](../operations/sign-in)
 - [Schedule SQL and notebooks](./schedule#schedule-a-sql-statement)

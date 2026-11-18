@@ -82,7 +82,7 @@ It has to pass [these criteria](../architecture/services#service-selection-crite
 
 8. Add a page at `docs/services/<component>.md`; the sidebar picks it up. Add a row to
    [Services](../architecture/services).
-9. If it signs users in, add it to [per-component sign-in](../architecture/identity-integrations).
+9. If it signs users in, add it to [Sign-in](../operations/sign-in).
 
 **To upgrade only:** Renovate proposes most pins. Read the upstream license and release notes, and update
 any copy that CI's version checks name.

@@ -7,7 +7,7 @@ slug: /architecture/identity-blocks-platform
 # Identity: Airflow, JupyterHub, SeaweedFS
 
 The three blocks that are not in the request path of a Trino query. The pinned versions and the
-mode decision are on [Identity integrations](./identity-integrations); Nova, Trino, Lakekeeper and
+mode decision are on [Sign-in](../operations/sign-in); Nova, Trino, Lakekeeper and
 Superset are on [Nova, Trino, Lakekeeper, Superset](./identity-blocks-core).
 
 ### Airflow 3.2.2 (chart 1.22.0)

@@ -7,7 +7,7 @@ slug: /architecture/identity-blocks-core
 # Identity: Nova, Trino, Lakekeeper, Superset
 
 The four blocks most people touch first. The pinned versions and the mode decision are on
-[Identity integrations](./identity-integrations); the other blocks are on
+[Sign-in](../operations/sign-in); the other blocks are on
 [Airflow, JupyterHub and SeaweedFS](./identity-blocks-platform).
 
 ### Nova (stardelt, Rust axum)
