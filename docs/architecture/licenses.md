@@ -14,8 +14,8 @@ projects, and their own licenses apply to them.
 | Decision | Licenses |
 |---|---|
 | **Accepted** | OSI-approved permissive licenses: Apache 2.0, MIT, BSD-2-Clause, BSD-3-Clause |
-| **Documented exception** | MPL 2.0, for OpenBao only |
-| **Rejected** | AGPL, GPL, BSL, SSPL, ELv2, FSL, Confluent Community License, proprietary, and anything source-available that is not OSI-approved |
+| **Documented exception** | MPL 2.0, Artistic-1.0 and GPL-3.0, each listed under [Documented exceptions](#documented-exceptions) |
+| **Rejected** | AGPL, BSL, SSPL, ELv2, FSL, Confluent Community License, proprietary, and anything source-available that is not OSI-approved — and GPL, except where listed below |
 
 The policy is strict because "self-host forever" only holds if nothing in the default install can
 be relicensed out from under you. It applies to everything stardelt ships or installs, and to the
@@ -24,7 +24,7 @@ dependencies of stardelt's own code.
 ## The exception: OpenBao
 
 OpenBao stores secrets for connections. It is licensed under MPL 2.0, which is OSI-approved but
-copyleft per file, so it is not purely permissive. It is accepted as the one exception because:
+copyleft per file, so it is not purely permissive. It is accepted as a documented exception because:
 
 - no permissive secrets manager with comparable features exists;
 - MPL 2.0 applies per file and has no network-use obligations;
@@ -32,6 +32,27 @@ copyleft per file, so it is not purely permissive. It is accepted as the one exc
 
 OpenBao is **optional**. It is installed only if you run `make openbao` or turn it on in your
 `PlatformInstance`. Without it, the install contains nothing under MPL 2.0.
+
+## Documented exceptions
+
+Every component outside the accepted licenses is listed here. A row is a maintainer decision; the
+policy stays "permissive only, plus this table".
+
+| Component | License | How it is used | Why | Source |
+|---|---|---|---|---|
+| OpenBao | MPL 2.0 | Optional secrets store for connections | See [above](#the-exception-openbao) | [openbao/openbao](https://github.com/openbao/openbao) |
+| Barman Cloud (the CloudNativePG plugin) | GPL-3.0 | The default install's backup path: continuous WAL archiving and daily base backups of every PostgreSQL cluster, installed by both install paths | CloudNativePG 1.32 removed the in-tree `barmanObjectStore` and names this plugin instead; no permissively licensed PostgreSQL backup plugin with WAL archiving exists for it. Consumed as the unmodified upstream image, by digest | [cloudnative-pg/plugin-barman-cloud](https://github.com/cloudnative-pg/plugin-barman-cloud) |
+| pathspec | MPL 2.0 | The dbt tool image (an optional tool image that runs a customer's own dbt models; never linked into a stardelt binary) | A direct dependency of `dbt-core`; no replacement exists. Shipped as the unmodified wheel | [cpburnz/python-pathspec](https://github.com/cpburnz/python-pathspec) |
+| text-unidecode | Artistic-1.0 (dual with GPL) | The same dbt tool image | A dependency of `dbt-core` through `agate`; of the two licenses, Artistic-1.0 is elected | [kmike/text-unidecode](https://github.com/kmike/text-unidecode) |
+
+Every exception carries the same compliance conditions:
+
+- **Unmodified.** No build or deploy step patches the binary, its code or its image. The image is
+  consumed by digest.
+- **Notices kept.** The license text and copyright notices in the image stay intact. The image is not
+  stripped or flattened.
+- **Source available.** Where the image is redistributed (a mirror, an air-gapped bundle), this page
+  links the exact upstream source tag of the pinned version.
 
 ## Common questions
 
