@@ -14,8 +14,12 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const srcDir = join(root, 'reference-src');
 
-const operatorRepo = 'stardelt/stardelt-operator';
-const novaRepo = 'stardelt/stardelt-nova';
+// One product repository since the merge (D49): the operator and Nova are folders of it.
+const repo = 'stardelt/stardelt';
+const operatorDir = 'operator';
+const novaDir = 'nova';
+const operatorLink = `https://github.com/${repo}/tree/main/${operatorDir}`;
+const novaLink = `https://github.com/${repo}/tree/main/${novaDir}`;
 
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const headers = {
@@ -89,12 +93,12 @@ async function writeDownload(file, url) {
 
 async function main() {
   const [operatorSha, novaSha] = await Promise.all([
-    artifactSha(operatorRepo, ['schemas', 'examples']),
-    artifactSha(novaRepo, ['openapi/nova.json']),
+    artifactSha(repo, [`${operatorDir}/schemas`, `${operatorDir}/examples`]),
+    artifactSha(repo, [`${novaDir}/openapi/nova.json`]),
   ]);
 
-  const schemas = await directory(operatorRepo, 'schemas', operatorSha);
-  if (!schemas) throw new Error(`${operatorRepo} has no schemas/ directory`);
+  const schemas = await directory(repo, `${operatorDir}/schemas`, operatorSha);
+  if (!schemas) throw new Error(`${repo} has no ${operatorDir}/schemas/ directory`);
 
   await rm(join(srcDir, 'schemas'), { recursive: true, force: true });
   await mkdir(join(srcDir, 'schemas'), { recursive: true });
@@ -102,15 +106,15 @@ async function main() {
   const schemaFiles = schemas
     .filter((entry) => entry.type === 'file' && entry.name.endsWith('.json'))
     .sort((a, b) => a.name.localeCompare(b.name));
-  if (schemaFiles.length === 0) throw new Error(`${operatorRepo}/schemas has no *.json files`);
+  if (schemaFiles.length === 0) throw new Error(`${repo}/${operatorDir}/schemas has no *.json files`);
 
-  console.log(`schemas from ${operatorRepo}@${operatorSha.slice(0, 8)}:`);
+  console.log(`schemas from ${repo}/${operatorDir}@${operatorSha.slice(0, 8)}:`);
   for (const entry of schemaFiles) {
     if (!entry.download_url) throw new Error(`${entry.name} has no download_url`);
     await writeDownload(join(srcDir, 'schemas', entry.name), entry.download_url);
   }
 
-  const examples = await directory(operatorRepo, 'examples', operatorSha);
+  const examples = await directory(repo, `${operatorDir}/examples`, operatorSha);
   const exampleFiles = (examples || [])
     .filter((entry) => entry.type === 'file' && entry.name.endsWith('.yaml'))
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -118,35 +122,37 @@ async function main() {
   await rm(join(srcDir, 'examples'), { recursive: true, force: true });
   if (exampleFiles.length > 0) {
     await mkdir(join(srcDir, 'examples'), { recursive: true });
-    console.log(`examples from ${operatorRepo}@${operatorSha.slice(0, 8)}:`);
+    console.log(`examples from ${repo}/${operatorDir}@${operatorSha.slice(0, 8)}:`);
     for (const entry of exampleFiles) {
       if (!entry.download_url) throw new Error(`${entry.name} has no download_url`);
       await writeDownload(join(srcDir, 'examples', entry.name), entry.download_url);
     }
   }
 
-  console.log(`OpenAPI document from ${novaRepo}@${novaSha.slice(0, 8)}:`);
+  console.log(`OpenAPI document from ${repo}/${novaDir}@${novaSha.slice(0, 8)}:`);
   await writeDownload(
     join(srcDir, 'nova-openapi.json'),
-    `https://raw.githubusercontent.com/${novaRepo}/${novaSha}/openapi/nova.json`,
+    `https://raw.githubusercontent.com/${repo}/${novaSha}/${novaDir}/openapi/nova.json`,
   );
 
   const synced = new Date().toISOString().slice(0, 10);
   const previous = await readFile(join(srcDir, 'README.md'), 'utf8').catch(() => '');
-  const keepDate = (repo, sha, row) =>
+  // A row keeps its date while its source commit is unchanged. Both rows name the same repository,
+  // so the folder link tells them apart.
+  const keepDate = (link, sha, row) =>
     previous
       .split('\n')
-      .find((line) => line.includes(`https://github.com/${repo})`) && line.includes(`\`${sha}\``)) ??
+      .find((line) => line.includes(`(${link})`) && line.includes(`\`${sha}\``)) ??
     row;
   const operatorRow = keepDate(
-    operatorRepo,
+    operatorLink,
     operatorSha,
-    `| \`schemas/*.json\`${exampleFiles.length > 0 ? ', `examples/*.yaml`' : ''} | [\`${operatorRepo}\`](https://github.com/${operatorRepo}) | \`${operatorSha}\` | ${synced} |`,
+    `| \`schemas/*.json\`${exampleFiles.length > 0 ? ', `examples/*.yaml`' : ''} | [\`${repo}\` \`${operatorDir}/\`](${operatorLink}) | \`${operatorSha}\` | ${synced} |`,
   );
   const novaRow = keepDate(
-    novaRepo,
+    novaLink,
     novaSha,
-    `| \`nova-openapi.json\` | [\`${novaRepo}\`](https://github.com/${novaRepo}) | \`${novaSha}\` | ${synced} |`,
+    `| \`nova-openapi.json\` | [\`${repo}\` \`${novaDir}/\`](${novaLink}) | \`${novaSha}\` | ${synced} |`,
   );
   const readme = `# Reference snapshots
 

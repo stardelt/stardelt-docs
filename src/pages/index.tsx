@@ -843,8 +843,8 @@ function Pillars(): ReactNode {
 /*  Closing CTA                                                         */
 /* ------------------------------------------------------------------ */
 
-const quickstartCommands = `git clone https://github.com/stardelt/stardelt-platform
-cd stardelt-platform
+const quickstartCommands = `git clone https://github.com/stardelt/stardelt
+cd stardelt/platform
 helm dependency build chart
 
 helm upgrade --install stardelt chart \\

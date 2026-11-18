@@ -18,7 +18,7 @@ The examples name `warehouse`, the platform's own catalog. On an install with si
 :::
 
 ```bash
-pip install "stardelt @ git+https://github.com/stardelt/stardelt-python@v0.4.1"
+pip install "stardelt @ git+https://github.com/stardelt/stardelt@python/v0.4.1#subdirectory=python"
 ```
 
 The package is not on PyPI: this installs the current release `v0.4.1`, straight from

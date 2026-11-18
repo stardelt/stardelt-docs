@@ -10,8 +10,8 @@ stardelt is **pre-alpha**: there are no tagged releases yet, you install from `m
 change without notice. Work is grouped into milestones, and each one has a goal you can check. The
 platform will stay on `0.x` for a long time.
 
-Open work is in each repository's issues under the milestone of the same name, such as
-[`stardelt-platform`](https://github.com/stardelt/stardelt-platform/milestones).
+Open work is in the issues of [`stardelt/stardelt`](https://github.com/stardelt/stardelt/milestones), under the
+milestone of the same name.
 This page changes through pull requests, and a large change of scope starts with an issue.
 
 ## Milestones

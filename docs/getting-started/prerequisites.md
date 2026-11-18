@@ -14,7 +14,7 @@ not supported.
 | You have | Do this |
 |---|---|
 | No cluster, and you want to try stardelt | [Single Hetzner node](./hetzner-k3s) |
-| A cluster, and you want everything with sign-in | `IDENTITY=1 BASE_DOMAIN=<your domain> make platform` in a checkout of [`stardelt-platform`](https://github.com/stardelt/stardelt-platform) (the checks are below) |
+| A cluster, and you want everything with sign-in | `IDENTITY=1 BASE_DOMAIN=<your domain> make platform` in a checkout of [`stardelt/platform`](https://github.com/stardelt/stardelt/tree/main/platform) (the checks are below) |
 | A cluster, and you want one Helm release and values in Git | [Install on your own cluster](./your-cluster) |
 
 ## What the cluster must provide

@@ -26,8 +26,8 @@ Check that `kubectl` points at the right cluster, then install:
 ```bash
 kubectl config current-context
 
-git clone https://github.com/stardelt/stardelt-platform
-cd stardelt-platform
+git clone https://github.com/stardelt/stardelt
+cd stardelt/platform
 helm dependency update chart
 
 helm upgrade --install stardelt chart \

@@ -21,20 +21,23 @@ what confused you. If you only want to **use** stardelt, start at the
 
 ## The repositories
 
-| Repository | What it is | Check before a pull request |
+The product is one repository, [`stardelt/stardelt`](https://github.com/stardelt/stardelt), with a folder per
+part. Run each check from its folder; one pull request may change several folders.
+
+| Where | What it is | Check before a pull request |
 |---|---|---|
-| [`stardelt-docs`](https://github.com/stardelt/stardelt-docs) | This site | `npm run build` |
-| [`stardelt-platform`](https://github.com/stardelt/stardelt-platform) | Helm values, manifests, umbrella chart, install scripts | `make lint`, and `make chart-template` for chart changes |
-| [`stardelt-nova`](https://github.com/stardelt/stardelt-nova) | The interface and API: Rust backend, React frontend | `cargo check --all-targets`, `npm --prefix frontend run build` |
-| [`stardelt-operator`](https://github.com/stardelt/stardelt-operator) | The Kubernetes operator and its resources | `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` |
-| [`stardelt-python`](https://github.com/stardelt/stardelt-python) | The Python package, command line and MCP server | `python -m pytest tests -q` |
-| [`stardelt-demos`](https://github.com/stardelt/stardelt-demos) | Sample pipelines and the Airflow image | `python -m pytest -q tests` |
+| [`stardelt-docs`](https://github.com/stardelt/stardelt-docs) | This site (its own repository) | `npm run build` |
+| [`platform/`](https://github.com/stardelt/stardelt/tree/main/platform) | Helm values, manifests, umbrella chart, install scripts | `make lint`, and `make chart-template` for chart changes |
+| [`nova/`](https://github.com/stardelt/stardelt/tree/main/nova) | The interface and API: Rust backend, React frontend | `cargo check --all-targets`, `npm --prefix frontend run build` |
+| [`operator/`](https://github.com/stardelt/stardelt/tree/main/operator) | The Kubernetes operator and its resources | `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` |
+| [`python/`](https://github.com/stardelt/stardelt/tree/main/python) | The Python package, command line and MCP server | `python -m pytest tests -q` |
+| [`demos/`](https://github.com/stardelt/stardelt/tree/main/demos) | Sample pipelines and the Airflow image | `python -m pytest -q tests` |
 
 ## Work on the interface without a cluster
 
 ```bash
-git clone https://github.com/stardelt/stardelt-nova
-cd stardelt-nova
+git clone https://github.com/stardelt/stardelt
+cd stardelt/nova
 make demo      # in-memory data; needs Rust and Node
 ```
 

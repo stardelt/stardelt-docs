@@ -224,7 +224,7 @@ operator predates the self-applying behaviour, apply the schemas once:
 
 ## Asking for help
 
-Open an [issue](https://github.com/stardelt/stardelt-platform/issues) with what you ran, what you
+Open an [issue](https://github.com/stardelt/stardelt/issues) with what you ran, what you
 expected, and the output of `kubectl -n stardelt get pods` and `kubectl -n stardelt get events`.
 Remove domains and secrets first. To report a security problem privately, use
 [the security policy](https://github.com/stardelt/.github/blob/main/SECURITY.md).
