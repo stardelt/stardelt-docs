@@ -19,7 +19,7 @@ stardelt pins, the Helm value paths, the claims each block needs, and where the 
 can and cannot travel. The Nova-side contract (env vars, flows, rules) is on the *Identity* page
 in this section. When the two pages disagree, the *Identity* page is authoritative for the contract.
 
-Pinned versions (`stardelt-platform/Makefile`): Trino chart 1.45.0 (Trino 484), Lakekeeper chart
+Pinned versions (`platform/Makefile`): Trino chart 1.45.0 (Trino 484), Lakekeeper chart
 0.14.0 (Lakekeeper 0.15.0), Superset chart 0.15.5 (Superset 5.0.0, Flask-AppBuilder 4.5.5),
 Airflow chart 1.22.0 (Airflow 3.2.2, FAB provider 3.6.4), JupyterHub chart 4.4.5 (JupyterHub 5.5.5,
 OAuthenticator 17.4.0), SeaweedFS chart 4.25.1 (SeaweedFS 4.25).
@@ -52,7 +52,7 @@ Direct callers (Nova, notebooks, PyIceberg) present the user's own token to Lake
 
 ## Decision: two modes, one knob
 
-The umbrella chart (`stardelt-platform/chart/values.yaml`) already carries this block. The
+The umbrella chart (`platform/chart/values.yaml`) already carries this block. The
 `PlatformInstance` CRD will carry the same five fields with the same meanings:
 
 ```yaml

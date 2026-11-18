@@ -70,7 +70,7 @@ refuses it. It looks like a database fault but is a host problem, and no chart v
 
 1. **Boot the previous kernel** and hold the new one until a fixed kernel or profile ships. This
    keeps container confinement.
-2. **Turn AppArmor off for containers.** In a checkout of `stardelt-platform`, run
+2. **Turn AppArmor off for containers.** From `platform/`, run
    `sudo scripts/enable-apparmor.sh --apply --restart`. This weakens confinement for every container
    on the node. The host's AppArmor service stays on.
 3. **Set `securityContext.appArmorProfile: Unconfined`** on each pod that signals itself
@@ -214,9 +214,9 @@ not finished: the CRD schema is applied by the operator at start. Check
 and `kubectl -n <namespace> rollout status deploy/stardelt-operator`.
 
 **Fix.** Roll the operator image that carries the schema (`helm upgrade` with the pinned
-digest, or `./scripts/pin-image.sh stardelt-operator` from `stardelt-platform`). If your
+digest, or `./scripts/pin-image.sh stardelt-operator` from `platform/`). If your
 operator predates the self-applying behaviour, apply the schemas once:
-`kubectl apply --server-side -f chart/crds/` in the `stardelt-operator` checkout.
+`kubectl apply --server-side -f chart/crds/` in `operator/`.
 
 ## Sign-in fails after hours in a notebook
 

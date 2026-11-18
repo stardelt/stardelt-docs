@@ -89,8 +89,8 @@ any copy that CI's version checks name.
 
 ## Fix something on both install paths
 
-1. Fix it in `stardelt-platform`, and add a test or check if you can.
-2. Look for the same logic in `stardelt-operator`. `crates/stardelt-operator/src/` has copies of scripts,
+1. Fix it in `platform/`, and add a test or check if you can.
+2. Look for the same logic in `operator/`. `crates/stardelt-operator/src/` has copies of scripts,
    and `values/` has copies of settings.
 3. Fix the copy in a second pull request, with a test in the crate that pins the behaviour.
 

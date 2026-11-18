@@ -149,7 +149,7 @@ The four blocks most people touch first. The pinned versions and the mode decisi
     email. It raises an error if neither is present. It maps `roles` to `role_keys`, and skips
     signature verification unless `client_kwargs.verify_signature: True`.
   - **Authlib.** It must be in the image. Superset 5.0.0's `requirements/base.txt` does not include
-    it, so add it to `stardelt-platform/images/superset/Dockerfile`.
+    it, so add it to `platform/images/superset/Dockerfile`.
 - **Values** (chart keys `configOverrides`, secrets via `extraSecretEnv`):
 
   ```python

@@ -31,7 +31,7 @@ Rules that keep it readable:
 
 - One direction per diagram: `LR` for a pipeline, `TD` for a hierarchy. Never mix.
 - Box labels are the platform's real names, in quotes.
-- Subgraphs group by owner (`stardelt-nova`, `stardelt-operator`), not by guesswork.
+- Subgraphs group by owner (`nova/`, `operator/`), not by guesswork.
 - At most about twelve nodes; past that, split the diagram.
 
 ## A sequence

@@ -12,7 +12,7 @@ slug: /services/seaweedfs
 
 **How it fits.** SeaweedFS runs in the data plane and is used by Trino (via S3) and Lakekeeper as the storage backend. It is the default object store; organizations can bring their own S3-compatible storage. See [Services](../architecture/services) and [How it works](../architecture/how-it-works).
 
-**What you can tune.** Key settings from `stardelt-platform/helm-values/seaweedfs.yaml`:
+**What you can tune.** Key settings from `platform/helm-values/seaweedfs.yaml`:
 
 | Setting | Values file | Key | Default | What it changes |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ slug: /services/seaweedfs
 
 - **Health check:** Check SeaweedFS pods in the cluster (e.g. `kubectl -n stardelt get pods -l app.kubernetes.io/name=seaweedfs`).
 - **Logs:** View logs by component (master/volume/filer/s3) with `kubectl -n stardelt logs -l app.kubernetes.io/name=seaweedfs`.
-- **Install step:** `make step-storage` (see `stardelt-platform/Makefile`) installs SeaweedFS and creates buckets.
-- **Buckets:** The notebooks bucket is created by `stardelt-platform/scripts/create-notebooks-bucket.sh` (versioned). The backup bucket is created by `stardelt-platform/scripts/create-backup-bucket.sh`.
+- **Install step:** `make step-storage` (see `platform/Makefile`) installs SeaweedFS and creates buckets.
+- **Buckets:** The notebooks bucket is created by `platform/scripts/create-notebooks-bucket.sh` (versioned). The backup bucket is created by `platform/scripts/create-backup-bucket.sh`.
 - **Backup:** Object store data is archived by `manifests/object-store-backup.yaml` (daily `aws s3 sync` to `lakehouse-backup`). See [Backups](../operations/backups).
 - **Admin UI:** Cluster-internal admin UI is available (see `helm-values/seaweedfs.yaml`); access via `make seaweedfs-admin`.

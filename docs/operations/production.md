@@ -79,7 +79,8 @@ Group names come from your sign-in provider, so they are the same in every stage
 ## Upgrades
 
 ```bash
-git -C stardelt-platform pull
+cd platform
+git pull
 make upgrade              # moves pins, runs migrations, runs the verify targets
 ```
 
@@ -89,7 +90,7 @@ With the umbrella chart, run `helm upgrade --install stardelt chart -n stardelt 
 - **CRDs upgrade with the operator.** The operator applies its own CRD schemas at start, so a
   new operator image carries the schema of its build; `helm install` still installs them first
   on a fresh cluster. An operator older than that behaviour needs one
-  `kubectl apply --server-side -f chart/crds/` from the operator checkout.
+  `kubectl apply --server-side -f chart/crds/` from `operator/`.
 - **Put digests in your values.** A moving tag can serve an old image.
 
 There is no migration guide or compatibility promise before the first tagged release, so upgrade your

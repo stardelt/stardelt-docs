@@ -50,7 +50,7 @@ These numbers say what fits, not what a production workload needs. See
 | `git`, `make` | recent | every install |
 | `hcloud`, [`hetzner-k3s`](https://github.com/vitobotta/hetzner-k3s/releases) | recent | the Hetzner path only |
 
-`stardelt-platform/dev/install-tools.sh` installs `kubectl`, `helm` and `hcloud` into `~/.local/bin`.
+`platform/dev/install-tools.sh` installs `kubectl`, `helm` and `hcloud` into `~/.local/bin`.
 
 ## Check the node first
 

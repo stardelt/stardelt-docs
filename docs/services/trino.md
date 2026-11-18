@@ -12,7 +12,7 @@ slug: /services/trino
 
 **How it fits.** Trino runs in the data plane between the applications and the catalog/storage. It calls Lakekeeper for Iceberg REST catalog metadata and reads/writes objects in SeaweedFS via the S3 API. It is consumed by Nova's SQL editor and by Superset. See [Services](../architecture/services) and [How it works](../architecture/how-it-works).
 
-**What you can tune.** Key settings from `stardelt-platform/helm-values/trino.yaml` and `stardelt-platform/helm-values/trino-identity.yaml`:
+**What you can tune.** Key settings from `platform/helm-values/trino.yaml` and `platform/helm-values/trino-identity.yaml`:
 
 | Setting | Values file | Key | Default | What it changes |
 |---|---|---|---|---|
@@ -31,6 +31,6 @@ slug: /services/trino
 
 - **Health check:** Check the Trino coordinator service readiness in the cluster (e.g. `kubectl -n stardelt get pods -l app.kubernetes.io/name=trino`).
 - **Logs:** View coordinator/worker logs with `kubectl -n stardelt logs -l app.kubernetes.io/name=trino`.
-- **Install step:** `make step-trino` (see `stardelt-platform/Makefile`). With a platform IdP present, it also applies TLS manifests and configures identity.
+- **Install step:** `make step-trino` (see `platform/Makefile`). With a platform IdP present, it also applies TLS manifests and configures identity.
 - **Backup:** Trino has no persistent catalog metadata of its own in this setup; backups focus on the catalog (Lakekeeper/Postgres) and object store. See [Backups](../operations/backups).
 - **Query log:** Query history is recorded by Nova; see [The query log](../guides/query-log).
