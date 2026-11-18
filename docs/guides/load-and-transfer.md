@@ -196,7 +196,7 @@ administrators). A dashboard that spans two catalogs is administrators-only unti
 
 ### 5. Work every day
 
-- **Notebooks** on the platform (Nova → **Notebooks**), or in [VS Code](../developer/vscode) against your server.
+- **Notebooks** on the platform (Nova → **Notebooks**), or in [VS Code](./develop) against your server.
   Your notebook queries as you: `SELECT current_user` prints your name.
 - **Trino or Spark?** Start with Trino. Use Spark when SQL no longer fits or one machine is not enough.
 
