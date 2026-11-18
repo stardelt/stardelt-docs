@@ -71,6 +71,7 @@ const config: Config = {
           { from: '/docs/architecture/identity-integrations', to: '/docs/operations/sign-in' },
           { from: '/docs/operations/logs', to: '/docs/operations/monitoring#logs' },
           { from: '/docs/operations/performance', to: '/docs/operations/monitoring#performance-baseline' },
+          { from: '/docs/guides/cli-pipelines', to: '/docs/guides/cli#pipelines-from-the-command-line' },
         ],
       },
     ],

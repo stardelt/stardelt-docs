@@ -124,5 +124,5 @@ statement then reads `CANCELED`.
 ## What next
 
 - [The command line](./cli): every command, with an example each.
-- [Pipelines from the command line](cli-pipelines.md): deploy from a file, publish a bundle, run and wait.
+- [Pipelines from the command line](cli.md#pipelines-from-the-command-line): deploy from a file, publish a bundle, run and wait.
 - [AI assistants (MCP)](mcp.md): let an assistant use the platform as you.

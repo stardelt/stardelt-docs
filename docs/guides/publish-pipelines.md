@@ -101,7 +101,7 @@ stardelt bundle run shop -t dev
 
 `bundle run` starts every pipeline the deploy left in your stage in turn and stops at the first that does not succeed
 (exit code `1`); `--only daily` runs one, written without the `dev-alice-` prefix; to start any
-pipeline, see [Run a pipeline and wait for it](cli-pipelines.md#run-a-pipeline-and-wait-for-it).
+pipeline, see [Run a pipeline and wait for it](cli.md#run-a-pipeline-and-wait-for-it).
 
 ## 3. Check a change in a pull request
 
