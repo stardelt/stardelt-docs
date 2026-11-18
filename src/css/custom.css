@@ -1,5 +1,5 @@
 /* stardelt docs theme: Graphite (dark, default) and Silver (light), the palettes
-   of Nova's themes of the same names (stardelt-nova frontend/src/index.css,
+   of Nova's themes of the same names (nova/frontend/src/index.css,
    [data-theme='graphite'] and [data-theme='silver']). Everything below the two
    token blocks uses the --sd-* tokens, so a rule needs no second colour.
 

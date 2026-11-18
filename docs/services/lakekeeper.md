@@ -12,7 +12,7 @@ slug: /services/lakekeeper
 
 **How it fits.** Lakekeeper runs in the data plane alongside Postgres (CloudNativePG) for its metadata. It connects to SeaweedFS as the object store backend for table data. Trino reads/writes through the Iceberg REST catalog; Nova and other components interact with the catalog via Lakekeeper. See [Services](../architecture/services) and [How it works](../architecture/how-it-works).
 
-**What you can tune.** Key settings from `stardelt-platform/helm-values/lakekeeper.yaml`:
+**What you can tune.** Key settings from `platform/helm-values/lakekeeper.yaml`:
 
 | Setting | Values file | Key | Default | What it changes |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ slug: /services/lakekeeper
 
 - **Health check:** Check Lakekeeper pods in the cluster (e.g. `kubectl -n stardelt get pods -l app.kubernetes.io/name=lakekeeper`).
 - **Logs:** View logs with `kubectl -n stardelt logs -l app.kubernetes.io/name=lakekeeper -c lakekeeper`.
-- **Install step:** `make step-lakekeeper` (see `stardelt-platform/Makefile`). Also applies bootstrap and network policy.
+- **Install step:** `make step-lakekeeper` (see `platform/Makefile`). Also applies bootstrap and network policy.
 - **Bootstrap:** The warehouse is bootstrapped by `manifests/lakekeeper-bootstrap.yaml` (creates/updates the `warehouse` pointing to SeaweedFS).
 - **Network policy:** `manifests/lakekeeper-network-policy.yaml` restricts ingress to authorized callers.
 - **Backup:** Lakekeeper metadata is stored in Postgres (CNPG); backups follow Postgres backup configuration. See [Backups](../operations/backups).

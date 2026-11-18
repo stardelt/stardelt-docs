@@ -68,7 +68,7 @@ of the access-sync constant `73aa5faee130c60da`, so the grep answered 0 on the b
 it). Derive the literal from the constant, then match it:
 
 ```bash
-l=$(git -C ../stardelt-operator show origin/main:crates/stardelt-operator/src/access_sync.rs \
+l=$(git -C ../operator show origin/main:crates/stardelt-operator/src/access_sync.rs \
     | sed -n 's/^pub const IMAGE.*sha256:\([0-9a-f]\{16\}\).*/\1/p')
 kubectl -n stardelt exec deploy/stardelt-operator -- grep -ac "$l" /usr/local/bin/stardelt-operator
 # expect: 1

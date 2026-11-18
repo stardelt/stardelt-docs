@@ -7,7 +7,7 @@ pagination_next: guides/source-to-dashboard
 
 # Install on your own cluster
 
-For a cluster you operate, use the **umbrella Helm chart** in `stardelt-platform/chart`: one release,
+For a cluster you operate, use the **umbrella Helm chart** in `platform/chart`: one release,
 one values file you keep in Git, and every cluster-specific decision is a value.
 
 :::caution The chart's default has no sign-in and no permissions

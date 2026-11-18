@@ -8,7 +8,7 @@ slug: /guides/pegelonline-demo
 
 ## What runs
 
-The hourly Airflow DAG `pegelonline_hourly` in `stardelt-demos/dags/pegelonline_hourly.py` fetches the German waterway gauge API (PEGELONLINE, public JSON, no key). Rows are appended with pyiceberg to the Iceberg table `shared.bronze.pegelonline_measurements`, partitioned by day on `measured_at`.
+The hourly Airflow DAG `pegelonline_hourly` in `demos/dags/pegelonline_hourly.py` fetches the German waterway gauge API (PEGELONLINE, public JSON, no key). Rows are appended with pyiceberg to the Iceberg table `shared.bronze.pegelonline_measurements`, partitioned by day on `measured_at`.
 
 The platform's own warehouse is not used: the DAG overrides the pyiceberg `warehouse` property to the `shared` catalog.
 
@@ -73,7 +73,7 @@ The DAG also publishes each fetched row to the [bus](../services/kafka) on the t
 `pegelonline.measurements`. A `StreamApp` reads that topic and writes
 `mobility.bronze.pegelonline_stream`, merging on `(station_uuid, timeseries, measured_at)`.
 
-The example lives in `stardelt-demos/examples/pegelonline/`:
+The example lives in `demos/examples/pegelonline/`:
 
 - `streamapp.yaml` — the `StreamApp` (topic in, Iceberg table out, `ownerGroup:
   mobility-analytics`);
@@ -104,7 +104,7 @@ keeps the checkpoint.
 The example also carries a continuous variant for watching the streaming plane move: a producer
 pod writes three measurements every five seconds to `pegelonline.continuous`, and a second
 `StreamApp` merges them into `mobility.bronze.pegelonline_continuous`. It lives in
-`stardelt-demos/examples/streaming/`:
+`demos/examples/streaming/`:
 
 - `continuous-demo.yaml` — the `KafkaTopic`, the producer `Deployment` and the `StreamApp`
   `pegelonline-continuous`;

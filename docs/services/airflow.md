@@ -33,5 +33,5 @@ slug: /services/airflow
 
 - **Health check:** `kubectl -n stardelt get pods -l app.kubernetes.io/name=airflow`
 - **Logs:** `kubectl -n stardelt logs -l component=api-server -n stardelt` or `kubectl -n stardelt logs -l component=scheduler -n stardelt`
-- **Install step:** `make step-airflow` (from `stardelt-platform`)
+- **Install step:** `make step-airflow` (from `platform/`)
 - **Backup:** App database dump via `manifests/pg-dump-backup.yaml` / `make step-pgdump` (Airflow metadata DB)

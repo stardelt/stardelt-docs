@@ -55,8 +55,8 @@ That behaviour exists because of how Helm treats CRDs:
 - `helm upgrade` never applies `crds/`. Without the self-apply, an upgraded operator would run
   against the schema of the release before it.
 
-An operator older than the self-applying behaviour needs the schemas applied once by hand, in the
-`stardelt-operator` checkout:
+An operator older than the self-applying behaviour needs the schemas applied once by hand, from
+`operator/`:
 
 ```bash
 kubectl apply --server-side -f chart/crds/

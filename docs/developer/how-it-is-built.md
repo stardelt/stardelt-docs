@@ -11,16 +11,16 @@ Where things live and how they get generated. For what the platform does, read
 
 ## Where a change goes
 
-| You want to change | Repository | Start at |
+| You want to change | Folder | Start at |
 |---|---|---|
-| An API route | `stardelt-nova` | `backend/src/main.rs` (`api_router`, `admin_router`) |
-| A screen | `stardelt-nova` | `frontend/src/App.tsx` (routes), `frontend/src/components/Shell.tsx` (navigation) |
-| A resource (`Pipeline`, `Catalog`, …) | `stardelt-operator` | `crates/stardelt-operator/src/crd.rs` |
-| What the operator does with a resource | `stardelt-operator` | `controller.rs`, `planner.rs` |
-| How a service is configured | `stardelt-platform` and `stardelt-operator` | `helm-values/`, `manifests/`, `chart/`; `crates/stardelt-operator/values/` |
-| The install order | `stardelt-platform` | `Makefile` (`step-*`), `scripts/platform.sh` |
-| The Python package, command line or MCP tools | `stardelt-python` | `stardelt/` |
-| How pipelines run in Airflow | `stardelt-demos` | `dags/pipeline_loader.py`, `dags/stardelt_pipelines/` |
+| An API route | `nova/` | `backend/src/main.rs` (`api_router`, `admin_router`) |
+| A screen | `nova/` | `frontend/src/App.tsx` (routes), `frontend/src/components/Shell.tsx` (navigation) |
+| A resource (`Pipeline`, `Catalog`, …) | `operator/` | `crates/stardelt-operator/src/crd.rs` |
+| What the operator does with a resource | `operator/` | `controller.rs`, `planner.rs` |
+| How a service is configured | `platform/` and `operator/` | `helm-values/`, `manifests/`, `chart/`; `crates/stardelt-operator/values/` |
+| The install order | `platform/` | `Makefile` (`step-*`), `scripts/platform.sh` |
+| The Python package, command line or MCP tools | `python/` | `stardelt/` |
+| How pipelines run in Airflow | `demos/` | `dags/pipeline_loader.py`, `dags/stardelt_pipelines/` |
 
 ## What is generated
 
@@ -28,13 +28,13 @@ Never edit generated files by hand. Change the source and regenerate, or CI fail
 
 ```mermaid
 flowchart LR
-  subgraph nova[stardelt-nova]
+  subgraph nova["nova/"]
     H["utoipa annotations<br/>on handlers"] --> O["openapi/nova.json"]
   end
-  subgraph op[stardelt-operator]
+  subgraph op["operator/"]
     C["crd.rs"] --> R["chart/crds/ and schemas/"]
   end
-  subgraph py[stardelt-python]
+  subgraph py["python/"]
     OP["stardelt/operations.json"]
   end
   subgraph docs[stardelt-docs]
@@ -47,9 +47,9 @@ flowchart LR
 
 | File | Comes from | Regenerate with |
 |---|---|---|
-| `stardelt-nova/openapi/nova.json` | Handler annotations | `UPDATE_OPENAPI=1 cargo test -p stardelt-nova-backend openapi` |
-| `stardelt-operator/chart/crds/`, `schemas/` | `crd.rs` | `cargo run --bin crdgen` |
-| `stardelt-python/stardelt/operations.json` | Nova's contract on `main` | `python scripts/sync_contract.py` |
+| `nova/openapi/nova.json` | Handler annotations | `UPDATE_OPENAPI=1 cargo test -p stardelt-nova-backend openapi` |
+| `operator/chart/crds/`, `schemas/` | `crd.rs` | `cargo run --bin crdgen` |
+| `python/stardelt/operations.json` | Nova's contract on `main` | `python scripts/sync_contract.py` |
 | `stardelt-docs/reference-src/`, `docs/reference/` | Both of the above, on `main` | `npm run sync:reference && npm run gen:reference` |
 
 ## Three ways to install, one set of versions
@@ -58,9 +58,9 @@ The platform can be installed three ways, and each has its own copy of the confi
 
 | Path | Lives in | Who it is for |
 |---|---|---|
-| `make platform`, `make install` | `stardelt-platform/Makefile`, `helm-values/`, `manifests/`, `scripts/` | The complete platform today |
-| Umbrella chart | `stardelt-platform/chart/` | One Helm release; the core, sign-in and the applications |
-| Operator | `stardelt-operator/crates/stardelt-operator/src/planner.rs`, `values/` | The direction of travel ([milestone v0.2](../roadmap)) |
+| `make platform`, `make install` | `platform/Makefile`, `helm-values/`, `manifests/`, `scripts/` | The complete platform today |
+| Umbrella chart | `platform/chart/` | One Helm release; the core, sign-in and the applications |
+| Operator | `crates/stardelt-operator/src/planner.rs`, `values/` | The direction of travel ([milestone v0.2](../roadmap)) |
 
 So a change to how a service runs usually touches more than one place. CI compares the versions
 (`scripts/check-version-parity.sh`, `scripts/check-platform-pins.sh`), but it cannot compare behaviour.

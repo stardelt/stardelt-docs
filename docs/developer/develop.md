@@ -89,8 +89,8 @@ Results come back as a DataFrame, up to 100 000 rows. **Spark and table writes r
 a workspace kernel — the Spark endpoint is not exposed outside the cluster. Switch to
 [VS Code on your workspace](#vs-code-on-your-workspace) for those.
 
-:::note stardelt-python 0.4
-`stardelt.sql()` from a local kernel needs `stardelt-python` 0.3.0 or newer, and the install line above pins
+:::note stardelt 0.4
+`stardelt.sql()` from a local kernel needs `stardelt` 0.3.0 or newer, and the install line above pins
 it. The function is deprecated in 0.4 and removed in 0.5: in a workspace kernel, use the image's native
 `%sql` and `spark` instead.
 :::

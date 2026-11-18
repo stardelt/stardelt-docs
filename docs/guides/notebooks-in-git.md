@@ -61,7 +61,7 @@ grant is the thing to ask for, not a token problem.
 ## 2. Your pipelines in a repository
 
 Pipeline definitions are Kubernetes resources — `Pipeline` (and `IngestionSource`) manifests in
-`stardelt-operator`'s chart — so they belong in git like any other manifest. A minimal example:
+the chart under `operator/` — so they belong in git like any other manifest. A minimal example:
 
 ```yaml
 apiVersion: stardelt.io/v1alpha1
