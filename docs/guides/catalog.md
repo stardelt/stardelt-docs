@@ -2,6 +2,7 @@
 title: "The catalog and the table page"
 sidebar_label: "Catalog and tables"
 slug: /guides/catalog
+description: "Browse the catalogs, schemas and tables you may see, and read a table page with its columns, history and lineage."
 ---
 
 # The catalog and the table page

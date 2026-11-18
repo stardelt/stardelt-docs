@@ -2,6 +2,7 @@
 title: "Quickstart"
 sidebar_label: "Quickstart"
 slug: /getting-started/quickstart
+description: "Install the core of stardelt on a cluster, load a small file and query it, in about fifteen minutes."
 pagination_next: getting-started/prerequisites
 ---
 

@@ -2,6 +2,7 @@
 title: "Diagrams"
 sidebar_label: "Diagrams"
 slug: /developer/diagrams
+description: "When a page needs a diagram, which one to draw as Mermaid and how it should read in a diff and on the site."
 ---
 
 # Diagrams

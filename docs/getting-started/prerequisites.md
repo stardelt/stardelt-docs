@@ -2,6 +2,7 @@
 title: "Prerequisites"
 sidebar_label: "Prerequisites"
 slug: /getting-started/prerequisites
+description: "What a cluster must provide before stardelt installs, and which install path fits the cluster you have."
 ---
 
 # Prerequisites

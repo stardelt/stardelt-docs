@@ -2,6 +2,7 @@
 title: "Recipes"
 sidebar_label: "Recipes"
 slug: /developer/recipes
+description: "The steps for common changes across the repository, in the order they have to be made and checked."
 ---
 
 # Recipes

@@ -1,6 +1,7 @@
 ---
 title: "Airflow for group members"
 sidebar_label: "Airflow for group members"
+description: "How a group member signs in to Airflow with the platform account and what the Airflow interface shows."
 ---
 
 # Airflow for group members

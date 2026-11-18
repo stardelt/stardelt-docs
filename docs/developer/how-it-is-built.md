@@ -2,6 +2,7 @@
 title: "How it is built"
 sidebar_label: "How it is built"
 slug: /developer/how-it-is-built
+description: "Where every part of stardelt lives, which files are generated, and how to regenerate them."
 ---
 
 # How it is built

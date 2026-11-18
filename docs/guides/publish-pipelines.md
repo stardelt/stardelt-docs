@@ -2,6 +2,7 @@
 title: "Publish pipelines from Git"
 sidebar_label: "Publish from Git"
 slug: /guides/publish-pipelines
+description: "Walk one bundle from a file in Git through a development stage, a pull request and production."
 ---
 
 # Publish pipelines from Git

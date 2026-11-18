@@ -2,6 +2,7 @@
 title: "Python in notebooks and scripts"
 sidebar_label: "Python"
 slug: /guides/python
+description: "Use the stardelt Python package to call the same API as Nova from a notebook, a script or CI."
 ---
 
 # Python in notebooks and scripts

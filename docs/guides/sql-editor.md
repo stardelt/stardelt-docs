@@ -2,6 +2,7 @@
 title: "The SQL editor"
 sidebar_label: "SQL editor"
 slug: /guides/sql-editor
+description: "Run ad-hoc SQL against the warehouse, read the result and keep the statements you want to return to."
 ---
 
 # The SQL editor

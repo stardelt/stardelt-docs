@@ -2,6 +2,7 @@
 title: "Running stardelt in production"
 sidebar_label: "Production"
 slug: /operations/production
+description: "What stardelt needs from you to run in production, what it gives you, and what is still missing."
 ---
 
 # Running stardelt in production

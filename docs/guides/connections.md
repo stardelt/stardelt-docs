@@ -2,6 +2,7 @@
 title: "Connections"
 sidebar_label: "Connections"
 slug: /guides/connections
+description: "Keep the settings and secrets your code needs for an outside system, and read them by name from a notebook."
 ---
 
 # Connections

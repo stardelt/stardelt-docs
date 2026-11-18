@@ -2,6 +2,7 @@
 title: "Lineage and the query log"
 sidebar_label: "Lineage and the query log"
 slug: /guides/query-log
+description: "See what wrote and read a table, and every statement the query engine ran with its origin, time and rows."
 ---
 
 # Lineage and the query log

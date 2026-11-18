@@ -2,6 +2,7 @@
 title: "Schedule SQL and notebooks"
 sidebar_label: "Schedule SQL and notebooks"
 slug: /guides/schedule
+description: "Turn a SQL statement or a pinned notebook into a pipeline on a cron, owned by a group and run as it."
 ---
 
 # Schedule SQL and notebooks

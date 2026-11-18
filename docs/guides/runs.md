@@ -2,6 +2,7 @@
 title: "Runs and notifications"
 sidebar_label: "Runs and notifications"
 slug: /guides/runs
+description: "One table of every recent run of your groups' pipelines, and the destinations a pipeline can notify."
 ---
 
 # Runs and notifications

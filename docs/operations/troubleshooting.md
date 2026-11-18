@@ -2,6 +2,7 @@
 title: "Troubleshooting"
 sidebar_label: "Troubleshooting"
 slug: /operations/troubleshooting
+description: "Read Nova's Platform page and the logs behind it to find why a service or the query engine is not working."
 ---
 
 # Troubleshooting

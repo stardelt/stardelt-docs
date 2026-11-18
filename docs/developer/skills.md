@@ -2,6 +2,7 @@
 title: "Skills for AI assistants"
 sidebar_label: "Skills for AI assistants"
 slug: /developer/skills
+description: "The instruction files that teach an AI assistant how work is done on stardelt, and how to add one."
 ---
 
 # Skills for AI assistants

@@ -1,6 +1,7 @@
 ---
 title: Wallpapers
 slug: /community/wallpapers
+description: "Wallpapers made from the stardelt logo, in each colourway, free to download and use unchanged."
 ---
 
 Wallpapers made from the stardelt logo. Free to use; the logo stays unchanged.

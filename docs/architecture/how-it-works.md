@@ -2,6 +2,7 @@
 title: "How stardelt works"
 sidebar_label: "How it works"
 slug: /architecture/how-it-works
+description: "One picture of the whole platform, who talks to what, the path a query takes and why each part is there."
 ---
 
 # How stardelt works
