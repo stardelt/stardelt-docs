@@ -13,6 +13,6 @@ For developers and AI agents who drive stardelt from code. I want to …
 - **[let an AI assistant work as me](/docs/guides/mcp)**
 - **[connect a model endpoint](/docs/guides/models)**
 - **[publish pipelines from Git](/docs/guides/publish-pipelines)**
-- **[write a bundle file](/docs/guides/bundle-reference)**
+- **[write a bundle file](/docs/reference/bundle)**
 - **[run a job as a service principal](/docs/guides/service-principals)**
 - **[call the HTTP API](/docs/reference/api)**

@@ -32,7 +32,7 @@ const sidebars: SidebarsConfig = {
     'build',
     cat('Command line and Python', ['guides/cli', 'guides/python']),
     cat('AI agents', ['guides/mcp', 'guides/models', 'guides/service-principals']),
-    cat('Publish from Git', ['guides/publish-pipelines', 'guides/bundle-reference']),
+    cat('Publish from Git', ['guides/publish-pipelines']),
   ],
   operate: [
     'operate',
@@ -46,6 +46,7 @@ const sidebars: SidebarsConfig = {
     'reference/index',
     cat('Resources', ['reference/resources/index', ...referenceResources]),
     'reference/api',
+    'guides/bundle-reference',
     cat('Architecture', ['architecture/overview', 'architecture/spark-connection', 'architecture/services', 'architecture/identity', 'architecture/licenses']),
     'glossary',
   ],

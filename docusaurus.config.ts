@@ -94,6 +94,7 @@ const config: Config = {
           { from: '/docs/guides/connections-secret-stores', to: '/docs/operations/secret-stores' },
           { from: '/docs/developer/vscode', to: '/docs/guides/develop' },
           { from: '/docs/developer/contributing', to: '/docs/developer' },
+          { from: '/docs/guides/bundle-reference', to: '/docs/reference/bundle' },
         ],
       },
     ],
