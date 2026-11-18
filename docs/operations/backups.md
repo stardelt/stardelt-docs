@@ -109,34 +109,31 @@ secret store.
 ## Restore
 
 A restore is a **new cluster**, not an in-place operation — the source keeps serving while you
-recover into a namespace of its own, check the result, and only then decide to cut over.
-`manifests/cnpg-restore-proof.yaml` is the recipe, and it is also the platform's restore test:
+recover into its own namespace, check the result, and only then cut over.
+`manifests/cnpg-restore-proof.yaml` is the recipe and the platform's restore test:
 
 1. copy the S3 credentials Secret into the target namespace;
 2. apply a `Cluster` whose `spec.bootstrap.recovery.source` points at an `externalClusters` entry for
    the object store;
 3. wait for `Cluster in healthy state`, then query the data.
 
-The same recipe is one command:
+One command:
 
 ```bash
 make verify-restore          # restore into namespace stardelt-restore, check it, delete it
 KEEP=1 make verify-restore   # keep the namespace to look at it
 ```
 
-It restores `lakekeeper-pg` from the barman-cloud plugin's object store (the mechanism
-[How it works](#how-it-works) describes), counts the relations in the `lakekeeper` database and the
-`warehouse`, `namespace` and `tabular` rows the catalog cannot work without, prints
-`verify-restore: PASS (catalog database restored, 55 relations, 18 warehouses, 15 namespaces, 39 tabulars)`
-and deletes the namespace. A restore that carries only the schema — relations but no warehouse or no
-tabular — says `verify-restore: FAIL (the restored catalog is empty: …)` and exits non-zero, because
-`information_schema.tables` alone is satisfied by the migration table. A run whose
-restored cluster does not become Ready says `FAIL` and prints that cluster's logs; `TIMEOUT` (default
-`900s`) and `RESTORE_NS` (default `stardelt-restore`) are overridable. `KEEP=1` leaves the namespace
+It restores `lakekeeper-pg` from its barman-cloud backup (the mechanism
+[How it works](#how-it-works) describes), counts its relations, warehouses and tabulars and prints
+`verify-restore: PASS (catalog database restored, 55 relations, 18 warehouses, 15 namespaces, 39 tabulars)`;
+without a warehouse or a tabular it is `FAIL (the restored catalog is empty: …)`, and deletes the
+namespace. A run whose restored cluster does not become Ready says `FAIL` and prints that cluster's
+logs; `TIMEOUT` (default `900s`) and `RESTORE_NS` (default `stardelt-restore`) are overridable.
+`KEEP=1` leaves the namespace
 behind, so the next plain run refuses (`exit 2`) until it is deleted or `RESTORE_NS` names another.
 It covers the catalog database only; the Superset and Airflow dumps are not CloudNativePG — prove those
-with `make verify-pgdump PG_DUMP=all`, which restores each dump into a scratch database
-([Checks to run](./checks)).
+with `make verify-pgdump PG_DUMP=all` ([Checks to run](./checks)).
 
 Three details that silently matter:
 
