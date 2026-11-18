@@ -10,7 +10,7 @@ slug: /services/keycloak
 
 **What it decides.** Keycloak authenticates users and issues tokens that Nova, Trino, and other clients validate. On login it returns tokens carrying claims such as `sub`, `groups`, and identity metadata used by the platform. The realm `stardelt` is generated from `chart/files/keycloak-realm.json` with the base domain substituted, and clients registered there are what downstream components trust for authentication.
 
-**How it fits.** Keycloak sits at the identity layer, upstream of Nova. It answers token requests for the clients configured in the realm and is the source of truth for groups like `stardelt-admins`. See [Identity](../architecture/identity) and [Identity integrations](../architecture/identity-integrations) for the flows it participates in.
+**How it fits.** Keycloak sits at the identity layer, upstream of Nova. It answers token requests for the clients configured in the realm and is the source of truth for groups like `stardelt-admins`. See [Identity](../architecture/identity) and [Sign-in](../operations/sign-in) for the flows it participates in.
 
 **What happens when it is down.** If Keycloak is unavailable, interactive login cannot complete and token issuance fails. Clients that require a valid bearer token cannot authenticate until Keycloak recovers; `NOVA_AUTH_MODE=dev` remains available as a development escape hatch where configured, but that is not a fallback for an OIDC-configured install.
 

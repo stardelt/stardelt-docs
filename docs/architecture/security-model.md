@@ -121,7 +121,7 @@ is the only component that calls it, and today the probe is the only caller.
 - **The operator has broad rights.** Treat access to its namespace like cluster administrator access.
 - **SeaweedFS sign-in stays off.** The pinned version must not use its own OIDC path (CVE-2026-77298,
   fixed in 4.40). stardelt uses static keys there. See
-  [per-component sign-in](./identity-integrations).
+  [Sign-in](../operations/sign-in).
 - **An AI assistant's token reaches the engine directly.** The endpoint forwards the caller's token
   to Trino rather than exchanging it, and the engine checks no engine-specific audience today, so the
   same token authenticates against Trino's published endpoint. What bounds it is the person's own

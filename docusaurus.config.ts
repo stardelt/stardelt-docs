@@ -64,6 +64,8 @@ const config: Config = {
           { from: '/docs/guides/sql-statements', to: '/docs/guides/python#long-running-sql' },
           { from: '/docs/guides/source-to-dashboard', to: '/docs/guides/load-and-transfer#from-a-file-to-a-dashboard' },
           { from: '/docs/guides/deployments', to: '/docs/guides/publish-pipelines#the-deployments-page' },
+          { from: '/docs/architecture/identity-providers', to: '/docs/operations/sign-in' },
+          { from: '/docs/architecture/identity-integrations', to: '/docs/operations/sign-in' },
         ],
       },
     ],

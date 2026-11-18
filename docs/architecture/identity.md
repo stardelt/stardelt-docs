@@ -26,7 +26,7 @@ Nova holds no passwords and no user store. Keycloak ships as the default. Any st
 provider, such as Entra ID, Okta or your own Keycloak, can take its place.
 
 Trino authenticates you and asks the permission store whether you may do what you asked. Trino then
-talks to the catalog as a trusted service, not as you. [Per-component sign-in](./identity-integrations)
+talks to the catalog as a trusted service, not as you. [Sign-in](../operations/sign-in)
 explains each hop.
 
 ## Choose a mode
