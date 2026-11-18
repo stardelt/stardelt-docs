@@ -58,7 +58,7 @@ sign-in is needed, so scripts can tell the cases apart.
 | `stardelt bundle destroy` | remove what a deploy of one target put on the stage; only with `--yes` | [Bundle reference](./bundle-reference) |
 | `stardelt bundle generate` | write a pipeline made in the interface into the bundle, with its SQL file | [Bundle reference](./bundle-reference) |
 | `stardelt maintenance run` | optimize small files, expire snapshots and remove orphan files for one catalog's tables | — |
-| `stardelt notebook publish` | publish a notebook as a new version that a schedule can pin | [Published notebooks](./published-notebooks) |
+| `stardelt notebook publish` | publish a notebook as a new version that a schedule can pin | [Published notebooks](./schedule#publish-a-notebook-version) |
 
 Run any of them with `--help` for the values it takes.
 

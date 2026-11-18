@@ -78,7 +78,7 @@ directly answers `404`, exactly as if it did not exist.
 ## What is not built yet
 
 A pipeline's notices use a destination: the dialog's **Tell … when a run ends** block ticks the group's destinations for
-a failed run, a successful run and a recovery, one message each (see [Schedule a SQL statement](schedule-sql.md)). Alert
+a failed run, a successful run and a recovery, one message each (see [Schedule a SQL statement](schedule.md)). Alert
 rules and access requests still do not use a destination, so a destination receives the **Test** message and a pipeline's
 failure, success and recovery notices.
 

@@ -12,7 +12,7 @@ slug: /services/jupyterhub
 
 **How it fits.** JupyterHub runs in the application layer. Single-user servers run the stardelt notebook image and receive the signed-in user's Keycloak token for data access; Trino serves queries as that user. See [Services](../architecture/services) and [How it works](../architecture/how-it-works).
 
-**Who can use it.** Users sign in at `https://jupyter.<base domain>` with the same Keycloak account used for Nova via OIDC (realm `stardelt`, client `jupyterhub`). Access is controlled by the platform IdP; per-user servers are spawned on demand. See [Notebooks in Git](../guides/notebooks-in-git) and [Connections](../guides/connections).
+**Who can use it.** Users sign in at `https://jupyter.<base domain>` with the same Keycloak account used for Nova via OIDC (realm `stardelt`, client `jupyterhub`). Access is controlled by the platform IdP; per-user servers are spawned on demand. See [Notebooks in Git](../guides/schedule#keep-notebooks-in-git) and [Connections](../guides/connections).
 
 **What you can tune.** Key settings from `helm-values/jupyterhub.yaml`:
 
@@ -37,4 +37,4 @@ slug: /services/jupyterhub
 - **Install step:** `make install-notebooks` (from `platform/`)
 - **A person's home:** `kubectl -n stardelt get pvc | grep claim-` lists the persistent homes (one per person).
 - **Home storage:** each single-user server gets a **2 GiB persistent volume** (`singleuser.storage` below; one PVC per person, named `claim-<username>`, created the first time the server starts). Stopping a server keeps its files.
-- **Not backed up:** a home is scratch space. Keep your work in Git ([Notebooks in Git](../guides/notebooks-in-git.md)); a published notebook is stored in the bucket and is backed up.
+- **Not backed up:** a home is scratch space. Keep your work in Git ([Notebooks in Git](../guides/schedule.md#keep-notebooks-in-git)); a published notebook is stored in the bucket and is backed up.

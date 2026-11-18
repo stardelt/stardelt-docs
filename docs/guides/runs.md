@@ -81,9 +81,9 @@ longer exists answers a **Not found** card with the way back to the pipeline.
 
 ## Where the runs come from
 
-- A scheduled SQL statement: [Schedule a SQL statement](/docs/guides/schedule-sql) turns a statement from the
+- A scheduled SQL statement: [Schedule a SQL statement](/docs/guides/schedule#schedule-a-sql-statement) turns a statement from the
   SQL editor into a pipeline that runs on a cron or an interval.
-- A scheduled notebook: [Published notebooks](/docs/guides/published-notebooks) runs a pinned version of a
+- A scheduled notebook: [Published notebooks](/docs/guides/schedule#schedule-a-notebook-version) runs a pinned version of a
   notebook on a schedule.
 
 Both kinds land in the same table, so a SQL pipeline and a notebook schedule are visible side by side. The

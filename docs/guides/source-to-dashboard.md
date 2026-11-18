@@ -2,7 +2,7 @@
 title: "From source to dashboard"
 sidebar_label: "From source to dashboard"
 slug: /guides/source-to-dashboard
-pagination_next: guides/published-notebooks
+pagination_next: guides/schedule
 ---
 
 # From source to dashboard
@@ -138,6 +138,6 @@ administrators). A dashboard that spans two catalogs is administrators-only unti
 
 Ingestion templates, SQL models with tests, and layer tags in the catalog.
 
-<NextStep to="/docs/guides/published-notebooks" title="Publish, schedule and watch a notebook">
+<NextStep to="/docs/guides/schedule" title="Publish, schedule and watch a notebook">
   Turn the notebook from step 3 into a pipeline that runs every night, and see each run.
 </NextStep>

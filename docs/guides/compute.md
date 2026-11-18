@@ -12,7 +12,7 @@ Open **Compute** in the left navigation to see the Spark clusters you may use. A
 team starts when it needs it and stops when it is done — for a notebook that needs more memory, a job that
 takes longer than a statement should, or a set of experiments. It sits next to the SQL warehouse, which
 answers the statements you run by hand and on a schedule
-([Schedule a SQL statement](/docs/guides/schedule-sql)). One cluster, the shared one, is always on and belongs
+([Schedule a SQL statement](/docs/guides/schedule#schedule-a-sql-statement)). One cluster, the shared one, is always on and belongs
 to everyone; the others belong to a group or to one person.
 
 ## A cluster's card

@@ -23,9 +23,9 @@ editor — JupyterLab in the browser, or VS Code on your workspace or on your la
 1. Open Nova → **Notebooks**, and use **Start** / **Open JupyterLab** on the **My workspace** card. The
    server signs you in with the same account as Nova.
 2. Clone your repository with JupyterLab's **Git panel** on the left, or in a terminal; see
-   [Notebooks and pipelines in git](../guides/notebooks-in-git).
+   [Notebooks and pipelines in git](../guides/schedule#keep-notebooks-in-git).
 3. Query with `%sql` or `spark` — both run as you: `SELECT current_user` prints your username.
-   To publish and schedule a notebook, see [Published notebooks](../guides/published-notebooks).
+   To publish and schedule a notebook, see [Published notebooks](../guides/schedule).
 
 ## VS Code on your workspace
 
@@ -127,7 +127,7 @@ daily_totals(stardelt.sql("select day, amount from mobility.gold.trips")).head()
 ## Ship it
 
 Publish a notebook from JupyterLab with `stardelt.publish("my.ipynb")` in a cell (a one-click button in a
-stardelt panel is coming); see [Published notebooks](../guides/published-notebooks). Keep pipelines as files in
+stardelt panel is coming); see [Published notebooks](../guides/schedule). Keep pipelines as files in
 Git and let CI run `stardelt bundle deploy -t dev`: see [Publish pipelines from Git](../guides/publish-pipelines)
 and the [bundle reference](../guides/bundle-reference).
 

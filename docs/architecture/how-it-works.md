@@ -48,8 +48,8 @@ Build once, deploy many: a stage never copies objects to another stage; Git carr
 | Install it for real | [Prerequisites](../getting-started/prerequisites.md) |
 | Go from a source to a dashboard | [Source to dashboard](../guides/source-to-dashboard.md) |
 | Keep source credentials out of pipelines | [Connections](../guides/connections.md) |
-| Run SQL on a schedule | [Schedule SQL](../guides/schedule-sql.md) |
-| Keep notebooks and pipelines in Git | [Notebooks and pipelines in git](../guides/notebooks-in-git.md) |
+| Run SQL on a schedule | [Schedule SQL](../guides/schedule.md#schedule-a-sql-statement) |
+| Keep notebooks and pipelines in Git | [Notebooks and pipelines in git](../guides/schedule.md#keep-notebooks-in-git) |
 | Publish pipelines from Git to a stage | [Publish pipelines from Git](../guides/publish-pipelines.md) |
 | See what was run and why it failed | [Query log](../guides/query-log.md) |
 | Use it from a script, CI or an AI assistant | [Python, command line and agents](../guides/sdk-cli-mcp.md) |
