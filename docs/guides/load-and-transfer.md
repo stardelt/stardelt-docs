@@ -123,7 +123,7 @@ from pyspark.sql import functions as F
 ```
 
 Spark checks your catalog permissions with your token. Row and column masks apply only in SQL (`%sql`); see
-[Known limits](../architecture/security-model#known-limits).
+[Known limits](../operations/security#known-limits).
 
 **Connections.** Create one on **Connections** in Nova: type, settings, owner group and secret. The
 settings stay visible; the password is written once and never shown again. A Python notebook reads
