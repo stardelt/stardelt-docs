@@ -670,7 +670,7 @@ const features: Feature[] = [
       {name: 'Airflow', kind: 'default'},
     ],
     why: 'Pipelines are declared in Git and moved between stages.',
-    to: '/docs/guides/schedule-sql',
+    to: '/docs/guides/schedule',
   },
   {
     title: 'Spark',
@@ -684,7 +684,7 @@ const features: Feature[] = [
     line: 'Explore next to the data, then publish and schedule.',
     parts: [{name: 'JupyterHub', kind: 'default'}],
     why: "Notebooks run inside the platform with the person's own permissions, and published ones run as pipeline steps.",
-    to: '/docs/guides/notebooks-in-git',
+    to: '/docs/guides/schedule',
   },
   {
     title: 'Streams',

@@ -159,7 +159,7 @@ error box, and **Save query** is disabled.
 
 To see what was actually run, including statements from notebooks and dashboards, use
 [The query log](./query-log). To turn a statement into a pipeline that runs on a schedule, see
-[Schedule a SQL statement](./schedule-sql).
+[Schedule a SQL statement](./schedule#schedule-a-sql-statement).
 
 ## Verified queries
 
@@ -186,4 +186,4 @@ the editor.
 
 **Schedule** turns the current statement into a pipeline. The button is disabled while the editor is
 empty, and its tooltip then says `Write a statement first`. What the dialog asks for is described in
-[Schedule a SQL statement](./schedule-sql).
+[Schedule a SQL statement](./schedule#schedule-a-sql-statement).
