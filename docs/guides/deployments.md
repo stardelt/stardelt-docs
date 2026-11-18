@@ -42,6 +42,28 @@ Six columns follow. Hovering a cell gives the full value where the page shortens
   a dash otherwise. That badge means Git holds the older version, so the next deploy of the bundle
   overwrites the edit.
 
+## Recorded deployments
+
+Below the stage sections the page lists the deploy record: one row per `stardelt bundle deploy`
+that finished, newest first, at most 50. A row is kept for at least ten days even when newer ones
+push it past the 50; older rows beyond that are removed when the next deploy of the same bundle
+and stage is recorded.
+
+Six columns:
+
+- **When** — how long ago, the exact time in the tooltip.
+- **Bundle · stage** — the bundle and the target it was deployed to.
+- **Commit** — the short commit, `(uncommitted changes)` for a dirty tree, and a dash when the
+  bundle directory was outside a Git checkout.
+- **Deployed by** — the name the sign-in provided; a row recorded before Nova stored the name
+  shows the sign-in subject instead.
+- **Status** — **Applied** for a deploy that finished (what `stardelt bundle deploy` records), or
+  **Failed** for a row a writer recorded for a failed deploy.
+- **Pipelines** — how many pipelines the deploy wrote or removed.
+
+The record lives in Nova's database. An installation without one shows that sentence in place of
+the table, and the stage sections above keep working.
+
 ## Not in Git
 
 The **Not in Git** card is a warning, and it appears only when it has something to say. Its sentence is
@@ -91,3 +113,7 @@ with `bundle`, `target`, `revision`, `deployedBy`, `deployedAt` and `modified`, 
 by `stardelt bundle deploy` as described in [Publish pipelines from
 Git](/docs/guides/publish-pipelines). `GET /api/stages/compare?peer=<name>` answers one comparison,
 forwarding your own token to the peer, and returns `status: ok`, `unauthorized` or `unreachable`.
+`GET /api/deployments` answers the record itself: the caller's groups' rows (an administrator
+sees every group), newest first, at most 50, each with `bundle`, `ownerGroup`, `target`,
+`revision`, `repository`, `status`, `pipelines`, `actor` (the subject), `actorName` (the name) and
+`createdAt`.
