@@ -206,7 +206,7 @@ tasks:
 - No other key is accepted, and `dbt:` cannot appear at the top of a file: "a dbt run is a task: put it
   under tasks: with a name".
 - The pod holds no storage credential: the task mints a fresh engine token for the pipeline's principal on
-  every run (see "dbt in a pipeline").
+  every run, so the warehouse sees the pipeline's own identity, not a platform key.
 
 ### A pipeline with several tasks
 
