@@ -53,6 +53,13 @@ Anything that touches a real service needs a real node: see
 1. **Everything arrives as a pull request.** `main` is protected.
 2. **`main` stays installable.** There are no tagged releases yet, so people install from it.
 
+The only required check on `main` is `gate`, the always-running `ci gate` workflow. Every other
+workflow has a `paths` filter and runs only for the folder it belongs to, so requiring those checks
+one by one would leave a check "expected" for ever on a pull request that never touches that folder.
+`ci gate` runs for every pull request, waits until the checks that did run have finished, and fails
+if any of them did not pass — so a pull request that changes no filtered path still passes, and
+nothing merges while a check is red or pending.
+
 ## Branches
 
 Branch from an up-to-date `main`, and name the branch after the change:
