@@ -7,7 +7,7 @@ description: "The checks to run after an upgrade and nightly, what each proves a
 
 # Checks to run
 
-These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Six are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`, and `verify-trino-graceful-shutdown` deletes one worker pod, which the Deployment replaces, and `verify-spark-cluster` creates a `SparkCluster` named `verify-spark-cluster` and deletes it and every object it owns, and `verify-s3-sts` creates one `amazon/aws-cli` pod and a `sts-verify-<epoch>` bucket, and deletes both.
+These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Eight are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`, and `verify-trino-graceful-shutdown` deletes one worker pod, which the Deployment replaces, and `verify-spark-cluster` creates a `SparkCluster` named `verify-spark-cluster` and deletes it and every object it owns, `verify-s3-sts` creates one `amazon/aws-cli` pod and a `sts-verify-<epoch>` bucket, and deletes both, `verify-spark-demo-query` creates one client pod in the platform namespace and deletes it, and `verify-spark-demo-security` creates one client pod and one Secret (a token for the public `demo` user), and deletes both.
 
 ## After an upgrade
 
@@ -36,7 +36,7 @@ or `UNVERIFIED` — a namespace without the `Pipelines` pillar has no `airflow-n
 `make verify-airflow-runs` only reads (it reports every unpaused DAG's newest run) and it is not in
 `step-verify` yet.
 
-Three checks are run by hand because each needs something a converged cluster does not promise.
+Six checks are run by hand because each needs something a converged cluster does not promise.
 `make verify-spark-query` starts a client pod in the notebook image and runs two jobs through the shared
 Spark Connect server (a session, `range(10)` and `range(1000).repartition(4)`); it is the check that saw
 the 2026-11-19 executor-ConfigMap outage while every read-only target passed. `make verify-spark-auth`
@@ -45,6 +45,20 @@ unsigned call is refused with `Jwt is missing`, and a token without the `spark-c
 refused. `make verify-spark-janitor` runs the ConfigMap janitor's own dry run with
 `JANITOR_MAX_AGE_SECONDS=1` and asserts it keeps the map a live Spark driver created and would delete
 nothing; it creates and deletes one Job. Each prints `UNVERIFIED` (exit 3) when what it needs is absent.
+
+The public demo's sandbox is judged by three checks of its own. `make verify-spark-demo-sandbox` reads what
+the sandbox *contains*, seven probes of `stardelt-demo-spark/spark-demo`: the namespace enforces Pod Security
+`restricted`, its ServiceAccount cannot create pods, the driver carries no ServiceAccount token,
+`example.com:443` is unreachable while `seaweedfs-s3:8333` answers, the Deployment is 1/1 ready, and it runs
+the digest `manifests/spark.yaml` pins. `make verify-spark-demo-query` is the sandbox's only proof that a
+session works: one client pod in the notebook image, labelled as a visitor's, runs `range(10)` through
+`spark-demo.stardelt-demo-spark.svc.cluster.local:15002` and must count 10. `make verify-spark-demo-security`
+runs the demo's security acceptance as the `demo` person from a visitor-labelled pod — four probes, all of which
+must refuse, and one admitted is a finding: a catalog `visitors` have no grant on is refused while `gold` answers, the driver's Hadoop S3A
+refuses the warehouse prefix when it reads it over `s3a://` without credentials, the pod carries no
+ServiceAccount token and cannot open `kubernetes.default.svc`, and a Python UDF cannot reach `example.com:443`.
+Each prints `UNVERIFIED` (exit 3) when the sandbox is not installed or the client pod never starts — not a
+failure.
 
 `verify-streaming` also compares every running `StreamApp`'s job script with the ConfigMap the
 operator wrote for it. A stream that predates the comparison, or that runs an older script, is
