@@ -43,7 +43,7 @@
   "operate": 96,
   "operations/access": 1517,
   "operations/backups": 2020,
-  "operations/checks": 3904,
+  "operations/checks": 4101,
   "operations/monitoring": 3350,
   "operations/production": 1218,
   "operations/secret-stores": 1271,
