@@ -45,6 +45,12 @@ policy stays "permissive only, plus this table".
 | Barman Cloud (the CloudNativePG plugin) | GPL-3.0 | The default install's backup path: continuous WAL archiving and daily base backups of every PostgreSQL cluster, installed by both install paths | CloudNativePG 1.32 removed the in-tree `barmanObjectStore` and names this plugin instead; no permissively licensed PostgreSQL backup plugin with WAL archiving exists for it. Consumed as the unmodified upstream image, by digest | [cloudnative-pg/plugin-barman-cloud](https://github.com/cloudnative-pg/plugin-barman-cloud) |
 | pathspec | MPL 2.0 | The dbt tool image (an optional tool image that runs a customer's own dbt models; never linked into a stardelt binary) | A direct dependency of `dbt-core`; no replacement exists. Shipped as the unmodified wheel | [cpburnz/python-pathspec](https://github.com/cpburnz/python-pathspec) |
 | text-unidecode | Artistic-1.0 (dual with GPL) | The same dbt tool image | A dependency of `dbt-core` through `agate`; of the two licenses, Artistic-1.0 is elected | [kmike/text-unidecode](https://github.com/kmike/text-unidecode) |
+| certifi | MPL 2.0 | The same dbt tool image (through `dbt-trino` → `requests`) | The Mozilla CA bundle: every HTTPS client in the image needs it, and no replacement exists. Shipped as the unmodified wheel | [certifi/python-certifi](https://github.com/certifi/python-certifi) |
+| orjson | MPL 2.0 AND (Apache-2.0 OR MIT) | The same dbt tool image | A dual-licensed wheel of `dbt-core`; its MPL arm is the same license already accepted for `pathspec`. Shipped as the unmodified wheel | [ijl/orjson](https://github.com/ijl/orjson) |
+
+The dbt tool image's build fails on any package that is not permissively licensed and not in this
+table: `demos/images/dbt/check-licenses.py` reads `demos/images/dbt/license-exceptions.txt`, and
+those four lines are the `pathspec`, `certifi`, `orjson` and `text-unidecode` rows above.
 
 Every exception carries the same compliance conditions:
 
