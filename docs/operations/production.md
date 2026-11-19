@@ -43,7 +43,7 @@ StorageClass whose volumes can follow a pod to another node. `local-path` cannot
 | Trino coordinator | Queries stop, and nothing is lost | It reschedules; run two workers so one can drain |
 | Lakekeeper | Engines cannot resolve tables | Raise `lakekeeper.catalog.replicas`; a PodDisruptionBudget is not rendered yet |
 | Nova | A restart keeps people signed in: sessions are rows in the `browser_session` table, sealed and keyed by the cookie's hash | One replica, because the background loops run in every process |
-| stardelt Operator | The leader's pod goes away or stops renewing | The second replica takes over in about 15 s. The old leader stands down and waits for the Lease; it does not restart. A restarting pod means the API server was unreachable — `make verify-restarts` prints the count and never fails on it |
+| stardelt Operator | The leader's pod goes away or stops renewing | The second replica takes over in about 15 s. The old leader stands down and waits for the Lease; it does not restart. A restarting pod means the API server was unreachable — `make verify-restarts` prints the count and fails only on a container whose own exit inside the window was not the node's (`RESTART_MAX_AGE_SECONDS`, default 3600) |
 | A whole node | Everything on it | Three or more nodes and a tested restore; the chart renders no anti-affinity |
 
 Nova keeps each signed-in browser as a row in `browser_session` since migration 0015, sealed and
