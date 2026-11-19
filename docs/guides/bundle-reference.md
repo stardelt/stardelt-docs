@@ -162,8 +162,9 @@ schedule:
 - `name` is required and must be unique among the pipeline files of the bundle.
 - `ownerGroup` is optional; when it is there it must be the bundle's group.
 - **One of** `sql` (the statement), `sqlFile` (a file named under `files`; its text is read into `sql` when you plan or
-  deploy) and `notebook` (a published notebook and its version, or a file of the bundle: see below), **or** a `tasks` list
-  that gives each task its own statement ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
+  deploy), `notebook` (a published notebook and its version, or a file of the bundle: see below) or `dbt` (a dbt project
+  that runs as a task), **or** a `tasks` list that gives each task its own statement, which may hold a `dbt` task
+  ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
 - `schedule` needs both `cron` and `timezone` (an IANA zone such as `Europe/Berlin`); leave it out for an on-demand pipeline.
 - `params` and `options` are the pipeline's parameters and advanced options, as in `stardelt apply`.
 
@@ -183,6 +184,30 @@ beside it: `deploy` publishes the file to the bundle's group under its file name
 that equal the newest version stores nothing, so a repeated deploy does not create versions. A notebook is never deleted by `prune`
 or `destroy`: its versions are immutable.
 
+### A task that runs dbt
+
+A task may build a dbt project instead of running a statement or a notebook. The project travels in the dbt
+tool image, at `/opt/dbt/projects/<project>`; a bundle names it and nothing else — no `files:` entry, no
+version to pin.
+
+```yaml
+name: shop-dbt
+schedule: {cron: "0 4 * * *", timezone: Europe/Berlin}
+tasks:
+  - name: build
+    dbt: {project: shop, select: "tag:marts", threads: 4}
+```
+
+- `project` is a directory name under `/opt/dbt/projects`: `^[a-z][a-z0-9-]{0,38}$`.
+- Exactly one of `select` (one selector) and `batches` (a list of 1 to 8 selectors, run in order as
+  `build-1` … `build-N`) — `batches` is how a pipeline runs `tag:load` before `tag:marts`.
+- `threads` is a whole number from 1 to 16 (omitted: 4); `vars` is a mapping of string values, passed as
+  dbt's `--vars`.
+- No other key is accepted, and `dbt:` cannot appear at the top of a file: "a dbt run is a task: put it
+  under tasks: with a name".
+- The pod holds no storage credential: the task mints a fresh engine token for the pipeline's principal on
+  every run (see "dbt in a pipeline").
+
 ### A pipeline with several tasks
 
 A file may give a `tasks` list instead of `sql`/`sqlFile`/`notebook`, when a pipeline is several statements that depend on one
@@ -199,8 +224,9 @@ tasks:
 
 - At most 30 tasks in one file.
 - A task name matches `^[a-z0-9][a-z0-9_-]{0,62}$` and is unique in the file.
-- Each task gives exactly one of `sql`, `sqlFile` and `notebook`. A `sqlFile` must be among the bundle's `files` (its text is read
-  into `sql` when you plan or deploy); a `notebook` follows the notebook rules above.
+- Each task gives exactly one of `sql`, `sqlFile`, `notebook` and `dbt`. A `sqlFile` must be among the bundle's `files` (its text
+  is read into `sql` when you plan or deploy); a `notebook` follows the notebook rules above; a `dbt` task follows the rules
+  below.
 - `dependsOn` is a list of at most 8 task names from the same file, with no cycle.
 - A problem is printed with the file, the target and the task: `resources/gold.yaml (prod), task 'customer_ltv': …`.
 - `tasks` and `sql`/`sqlFile`/`notebook` cannot appear in one file together.
