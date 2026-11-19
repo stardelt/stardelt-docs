@@ -43,6 +43,22 @@ the step named one `git add`, and `check-notebook-image-pin.sh` would have faile
 commit. Name the list (`grep -n 'git add' .github/workflows/*.yml`) and give the expected
 `git diff --stat` of the whole change.
 
+### A `$` in a sed replacement is literal
+
+Only the *pattern* in `s|pattern|replacement|` treats `$` as the end anchor. Inside the
+replacement it is an ordinary character, so a substitution that quotes a line from the file writes
+`$` back into it. #434's probe copied `    admin:$` into an Envoy document, Envoy refused to start
+(`yaml-cpp: error at line 3, column 10: illegal map value`), and the probe pod crashlooped. Leave
+the `$` out of the replacement, and prove the edit before applying anything:
+
+```console
+$ sed -i 's|^    admin:$|    # #434 probe: this comment must restart the front\n    admin:|' manifests/spark-connect-auth.yaml
+$ sed -n '30,33p' manifests/spark-connect-auth.yaml
+    # #434 probe: this comment must restart the front
+    admin:
+      address:
+```
+
 ## Verifying an image pin
 
 A pin's verify answers two different questions: *which commit is in this image?* and *does that
