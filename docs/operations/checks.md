@@ -28,13 +28,23 @@ These are read-only checks; each prints a verdict and exits non-zero when it pro
 | `make verify-connections` | The Pipeline CRD carries `spec.tasks[].connection`, the Airflow pipeline reader may read `Connection` resources, and the DAG processor's image resolves a connection into `CONN_<NAME>_<KEY>` variables. | A merge moved one of the three links (operator CRD, platform Role, loader image) without a rollout: run `./scripts/pin-image.sh stardelt-operator` for the `crd` row, `make step-airflow` for `role` and `loader`. |
 | `make verify-maintenance` | Every `Catalog` with a `pipeline-<ownerGroup>` principal has the `maint-<catalog>` CronJob the operator intends: the staggered default schedule (never `0 2 * * *`), `stardelt maintenance run --catalog <name>`, the principal's token Secret, and `MaintenanceReady=True`. Prints the newest Job and warns when two catalogs share a minute or a catalog has no principal. It also proves that every Ready `Catalog` has a `<name>.properties` key in ConfigMap `trino-catalog`: a Catalog created from Nova or `kubectl apply` and never passed to `make catalogs` has a warehouse and a maintenance job but no Trino catalog, and its run fails with `CATALOG_NOT_FOUND` (`platform#914`). | A catalog with a principal has no maintenance job, its schedule is not the staggered default, an env var or the principal reference drifted (a stale operator: `make install-operator`), or the newest run failed: the row names the job to read. Or a Ready Catalog has no Trino catalog: run `make catalogs` (it restarts the Trino coordinator when the set changes). |
 
-Two checks are deliberately not part of `step-verify`. `make verify-airflow-actions` writes: it signs
+A few checks are deliberately not part of `step-verify`. `make verify-airflow-actions` writes: it signs
 in as Nova's Airflow service user, reads one DAG, pauses and resumes it, and restores the state it found
 (`DAG`, `NS` and `PORT` select the target; default `pegelonline_hourly` in `stardelt`). It is `PASS`, `FAIL`
 or `UNVERIFIED` — a namespace without the `Pipelines` pillar has no `airflow-nova-api` Secret, and that is
 `UNVERIFIED`, not a failure. Run it after an upgrade and whenever Nova's pipeline buttons misbehave.
 `make verify-airflow-runs` only reads (it reports every unpaused DAG's newest run) and it is not in
 `step-verify` yet.
+
+Three checks are run by hand because each needs something a converged cluster does not promise.
+`make verify-spark-query` starts a client pod in the notebook image and runs two jobs through the shared
+Spark Connect server (a session, `range(10)` and `range(1000).repartition(4)`); it is the check that saw
+the 2026-11-19 executor-ConfigMap outage while every read-only target passed. `make verify-spark-auth`
+mints Keycloak tokens and proves the front at `spark.<baseDomain>`: a signed query returns 10 rows, an
+unsigned call is refused with `Jwt is missing`, and a token without the `spark-connect` audience is
+refused. `make verify-spark-janitor` runs the ConfigMap janitor's own dry run with
+`JANITOR_MAX_AGE_SECONDS=1` and asserts it keeps the map a live Spark driver created and would delete
+nothing; it creates and deletes one Job. Each prints `UNVERIFIED` (exit 3) when what it needs is absent.
 
 `verify-streaming` also compares every running `StreamApp`'s job script with the ConfigMap the
 operator wrote for it. A stream that predates the comparison, or that runs an older script, is
