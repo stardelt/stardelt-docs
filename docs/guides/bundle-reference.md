@@ -142,6 +142,20 @@ written still succeeds — the pipelines are what matter — and its last line i
 `{"action": "not-recorded", "reason": "…"}`. The Deployments page lists the record under
 [Recorded deployments](/docs/guides/publish-pipelines#recorded-deployments).
 
+### Editor completion
+
+[`python/stardelt/bundle.schema.json`](https://github.com/stardelt/stardelt/blob/main/python/stardelt/bundle.schema.json) is a
+JSON Schema (draft 2020-12) of this file. One modeline at the top of `bundle.yaml` gives an editor that speaks the YAML language
+server the keys, the modes and the patterns, so a typo such as `targts:` is marked while you type:
+
+```yaml
+# yaml-language-server: $schema=https://raw.githubusercontent.com/stardelt/stardelt/main/python/stardelt/bundle.schema.json
+```
+
+The schema is structural only: it cannot see whether the files exist, whether every `${var.x}` resolves or whether a production
+target's `runAs` matches the group. `stardelt bundle validate` checks those too, and the schema never refuses a file `validate`
+accepts.
+
 ## A pipeline file
 
 The same shape that `stardelt apply -f` reads, plus `sqlFile`. A pipeline file gives one statement (or a notebook) for the
@@ -276,7 +290,7 @@ sign-in; the others talk to Nova.
 | Command | What it does | Writes to Nova |
 |---|---|---|
 | `bundle init [DIR] --name NAME --group GROUP` | writes a small bundle that passes `validate` | no |
-| `bundle validate [DIR] [-t TARGET]` | checks the bundle offline (every target, or one) | no |
+| `bundle validate [DIR] [-t TARGET]` | checks the bundle offline (every target, or one): the same checks the schema describes, plus the ones that need the files | no |
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
 | `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan` | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
