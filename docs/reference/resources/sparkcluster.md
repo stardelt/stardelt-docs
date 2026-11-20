@@ -38,6 +38,7 @@ Spark compute for the platform, a team or one person: size, runtime, settings; s
 | `spec.size` | string | No | `small` | A Spark cluster's size class: three shapes an administrator picks instead of every number. | `small`, `medium`, `large` |
 | `spec.sparkConf` | object (map of string) | No |  | Spark settings applied to the driver and the executors. | max 100 |
 | `spec.state` | string | No | `Stopped` | The desired state of a `SparkCluster`. Start and Stop write it; the controller follows it. | `Stopped`, `Running` |
+| `spec.viewers` | array of string | No |  | Groups that may USE the cluster in Nova — see it, connect to it and run work with it — and nothing else. Starting, stopping and changing it stay with `owner`. Absent means the owner's group only. | max 16 |
 
 ## Status
 

@@ -16,6 +16,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `spec.concurrency` | string | No | `Forbid` | What happens when a run is due while the previous one is still running. | `Allow`, `Forbid`, `Replace` |
+| `spec.description` | string (nullable) | No |  | One sentence a person reads on the Pipelines page: what this pipeline does. Optional; absent keeps every existing pipeline valid and renders as no line. | max 200 |
 | `spec.engine` | string | No | `airflow` | Engine that orchestrates (and for `spark`, executes) the pipeline. | `airflow`, `spark` |
 | `spec.notify` | object (nullable) | No |  | Who to tell when a run ends; names of destinations owned by `ownerGroup`. Optional: a pipeline without it notifies nobody. |  |
 | `spec.notify.onFailure` | array of string | No |  | Destinations told when the run fails, after the last retry. | max 5 |
@@ -39,7 +40,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). | max 32 |
 | `spec.tasks[].connection` | string (nullable) | No |  | The `Connection` whose secret fields this task receives as `CONN_<NAME>_<KEY>`: the name upper-cased with `-` written as `_`. The credentials reach the pod through `secretKeyRef`s and are never part of the resource, the DAG or a log. A `sql` task runs inside the engine and cannot name one. | min 1, max 40; pattern `^[a-z]([a-z0-9-]*[a-z0-9])?$` |
 | `spec.tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first. | max 8 |
-| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql` and `notebook` run today (scheduled jobs phases J0 and J1); `python`, `dbt` and `quality` are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality` |
+| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql`, `notebook` (scheduled jobs phases J0 and J1) and `dbt` run today; `python` and `quality` are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality` |
 | `spec.tasks[].name` | string | Yes |  | Unique within the pipeline; becomes the task id in the engine. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
 | `spec.tasks[].sql` | string (nullable) | No |  | The statement of a `sql` task. `${run.date}`, `${run.id}` and `${params.<name>}` are expanded when the task runs, not in the resource. | min 1, max 100000 |
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |

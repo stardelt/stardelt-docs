@@ -110,6 +110,14 @@
               "nullable": true,
               "type": "string"
             },
+            "jwksUri": {
+              "description": "`external` only: the provider's JWKS URL — `jwks_uri` in\n`<issuerUrl>/.well-known/openid-configuration`. Required for `external`: Envoy cannot\ndiscover it, and the operator does not fetch a customer's discovery document.\nA `platform` instance derives it from the Keycloak it deploys and must leave it out.",
+              "maxLength": 512,
+              "minLength": 1,
+              "nullable": true,
+              "pattern": "^https://\\S+$",
+              "type": "string"
+            },
             "mode": {
               "default": "none",
               "description": "Where users sign in (decision D20). Two modes besides none: an identity provider the\norganization already runs (`external`, for example Entra or Okta), or one the platform runs\nitself (`platform`, Keycloak). An organization often runs the platform several times against\none external provider; each instance then has its own app registrations and group mapping.",
@@ -142,7 +150,7 @@
           "x-kubernetes-validations": [
             {
               "message": "platform mode creates its own clients: leave provider, apiAudience and clients out",
-              "rule": "self.mode == 'external' || (self.provider == 'oidc' && !has(self.apiAudience) && (!has(self.clients) || size(self.clients) == 0))"
+              "rule": "self.mode == 'external' || (self.provider == 'oidc' && !has(self.apiAudience) && !has(self.jwksUri) && (!has(self.clients) || size(self.clients) == 0))"
             },
             {
               "message": "external mode needs issuerUrl",
@@ -151,6 +159,10 @@
             {
               "message": "external mode needs tokenEndpoint",
               "rule": "self.mode != 'external' || has(self.tokenEndpoint)"
+            },
+            {
+              "message": "external mode needs jwksUri",
+              "rule": "self.mode != 'external' || has(self.jwksUri)"
             },
             {
               "message": "external mode needs apiAudience",

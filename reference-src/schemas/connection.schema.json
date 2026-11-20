@@ -89,6 +89,17 @@
           },
           "maxItems": 20,
           "type": "array"
+        },
+        "viewers": {
+          "description": "Groups that may SEE this connection in Nova — its name, type, settings and the secret's\nkey names — and nothing else. Creating, rotating and deleting stay with the scope's owner.\nAbsent means nobody but the owner's group (or an administrator).",
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
         }
       },
       "required": [

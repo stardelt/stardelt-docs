@@ -15,7 +15,8 @@
             "description": "What a principal's tokens are valid for (the `aud` claim of its access token).",
             "enum": [
               "trino",
-              "lakekeeper"
+              "lakekeeper",
+              "lakekeeper-trino"
             ],
             "type": "string"
           },

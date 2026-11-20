@@ -24,6 +24,7 @@ A typed connection to an outside system: settings here, the credentials in the s
 | `spec.secret.remoteRef` | string (nullable) | No |  | Path in the secret store. Absent: derived from the scope, `connections/group/<ownerGroup>/<name>` or `connections/managed/<name>`. Set it only when the platform reads the customer's own store (`spec.secrets` mode `external`); in platform mode the controller refuses a value, because a path chosen by the author could point at another group's secret. | min 1, max 512; pattern `^[A-Za-z0-9][A-Za-z0-9_./-]*$` |
 | `spec.type` | string | Yes |  | What a connection reaches. The type decides which settings and secret keys are required. | `postgresql`, `mysql`, `sqlserver`, `oracle`, `rest-api`, `s3`, `kafka`, `sftp`, `generic` |
 | `spec.usableBy` | array of string | No |  | Scope `managed`: the groups whose platform-run work may use the connection. | max 20 |
+| `spec.viewers` | array of string | No |  | Groups that may SEE this connection in Nova — its name, type, settings and the secret's key names — and nothing else. Creating, rotating and deleting stay with the scope's owner. Absent means nobody but the owner's group (or an administrator). | max 16 |
 
 ## Status
 
