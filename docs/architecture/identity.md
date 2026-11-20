@@ -61,6 +61,13 @@ so `identity.tokenEndpoint` carries the provider's `token_endpoint`
 reconcile without it; `platform` derives it from the Keycloak it deploys. The requirements table
 above still applies — this value is the one endpoint stardelt cannot discover itself.
 
+**Name the signing keys and the audience.** The Spark Connect front verifies every token with the
+provider's key set, so `identity.jwksUri` carries its `jwks_uri`: copy it from
+`<issuerUrl>/.well-known/openid-configuration`; Envoy has no discovery. `identity.apiAudience` (in
+the chart; `spec.identity.apiAudience` on a `PlatformInstance`) is the `aud` a token for the
+platform's APIs carries — on Entra `api://<app-id-app-client-id>`. Both are required for
+`external`; `platform` derives the JWKS URL from the Keycloak it deploys and mints its own audience.
+
 **Tested providers**
 
 | Provider | Mode | Status |

@@ -179,6 +179,17 @@
             "Running"
           ],
           "type": "string"
+        },
+        "viewers": {
+          "description": "Groups that may USE the cluster in Nova — see it, connect to it and run work with it —\nand nothing else. Starting, stopping and changing it stay with `owner`. Absent means\nthe owner's group only.",
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "type": "array"
         }
       },
       "required": [

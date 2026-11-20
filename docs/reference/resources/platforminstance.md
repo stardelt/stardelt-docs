@@ -30,6 +30,7 @@ A stardelt platform instance.
 | `spec.identity.clients{}.clientSecretRef.name` | string | Yes |  |  | min 1, max 253; pattern `^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$` |
 | `spec.identity.groupClaim` | string (nullable) | No |  | Name of the token claim that carries group (or role) names. Defaults to `roles` for `entra` and `groups` otherwise. |  |
 | `spec.identity.issuerUrl` | string (nullable) | No |  | OIDC issuer URL, `https://` only. Required for `external`; for `platform` it is derived from `baseDomain` and must be left out. |  |
+| `spec.identity.jwksUri` | string (nullable) | No |  | `external` only: the provider's JWKS URL — `jwks_uri` in `<issuerUrl>/.well-known/openid-configuration`. Required for `external`: Envoy cannot discover it, and the operator does not fetch a customer's discovery document. A `platform` instance derives it from the Keycloak it deploys and must leave it out. | min 1, max 512; pattern `^https://\S+$` |
 | `spec.identity.mode` | string | No | `none` | Where users sign in. Two modes besides none: an identity provider the organization already runs (`external`, for example Entra or Okta), or one the platform runs itself (`platform`, Keycloak). An organization often runs the platform several times against one external provider; each instance then has its own app registrations and group mapping. | `none`, `platform`, `external` |
 | `spec.identity.provider` | string | No | `oidc` | `external` only: which kind of provider this instance talks to. | `oidc`, `entra` |
 | `spec.identity.tokenEndpoint` | string (nullable) | No |  | `external` only: the provider's OAuth2 token endpoint — `token_endpoint` in `<issuerUrl>/.well-known/openid-configuration`. Required for `external`: neither the operator (API-server proxy only) nor Helm can fetch an external discovery document. A `platform` instance derives it from the Keycloak it deploys and must leave it out. | min 1, max 512; pattern `^https://\S+$` |
@@ -120,6 +121,7 @@ A stardelt platform instance.
 - platform mode creates its own clients: leave provider, apiAudience and clients out
 - external mode needs issuerUrl
 - external mode needs tokenEndpoint
+- external mode needs jwksUri
 - external mode needs apiAudience
 - external mode needs a nova client
 - client names are nova, trino, lakekeeper, superset, airflow, jupyterhub and trino-group-sync

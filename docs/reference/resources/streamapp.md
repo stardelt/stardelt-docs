@@ -30,6 +30,7 @@ A streaming app: a Kafka topic in, an Iceberg table out.
 | `spec.source.format` | string | No | `json` |  | `json` |
 | `spec.source.topic` | string | Yes |  |  | min 1, max 249; pattern `^[A-Za-z0-9._-]+$` |
 | `spec.stopped` | boolean | No | `false` | `true` stops the job and deletes its SparkApplication; the checkpoint is kept, so `stopped: false` resumes from it. The one verb Nova's page needs. |  |
+| `spec.viewers` | array of string | No |  | Groups that may READ the stream in Nova — list it and open it — and nothing else. Stopping it and changing it stay with `ownerGroup`. Absent means the owner group only. | max 16 |
 
 ## Status
 
