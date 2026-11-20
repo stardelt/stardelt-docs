@@ -7,7 +7,7 @@ description: "The checks to run after an upgrade and nightly, what each proves a
 
 # Checks to run
 
-These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Eight are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`, and `verify-trino-graceful-shutdown` deletes one worker pod, which the Deployment replaces, and `verify-spark-cluster` creates a `SparkCluster` named `verify-spark-cluster` and deletes it and every object it owns, `verify-s3-sts` creates one `amazon/aws-cli` pod and a `sts-verify-<epoch>` bucket, and deletes both, `verify-spark-demo-query` creates one client pod in the platform namespace and deletes it, and `verify-spark-demo-security` creates one client pod and one Secret (a token for the public `demo` user), and deletes both.
+These are read-only checks; each prints a verdict and exits non-zero when it proves something is wrong. Run them after an upgrade and nightly. Eleven are not strict read-only: `verify-restore` restores the catalog database into namespace `stardelt-restore` and deletes it, `verify-pgdump` restores into a scratch database and drops it, `verify-external-secrets` creates and deletes namespace `eso-verify` and `ClusterSecretStore eso-verify-fake`, and `verify-trino-graceful-shutdown` deletes one worker pod, which the Deployment replaces, and `verify-spark-cluster` creates a `SparkCluster` named `verify-spark-cluster` and deletes it and every object it owns, `verify-s3-sts` creates one `amazon/aws-cli` pod and a `sts-verify-<epoch>` bucket, and deletes both, `verify-spark-demo-query` creates one client pod in the platform namespace and deletes it, and `verify-spark-demo-security` creates one client pod and one Secret (a token for the public `demo` user), and deletes both, `verify-catalog-workload-auth` creates a throwaway ServiceAccount and deletes it on every exit path, `verify-release` runs `verify-pod-security`, which creates namespace `stardelt-pss-probe`, and `verify-catalog-workload-auth`, and `exit-status` runs `make verify-release`.
 
 ## After an upgrade
 
@@ -68,6 +68,17 @@ it as a problem.
 
 Nova's **Platform** page shows the same state live, including the images the cluster runs
 ([the Platform page](./troubleshooting#the-platform-page)).
+
+## Before a release
+
+Run these before a tag, and take the 0.0.4 exit list as the answer the tag starts from:
+
+| Command | What it proves | A failure means |
+| --- | --- | --- |
+| `make verify-release` | The checks a release depends on, one line each: it runs every one of them even after a failure and writes one log per check under `verify-release.<stamp>/` in `$TMPDIR`. A check that cannot see its subject prints `? unverified`, not `✗`. | A release check proved something false: the failing line names the check and its log. A `?` row is not a failure but not proof either — the log says what the check could not reach. |
+| `make exit-status` | The 0.0.4 exit list, one row per line, as `✓`, `✗`, `?` or `·`. The `·` rows are the maintainer's manual lines, such as the fresh-node run. Exit 0 means every line holds and nothing was unverified, 1 means at least one `✗`, and 3 means a probe could not reach its subject. | A red line is a release blocker; `?` means the probe could not see its subject (no `gh`, or `gh` not signed in) and nothing was checked. |
+| `make verify-catalog-workload-auth` | The catalog accepts a workload's ServiceAccount token (audience `stardelt-catalog-workload`) and refuses the OIDC and API-server audiences. `404 UserNotFound` before any grant is the expected first answer, not a failure. | The workload login is off, the audience split is broken, or the token-review binding is missing: a workload cannot sign in to the catalog, or one that must be refused is admitted. |
+| `make verify-secret-annotations` | No Secret carries a credential in `kubectl.kubernetes.io/last-applied-configuration`. A hit prints the one-line `kubectl annotate … -` that heals it. | A credential sits in an annotation every reader of the Secret can see: run the printed `kubectl annotate` command and apply the Secret with `create` or `--server-side`. |
 
 ## Nightly
 
