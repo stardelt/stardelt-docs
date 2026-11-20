@@ -48,12 +48,17 @@ Record one bundle deploy: the bundle, the owner group of its pipelines, the stag
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
 | `bundle` | string | Yes |  | The bundle that was deployed, 1 to 64 characters, no `/`. |  |
+| `files` | array of object | No |  | The files of the bundle this deploy read, at most 200; empty when the caller sent none. |  |
+| `files[].path` | string | Yes |  | The path relative to the bundle directory, with `/` separators. |  |
+| `files[].sha256` | string | Yes |  | The file's content, lowercase hex sha256 (64 characters). |  |
 | `ownerGroup` | string | Yes |  | The owner group of the deployed pipelines; the caller must be a member. |  |
 | `pipelines` | array of object | No |  | The pipelines the deploy touched, at most 200. |  |
 | `pipelines[].action` | string | Yes |  | `created`, `updated`, `deleted` or `unchanged`. |  |
 | `pipelines[].name` | string | Yes |  |  |  |
 | `pipelines[].namespace` | string | Yes |  |  |  |
+| `previousDeploymentId` | integer (nullable) | No |  | The deployment a rollback replayed, or absent. It is display metadata: the page links to it, and a row the caller may not see answers 404 there. | format `int64` |
 | `repository` | string (nullable) | No |  | The bundle's repository, or absent. |  |
+| `resources` | array | No |  | The rendered Pipeline documents this deploy applied; empty for a failed deploy. |  |
 | `revision` | string (nullable) | No |  | The commit that was deployed, or absent when it is not known. |  |
 | `status` | string | Yes |  | `applied` or `failed`. |  |
 | `target` | string | Yes |  | The stage the deploy went to, 1 to 64 characters, no `/`. |  |
@@ -67,3 +72,52 @@ Record one bundle deploy: the bundle, the owner group of its pipelines, the stag
 | `401` | The caller has no identity |
 | `403` | Only a member of the pipeline's owner group may record a deployment |
 | `503` | The state store is not configured |
+
+## GET /api/deployments/\{id\}
+
+Operation id `deployments_get`: in Python `client.call("deployments_get", …)`, on the command line `stardelt api deployments_get`.
+
+`GET /api/deployments/{id}` — one row, or 404 when it is not one the caller may see.
+
+One deployment record by id: an administrator sees every row, anybody else only a row of their own groups. A row that does not exist and a row of somebody else's group answer the same 404, so the route never says which ids exist.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | The deployment's id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The row |
+| `401` | The caller has no identity |
+| `404` | No such row among the ones the caller may see |
+| `503` | The state store is not configured |
+
+## POST /api/deployments/\{id\}/rollback
+
+Operation id `deployments_rollback`: in Python `client.call("deployments_rollback", …)`, on the command line `stardelt api deployments_rollback`.
+
+`POST /api/deployments/{id}/rollback` — replay a recorded deployment, `201` with the new row.
+
+Roll back to what a recorded deployment applied: the stored rendered Pipeline documents of a row of the caller's groups are replayed as the caller — each missing one is created and each existing one updated — and the replay is recorded as a new deployment row whose `previousDeploymentId` points at the source. It needs no Git: it applies exactly what ran. Only a row with status `applied` and at least one stored resource can be replayed. A document the rules refuse stops the replay: the row is still recorded, as `failed`, and the answer is 409 with the sentence (400 when a stored document no longer fits a pipeline, 502/503 when the cluster did not answer).
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | The deployment's id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The new row recording the replay |
+| `400` | A stored document no longer fits a pipeline |
+| `401` | The caller has no identity |
+| `404` | No such row among the ones the caller may see |
+| `409` | The row is not `applied`, it recorded no rendered resources, or a document was refused |
+| `502` | The cluster or the notebook store did not answer |
+| `503` | The state store is not configured, or there is no cluster connection |
