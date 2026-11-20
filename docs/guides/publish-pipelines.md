@@ -146,9 +146,10 @@ it after the deploy. The command only reads.
 
 ## 5. Keep Git and the stage in step
 
-**Remove what the bundle dropped.** `--prune` (on `plan` and `deploy`) handles the pipelines an earlier deploy of this bundle
-target stamped and the bundle no longer names: `plan` lists them as `would-delete`, and `deploy` removes them (`deleted`) only
-after every create and update succeeded. A pipeline made by hand, or stamped by another bundle or target, is never touched.
+**Remove what the bundle dropped.** `--prune` (on `plan` and `deploy`) handles the pipelines and stream apps an earlier deploy
+of this bundle target stamped and the bundle no longer names: `plan` lists them as `would-delete`, and `deploy` removes them
+(`deleted`) only after every create and update succeeded. A pipeline or stream made by hand, or stamped by another bundle or
+target, is never touched.
 
 **Empty a stage.** `stardelt bundle destroy shop -t dev` lists, as `would-delete`, every pipeline an earlier deploy of this bundle
 target put on the stage, and `--yes` removes them (`deleted`). In a development target it removes only your own
