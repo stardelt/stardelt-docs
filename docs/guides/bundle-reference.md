@@ -290,7 +290,7 @@ sign-in; the others talk to Nova.
 | Command | What it does | Writes to Nova |
 |---|---|---|
 | `bundle init [DIR] --name NAME --group GROUP` | writes a small bundle that passes `validate` | no |
-| `bundle validate [DIR] [-t TARGET]` | checks the bundle offline (every target, or one): the same checks the schema describes, plus the ones that need the files | no |
+| `bundle validate [DIR] [-t TARGET] [--format text\|json]` | checks the bundle offline (every target, or one): the same checks the schema describes, plus the ones that need the files | no |
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
 | `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan` | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
@@ -307,6 +307,16 @@ your own `dev-<your name>-` ones.
 ## What the commands print
 
 Results are JSON lines on standard output; messages, warnings and problems go to standard error.
+
+`validate` prints one line per target on standard output (`dev (development): daily`); `--format json` prints one object
+instead, with nothing on standard error, for the `bundle init` bundle:
+
+```json
+{"ok": true, "problems": [], "warnings": [], "targets": [{"name": "dev", "mode": "development", "pipelines": ["daily"]}, {"name": "prod", "mode": "production", "pipelines": ["daily"]}]}
+```
+
+`ok` is false when `problems` is non-empty (exit code `2`); warnings never fail the run; `--format text` is the default and
+prints what it printed before.
 
 - `plan`, `deploy`: one line per object, `{"action": ..., "kind": "Pipeline" | "StreamApp" | "Migration", "name": ...}`, with
   `action` one of `would-create`, `would-update`, `would-delete` (a plan) or `created`, `updated`, `deleted` (a deploy). An
