@@ -26,7 +26,7 @@ endpoints, stores the samples and alerts on them.
 | OpenFGA | `openfga:2112/metrics` | `go_gc_duration_seconds` | needs `telemetry.metrics.enabled` (shipped on) |
 | Reloader | `reloader-reloader:9090/metrics` | `reloader_events_processed_total` | |
 | Spark operator | `spark-operator-metrics:8080/metrics` | `spark_application_running_count` | |
-| The operator | `stardelt-operator-metrics:8082/metrics` | `stardelt_operator_build_info` | also `stardelt_operator_leader`, `stardelt_operator_reconcile_errors_total` |
+| The operator | `stardelt-operator-metrics:8082/metrics` | `stardelt_operator_build_info` | also `stardelt_operator_leader`, `stardelt_operator_reconciles_total`, `stardelt_operator_reconcile_duration_seconds`, `stardelt_operator_status_writes_total`, `stardelt_operator_reconcile_errors_total` — see [Operator health](#operator-health) |
 | Airflow's statsd exporter | `airflow-statsd:9102/metrics` | `airflow_asset_orphaned` | Airflow sends statsd here; `statsd_exporter_lines_total` counts what arrived |
 | Nova | `nova:8081/metrics` | `nova_build_info` | the internal listener; `8080` is the SPA and answers HTML |
 | JupyterHub's hub | `hub:8081/hub/metrics` | `python_gc_objects_collected_total` | the only unauthenticated path on 8081; the hub API still needs a token |
@@ -64,6 +64,30 @@ spec:
 ```
 
 Repeat it with the other three cluster names.
+
+## Operator health
+
+The operator reconciles seven kinds (`lakehouse`, `platform`, `connection`, `principal`, `stream_app`,
+`spark_cluster`, `catalog`) and reports each one by name:
+
+| Series | What to read it for |
+|---|---|
+| `stardelt_operator_reconciles_total{controller,result}` | how often each controller ran; `result="error"` is a failed reconcile |
+| `stardelt_operator_reconcile_duration_seconds{controller}` | a histogram per controller, buckets from 10 ms to 30 s |
+| `stardelt_operator_status_writes_total{controller}` | status patches written, by controller |
+| `stardelt_operator_reconcile_errors_total` | every failed reconcile since start, all controllers |
+| `stardelt_operator_leader` | `1` on the replica holding the lease, `0` on the other |
+| `stardelt_operator_build_info` | the version the pod runs |
+
+**On an idle cluster, `reconciles_total` and `status_writes_total` are almost flat.** A
+`status_writes_total` that keeps rising with no change on the cluster is the failure #274 exists
+to prevent: one controller writes a status it did not change. Its `controller` label names the
+controller. `reconciles_total` rising without a change on the cluster means a requeue is too
+short, not that a status is wrong.
+
+`make verify-operator-quiet` in `platform/` measures the same thing over 60 s (no status write,
+fewer than two reconciles per object, operator CPU under 50 m, pod traffic under 50 KB/s). It is
+listed on [Checks to run](./checks).
 
 ## Who may read them
 
