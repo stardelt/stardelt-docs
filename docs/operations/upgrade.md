@@ -78,6 +78,8 @@ With the umbrella chart, run `helm upgrade --install stardelt chart -n stardelt 
 - **CRDs upgrade with the operator.** See [Who installs the schemas](#who-installs-the-schemas).
 - **Put digests in your values.** A moving tag can serve an old image.
 
+Before you tag or hand over a release, run the checks in [Before a release](checks.md#before-a-release).
+
 There is no migration guide or compatibility promise before the first tagged release, so upgrade your
 dev install first and prod after it has run for a day.
 
