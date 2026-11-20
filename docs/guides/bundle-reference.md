@@ -99,14 +99,14 @@ list: a pattern does not have to be repeated under `files`.
 
 ```console
 $ stardelt bundle plan shop -t prod
-{"action": "migration-in-ledger", "name": "001_init.sql"}
-{"action": "would-apply-migration", "name": "002_add.sql", "class": "additive"}
-{"action": "would-create", "name": "daily", "nextRuns": ["2026-11-02T03:00:00+01:00"]}
+{"action": "migration-in-ledger", "name": "001_init.sql", "kind": "Migration"}
+{"action": "would-apply-migration", "name": "002_add.sql", "class": "additive", "kind": "Migration"}
+{"action": "would-create", "name": "daily", "nextRuns": ["2026-11-02T03:00:00+01:00"], "kind": "Pipeline"}
 
 $ stardelt bundle deploy shop -t prod --allow-breaking
-{"action": "migration-in-ledger", "name": "001_init.sql"}
-{"action": "migration-applied", "name": "002_add.sql"}
-{"action": "created", "name": "daily"}
+{"action": "migration-in-ledger", "name": "001_init.sql", "kind": "Migration"}
+{"action": "migration-applied", "name": "002_add.sql", "kind": "Migration"}
+{"action": "created", "name": "daily", "kind": "Pipeline"}
 {"action": "recorded", "id": 7}
 ```
 
@@ -272,9 +272,9 @@ sink: {catalog: "${var.catalog}", table: bronze.measurements, mode: merge, merge
 
 ```console
 $ stardelt bundle plan shop -t prod
-{"action": "would-create", "name": "measurements"}
+{"action": "would-create", "name": "measurements", "kind": "StreamApp"}
 $ stardelt bundle deploy shop -t prod
-{"action": "created", "name": "measurements"}
+{"action": "created", "name": "measurements", "kind": "StreamApp"}
 {"action": "recorded", "id": 7}
 $ stardelt bundle summary shop -t prod
 {"name": "measurements", "kind": "StreamApp", "revision": "0123abc", "deployedBy": "ada", "deployedAt": "2026-11-01T08:00:02Z"}
@@ -308,22 +308,24 @@ your own `dev-<your name>-` ones.
 
 Results are JSON lines on standard output; messages, warnings and problems go to standard error.
 
-- `plan`, `deploy`: one line per pipeline, `{"action": ..., "name": ...}` with `action` one of `would-create`, `would-update`,
-  `would-delete` (a plan) or `created`, `updated`, `deleted` (a deploy). An update lists `changes` (which of `statement`,
-  `schedule`, `params`, `options` and `deployment` change), a scheduled pipeline lists `nextRuns`, and `"modified": true` marks a
-  pipeline someone changed after its last deploy (one warning per such pipeline goes to standard error).
-- Both also list the bundle's new migrations first, in name order: `{"action": "migration-in-ledger", "name": ...}` for a file
-  already applied, `{"action": "would-apply-migration", "name": ..., "class": "additive"}` for a new one, and in a deploy
-  `{"action": "migration-applied", "name": ...}` for each file it ran. A breaking file without `--allow-breaking` is a
+- `plan`, `deploy`: one line per object, `{"action": ..., "kind": "Pipeline" | "StreamApp" | "Migration", "name": ...}`, with
+  `action` one of `would-create`, `would-update`, `would-delete` (a plan) or `created`, `updated`, `deleted` (a deploy). An
+  update lists `changes` (which of `statement`, `schedule`, `params`, `options` and `deployment` change), a scheduled pipeline
+  lists `nextRuns`, and `"modified": true` marks a pipeline someone changed after its last deploy (one warning per such
+  pipeline goes to standard error). `--format markdown` prints the same rows as a table whose `Kind` column shows that kind.
+- Both also list the bundle's new migrations first, in name order: `{"action": "migration-in-ledger", "name": ..., "kind":
+  "Migration"}` for a file already applied, `{"action": "would-apply-migration", "name": ..., "class": "additive", "kind":
+  "Migration"}` for a new one, and in a deploy `{"action": "migration-applied", "name": ..., "kind": "Migration"}` for each
+  file it ran. A breaking file without `--allow-breaking` is a
   refusal: one sentence on standard error (`prod: migrations: 002_add.sql: drop column is breaking; pass allowBreaking`),
   exit code `2`, and no pipeline written. `plan` works out the same plan id for the same files as a deploy would, but it
   does not print it: in a `production` target, copy the id to approve from the refused deploy's sentence.
 - A stream app of the bundle prints `would-create` or `would-update` in a plan and `created` or `updated` in a deploy, after
-  the pipelines; `summary` prints its row with `"kind": "StreamApp"`.
+  the pipelines, with `"kind": "StreamApp"`; `summary` prints its row with `"kind": "StreamApp"` too.
 - A pipeline whose notebook is a file adds one thing to this: when the file differs from the newest published version, `plan` prints
-  `{"action": "would-publish", "name": ..., "notebook": "<group>/<file name>"}` instead of `would-create` or `would-update` (Nova can
+  `{"action": "would-publish", "name": ..., "notebook": "<group>/<file name>", "kind": "Pipeline"}` instead of `would-create` or `would-update` (Nova can
   check the pipeline only after the new version exists), and `deploy` prints `{"action": "published", "name": ..., "notebook": ...,
-  "objectVersion": ...}` before the pipeline's own line. A refusal after the publish keeps the published version.
+  "objectVersion": ..., "kind": "Pipeline"}` before the pipeline's own line. A refusal after the publish keeps the published version.
 - With `--diff`, `plan` and `deploy` also print, on standard error after the JSON lines, a unified diff for every update: one per
   field Nova names in `changes` (`statement` is compared line by line, `schedule`, `params` and `options` as YAML), headed
   `--- load sql (deployed)` and `+++ load sql (bundle)`. A change of the stamp alone (`deployment`) shows nothing, and a deployed
