@@ -147,8 +147,9 @@ A `development` target deploys the stream under `dev-<your sign-in name>-<name>`
 (`dev-alice-measurements`), so two people can try the same stream side by side; a `production`
 target uses the name in the file. A deploy stamps the stream with the bundle, the target and the
 revision (the commit, when the directory is a Git checkout). `stardelt bundle summary shop -t prod`
-lists it with `"kind": "StreamApp"`. `--prune` and `destroy` remove pipelines only today: a stream
-app is left in place, and a stream created by hand or by another bundle is never touched.
+lists it with `"kind": "StreamApp"`. `--prune` removes a stream app of this bundle and target that
+the bundle no longer names, and `destroy` removes every one the target deployed: a stream created by
+hand or by another bundle is never touched.
 
 The stream itself runs on the cluster as the `StreamApp` resource this page shows; the bundle is
 how it gets there and how it changes. Every key of the file is in the

@@ -252,8 +252,9 @@ sink: {catalog: "${var.catalog}", table: bronze.measurements, mode: merge, merge
 - A `development` target deploys it under `dev-<your sign-in name>-<name>`; a `production` target under its own name. It
   carries the same stamp as a pipeline (bundle, target and revision — the commit when the directory is a Git checkout), and
   `bundle summary` lists it with `"kind": "StreamApp"`.
-- `--prune` and `destroy` remove pipelines only today: a stream app is left in place, and a stream made by hand or by another
-  bundle is never touched.
+- `--prune` and `destroy` remove the pipelines and the stream apps of this bundle and this target: `--prune` the ones the
+  bundle no longer names, `destroy` every one the target deployed. A pipeline or a stream made by hand or by another bundle is
+  never touched.
 
 ```console
 $ stardelt bundle plan shop -t prod
@@ -284,9 +285,10 @@ sign-in; the others talk to Nova.
 | `bundle destroy [DIR] -t TARGET [--yes]` | lists, and with `--yes` removes, what a deploy of the target left on the stage | with `--yes` |
 | `bundle generate NAMESPACE NAME [DIR]` | writes a pipeline made in the interface into the bundle (its file and its SQL file); never overwrites | no |
 
-`--prune` also handles the pipelines that this bundle and this target deployed earlier and the bundle no longer names (`would-delete`
-in a plan, removed after everything else succeeded in a deploy). `destroy` and `--prune` only ever touch pipelines stamped with
-this bundle's name and this target; in a `development` target only your own `dev-<your name>-` pipelines.
+`--prune` also handles the pipelines and stream apps that this bundle and this target deployed earlier and the bundle no longer
+names (`would-delete` in a plan, removed after everything else succeeded in a deploy; a stream row carries `"kind": "StreamApp"`).
+`destroy` and `--prune` only ever touch objects stamped with this bundle's name and this target; in a `development` target only
+your own `dev-<your name>-` ones.
 
 ## What the commands print
 
