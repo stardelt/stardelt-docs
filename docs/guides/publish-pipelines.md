@@ -83,8 +83,8 @@ stardelt bundle deploy shop -t dev
 ```
 
 ```text
-{"action": "would-create", "name": "dev-alice-daily"}
-{"action": "created", "name": "dev-alice-daily"}
+{"action": "would-create", "name": "dev-alice-daily", "kind": "Pipeline"}
+{"action": "created", "name": "dev-alice-daily", "kind": "Pipeline"}
 {"action": "recorded", "id": 7}
 ```
 
@@ -129,7 +129,7 @@ stardelt bundle deploy shop -t prod
 ```
 
 ```text
-{"action": "created", "name": "daily"}
+{"action": "created", "name": "daily", "kind": "Pipeline"}
 {"action": "recorded", "id": 7}
 ```
 

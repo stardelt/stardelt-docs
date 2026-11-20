@@ -131,7 +131,7 @@ for an external Kafka — the topic is still required), `sink.mode` (`merge` or 
 `sink.mergeKeys` and `restartPolicy` (`always` or `on-failure`).
 
 The commands are the ones that deploy pipelines; the stream's row appears among the pipeline rows
-with only its action and name:
+with its action, its kind and its name:
 
 ```bash
 stardelt bundle plan shop -t prod
@@ -139,8 +139,8 @@ stardelt bundle deploy shop -t prod
 ```
 
 ```text
-{"action": "would-create", "name": "measurements"}
-{"action": "created", "name": "measurements"}
+{"action": "would-create", "name": "measurements", "kind": "StreamApp"}
+{"action": "created", "name": "measurements", "kind": "StreamApp"}
 ```
 
 A `development` target deploys the stream under `dev-<your sign-in name>-<name>`
