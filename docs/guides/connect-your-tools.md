@@ -145,7 +145,7 @@ phase badge: **Starting**, **Running**, **Stopping**, **Stopped** or **Failed**.
 platform reports; a phase it does not know is printed as it came.
 
 The next line says who may use the cluster — its group, else its person, else `—` — and then its size
-(**small**, **medium** or **large**) and its runtime, for example `spark-4.1-py3.11`.
+(**small**, **medium** or **large**) and its runtime, for example `spark-4.1-py3.13`.
 
 Below that, a shared cluster says `Shared · always on · for everyone` and offers no Start or Stop. Any other
 cluster says `Stops after <N> min idle`, with `Running since <time>` in front while it runs.
@@ -163,7 +163,7 @@ worry.
 Most failures come from one of three things:
 
 - **The runtime is not in the catalogue.** The sentence reads `unknown runtime spark-9.9-py3.13; known:
-  spark-4.1-py3.11`, and the names after `known:` are the ones this install has. Ask an administrator to fix
+  spark-4.1-py3.13`, and the names after `known:` are the ones this install has. Ask an administrator to fix
   the runtime with **Edit**, then start the cluster.
 - **The runtime catalogue is missing.** The sentence reads `the runtime catalogue stardelt-spark-runtimes is
   missing`. Nothing on this page fixes that — the install is incomplete — so send it to an administrator.
@@ -194,7 +194,7 @@ card. The fields, in the order the dialog shows them:
 - **Driver** — cores and memory; blank means the size preset.
 - **Executor** — cores and memory; blank means the size preset.
 - **Max executors** — optional; blank means the size preset.
-- **Runtime** — like `spark-4.1-py3.11`.
+- **Runtime** — like `spark-4.1-py3.13`.
 - **Image** — optional: an image built from a runtime image, pinned by digest.
 - **Idle minutes** — when the cluster stops itself after no use; `0` means never, and only the shared cluster
   may have it.
