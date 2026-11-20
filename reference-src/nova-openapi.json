@@ -15,7 +15,7 @@
         "tags": [
           "internal"
         ],
-        "description": "Every `Catalog` of the platform namespace, ordered bronze, silver, gold, then the rest alphabetically (`layer`: the `stardelt.io/layer` label, else the catalog's own name): identity, owner, managed access, the storage key prefix, phase and the grants and conditions the access-sync job last wrote. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. The write is `PUT /api/admin/catalogs/{name}/access`; this route never changes anything. A catalog the job has not observed yet answers `phase: \"Unknown\"` with no conditions. Without a cluster connection (demo mode, a local run) the answer is the one in-memory `warehouse` catalog. Answers `Cache-Control: no-store`.",
+        "description": "Every `Catalog` of the platform namespace, ordered bronze, silver, gold, then the rest alphabetically (`layer`: the `stardelt.io/layer` label, else the catalog's own name; `environment`: `production` when the resource carries `stardelt.io/environment: production`, absent otherwise): identity, owner, managed access, the storage key prefix, phase and the grants and conditions the access-sync job last wrote. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. The write is `PUT /api/admin/catalogs/{name}/access`; this route never changes anything. A catalog the job has not observed yet answers `phase: \"Unknown\"` with no conditions. Without a cluster connection (demo mode, a local run) the answer is the one in-memory `warehouse` catalog. Answers `Cache-Control: no-store`.",
         "operationId": "admin_catalogs_list",
         "responses": {
           "200": {
@@ -929,7 +929,8 @@
               }
             }
           }
-        }
+        },
+        "security": []
       }
     },
     "/api/catalog/catalogs": {
@@ -937,7 +938,7 @@
         "tags": [
           "public"
         ],
-        "description": "The catalogs the caller may browse, each with its Lakekeeper warehouse id and its medallion layer when it has one, plus the catalog a request without `?catalog=` uses. Its `owner` is `spec.owner` of the catalog's `Catalog` resource and `description` is `spec.description` (null without a resource); `grants` is `spec.grants` in declared order — one group and one verb (`browse`, `select`, `write`, `create`, `manage`) each — and empty when the catalog declares none, so a member can see whose data it is and which groups may read or write it. The order is bronze, silver, gold first (in that order), then the rest alphabetically; `layer` is `stardelt.io/layer` from the catalog's `Catalog` resource, else the catalog's own name when that is `bronze`, `silver` or `gold`, and absent otherwise. The list is what the engine's `SHOW CATALOGS` shows the caller (through the caller's own token), minus the engine's own catalogs (`system`, `information_schema`, `memory`, `tpch`, `tpcds`, `jmx`); it is cached for 30 s (the layer for 60 s; the owner and grants are read on every request). Every other `/api/catalog/*` route takes the same `?catalog=`; a catalog the caller may not browse answers 403 there and is never proxied. Empty when no catalog is open to the caller. `demo` in demo mode.",
+        "description": "The catalogs the caller may browse, each with its Lakekeeper warehouse id and its medallion layer when it has one, plus the catalog a request without `?catalog=` uses. Its `owner` is `spec.owner` of the catalog's `Catalog` resource and `description` is `spec.description` (null without a resource); `grants` is `spec.grants` in declared order — one group and one verb (`browse`, `select`, `write`, `create`, `manage`) each — and empty when the catalog declares none, so a member can see whose data it is and which groups may read or write it. The order is bronze, silver, gold first (in that order), then the rest alphabetically; `layer` is `stardelt.io/layer` from the catalog's `Catalog` resource, else the catalog's own name when that is `bronze`, `silver` or `gold`, and absent otherwise; `environment` is `production` when the resource carries `stardelt.io/environment: production`, and absent otherwise. The list is what the engine's `SHOW CATALOGS` shows the caller (through the caller's own token), minus the engine's own catalogs (`system`, `information_schema`, `memory`, `tpch`, `tpcds`, `jmx`); it is cached for 30 s (the layer for 60 s; the owner and grants are read on every request). Every other `/api/catalog/*` route takes the same `?catalog=`; a catalog the caller may not browse answers 403 there and is never proxied. Empty when no catalog is open to the caller. `demo` in demo mode.",
         "operationId": "catalogs_list",
         "responses": {
           "200": {
@@ -2384,7 +2385,7 @@
           "public"
         ],
         "summary": "`GET /api/compute`: the Spark clusters this caller may use.",
-        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs, `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse` and `shared`. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
+        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs (`endpoint` is absent when the caller reaches the cluster only through `spec.viewers`: such a server acts with its owner group's rights, so Nova issues a viewer no channel — #493), `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse`, `canAct`, whether the caller may start, stop or edit the cluster, and `shared`. Next to them the Spark servers the platform's own manifests install appear with `kind: platform` — the shared server and the public demo's sandbox — carrying `mode` (`kubernetes` or `local`), the container `limits`, who shares it (`audience`), when it is restarted (`resetsAt`) and `yours`, whether it is the Spark the caller's own notebook uses. A visitor of the public demo sees the sandbox only: their `spark` is not the shared server. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
         "operationId": "compute_list",
         "responses": {
           "200": {
@@ -3706,10 +3707,168 @@
         }
       }
     },
+    "/api/deployments/{id}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/deployments/{id}` — one row, or 404 when it is not one the caller may see.",
+        "description": "One deployment record by id: an administrator sees every row, anybody else only a row of their own groups. A row that does not exist and a row of somebody else's group answer the same 404, so the route never says which ids exist.",
+        "operationId": "deployments_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The deployment's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deployment"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The caller has no identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such row among the ones the caller may see",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/deployments/{id}/rollback": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/deployments/{id}/rollback` — replay a recorded deployment, `201` with the new row.",
+        "description": "Roll back to what a recorded deployment applied: the stored rendered Pipeline documents of a row of the caller's groups are replayed as the caller — each missing one is created and each existing one updated — and the replay is recorded as a new deployment row whose `previousDeploymentId` points at the source. It needs no Git: it applies exactly what ran. Only a row with status `applied` and at least one stored resource can be replayed. A document the rules refuse stops the replay: the row is still recorded, as `failed`, and the answer is 409 with the sentence (400 when a stored document no longer fits a pipeline, 502/503 when the cluster did not answer).",
+        "operationId": "deployments_rollback",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The deployment's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "The new row recording the replay",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Deployment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A stored document no longer fits a pipeline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The caller has no identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such row among the ones the caller may see",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The row is not `applied`, it recorded no rendered resources, or a document was refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster or the notebook store did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured, or there is no cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/destinations": {
       "get": {
         "tags": [
-          "internal"
+          "public"
         ],
         "summary": "`GET /api/destinations` — the caller's groups' destinations, newest first.",
         "description": "The notification destinations of the caller's groups, newest first. `?group=<group>` narrows to one group the caller belongs to. Times are epoch milliseconds.",
@@ -3763,7 +3922,7 @@
       },
       "post": {
         "tags": [
-          "internal"
+          "public"
         ],
         "summary": "`POST /api/destinations` — `201` with the stored row.",
         "description": "Create a notification destination for one of the caller's groups. An `email` destination carries `config.recipients` (1 to 20 addresses); a `webhook` destination carries `config.url` (http or https). Nothing here sends anything.",
@@ -3835,7 +3994,7 @@
     "/api/destinations/{id}": {
       "delete": {
         "tags": [
-          "internal"
+          "public"
         ],
         "summary": "`DELETE /api/destinations/{id}` — `204`; `404` for another group's id or none.",
         "description": "Delete one of the caller's groups' notification destinations.",
@@ -3892,7 +4051,7 @@
     "/api/destinations/{id}/test": {
       "post": {
         "tags": [
-          "internal"
+          "public"
         ],
         "summary": "`POST /api/destinations/{id}/test` — send one test message to a webhook destination\nand record the attempt.",
         "description": "Send one test message to a webhook destination and record the attempt. An email destination answers 400 until the platform's SMTP relay exists. The answer never contains the webhook's URL.",
@@ -4006,7 +4165,8 @@
               }
             }
           }
-        }
+        },
+        "security": []
       }
     },
     "/api/ingest/upload": {
@@ -4181,7 +4341,14 @@
             }
           },
           "403": {
-            "description": "Not visible"
+            "description": "Not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -4243,10 +4410,24 @@
             }
           },
           "400": {
-            "description": "catalog/schema/table required"
+            "description": "catalog/schema/table required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Not visible"
+            "description": "Not visible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -4291,7 +4472,14 @@
             }
           },
           "503": {
-            "description": "No state store"
+            "description": "No state store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -4318,7 +4506,14 @@
             "description": "Run detail"
           },
           "404": {
-            "description": "Not found"
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -4722,7 +4917,7 @@
           "public"
         ],
         "summary": "`GET /api/notebooks`: the latest version of every notebook in the caller's groups,\nnewest first. Administrators see their own groups only.",
-        "description": "The latest published version of every notebook in the caller's groups, newest first. Each row carries the group, the name, the latest `objectVersion`, its size, `uploadedAt` as an RFC 3339 timestamp in UTC (SeaweedFS's RFC 1123 `LastModified` normalised) and the publisher's `uploadedBy` display name. An administrator gets no wider view than their own groups. Unset `NOVA_S3_*` is 503; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.",
+        "description": "The latest published version of every notebook in the caller's groups, newest first. Each row carries the group, the name, the latest `objectVersion`, its size, `uploadedAt` as an RFC 3339 timestamp in UTC (SeaweedFS's RFC 1123 `LastModified` normalised) and the publisher's `uploadedBy` display name. An administrator gets no wider view than their own groups. Unset `NOVA_S3_*` is 503; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`. The list also carries the newest version of every notebook whose stored viewers name one of the caller's groups.",
         "operationId": "notebooks_list",
         "responses": {
           "200": {
@@ -4777,7 +4972,7 @@
           "public"
         ],
         "summary": "`PUT /api/notebooks/{group}/{name}`: validate, strip, store one immutable version.",
-        "description": "Publish a notebook as a new immutable object version in the `notebooks` bucket. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). `{name}` must match `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` and the body must be an nbformat 4 notebook of at most 5 MiB. Every code cell's `outputs` is emptied and its `execution_count` set to null, and the notebook's widget metadata is removed, before storing — no cell output reaches the object store. A cell of an nbformat 4.5 notebook without an `id` gets one (`cell-<position>`), so the stored notebook stays valid nbformat. `sha256` is of the stored (stripped) bytes. `parameters` are the `name = literal` lines of the first cell tagged `parameters`, at most 32; defaults are text and are never evaluated. A 61st publish by one person in an hour is 429. Publishing bytes the newest version already holds stores nothing, uses no slot and writes no audit line: the answer names that version with `unchanged: true`. With `?dryRun=true` the same checks run and nothing is stored, no slot is used and no audit line is written: the answer says `unchanged: true` with the newest version, or `unchanged: false` with an empty `objectVersion` when a publish would store a new one. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Each publish that stores a version writes one audit line with group, name, version and size, never content. A version published with an `X-Stardelt-Source` header carries `source` (`repository`, `commit`, `path`, `clean`); Nova stores it and does not verify it against a Git server.",
+        "description": "Publish a notebook as a new immutable object version in the `notebooks` bucket. Needs a signed-in person whose groups include `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). `{name}` must match `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` and the body must be an nbformat 4 notebook of at most 5 MiB. Every code cell's `outputs` is emptied and its `execution_count` set to null, and the notebook's widget metadata is removed, before storing — no cell output reaches the object store. A cell of an nbformat 4.5 notebook without an `id` gets one (`cell-<position>`), so the stored notebook stays valid nbformat. `sha256` is of the stored (stripped) bytes. `parameters` are the `name = literal` lines of the first cell tagged `parameters`, at most 32; defaults are text and are never evaluated. A 61st publish by one person in an hour is 429. Publishing bytes the newest version already holds stores nothing, uses no slot and writes no audit line: the answer names that version with `unchanged: true`. With `?dryRun=true` the same checks run and nothing is stored, no slot is used and no audit line is written: the answer says `unchanged: true` with the newest version, or `unchanged: false` with an empty `objectVersion` when a publish would store a new one. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Each publish that stores a version writes one audit line with group, name, version and size, never content. A version published with an `X-Stardelt-Source` header carries `source` (`repository`, `commit`, `path`, `clean`); Nova stores it and does not verify it against a Git server. A version published with an `X-Stardelt-Viewers` header carries up to 8 group names that may read it without being members; the JSON is stored with the version.",
         "operationId": "notebooks_publish",
         "parameters": [
           {
@@ -5006,7 +5201,7 @@
           "public"
         ],
         "summary": "`GET /api/notebooks/{group}/{name}/content`: one stored version's bytes, as they are,\nso the notebook page can preview what a schedule would run (stardelt-nova#684).",
-        "description": "One published version's stored bytes, answered `application/json` as they are. The bytes are the notebook Nova stored: outputs emptied, `execution_count` null, so a preview of a published version shows source and markdown only. `?version=<id>` names the immutable version; omitted, the latest is read. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.",
+        "description": "One published version's stored bytes, answered `application/json` as they are. The bytes are the notebook Nova stored: outputs emptied, `execution_count` null, so a preview of a published version shows source and markdown only. `?version=<id>` names the immutable version; omitted, the latest is read. Needs a member of `{group}`, or a person whose groups the newest version names in its viewers (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.",
         "operationId": "notebooks_content",
         "parameters": [
           {
@@ -5114,7 +5309,7 @@
           "public"
         ],
         "summary": "`GET /api/notebooks/{group}/{name}/parameters`: the parameters of one version, so the\nSchedule dialog can offer the form the notebook declares (stardelt-nova#237).",
-        "description": "The parameters of one published version of a notebook, read from the stored bytes: the `name = literal` lines of the first cell tagged `parameters`, in order, at most 32, defaults as text and never evaluated. `?version=<id>` names the immutable version; omitted, the latest is read and its id answered. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. The answer carries `parameters` and the `objectVersion` it describes — a schedule pins that id. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.",
+        "description": "The parameters of one published version of a notebook, read from the stored bytes: the `name = literal` lines of the first cell tagged `parameters`, in order, at most 32, defaults as text and never evaluated. `?version=<id>` names the immutable version; omitted, the latest is read and its id answered. Needs a member of `{group}`, or a person whose groups the newest version names in its viewers (403 `you are not a member of the group <g>`; administrators are not exempt). An unknown version is 404 `no such notebook version`. The answer carries `parameters` and the `objectVersion` it describes — a schedule pins that id. Unset `NOVA_S3_*` is 503 `notebook storage is not configured`; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`.",
         "operationId": "notebooks_parameters",
         "parameters": [
           {
@@ -5305,7 +5500,7 @@
           "public"
         ],
         "summary": "`GET /api/notebooks/{group}/{name}/versions`: the versions of one notebook, newest\nfirst, at most 50.",
-        "description": "The published versions of one notebook, newest first, at most 50. Needs a member of `{group}` (403 `you are not a member of the group <g>`; administrators are not exempt). Each row carries the immutable `objectVersion`, its size, `uploadedAt` as an RFC 3339 timestamp in UTC (SeaweedFS's RFC 1123 `LastModified` normalised), the publisher's `uploadedBy` and the `sha256` of the stored bytes. A group with no such notebook answers an empty list. Unset `NOVA_S3_*` is 503; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`. A version published with an `X-Stardelt-Source` header carries `source` (`repository`, `commit`, `path`, `clean`); Nova stores it and does not verify it against a Git server.",
+        "description": "The published versions of one notebook, newest first, at most 50. Needs a member of `{group}`, or a person whose groups the newest version names in its viewers (403 `you are not a member of the group <g>`; administrators are not exempt). Each row carries the immutable `objectVersion`, its size, `uploadedAt` as an RFC 3339 timestamp in UTC (SeaweedFS's RFC 1123 `LastModified` normalised), the publisher's `uploadedBy` and the `sha256` of the stored bytes. A group with no such notebook answers an empty list. Unset `NOVA_S3_*` is 503; an S3 that is down or refuses is 502. Answers `Cache-Control: no-store`. A version published with an `X-Stardelt-Source` header carries `source` (`repository`, `commit`, `path`, `clean`); Nova stores it and does not verify it against a Git server.",
         "operationId": "notebooks_versions",
         "parameters": [
           {
@@ -5413,7 +5608,8 @@
               }
             }
           }
-        }
+        },
+        "security": []
       }
     },
     "/api/pipelines": {
@@ -5470,7 +5666,7 @@
         "tags": [
           "public"
         ],
-        "description": "Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`, #237) — both or neither is 400 `give a statement or a notebook`. A body may instead give `tasks` (`[{ name, sql | notebook, dependsOn }]`, 1 to 30 tasks, each with exactly one of the two, at most 8 dependencies): `tasks` together with `sql` or `notebook` is 400 `give a statement, a notebook or a task list`; a task name outside `^[a-z0-9][a-z0-9_-]{0,62}$`, a name used twice, more than 30 tasks, a dependency on itself or on a task of another pipeline, and a cycle are 400 with a sentence that names the task. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: \"loading\"`. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
+        "description": "Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`, #237) — both or neither is 400 `give a statement, a notebook or a dbt run`. A body may instead give `tasks` (`[{ name, sql | notebook | dbt, dependsOn }]`, 1 to 30 tasks, each with exactly one of the two, at most 8 dependencies): `tasks` together with `sql` or `notebook` is 400 `give a statement, a notebook or a task list`; a task name outside `^[a-z0-9][a-z0-9_-]{0,62}$`, a name used twice, more than 30 tasks, a dependency on itself or on a task of another pipeline, and a cycle are 400 with a sentence that names the task. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: \"loading\"`. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_create",
         "requestBody": {
           "content": {
@@ -5874,7 +6070,7 @@
         "tags": [
           "public"
         ],
-        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement or a notebook`. A task-list pipeline's body carries `tasks` and replaces the whole list; any other body on a task list is 409 `this pipeline has several tasks; change it in its file and deploy again`, and `tasks` on a statement or notebook pipeline is 400 `this pipeline runs a statement` / `this pipeline runs a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller cannot see 404, and one it can see but may not change — a viewer (`spec.viewers`) — 403 `only the owner group may change this pipeline`; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
+        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement, a notebook or a dbt run`. A task-list pipeline's body carries `tasks` and replaces the whole list; any other body on a task list is 409 `this pipeline has several tasks; change it in its file and deploy again`, and `tasks` on a statement or notebook pipeline is 400 `this pipeline runs a statement` / `this pipeline runs a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller cannot see 404, and one it can see but may not change — a viewer (`spec.viewers`) — 403 `only the owner group may change this pipeline`; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_update",
         "parameters": [
           {
@@ -9465,6 +9661,13 @@
             ],
             "description": "`spec.displayName`, or `null`."
           },
+          "environment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`production` when the catalog's `Catalog` resource carries `stardelt.io/environment:\nproduction`; absent otherwise (the default is development, #103)."
+          },
           "generation": {
             "type": [
               "integer",
@@ -10143,6 +10346,13 @@
             ],
             "description": "`spec.description` of the catalog's `Catalog` resource, or `null`."
           },
+          "environment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`production` when the catalog's `Catalog` resource carries `stardelt.io/environment:\nproduction`; absent otherwise (the default is development, #103)."
+          },
           "grants": {
             "type": "array",
             "items": {
@@ -10573,9 +10783,22 @@
           "phase",
           "idleStopMinutes",
           "canUse",
-          "shared"
+          "canAct",
+          "shared",
+          "kind"
         ],
         "properties": {
+          "audience": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`members` or `visitors`: who shares a platform server."
+          },
+          "canAct": {
+            "type": "boolean",
+            "description": "Whether the caller may start, stop or edit the cluster: an administrator, the owner\ngroup of a `SparkCluster`, its `owner.user`, or an administrator on `shared` (#706)."
+          },
           "canUse": {
             "type": "boolean"
           },
@@ -10627,10 +10850,25 @@
               "null"
             ]
           },
+          "kind": {
+            "type": "string",
+            "description": "`cluster` for a `SparkCluster`, `platform` for a Spark server the manifests install."
+          },
           "lastActivityAt": {
             "type": [
               "string",
               "null"
+            ]
+          },
+          "limits": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ComputeResources",
+                "description": "The container's resource limits, on a platform server."
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "maxExecutors": {
@@ -10647,6 +10885,13 @@
             ],
             "description": "The operator's reason while the phase is `Failed` or `Starting` (for example a refused\n`SparkConnect`, a runtime that is not in the catalogue, or a driver that cannot start)."
           },
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`kubernetes` (executors are pods) or `local` (the demo sandbox: two threads, none)."
+          },
           "name": {
             "type": "string"
           },
@@ -10655,6 +10900,13 @@
           },
           "phase": {
             "type": "string"
+          },
+          "resetsAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When a platform server is restarted on a schedule (`daily 03:00 UTC` on the sandbox)."
           },
           "runtime": {
             "type": "string"
@@ -10679,6 +10931,10 @@
               "string",
               "null"
             ]
+          },
+          "yours": {
+            "type": "boolean",
+            "description": "Whether this is the Spark the caller's own notebook uses."
           }
         }
       },
@@ -11047,7 +11303,17 @@
             "items": {
               "$ref": "#/components/schemas/PipelineTaskRequest"
             },
-            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement or a\npinned notebook, with dependencies. Exclusive with `sql` and `notebook`."
+            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook or a dbt run, with dependencies. Exclusive with `sql` and `notebook`."
+          },
+          "viewers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Groups that may read the pipeline without being members (`spec.viewers`). At most 16,\neach a group name; omitted writes none. A bundle's pipeline file carries it (#79)."
           }
         }
       },
@@ -11059,6 +11325,57 @@
           "down",
           "disabled"
         ]
+      },
+      "DbtRequest": {
+        "type": "object",
+        "description": "A `dbt` task of a task list (`#112`): a project of the tool image, one selector or a chain\nof batches, the threads and the `--vars` text. The rules are `demos/dags/stardelt_pipelines/\nplan.py`'s, so Nova refuses what the loader would refuse.",
+        "required": [
+          "project"
+        ],
+        "properties": {
+          "batches": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "1 to 8 selectors, run in order (`config.batches` as the JSON array text)."
+          },
+          "project": {
+            "type": "string",
+            "description": "A directory name under `/opt/dbt/projects` in the tool image."
+          },
+          "select": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "threads": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "1 to 16; omitted is 4.",
+            "minimum": 0
+          },
+          "vars": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
       },
       "DeletedNotebook": {
         "type": "object",
@@ -11091,6 +11408,8 @@
           "target",
           "status",
           "pipelines",
+          "resources",
+          "files",
           "actor",
           "createdAt"
         ],
@@ -11113,6 +11432,13 @@
             "type": "string",
             "description": "When it was recorded, RFC 3339."
           },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentFile"
+            },
+            "description": "The files of the bundle the deploy read, as the caller sent them."
+          },
           "id": {
             "type": "integer",
             "format": "int64"
@@ -11127,11 +11453,26 @@
             },
             "description": "The pipelines the deploy touched, as the caller sent them."
           },
+          "previousDeploymentId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The deployment this row replayed, when it is a rollback; `None` for a deploy that was not one."
+          },
           "repository": {
             "type": [
               "string",
               "null"
             ]
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "The rendered Pipeline documents the deploy applied, as the caller sent them."
           },
           "revision": {
             "type": [
@@ -11144,6 +11485,24 @@
           },
           "target": {
             "type": "string"
+          }
+        }
+      },
+      "DeploymentFile": {
+        "type": "object",
+        "description": "One file of the bundle the deploy read: its path inside the bundle and the sha256 of its bytes.",
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "The path relative to the bundle directory, with `/` separators."
+          },
+          "sha256": {
+            "type": "string",
+            "description": "The file's content, lowercase hex sha256 (64 characters)."
           }
         }
       },
@@ -11225,6 +11584,7 @@
           "name",
           "kind",
           "config",
+          "viewers",
           "created_at",
           "updated_at"
         ],
@@ -11255,6 +11615,13 @@
             "type": "integer",
             "format": "int64",
             "description": "Epoch milliseconds, like `Job.started_at`."
+          },
+          "viewers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Groups that may see this destination, read-only. Empty: its owner group only."
           }
         }
       },
@@ -12283,6 +12650,13 @@
             "type": "string",
             "description": "The bundle that was deployed, 1 to 64 characters, no `/`."
           },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentFile"
+            },
+            "description": "The files of the bundle this deploy read, at most 200; empty when the caller sent none."
+          },
           "ownerGroup": {
             "type": "string",
             "description": "The owner group of the deployed pipelines; the caller must be a member."
@@ -12294,12 +12668,25 @@
             },
             "description": "The pipelines the deploy touched, at most 200."
           },
+          "previousDeploymentId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The deployment a rollback replayed, or absent. It is display metadata: the page links to it, and a row the\ncaller may not see answers 404 there."
+          },
           "repository": {
             "type": [
               "string",
               "null"
             ],
             "description": "The bundle's repository, or absent."
+          },
+          "resources": {
+            "type": "array",
+            "items": {},
+            "description": "The rendered Pipeline documents this deploy applied; empty for a failed deploy."
           },
           "revision": {
             "type": [
@@ -12339,6 +12726,12 @@
           },
           "owner_group": {
             "type": "string"
+          },
+          "viewers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false
@@ -12502,6 +12895,13 @@
           "objectVersion"
         ],
         "properties": {
+          "connection": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `Connection` whose secret fields the task pod receives as `CONN_<NAME>_<KEY>`\n(the CRD's `tasks[].connection`). Omitted: the pod gets no connection variable. Nova\nchecks the shape only; whether the connection exists, is Ready, is of this group and is\nin its `usableBy` is the loader's job, and its sentence is the one the task log shows."
+          },
           "name": {
             "type": "string",
             "description": "`<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a\nnotebook of another group can never be named."
@@ -12605,7 +13005,8 @@
           "objectVersion",
           "size",
           "uploadedAt",
-          "uploadedBy"
+          "uploadedBy",
+          "viewers"
         ],
         "properties": {
           "group": {
@@ -12630,6 +13031,13 @@
           "uploadedBy": {
             "type": "string",
             "description": "The `x-amz-meta-uploaded-by` the publisher wrote (their display name)."
+          },
+          "viewers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Groups that may read it without being members."
           }
         }
       },
@@ -12966,6 +13374,23 @@
               "null"
             ],
             "description": "The statement of a statement pipeline."
+          },
+          "tasks": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/PipelineTaskRequest"
+            },
+            "description": "The tasks of a task-list pipeline (`sql`, `notebook` and `dbt` tasks), in the shape\n`pipelines_validate` accepts; left out for a single-task pipeline."
+          },
+          "viewers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Groups that may read the pipeline without being members; left out when there are none."
           }
         }
       },
@@ -13105,11 +13530,22 @@
       },
       "PipelineTaskRequest": {
         "type": "object",
-        "description": "One task of a task-list body (`#905`): the name the engine uses, exactly one of a statement and\na notebook, and the tasks that must succeed first.",
+        "description": "One task of a task-list body (`#905`): the name the engine uses, exactly one of a statement, a\nnotebook and a dbt run, and the tasks that must succeed first.",
         "required": [
           "name"
         ],
         "properties": {
+          "dbt": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DbtRequest",
+                "description": "A `dbt` run instead of a statement or a notebook (`#112`): exactly one of the three."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "dependsOn": {
             "type": "array",
             "items": {
@@ -13134,7 +13570,7 @@
           },
           "sql": {
             "type": "string",
-            "description": "The statement to run; exactly one of this and `notebook` is given."
+            "description": "The statement to run; exactly one of this, `notebook` and `dbt` is given."
           }
         }
       },
@@ -13182,6 +13618,13 @@
                 "type": "null"
               }
             ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`spec.description`: one line about what the pipeline does; absent for most."
           },
           "lastRun": {
             "oneOf": [
@@ -14952,7 +15395,8 @@
           "source_topic",
           "sink_catalog",
           "sink_table",
-          "sink_mode"
+          "sink_mode",
+          "viewers"
         ],
         "properties": {
           "attempts": {
@@ -15035,6 +15479,13 @@
           },
           "stopped": {
             "type": "boolean"
+          },
+          "viewers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The groups that may read the stream without being members (`spec.viewers`)."
           }
         }
       },
@@ -15079,6 +15530,13 @@
           },
           "source": {
             "$ref": "#/components/schemas/StreamSourceBody"
+          },
+          "viewers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Groups that may read this stream without being members (`spec.viewers`), read-only.\nAt most 16, each a group name; empty writes none."
           }
         }
       },
@@ -15286,6 +15744,27 @@
           "kind"
         ],
         "properties": {
+          "connection": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `Connection` a `kind: \"notebook\"` task names (`tasks[].connection`), detail route\nonly. Shape-checked by Nova; the loader decides whether the task may use it."
+          },
+          "dbtProject": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The project of a `kind: \"dbt\"` task (`config.project`), detail route only."
+          },
+          "dbtSelect": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The selector or the batched selectors, joined with `, `, detail route only."
+          },
           "dependsOn": {
             "type": "array",
             "items": {
@@ -15529,7 +16008,17 @@
             "items": {
               "$ref": "#/components/schemas/PipelineTaskRequest"
             },
-            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement or a\npinned notebook, with dependencies. Exclusive with `sql` and `notebook`."
+            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook or a dbt run, with dependencies. Exclusive with `sql` and `notebook`."
+          },
+          "viewers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Omitted keeps the stored viewers; an empty list removes them."
           }
         }
       },

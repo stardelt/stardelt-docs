@@ -54,6 +54,7 @@ Check a stream write without writing it. The body is the body of `streams_put`: 
 | `source` | object | Yes |  |  |  |
 | `source.connectionRef` | string (nullable) | No |  | Name of the `Connection` (`type: kafka`); absent means the platform's own bus. |  |
 | `source.topic` | string | Yes |  |  |  |
+| `viewers` | array of string | No |  | Groups that may read this stream without being members (`spec.viewers`), read-only. At most 16, each a group name; empty writes none. |  |
 
 **Responses**
 
@@ -98,6 +99,7 @@ Create or update one stream (`StreamApp`, D42). The body is the body of `streams
 | `source` | object | Yes |  |  |  |
 | `source.connectionRef` | string (nullable) | No |  | Name of the `Connection` (`type: kafka`); absent means the platform's own bus. |  |
 | `source.topic` | string | Yes |  |  |  |
+| `viewers` | array of string | No |  | Groups that may read this stream without being members (`spec.viewers`), read-only. At most 16, each a group name; empty writes none. |  |
 
 **Responses**
 

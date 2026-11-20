@@ -193,7 +193,7 @@
           "type": "array"
         },
         "lastSync": {
-          "description": "RFC 3339 time of the last successful sync from the store.",
+          "description": "RFC 3339 time since which the credential has been in its current sync state: the `Ready`\ncondition's `lastTransitionTime` on the `ExternalSecret`. Stable while the value does not\nchange, unlike External Secrets' refresh heartbeat (`status.refreshTime`).",
           "nullable": true,
           "type": "string"
         },

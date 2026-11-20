@@ -37,7 +37,7 @@ A typed connection to an outside system: settings here, the credentials in the s
 | `status.conditions[].reason` | string (nullable) | No |  |  |  |
 | `status.conditions[].status` | string | Yes |  |  |  |
 | `status.conditions[].type` | string | Yes |  |  |  |
-| `status.lastSync` | string (nullable) | No |  | RFC 3339 time of the last successful sync from the store. |  |
+| `status.lastSync` | string (nullable) | No |  | RFC 3339 time since which the credential has been in its current sync state: the `Ready` condition's `lastTransitionTime` on the `ExternalSecret`. Stable while the value does not change, unlike External Secrets' refresh heartbeat (`status.refreshTime`). |  |
 | `status.observedGeneration` | integer (nullable) | No |  |  | format `int64` |
 | `status.ready` | boolean | No | `false` | True when the Secret exists and holds every key in `spec.secret.keys`. |  |
 | `status.secretName` | string (nullable) | No |  |  |  |

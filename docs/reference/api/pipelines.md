@@ -31,7 +31,7 @@ The pipelines the caller may see: their groups' pipelines, and every pipeline fo
 
 Operation id `pipelines_create`: in Python `client.call("pipelines_create", …)`, on the command line `stardelt api pipelines_create`.
 
-Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`) — both or neither is 400 `give a statement or a notebook`. A body may instead give `tasks` (`[{ name, sql | notebook, dependsOn }]`, 1 to 30 tasks, each with exactly one of the two, at most 8 dependencies): `tasks` together with `sql` or `notebook` is 400 `give a statement, a notebook or a task list`; a task name outside `^[a-z0-9][a-z0-9_-]{0,62}$`, a name used twice, more than 30 tasks, a dependency on itself or on a task of another pipeline, and a cycle are 400 with a sentence that names the task. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: "loading"`. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 "In production a notebook comes from Git. Deploy it with a bundle." unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
+Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`) — both or neither is 400 `give a statement, a notebook or a dbt run`. A body may instead give `tasks` (`[{ name, sql | notebook | dbt, dependsOn }]`, 1 to 30 tasks, each with exactly one of the two, at most 8 dependencies): `tasks` together with `sql` or `notebook` is 400 `give a statement, a notebook or a task list`; a task name outside `^[a-z0-9][a-z0-9_-]{0,62}$`, a name used twice, more than 30 tasks, a dependency on itself or on a task of another pipeline, and a cycle are 400 with a sentence that names the task. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: "loading"`. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 "In production a notebook comes from Git. Deploy it with a bundle." unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.
 
 **Request body**
 
@@ -39,6 +39,7 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
 | `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
+| `notebook.connection` | string (nullable) | No |  | The `Connection` whose secret fields the task pod receives as `CONN_<NAME>_<KEY>` (the CRD's `tasks[].connection`). Omitted: the pod gets no connection variable. Nova checks the shape only; whether the connection exists, is Ready, is of this group and is in its `usableBy` is the loader's job, and its sentence is the one the task log shows. |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
@@ -62,14 +63,22 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | `schedule.cron` | string | Yes |  |  |  |
 | `schedule.timezone` | string | Yes |  |  |  |
 | `sql` | string | No |  | The statement to run; exactly one of this and `notebook` is given. |  |
-| `tasks` | array of object (nullable) | No |  | A whole task list instead of one `run` task: 1 to 30 tasks, each a statement or a pinned notebook, with dependencies. Exclusive with `sql` and `notebook`. |  |
+| `tasks` | array of object (nullable) | No |  | A whole task list instead of one `run` task: 1 to 30 tasks, each a statement, a pinned notebook or a dbt run, with dependencies. Exclusive with `sql` and `notebook`. |  |
+| `tasks[].dbt` | object (map of any) | No |  | A `dbt` run instead of a statement or a notebook: exactly one of the three. |  |
+| `tasks[].dbt.batches` | array of string (nullable) | No |  | 1 to 8 selectors, run in order (`config.batches` as the JSON array text). |  |
+| `tasks[].dbt.project` | string | Yes |  | A directory name under `/opt/dbt/projects` in the tool image. |  |
+| `tasks[].dbt.select` | string (nullable) | No |  |  |  |
+| `tasks[].dbt.threads` | integer (nullable) | No |  | 1 to 16; omitted is 4. | min 0; format `int32` |
+| `tasks[].dbt.vars` | object (map of string) (nullable) | No |  |  |  |
 | `tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first; at most 8, each a task of this list. |  |
 | `tasks[].name` | string | Yes |  | Unique within the pipeline: `[a-z0-9][a-z0-9_-]{0,62}` (the CRD also accepts capitals). |  |
 | `tasks[].notebook` | object | No |  | A published notebook version to run instead. |  |
+| `tasks[].notebook.connection` | string (nullable) | No |  | The `Connection` whose secret fields the task pod receives as `CONN_<NAME>_<KEY>` (the CRD's `tasks[].connection`). Omitted: the pod gets no connection variable. Nova checks the shape only; whether the connection exists, is Ready, is of this group and is in its `usableBy` is the loader's job, and its sentence is the one the task log shows. |  |
 | `tasks[].notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `tasks[].notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `tasks[].notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
-| `tasks[].sql` | string | No |  | The statement to run; exactly one of this and `notebook` is given. |  |
+| `tasks[].sql` | string | No |  | The statement to run; exactly one of this, `notebook` and `dbt` is given. |  |
+| `viewers` | array of string (nullable) | No |  | Groups that may read the pipeline without being members (`spec.viewers`). At most 16, each a group name; omitted writes none. A bundle's pipeline file carries it. |  |
 
 **Responses**
 
@@ -155,6 +164,7 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | --- | --- | --- | --- | --- | --- |
 | `name` | string | Yes |  |  |  |
 | `notebook` | object | No |  | A published notebook version to run instead of a statement. |  |
+| `notebook.connection` | string (nullable) | No |  | The `Connection` whose secret fields the task pod receives as `CONN_<NAME>_<KEY>` (the CRD's `tasks[].connection`). Omitted: the pod gets no connection variable. Nova checks the shape only; whether the connection exists, is Ready, is of this group and is in its `usableBy` is the loader's job, and its sentence is the one the task log shows. |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
@@ -178,14 +188,22 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | `schedule.cron` | string | Yes |  |  |  |
 | `schedule.timezone` | string | Yes |  |  |  |
 | `sql` | string | No |  | The statement to run; exactly one of this and `notebook` is given. |  |
-| `tasks` | array of object (nullable) | No |  | A whole task list instead of one `run` task: 1 to 30 tasks, each a statement or a pinned notebook, with dependencies. Exclusive with `sql` and `notebook`. |  |
+| `tasks` | array of object (nullable) | No |  | A whole task list instead of one `run` task: 1 to 30 tasks, each a statement, a pinned notebook or a dbt run, with dependencies. Exclusive with `sql` and `notebook`. |  |
+| `tasks[].dbt` | object (map of any) | No |  | A `dbt` run instead of a statement or a notebook: exactly one of the three. |  |
+| `tasks[].dbt.batches` | array of string (nullable) | No |  | 1 to 8 selectors, run in order (`config.batches` as the JSON array text). |  |
+| `tasks[].dbt.project` | string | Yes |  | A directory name under `/opt/dbt/projects` in the tool image. |  |
+| `tasks[].dbt.select` | string (nullable) | No |  |  |  |
+| `tasks[].dbt.threads` | integer (nullable) | No |  | 1 to 16; omitted is 4. | min 0; format `int32` |
+| `tasks[].dbt.vars` | object (map of string) (nullable) | No |  |  |  |
 | `tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first; at most 8, each a task of this list. |  |
 | `tasks[].name` | string | Yes |  | Unique within the pipeline: `[a-z0-9][a-z0-9_-]{0,62}` (the CRD also accepts capitals). |  |
 | `tasks[].notebook` | object | No |  | A published notebook version to run instead. |  |
+| `tasks[].notebook.connection` | string (nullable) | No |  | The `Connection` whose secret fields the task pod receives as `CONN_<NAME>_<KEY>` (the CRD's `tasks[].connection`). Omitted: the pod gets no connection variable. Nova checks the shape only; whether the connection exists, is Ready, is of this group and is in its `usableBy` is the loader's job, and its sentence is the one the task log shows. |  |
 | `tasks[].notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
 | `tasks[].notebook.objectVersion` | string | Yes |  | The S3 object version, never a branch or a tag: exactly the bytes a person published. |  |
 | `tasks[].notebook.params` | object (map of string) | No |  | Parameter values by name; at most 32, names `[A-Za-z_][A-Za-z0-9_]{0,63}`, values up to 256 characters. Written as the task's `config.params` JSON object string. |  |
-| `tasks[].sql` | string | No |  | The statement to run; exactly one of this and `notebook` is given. |  |
+| `tasks[].sql` | string | No |  | The statement to run; exactly one of this, `notebook` and `dbt` is given. |  |
+| `viewers` | array of string (nullable) | No |  | Groups that may read the pipeline without being members (`spec.viewers`). At most 16, each a group name; omitted writes none. A bundle's pipeline file carries it. |  |
 
 **Responses**
 
