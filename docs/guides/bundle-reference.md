@@ -159,8 +159,8 @@ accepts.
 ## A pipeline file
 
 The same shape that `stardelt apply -f` reads, plus `sqlFile`. A pipeline file gives one statement (or a notebook) for the
-whole pipeline, or a `tasks` list in which every task has its own statement. `stardelt apply -f` passes a
-`tasks` list through unchanged and Nova checks the per-task rules and the dependency graph when it creates or updates the
+whole pipeline, or a `tasks` list in which every task has its own statement. `stardelt apply -f` sends a
+`tasks` list as Nova's body and Nova checks the per-task rules and the dependency graph when it creates or updates the
 pipeline:
 
 ```yaml
@@ -176,9 +176,10 @@ schedule:
 - `name` is required and must be unique among the pipeline files of the bundle.
 - `ownerGroup` is optional; when it is there it must be the bundle's group.
 - **One of** `sql` (the statement), `sqlFile` (a file named under `files`; its text is read into `sql` when you plan or
-  deploy), `notebook` (a published notebook and its version, or a file of the bundle: see below) or `dbt` (a dbt project
-  that runs as a task), **or** a `tasks` list that gives each task its own statement, which may hold a `dbt` task
-  ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
+  deploy), `notebook` (a published notebook and its version, or a file of the bundle: see below), `dbt` (a dbt project
+  that runs as a task), `quality` (SQL assertions for a run) or `spark-pipeline` (a declared Spark graph, written ahead of
+  its runtime), **or** a `tasks` list that gives each task its own statement, which may hold a `dbt`, `quality` or
+  `spark-pipeline` task ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
 - `schedule` needs both `cron` and `timezone` (an IANA zone such as `Europe/Berlin`); leave it out for an on-demand pipeline.
 - `params` and `options` are the pipeline's parameters and advanced options, as in `stardelt apply`.
 
@@ -222,6 +223,26 @@ tasks:
 - The pod holds no storage credential: the task mints a fresh engine token for the pipeline's principal on
   every run, so the warehouse sees the pipeline's own identity, not a platform key.
 
+### A task that runs a declared Spark graph
+
+A task may run a [Spark pipeline](https://spark.apache.org/docs/latest/declarative-pipelines/) — a directory with
+`spark-pipeline.yml` and its SQL or Python files — instead of a statement:
+
+```yaml
+name: shop-gold
+tasks:
+  - name: build
+    spark-pipeline: {project: spark/shop, refresh: full}
+```
+
+- `project` is a directory in the bundle that holds `spark-pipeline.yml`; it is not a `files:` entry.
+- `refresh` is `incremental` (the default) or `full`; `fullRefresh` names datasets to rebuild. Both at once is refused.
+- stardelt sets `catalog`, `database` and `storage` of the graph at run time; a `spark-pipeline.yml` that sets them
+  itself is refused when the bundle is validated.
+- The bundle file says `spark-pipeline`; `stardelt apply -f` and the API take the same task as `sparkPipeline`.
+  Both spellings are accepted, and the command line sends the one Nova takes.
+- No runtime reads the graph yet (#80); it validates and deploys today.
+
 ### A pipeline with several tasks
 
 A file may give a `tasks` list instead of `sql`/`sqlFile`/`notebook`, when a pipeline is several statements that depend on one
@@ -238,9 +259,9 @@ tasks:
 
 - At most 30 tasks in one file.
 - A task name matches `^[a-z0-9][a-z0-9_-]{0,62}$` and is unique in the file.
-- Each task gives exactly one of `sql`, `sqlFile`, `notebook` and `dbt`. A `sqlFile` must be among the bundle's `files` (its text
-  is read into `sql` when you plan or deploy); a `notebook` follows the notebook rules above; a `dbt` task follows the rules
-  below.
+- Each task gives exactly one of `sql`, `sqlFile`, `notebook`, `dbt`, `quality` and `spark-pipeline`. A `sqlFile` must be
+  among the bundle's `files` (its text is read into `sql` when you plan or deploy); a `notebook` follows the notebook
+  rules above; a `dbt` task follows the rules below; a `spark-pipeline` task follows the rules above.
 - `dependsOn` is a list of at most 8 task names from the same file, with no cycle.
 - A problem is printed with the file, the target and the task: `resources/gold.yaml (prod), task 'customer_ltv': …`.
 - `tasks` and `sql`/`sqlFile`/`notebook` cannot appear in one file together.
