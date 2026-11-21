@@ -163,15 +163,21 @@ A cluster you may not use, or one that is stopped, is refused rather than starte
   result to a table and read it with SQL.
 - There is no RDD API and no `sparkContext`: the plan runs on the server, so `df.rdd` fails. Use
   `DataFrame` calls, `mapInPandas` or `applyInPandas`.
-- Only members' notebook pods reach Spark Connect. A pipeline's notebook task and a public-demo visitor are
-  refused by the network policy, so a scheduled notebook uses `%sql`.
+- Inside the cluster, only members' notebook pods reach Spark Connect: port 15002 is ClusterIP-only and
+  the network policy admits those pods.
 - Public S3 buckets can be read anonymously (`s3a://bucket/path`); private buckets and the platform's own
   storage are not readable that way.
 - The notebook's Spark client and the platform's Spark server must be on the same Spark line; the session
   refuses with a sentence when they are not.
 - A restart of the Spark server ends the session: DataFrames and temporary views are gone, a running job is
   not retried, and the next cell opens a new session.
-- A kernel on your own machine reaches Trino, not Spark Connect; VS Code works through your workspace, where the kernel runs in the cluster.
+- A kernel on your own machine reaches Spark Connect too: `stardelt setup vscode` writes a kernel that
+  sends `spark` through the platform's external front, `spark.<your-domain>`, with your `stardelt login`
+  token. Install `stardelt[spark,jupyter]` on the laptop first (the Connect client must be on the same
+  Spark line as the server, which the extra pins). See
+  [Notebooks in VS Code](/docs/guides/develop#vs-code-on-your-laptop).
+- A pipeline's notebook task and a public-demo visitor still cannot reach Spark Connect: the network
+  policy refuses their pods, so a scheduled notebook uses `%sql`.
 
 The full list of what the platform does and does not protect is under
 [Known limits](../operations/security#known-limits).

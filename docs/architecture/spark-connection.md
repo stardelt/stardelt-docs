@@ -80,6 +80,9 @@ mostly about.
 | Which files may the engine touch? | Nobody, per person | The shared storage key reaches every file the bucket holds, whatever the table grants say. |
 | Who may open a Connect channel at all? | Kubernetes, through a NetworkPolicy | Spark Connect has no authentication of its own, so port 15002 is ClusterIP-only and admits members' notebook pods: no public endpoint, and a scheduled pipeline notebook or a visitor's notebook is refused. |
 
+The same front is reachable from a laptop as `spark.<baseDomain>` over TLS; it checks the same token
+and audience (`spark-connect`). The in-cluster NetworkPolicy applies to pods, not to that route.
+
 ## Session life
 
 - **A renewed token means a new session.** Spark reads `spark.sql.catalog.*` when it creates the
@@ -97,10 +100,8 @@ mostly about.
 
 ## What changes next
 
-The three gaps above are known and planned, not hidden. Identity on the Connect channel would let
+The two gaps above are known and planned, not hidden. Identity on the Connect channel would let
 the platform stop relying on a network boundary for who may connect at all. Per-person access to
 object storage — credentials handed out per session instead of one key for the whole install —
-would close the difference between "may use this table" and "may read this file". A local
-notebook that reaches the platform's Spark without a hub-spawned pod is planned too, so VS Code
-can use the same session rules instead of a second path. Until they land, use `%sql` where a
-policy must apply, and treat the storage key as the real boundary for the files.
+would close the difference between "may use this table" and "may read this file". Until they land,
+use `%sql` where a policy must apply, and treat the storage key as the real boundary for the files.

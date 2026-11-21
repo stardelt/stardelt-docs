@@ -77,18 +77,24 @@ The token belongs to your session. When it expires, restart your server from Nov
 A local kernel reaches the warehouse through Nova's statement API with a sign-in you store once — no workspace:
 
 ```console
-$ pip install "stardelt @ git+https://github.com/stardelt/stardelt@python/v0.4.1#subdirectory=python"
+$ pip install "stardelt[spark,jupyter] @ git+https://github.com/stardelt/stardelt@python/v0.4.1#subdirectory=python"
 $ stardelt login --host https://<your-nova>
+$ stardelt setup vscode
 ```
+
+`stardelt setup vscode` writes the kernelspec `stardelt — <host>`. In VS Code, choose **Select Kernel →
+Another Kernel… → Jupyter Kernel…** and pick `stardelt — <host>`.
 
 ```python
 import stardelt
 stardelt.sql("SELECT current_user")   # up to 100 000 rows
 ```
 
-Results come back as a DataFrame, up to 100 000 rows. **Spark and table writes run only on the platform**, in
-a workspace kernel — the Spark endpoint is not exposed outside the cluster. Switch to
-[VS Code on your workspace](#vs-code-on-your-workspace) for those.
+Results come back as a DataFrame, up to 100 000 rows. Spark works from this kernel too: `spark` opens a
+Connect session through the platform's external front (`spark.<your-domain>`) with your stored sign-in, and
+data files are read by the platform — see [the Spark guide](/docs/guides/spark). Table **writes** from a
+laptop kernel are not part of this guide: use a workspace kernel for a pipeline's write path. The kernel
+runs on your laptop, not on the platform: when your sign-in expires, run `stardelt login` again.
 
 :::note stardelt 0.4
 `stardelt.sql()` from a local kernel needs `stardelt` 0.3.0 or newer, and the install line above pins
@@ -141,7 +147,7 @@ and the [bundle reference](/docs/reference/bundle).
 | The kernel list is empty | The URL must end in `/user/<username>/` (with the token query) and not point at the hub root |
 | `KeyError: 'TRINO_TOKEN'` | You started the kernel outside the platform's server (a local kernel). Select the remote kernel again |
 | Queries fail with 401 after hours | Your sign-in token expired: restart your server from Nova |
-| `stardelt.spark: Spark and table writes run on the platform` | A local kernel cannot reach Spark or write tables: connect VS Code to your workspace |
+| `stardelt.spark: Spark and table writes run on the platform` | The kernel has no stored sign-in: run `stardelt login --host https://<your-nova>`, restart the kernel and retry (the `stardelt setup vscode` kernel then reaches Spark). A table **write** from a laptop is still refused: use a workspace kernel |
 
 ## What is planned
 
