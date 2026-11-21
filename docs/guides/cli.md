@@ -127,7 +127,7 @@ refuses ends the command with Nova's own sentence, so a check on a pull request 
 `stardelt apply -f pipelines/ --dry-run` and fail on a file that a real run would refuse.
 
 To start from a pipeline that was made in the interface, export it: `stardelt export NAMESPACE NAME > pipeline.yaml` writes its
-document (the same one **Show definition** shows) as a file `stardelt apply -f` accepts; `--format json` writes JSON. A pipeline
+document (the same one [**Show definition**](/docs/guides/schedule#edit-a-pipelines-yaml) shows) as a file `stardelt apply -f` accepts; `--format json` writes JSON. A pipeline
 that was written outside Nova, or has a shape the form does not edit, is still exported, with a note that `apply` cannot change it.
 
 `-f` can also name a directory: every `.json`, `.yaml` and `.yml` file directly inside it is applied in name order, one answer line per file, so a
