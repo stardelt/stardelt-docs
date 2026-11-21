@@ -81,7 +81,7 @@ Operation id `deployments_plan`: in Python `client.call("deployments_plan", …)
 
 `POST /api/deployments/plan` — what the set would do, `200` with the plan, nothing written.
 
-Say what applying one bundle's rendered Pipeline documents to one stage would do, writing nothing. Every document goes through the same create rules `pipelines_validate` and the write routes use, so the plan and the apply cannot disagree: `changes` names a `create`, an `update` (with the sentences it would change) or an `unchanged` document, `errors` carries the rule that refuses one, and `warnings` names a pipeline this bundle and stage own that the set does not name (today a warning, not a prune). `files` says which of the bundle's files are new against the newest applied deployment of this bundle and stage. `planId` is the identity of the rendered set: the SHA-256 of the bundle, the stage, the documents in the order given and the files sorted by path. A later `POST /api/deployments` may carry it as `planId`, and answers 409 when the row's set is not the planned one. `prune`, the stage modes and StreamApps are not covered yet.
+Say what applying one bundle's rendered Pipeline documents to one stage would do, writing nothing. Every document goes through the same create rules `pipelines_validate` and the write routes use, so the plan and the apply cannot disagree: `changes` names a `create`, an `update` (with the sentences it would change) or an `unchanged` document, `errors` carries the rule that refuses one, and `warnings` names a pipeline this bundle and stage own that the set does not name (a warning unless `prune` is true, when it is a `delete` change). `files` says which of the bundle's files are new against the newest applied deployment of this bundle and stage. `planId` is the identity of the rendered set: the SHA-256 of the bundle, the stage, the documents in the order given and the files sorted by path. A later `POST /api/deployments` may carry it as `planId`, and answers 409 when the row's set is not the planned one. A `prune: true` request names each owned pipeline the set omits as a `delete` change. The stage modes and StreamApps are not covered yet.
 
 **Request body**
 
@@ -92,6 +92,7 @@ Say what applying one bundle's rendered Pipeline documents to one stage would do
 | `files[].path` | string | Yes |  | The path relative to the bundle directory, with `/` separators. |  |
 | `files[].sha256` | string | Yes |  | The file's content, lowercase hex sha256 (64 characters). |  |
 | `ownerGroup` | string | Yes |  |  |  |
+| `prune` | boolean | No |  | Whether the apply that follows removes what this bundle and target own and the set no longer names (`stardelt bundle deploy --prune`). The plan names that set as `delete` changes; the plan itself removes nothing. |  |
 | `resources` | array | Yes |  |  |  |
 | `revision` | string (nullable) | No |  | The commit the bundle was read at; display metadata, not part of the plan's identity. Nothing reads it yet: the record carries the revision, and a later slice shows it beside the plan. |  |
 | `target` | string | Yes |  |  |  |
