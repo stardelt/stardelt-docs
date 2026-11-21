@@ -12,7 +12,7 @@ with one SQL pipeline that you describe, try in your own development stage, chec
 production and keep in step with Git.
 
 You need the `stardelt` package ([install and sign in](python.md#sign-in)) and, for everything except `init` and `validate`, a host
-and a sign-in: `stardelt login`, or `STARDELT_TOKEN` in a CI job.
+and a sign-in: `stardelt login`, or `STARDELT_TOKEN` in a CI job. In CI, sign in without a stored secret: see [Deploy from CI](/docs/guides/ci-deploys).
 
 Your group also needs a *pipeline identity*: the service identity `pipeline-<group>` that its pipelines run as, which an
 administrator creates once per group: a `ServicePrincipal` named `pipeline-<group>` with `spec.ownerGroup: <group>`. Until it is
