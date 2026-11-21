@@ -15,6 +15,7 @@ Every custom resource the operator serves, generated from the JSON Schemas it pu
 | --- | --- |
 | [Catalog](./catalog.md) | A data domain: a catalog with its storage location, an owner group and grants. |
 | [Connection](./connection.md) | A typed connection to an outside system: settings here, the credentials in the secret store. |
+| [DeployStage](./deploystage.md) | One deploy stage: the bundle target names the object, and spec.subject is the exact CI subject (a GitHub Actions `sub`) allowed to deploy to that stage. The operator renders one Keycloak client per object; Nova authorizes a deploy whose token was issued to that client. |
 | [IngestionSource](./ingestionsource.md) | An ingestion source: one contract with three domain defaults (saas, enterprise, cdc). |
 | [Lakehouse](./lakehouse.md) | A managed Trino + catalog + Iceberg unit on object storage. |
 | [ModelEndpoint](./modelendpoint.md) | The customer's own OpenAI-compatible model endpoint: URL, model, key, where it runs, what it is for and how much each group may use. |
