@@ -81,8 +81,8 @@ With the umbrella chart, run `helm upgrade --install stardelt chart -n stardelt 
 
 Before you tag or hand over a release, run the checks in [Before a release](checks.md#before-a-release).
 
-There is no migration guide or compatibility promise before the first tagged release, so upgrade your
-dev install first and prod after it has run for a day.
+There is no migration guide yet, so upgrade your dev install first and prod after it has run for a
+day.
 
 ## Upgrading a resource
 
