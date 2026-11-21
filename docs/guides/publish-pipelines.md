@@ -255,4 +255,5 @@ The page is built on `GET /api/pipelines` (the `deployment` stamp), `GET /api/st
 
 ## What is not there yet
 
+- Publishing only the data whose checks passed: [Publish only checked data](checked-publishing.md).
 - A temporary stage per pull request.
