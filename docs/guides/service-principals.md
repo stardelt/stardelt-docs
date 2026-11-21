@@ -7,7 +7,7 @@ description: "Create a non-human identity for jobs and automation, and see what 
 
 ## What a service principal is
 
-A non-human identity with an owner group; jobs and automation sign in with it instead of with a person's token. The token carries the owner group, so the catalog's group rules apply to it exactly as to a person.
+A non-human identity with an owner group; jobs and automation sign in with it instead of with a person's token. The token carries the owner group, so the catalog's group rules apply to it exactly as to a person. A CI job that can mint its own short-lived token uses a stage's federated client instead of a service principal: see [Deploy from CI](/docs/guides/ci-deploys).
 
 ## Create it
 
