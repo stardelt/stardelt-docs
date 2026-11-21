@@ -2,7 +2,7 @@
 title: "License policy"
 sidebar_label: "Licenses"
 slug: /architecture/licenses
-description: "The permissive-only license policy, what a component may use, the two documented exceptions, and how to report a problem."
+description: "The permissive-only license policy, what a component may use, the MPL 2.0 tool-image class and the named exceptions, and how to report a problem."
 ---
 
 # License policy
@@ -15,7 +15,7 @@ projects, and their own licenses apply to them.
 | Decision | Licenses |
 |---|---|
 | **Accepted** | OSI-approved permissive licenses: Apache 2.0, MIT, BSD-2-Clause, BSD-3-Clause |
-| **Documented exception** | MPL 2.0, Artistic-1.0 and GPL-3.0, each listed under [Documented exceptions](#documented-exceptions) |
+| **Documented exception** | MPL 2.0 for unmodified packages in tool images (a class), plus the named exceptions Artistic-1.0 and GPL-3.0 — all listed under [Documented exceptions](#documented-exceptions) |
 | **Rejected** | AGPL, BSL, SSPL, ELv2, FSL, Confluent Community License, proprietary, and anything source-available that is not OSI-approved — and GPL, except where listed below |
 
 The policy is strict because "self-host forever" only holds if nothing in the default install can
@@ -38,6 +38,12 @@ OpenBao is **optional**. It is installed only if you run `make openbao` or turn 
 
 Every component outside the accepted licenses is listed here. A row is a maintainer decision; the
 policy stays "permissive only, plus this table".
+
+> **The MPL 2.0 tool-image class** (maintainer decision, 2026-11-19): a tool image may ship an
+> **unmodified** MPL 2.0 package — no patch, licence file kept in the image, source tag linked here —
+> without a per-package decision. The dbt tool image's `pathspec`, `certifi` and `orjson` rows below
+> are its instances. The class covers tool images only; nothing stardelt compiles or links may be MPL
+> 2.0. Artistic-1.0 and GPL-3.0 are not a class: each is a named row.
 
 | Component | License | How it is used | Why | Source |
 |---|---|---|---|---|
