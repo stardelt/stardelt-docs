@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "One deploy stage: the bundle target names the object, and spec.subject is the exact CI subject (a GitHub Actions `sub`) allowed to deploy to that stage (#57). The operator renders one Keycloak client per object; Nova authorizes a deploy whose token was issued to that client.",
+  "properties": {
+    "spec": {
+      "description": "One deploy stage: the bundle target is the object's name and `spec.subject` is the exact CI subject allowed to deploy to it (#57).",
+      "properties": {
+        "audience": {
+          "default": "stardelt-deploy",
+          "description": "The audience the realm client's mapper puts in the token this stage accepts. Default `stardelt-deploy`.",
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "type": "string"
+        },
+        "environment": {
+          "description": "The GitHub `environment` the token was issued for, when the subject names one. Pinning an environment drops the `ref` part of the subject (#819), so the two are either/or.",
+          "maxLength": 64,
+          "minLength": 1,
+          "nullable": true,
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "type": "string"
+        },
+        "subject": {
+          "description": "The exact CI subject as the identity provider receives it: `repo:<owner>/<name>:ref:refs/heads/<branch>` or `repo:<owner>/<name>:environment:<name>` (with GitHub's immutable ids: `repo:<owner>@<id>/<name>@<id>:ref:refs/heads/<branch>`).",
+          "maxLength": 512,
+          "minLength": 8,
+          "pattern": "^repo:[^\\s]+:(ref:refs/heads/[^\\s]+|environment:[a-z0-9][a-z0-9-]*)$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "subject"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "spec"
+  ],
+  "title": "DeployStage",
+  "type": "object"
+}
