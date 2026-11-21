@@ -171,6 +171,38 @@ For a production stage you usually want more than a warning. Put `drift: block` 
 `bundle deploy` exit with `2` and name every pipeline that was changed after its deploy, and a deploy writes nothing. Keep the change
 in the bundle if it is right, and pass `--accept-drift` to overwrite what is left.
 
+## 6. Go back
+
+**From the page.** Open **Deployments**, choose the bundle and stage, and open the row you want to return to under
+[**Recorded deployments**](#recorded-deployments). Its detail has a **Roll back** action: it asks you to confirm, naming the
+bundle and stage and the deployment number (`Roll back shop-etl · prod to deployment #12?`), and then replays the documents
+that row recorded. It is offered to administrators and to members of the group that owns the pipelines, the bundle's
+`ownerGroup`.
+
+**From the command line.** `stardelt bundle rollback --deployment 12` reads the row and checks every stored document without
+writing; add `--yes` to create and update the pipelines. The number comes from `stardelt deployments list`, which prints the
+newest recorded deploys first in the columns `id bundle target commit status by when`, or from the page:
+
+```console
+$ stardelt deployments list --bundle shop-etl --target prod
+id  bundle    target  commit   status   by    when
+12  shop-etl  prod    9f3c2a1  applied  alex  2026-11-20T18:12:04Z
+$ stardelt bundle rollback --deployment 12
+stardelt: nothing was written; add --yes to replay deployment 12
+```
+
+`stardelt deployments show 12` prints that row's facts, one line per pipeline it wrote or removed and per bundle file it
+read; `--resources` adds the stored documents as JSON. The commit is the first seven characters of the revision, and `—`
+stands in for a deploy whose bundle directory was outside a Git checkout.
+
+**What a rollback is not.** It does not read Git and does not need the repository: the documents are the ones recorded with
+that deploy. It records a **new** deployment whose row links to the one it replayed, and whose **Deployed by** is the person
+who ran it. Pipelines the recorded deploy deleted are not brought back.
+
+**When it refuses.** A row whose status is not **Applied** has nothing to replay (`deployment 12 is failed: there is nothing
+to roll back to`), and neither has a row recorded before the deployment record kept its documents (`deployment 12 recorded no
+rendered resources (recorded before migration 0027): deploy it again and roll that back`). Both sentences are the CLI's.
+
 ## The Deployments page
 
 The **Deployments** page answers one question for the whole stage: what did `stardelt bundle deploy` publish, and does it still match Git? It is for administrators (the **Admin** group of the navigation) and re-reads every 30 seconds. It has one section per bundle and stage; a pipeline made in the interface or with `stardelt apply` carries no stamp and is not in one.
@@ -220,23 +252,6 @@ When a row's commit differs and the stage has a repository URL, the row carries 
 A stage where no deploy has run shows `Nothing was deployed from a bundle yet. Pipelines made here or with stardelt apply are on the Pipelines page.` The link goes to the **Pipelines** page.
 
 The page is built on `GET /api/pipelines` (the `deployment` stamp), `GET /api/stages/compare?peer=<name>` (`status: ok`, `unauthorized` or `unreachable`) and `GET /api/deployments`; [the API reference](/docs/reference/api) lists the fields.
-
-## Roll back a stage
-
-**The recorded deploy is the source.** A rollback replays the Pipeline documents one recorded deployment stored, so it needs no Git and applies exactly what ran. Nova records the replay as a new deployment whose `previous` row is the one it replayed, so the record shows both. Nothing is deleted.
-
-**In the interface.** Open a row of the recorded deployments on the Deployments page: its detail has a **Roll back** action, which asks you to confirm and then opens the deployment it recorded. It is offered to administrators and to members of the deployment's owner group, the bundle's group. A row whose status is not **Applied**, or that stored no documents, cannot be replayed, and the page says which of the two it is.
-
-**In the terminal.** `stardelt deployments list` prints the newest recorded deploys you may see, newest first, in the columns `id bundle target commit status by when`. The commit is the first seven characters of the revision, and `—` stands in for a deploy whose bundle directory was outside a Git checkout. `stardelt deployments show <id>` prints one row as the facts `id bundle ownerGroup target commit repository status by actor when pipelines resources files previous`, then one line per pipeline it wrote or removed and per bundle file it read; `--resources` adds the stored Pipeline documents as JSON, one per line. `stardelt bundle rollback --deployment <id>` takes the id of a row and lists what would change, and only `--yes` writes:
-
-```console
-$ stardelt deployments list --bundle shop-etl --target prod
-id  bundle    target  commit   status   by    when
-42  shop-etl  prod    9f3c2a1  applied  alex  2026-11-20T18:12:04Z
-$ stardelt deployments show 42
-$ stardelt bundle rollback --deployment 42          # lists what would change
-$ stardelt bundle rollback --deployment 42 --yes    # replays it
-```
 
 ## What is not there yet
 
