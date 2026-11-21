@@ -79,15 +79,44 @@ The operator reconciles seven kinds (`lakehouse`, `platform`, `connection`, `pri
 | `stardelt_operator_leader` | `1` on the replica holding the lease, `0` on the other |
 | `stardelt_operator_build_info` | the version the pod runs |
 
-**On an idle cluster, `reconciles_total` and `status_writes_total` are almost flat.** A
-`status_writes_total` that keeps rising with no change on the cluster is the failure #274 exists
-to prevent: one controller writes a status it did not change. Its `controller` label names the
-controller. `reconciles_total` rising without a change on the cluster means a requeue is too
-short, not that a status is wrong.
+### Is the operator quiet?
 
-`make verify-operator-quiet` in `platform/` measures the same thing over 60 s (no status write,
-fewer than two reconciles per object, operator CPU under 50 m, pod traffic under 50 KB/s). It is
-listed on [Checks to run](./checks).
+On a cluster where nothing changes, a reconcile writes no status and no child object. The
+counters above answer whether that holds: `stardelt_operator_status_writes_total` staying flat
+is the direct evidence, and `stardelt_operator_reconciles_total` counts the passes, so a rising
+count with no change on the cluster means a poll or a self-trigger, not that a status is wrong.
+
+`make verify-operator-quiet` in `platform/` measures it on the live cluster over 60 s, with the
+same kube context as the other `make verify-*` checks. The budget:
+
+- fewer than two reconciles per resource in the window;
+- an unchanged `resourceVersion` on every `stardelt.io` custom resource;
+- operator CPU under 50 m;
+- pod network under 50 KB/s.
+
+A pass prints one line per row and the verdict:
+
+```console
+$ make verify-operator-quiet
+✓ 23 resources unchanged in 60 s (catalogs 15, connections 1, serviceprincipals 5, streamapps 2)
+✓ 0 reconciles in 60 s (budget 46)
+✓ no status write (counter 0 → 0)
+✓ operator CPU 2 m (budget 50 m)
+✓ network 3.1 KB/s (budget 50 KB/s)
+verify-operator-quiet: PASS
+```
+
+Two failures are worth naming. A `✗` line means the operator wrote while nothing changed:
+`✗ catalog/shop: resourceVersion 96216243 → 96222542` names the object whose version moved, and
+`✗ the operator wrote 1 status(es) while nothing changed` is the counter — read
+`stardelt_operator_status_writes_total`, whose `controller` label names the controller. Run the
+check again: a write that repeats on every run is the defect, while a change that landed inside
+the window shows up once. `UNVERIFIED` (exit 3) means nothing was proved rather than that the
+operator is wrong: its pod or its metrics page could not be read, and a rollout still in
+progress is the usual cause, so re-run it once the pods are Ready.
+
+The check is not part of `make step-verify`, the set an upgrade runs; it is in the Nightly table
+on [Checks to run](./checks) with the other read-only checks.
 
 ## Who may read them
 
