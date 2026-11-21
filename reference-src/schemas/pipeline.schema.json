@@ -206,14 +206,25 @@
                 "maxItems": 8,
                 "type": "array"
               },
+              "fullRefresh": {
+                "description": "Datasets to rebuild from scratch on every run; only a `spark-pipeline` task.",
+                "items": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "type": "array"
+              },
               "kind": {
-                "description": "What a pipeline task does — the task contract behind `Pipeline`\n(master spec §5, plugs 6, 7 and 12). `sql`, `notebook` (scheduled jobs\nphases J0 and J1) and `dbt` run today; `python` and `quality` are\naccepted so manifests can be written ahead of their runtimes.",
+                "description": "What a pipeline task does — the task contract behind `Pipeline`\n(master spec §5, plugs 6, 7 and 12). `sql`, `notebook` (scheduled jobs\nphases J0 and J1) and `dbt` run today; `python`, `quality` and\n`spark-pipeline` are accepted so manifests can be written ahead of their\nruntimes.",
                 "enum": [
                   "sql",
                   "notebook",
                   "python",
                   "dbt",
-                  "quality"
+                  "quality",
+                  "spark-pipeline"
                 ],
                 "type": "string"
               },
@@ -222,6 +233,24 @@
                 "maxLength": 63,
                 "minLength": 1,
                 "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$",
+                "type": "string"
+              },
+              "project": {
+                "description": "The declared graph a `spark-pipeline` task runs: a directory of the bundle that holds\n`spark-pipeline.yml` and its sources. Absent on every other kind.",
+                "maxLength": 128,
+                "minLength": 1,
+                "nullable": true,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._/-]*$",
+                "type": "string"
+              },
+              "refresh": {
+                "description": "`incremental` (the default) or `full`; only a `spark-pipeline` task.",
+                "enum": [
+                  "incremental",
+                  "full",
+                  null
+                ],
+                "nullable": true,
                 "type": "string"
               },
               "sql": {
@@ -237,7 +266,7 @@
                 "type": "string"
               },
               "writes": {
-                "description": "The tables a `sql` task writes, as `catalog.schema.table`. Only these get an audit\nbranch when `spec.publish: wap`; a read leaves them alone (nova#628 decision 3).",
+                "description": "The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`. Only these get an audit\nbranch when `spec.publish: wap`; a read leaves them alone (nova#628 decision 3).",
                 "items": {
                   "maxLength": 512,
                   "minLength": 1,
@@ -270,16 +299,36 @@
                 "rule": "self.kind != 'sql' || !has(self.connection)"
               },
               {
-                "message": "only a sql task declares writes",
-                "rule": "!has(self.writes) || self.kind == 'sql'"
+                "message": "only a spark-pipeline or notebook task declares writes",
+                "rule": "!has(self.writes) || self.kind == 'notebook' || self.kind == 'spark-pipeline'"
               },
               {
                 "message": "writes must be catalog.schema.table",
-                "rule": "self.kind != 'sql' || !has(self.writes) || self.writes.all(w, w.matches('^[^ .]+[.][^ .]+[.][^ .]+$'))"
+                "rule": "!has(self.writes) || self.writes.all(w, w.matches('^[^ .]+[.][^ .]+[.][^ .]+$'))"
               },
               {
                 "message": "only a quality task declares checks",
                 "rule": "!has(self.checks) || self.kind == 'quality'"
+              },
+              {
+                "message": "a spark-pipeline task needs project (the bundle directory with spark-pipeline.yml)",
+                "rule": "self.kind != 'spark-pipeline' || (has(self.project) && size(self.project) > 0)"
+              },
+              {
+                "message": "only a spark-pipeline task names a project",
+                "rule": "self.kind == 'spark-pipeline' || !has(self.project)"
+              },
+              {
+                "message": "only a spark-pipeline task sets refresh",
+                "rule": "!has(self.refresh) || self.kind == 'spark-pipeline'"
+              },
+              {
+                "message": "only a spark-pipeline task sets fullRefresh",
+                "rule": "!has(self.fullRefresh) || self.kind == 'spark-pipeline'"
+              },
+              {
+                "message": "a spark-pipeline task sets refresh: full or fullRefresh, not both",
+                "rule": "!has(self.refresh) || self.refresh != 'full' || !has(self.fullRefresh)"
               }
             ]
           },

@@ -40,11 +40,14 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). | max 32 |
 | `spec.tasks[].connection` | string (nullable) | No |  | The `Connection` whose secret fields this task receives as `CONN_<NAME>_<KEY>`: the name upper-cased with `-` written as `_`. The credentials reach the pod through `secretKeyRef`s and are never part of the resource, the DAG or a log. A `sql` task runs inside the engine and cannot name one. | min 1, max 40; pattern `^[a-z]([a-z0-9-]*[a-z0-9])?$` |
 | `spec.tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first. | max 8 |
-| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql`, `notebook` (scheduled jobs phases J0 and J1) and `dbt` run today; `python` and `quality` are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality` |
+| `spec.tasks[].fullRefresh` | array of string | No |  | Datasets to rebuild from scratch on every run; only a `spark-pipeline` task. | max 32 |
+| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql`, `notebook` (scheduled jobs phases J0 and J1) and `dbt` run today; `python`, `quality` and `spark-pipeline` are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality`, `spark-pipeline` |
 | `spec.tasks[].name` | string | Yes |  | Unique within the pipeline; becomes the task id in the engine. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
+| `spec.tasks[].project` | string (nullable) | No |  | The declared graph a `spark-pipeline` task runs: a directory of the bundle that holds `spark-pipeline.yml` and its sources. Absent on every other kind. | min 1, max 128; pattern `^[A-Za-z0-9][A-Za-z0-9._/-]*$` |
+| `spec.tasks[].refresh` | string (nullable) | No |  | `incremental` (the default) or `full`; only a `spark-pipeline` task. | `incremental`, `full`, `null` |
 | `spec.tasks[].sql` | string (nullable) | No |  | The statement of a `sql` task. `${run.date}`, `${run.id}` and `${params.<name>}` are expanded when the task runs, not in the resource. | min 1, max 100000 |
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |
-| `spec.tasks[].writes` | array of string | No |  | The tables a `sql` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone. | max 16 |
+| `spec.tasks[].writes` | array of string | No |  | The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone. | max 16 |
 | `spec.timeout` | string (nullable) | No |  | Longest a whole run may take, for example `2h`. |  |
 | `spec.viewers` | array of string | No |  | Groups that may READ the pipeline in Nova — list it, open it, see its runs — and nothing else. Running, pausing, resuming and deleting stay with `ownerGroup`. Absent means the owner group only, which is what every pipeline had before this field. | max 16 |
 
@@ -78,6 +81,11 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - notebook tasks accept only notebook, objectVersion and params
 - notebook params must be a JSON object string of at most 4096 characters
 - a sql task cannot name a connection: it runs inside the engine
-- only a sql task declares writes
+- only a spark-pipeline or notebook task declares writes
 - writes must be catalog.schema.table
 - only a quality task declares checks
+- a spark-pipeline task needs project (the bundle directory with spark-pipeline.yml)
+- only a spark-pipeline task names a project
+- only a spark-pipeline task sets refresh
+- only a spark-pipeline task sets fullRefresh
+- a spark-pipeline task sets refresh: full or fullRefresh, not both

@@ -2,13 +2,19 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Nova API",
-    "description": "The stardelt Nova gateway: catalog browse, queries and jobs over one identity. In `dev` mode (the default) every route answers without sign-in; in `oidc` mode every described route below requires a session or bearer token except this document itself. Only routes tagged `public` are promised stable.",
+    "description": "The stardelt Nova gateway: catalog browse, queries and jobs over one identity. In `dev` mode (the default) every route answers without sign-in; in `oidc` mode every described route below requires a session or bearer token except this document itself. Only routes tagged `public` are promised stable. Every non-2xx answer is `{\"error\": \"<one sentence>\"}` (`ErrorResponse`), unless the operation documents another body: `POST /api/migrations/apply` answers 409 with `ApplyAnswer` and the refused migration file. A missing or invalid credential is 401 with an `ErrorResponse` on every operation the global `security` covers; the three routes that answer without a credential (the document itself, health and the sign-in config) carry an empty `security`.",
     "license": {
       "name": "Apache-2.0",
       "identifier": "Apache-2.0"
     },
     "version": "0.1.0"
   },
+  "servers": [
+    {
+      "url": "/",
+      "description": "This Nova instance. Every path below starts with `/api`; a missing or invalid credential is answered with 401 and an ErrorResponse."
+    }
+  ],
   "paths": {
     "/api/admin/catalogs": {
       "get": {
@@ -3610,7 +3616,53 @@
                   "items": {
                     "$ref": "#/components/schemas/Deployment"
                   }
-                }
+                },
+                "example": [
+                  {
+                    "actor": "sub-ada",
+                    "actorName": "ada",
+                    "bundle": "shop",
+                    "createdAt": "2026-11-20T09:12:04Z",
+                    "files": [
+                      {
+                        "path": "shop-marts.yaml",
+                        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                      }
+                    ],
+                    "id": 41,
+                    "ownerGroup": "shop",
+                    "pipelines": [
+                      {
+                        "action": "updated",
+                        "name": "shop-marts",
+                        "namespace": "stardelt"
+                      }
+                    ],
+                    "previousDeploymentId": null,
+                    "repository": "https://github.com/acme/shop",
+                    "resources": [
+                      {
+                        "apiVersion": "stardelt.io/v1alpha1",
+                        "kind": "Pipeline",
+                        "metadata": {
+                          "name": "shop-marts"
+                        },
+                        "spec": {
+                          "tasks": [
+                            {
+                              "kind": "sql",
+                              "name": "run",
+                              "sql": "select 1"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "revision": "4f3c2a1",
+                    "status": "applied",
+                    "target": "production"
+                  }
+                ]
               }
             }
           },
@@ -3648,6 +3700,27 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/NewDeployment"
+              },
+              "example": {
+                "bundle": "shop",
+                "files": [
+                  {
+                    "path": "shop-marts.yaml",
+                    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  }
+                ],
+                "ownerGroup": "shop",
+                "pipelines": [
+                  {
+                    "action": "updated",
+                    "name": "shop-marts",
+                    "namespace": "stardelt"
+                  }
+                ],
+                "repository": "https://github.com/acme/shop",
+                "revision": "4f3c2a1",
+                "status": "applied",
+                "target": "production"
               }
             }
           },
@@ -3660,6 +3733,50 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Deployment"
+                },
+                "example": {
+                  "actor": "sub-ada",
+                  "actorName": "ada",
+                  "bundle": "shop",
+                  "createdAt": "2026-11-20T09:12:04Z",
+                  "files": [
+                    {
+                      "path": "shop-marts.yaml",
+                      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                    }
+                  ],
+                  "id": 41,
+                  "ownerGroup": "shop",
+                  "pipelines": [
+                    {
+                      "action": "updated",
+                      "name": "shop-marts",
+                      "namespace": "stardelt"
+                    }
+                  ],
+                  "previousDeploymentId": null,
+                  "repository": "https://github.com/acme/shop",
+                  "resources": [
+                    {
+                      "apiVersion": "stardelt.io/v1alpha1",
+                      "kind": "Pipeline",
+                      "metadata": {
+                        "name": "shop-marts"
+                      },
+                      "spec": {
+                        "tasks": [
+                          {
+                            "kind": "sql",
+                            "name": "run",
+                            "sql": "select 1"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "revision": "4f3c2a1",
+                  "status": "applied",
+                  "target": "production"
                 }
               }
             }
@@ -3694,8 +3811,144 @@
               }
             }
           },
+          "409": {
+            "description": "The planId does not name the rendered set of this row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "503": {
             "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/deployments/plan": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/deployments/plan` — what the set would do, `200` with the plan, nothing written.",
+        "description": "Say what applying one bundle's rendered Pipeline documents to one stage would do, writing nothing. Every document goes through the same create rules `pipelines_validate` and the write routes use, so the plan and the apply cannot disagree: `changes` names a `create`, an `update` (with the sentences it would change) or an `unchanged` document, `errors` carries the rule that refuses one, and `warnings` names a pipeline this bundle and stage own that the set does not name (today a warning, not a prune). `files` says which of the bundle's files are new against the newest applied deployment of this bundle and stage. `planId` is the identity of the rendered set: the SHA-256 of the bundle, the stage, the documents in the order given and the files sorted by path. A later `POST /api/deployments` may carry it as `planId`, and answers 409 when the row's set is not the planned one. `prune`, the stage modes and StreamApps are not covered yet.",
+        "operationId": "deployments_plan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BundlePlanRequest"
+              },
+              "example": {
+                "bundle": "shop-etl",
+                "files": [
+                  {
+                    "path": "shop-marts.yaml",
+                    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  }
+                ],
+                "ownerGroup": "analytics",
+                "resources": [
+                  {
+                    "apiVersion": "stardelt.io/v1alpha1",
+                    "kind": "Pipeline",
+                    "metadata": {
+                      "name": "shop-marts"
+                    },
+                    "spec": {
+                      "ownerGroup": "analytics",
+                      "tasks": [
+                        {
+                          "kind": "sql",
+                          "name": "run",
+                          "sql": "select 1"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "revision": "4f3c2a1",
+                "target": "production"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The plan, with its identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BundlePlan"
+                },
+                "example": {
+                  "changes": [
+                    {
+                      "action": "update",
+                      "diff": [
+                        "the schedule changed from 0 3 * * * to 0 4 * * *"
+                      ],
+                      "kind": "Pipeline",
+                      "name": "shop-marts"
+                    }
+                  ],
+                  "errors": [],
+                  "files": [
+                    {
+                      "new": true,
+                      "path": "shop-marts.yaml",
+                      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                    }
+                  ],
+                  "ok": true,
+                  "planId": "a3f1c0f4b9a4ce7a7b2a0f2e8a3a3fd0c9de5c4f5e1c2b3a4958687788a9b0c1",
+                  "warnings": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A name is empty, too long or carries a `/`, or there are more than 200 resources or 200 file digests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The caller has no identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only a member of the pipeline's owner group may plan a deployment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured, or there is no cluster connection",
             "content": {
               "application/json": {
                 "schema": {
@@ -3734,6 +3987,50 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Deployment"
+                },
+                "example": {
+                  "actor": "sub-ada",
+                  "actorName": "ada",
+                  "bundle": "shop",
+                  "createdAt": "2026-11-20T09:12:04Z",
+                  "files": [
+                    {
+                      "path": "shop-marts.yaml",
+                      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                    }
+                  ],
+                  "id": 41,
+                  "ownerGroup": "shop",
+                  "pipelines": [
+                    {
+                      "action": "updated",
+                      "name": "shop-marts",
+                      "namespace": "stardelt"
+                    }
+                  ],
+                  "previousDeploymentId": null,
+                  "repository": "https://github.com/acme/shop",
+                  "resources": [
+                    {
+                      "apiVersion": "stardelt.io/v1alpha1",
+                      "kind": "Pipeline",
+                      "metadata": {
+                        "name": "shop-marts"
+                      },
+                      "spec": {
+                        "tasks": [
+                          {
+                            "kind": "sql",
+                            "name": "run",
+                            "sql": "select 1"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "revision": "4f3c2a1",
+                  "status": "applied",
+                  "target": "production"
                 }
               }
             }
@@ -3798,6 +4095,50 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Deployment"
+                },
+                "example": {
+                  "actor": "sub-ada",
+                  "actorName": "ada",
+                  "bundle": "shop",
+                  "createdAt": "2026-11-20T09:12:04Z",
+                  "files": [
+                    {
+                      "path": "shop-marts.yaml",
+                      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                    }
+                  ],
+                  "id": 41,
+                  "ownerGroup": "shop",
+                  "pipelines": [
+                    {
+                      "action": "updated",
+                      "name": "shop-marts",
+                      "namespace": "stardelt"
+                    }
+                  ],
+                  "previousDeploymentId": 40,
+                  "repository": "https://github.com/acme/shop",
+                  "resources": [
+                    {
+                      "apiVersion": "stardelt.io/v1alpha1",
+                      "kind": "Pipeline",
+                      "metadata": {
+                        "name": "shop-marts"
+                      },
+                      "spec": {
+                        "tasks": [
+                          {
+                            "kind": "sql",
+                            "name": "run",
+                            "sql": "select 1"
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "revision": "4f3c2a1",
+                  "status": "applied",
+                  "target": "production"
                 }
               }
             }
@@ -5666,13 +6007,27 @@
         "tags": [
           "public"
         ],
-        "description": "Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`, #237) — both or neither is 400 `give a statement, a notebook or a dbt run`. A body may instead give `tasks` (`[{ name, sql | notebook | dbt, dependsOn }]`, 1 to 30 tasks, each with exactly one of the two, at most 8 dependencies): `tasks` together with `sql` or `notebook` is 400 `give a statement, a notebook or a task list`; a task name outside `^[a-z0-9][a-z0-9_-]{0,62}$`, a name used twice, more than 30 tasks, a dependency on itself or on a task of another pipeline, and a cycle are 400 with a sentence that names the task. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: \"loading\"`. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
+        "description": "Schedule a statement or a published notebook: create a `Pipeline` for one of the caller's owner groups (`runAs: pipeline-<group>`), validated so the loader accepts it. A body gives exactly one of a non-empty `sql` and a `notebook` (`{ name, objectVersion, params }`, #237) — both or neither is 400 `give a statement, a notebook, a dbt run or a quality run`. A body may instead give `tasks` (`[{ name, sql | notebook | dbt | quality, dependsOn }]`, 1 to 30 tasks, each with exactly one source, at most 8 dependencies): `tasks` together with `sql` or `notebook` is 400 `give a statement, a notebook or a task list`; a task name outside `^[a-z0-9][a-z0-9_-]{0,62}$`, a name used twice, more than 30 tasks, a dependency on itself or on a task of another pipeline, and a cycle are 400 with a sentence that names the task. Refusals, in this order: a name outside 1 to 40 lower-case letters, digits and dashes starting with a letter 400; a group the caller is not a member of 403 (`you are not a member of the group <g>` — administrators included); a group without a ready `ServicePrincipal` 409 with the `principals` route's message; an empty, over-20,000-character or NUL-carrying statement 400; a parameter name, a parameter count or value, or a `${…}` placeholder the loader cannot fill 400; a notebook name outside `^[A-Za-z0-9][A-Za-z0-9._ -]{0,127}\\.ipynb$` 400, more than 32 notebook parameters, a value over 256 characters or NUL, or a `params` JSON text over 4096 characters 400, and a version that is not in the store 400 `that notebook version does not exist in group <g>` (503 when `NOVA_S3_*` is unset, 502 when S3 does not answer); a retry, wait, time-limit or run-mode option out of range 400; a cron that is not five in-range fields or fires more often than every five minutes 400; an unknown IANA timezone 400; a name that already exists 409; more than ten creations per user per hour 429. `options` and `params` are optional: an omitted option keeps its default (1 retry after 5 minutes, a 120-minute time limit, `Forbid`); `params` are the statement's `${params.<name>}` values, a notebook's values are in `notebook.params`. Airflow is not needed: the resource is the source of truth, and the answer is the new pipeline with `loaded: false`, `state: \"loading\"`. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_create",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreatePipelineRequest"
+              },
+              "example": {
+                "name": "shop-marts",
+                "ownerGroup": "shop",
+                "schedule": {
+                  "cron": "0 3 * * *",
+                  "timezone": "UTC"
+                },
+                "tasks": [
+                  {
+                    "name": "run",
+                    "sql": "select count(*) from gold.shop.orders"
+                  }
+                ]
               }
             }
           },
@@ -5685,6 +6040,26 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PipelineView"
+                },
+                "example": {
+                  "canEdit": true,
+                  "canRun": true,
+                  "concurrency": "Forbid",
+                  "createdAt": "2026-11-20T09:12:04Z",
+                  "loaded": false,
+                  "name": "shop-marts",
+                  "namespace": "stardelt",
+                  "ownerGroup": "shop",
+                  "paused": false,
+                  "schedule": "0 3 * * *",
+                  "state": "loading",
+                  "tasks": [
+                    {
+                      "kind": "sql",
+                      "name": "run",
+                      "sql": "select count(*) from gold.shop.orders"
+                    }
+                  ]
                 }
               }
             }
@@ -5937,6 +6312,20 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CreatePipelineRequest"
+              },
+              "example": {
+                "name": "shop-marts",
+                "ownerGroup": "shop",
+                "schedule": {
+                  "cron": "0 3 * * *",
+                  "timezone": "UTC"
+                },
+                "tasks": [
+                  {
+                    "name": "run",
+                    "sql": "select count(*) from gold.shop.orders"
+                  }
+                ]
               }
             }
           },
@@ -5949,6 +6338,19 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidatePipelineResponse"
+                },
+                "example": {
+                  "action": "create",
+                  "changes": [],
+                  "errors": [],
+                  "nextRuns": [
+                    "2026-11-21T03:00:00Z",
+                    "2026-11-22T03:00:00Z",
+                    "2026-11-23T03:00:00Z",
+                    "2026-11-24T03:00:00Z",
+                    "2026-11-25T03:00:00Z"
+                  ],
+                  "ok": true
                 }
               }
             }
@@ -6070,7 +6472,7 @@
         "tags": [
           "public"
         ],
-        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement, a notebook or a dbt run`. A task-list pipeline's body carries `tasks` and replaces the whole list; any other body on a task list is 409 `this pipeline has several tasks; change it in its file and deploy again`, and `tasks` on a statement or notebook pipeline is 400 `this pipeline runs a statement` / `this pipeline runs a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller cannot see 404, and one it can see but may not change — a viewer (`spec.viewers`) — 403 `only the owner group may change this pipeline`; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
+        "description": "Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) and nothing else. A statement pipeline's body carries `sql`; a notebook pipeline's carries `notebook` (`{ name, objectVersion, params }`), and an update never changes which of the two it is: `sql` on a notebook pipeline is 400 `this pipeline runs a notebook`, a notebook on a statement pipeline 400 `this pipeline runs a statement`, and both or neither 400 `give a statement, a notebook, a dbt run or a quality run`. A task-list pipeline's body carries `tasks` and replaces the whole list; any other body on a task list is 409 `this pipeline has several tasks; change it in its file and deploy again`, and `tasks` on a statement or notebook pipeline is 400 `this pipeline runs a statement` / `this pipeline runs a notebook`. The body describes the whole editable state: an omitted `schedule` removes it, an omitted `params` removes the table, an omitted option keeps its default, and a notebook body's file name, version and parameters replace the task's `config`. Refusals: a pipeline the caller cannot see 404, and one it can see but may not change — a viewer (`spec.viewers`) — 403 `only the owner group may change this pipeline`; a pipeline Nova did not write, or one whose task shape is not exactly one `run` task of kind `sql` or `notebook` 409; the statement, a parameter, a placeholder, a notebook name, a parameter value or count, or a version that is not in the store (503 without `NOVA_S3_*`, 502 when S3 does not answer), an option, the cron or the timezone as on create 400; the group's principal no longer ready 409 with the `principals` route's message; a concurrent change to the resource 409 `the pipeline changed while you edited it: reload`. A body may carry `resourceVersion` (the one `pipelines_spec` answered): when it is not the stored one, the answer is that same 409 and nothing is written; omitted, the update behaves as before. In a stage whose NOVA_STAGE_KIND is prod, a body that schedules a notebook is refused with 400 \"In production a notebook comes from Git. Deploy it with a bundle.\" unless it carries a bundle deploy stamp (provenance, or one already on the pipeline); other stages and statement schedules are unaffected. The audit line carries the statement's length, the cron and, for a notebook, the group, the file name and the pinned version — never the statement and never a parameter value. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_update",
         "parameters": [
           {
@@ -6697,6 +7099,96 @@
         }
       }
     },
+    "/api/pipelines/{namespace}/{name}/runs/{run_id}/checks": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "Every check a run's `quality` tasks declare, with its verdict: the rows the assertion returned (`0` is a pass) and the severity, read from the task's log line `check <name>: <error|warn>, <n> row(s)`. A check whose task has not run, or whose line is not in the log yet, answers `rows: null, passed: null`. `warn` checks with rows never fail the run. The same visibility rule as the run (404 for another group's pipeline).",
+        "operationId": "pipelines_run_checks",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The Pipeline's namespace (Nova's own)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "description": "Airflow's run id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The checks of the run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecksResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such pipeline for this caller, or no such run",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The scheduler or the cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or the scheduler is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/pipelines/{namespace}/{name}/runs/{run_id}/queries": {
       "get": {
         "tags": [
@@ -7239,7 +7731,7 @@
         "tags": [
           "public"
         ],
-        "description": "The editable document of one pipeline, in the shape of the body of `pipelines_create`: `name`, `ownerGroup`, a `sql` statement or a `notebook` (file name, pinned object version, parameters), a `schedule` (`cron` and `timezone`; a resource without a zone is `UTC`), the `params` table (left out when empty) and the `options` with their defaults filled in. It is built from the resource alone, so it answers while the scheduler is down. `resourceVersion` is the resource's version; `managedBy` is `nova` or `other` (kubectl or GitOps); `editable` is true only for a pipeline Nova wrote that has one `run` task of kind `sql` or `notebook`. A pipeline that is not editable is still readable: its document then leaves out what the form cannot show. The document never holds status, annotations, a connection's secret or a token. A pipeline of another group answers 404. Answers `Cache-Control: no-store`.",
+        "description": "The editable document of one pipeline, in the shape of the body of `pipelines_create`: `name`, `ownerGroup`, a `sql` statement or a `notebook` (file name, pinned object version, parameters), a `schedule` (`cron` and `timezone`; a resource without a zone is `UTC`), the `params` table (left out when empty) and the `options` with their defaults filled in. It is built from the resource alone, so it answers while the scheduler is down. `resourceVersion` is the resource's version; `managedBy` is `nova` or `other` (kubectl or GitOps); `editable` is true only for a pipeline Nova wrote that has one `run` task of kind `sql` or `notebook`, or a task list whose every task is `sql`, `notebook` or `dbt`; an update replaces a task list whole. A pipeline that is not editable is still readable: its document then leaves out what the form cannot show. The document never holds status, annotations, a connection's secret or a token. A pipeline of another group answers 404. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_spec",
         "parameters": [
           {
@@ -7268,6 +7760,31 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PipelineSpecResponse"
+                },
+                "example": {
+                  "document": {
+                    "name": "shop-marts",
+                    "options": {
+                      "backoffMinutes": 5,
+                      "concurrency": "Forbid",
+                      "retries": 1,
+                      "timeoutMinutes": 120
+                    },
+                    "ownerGroup": "shop",
+                    "schedule": {
+                      "cron": "0 3 * * *",
+                      "timezone": "UTC"
+                    },
+                    "tasks": [
+                      {
+                        "name": "run",
+                        "sql": "select count(*) from gold.shop.orders"
+                      }
+                    ]
+                  },
+                  "editable": true,
+                  "managedBy": "nova",
+                  "resourceVersion": "184931"
                 }
               }
             }
@@ -10245,6 +10762,89 @@
           }
         }
       },
+      "BundlePlan": {
+        "type": "object",
+        "description": "`POST /api/deployments/plan` answer: what applying that set would do, and its identity.",
+        "required": [
+          "ok",
+          "errors",
+          "warnings",
+          "changes",
+          "files",
+          "planId"
+        ],
+        "properties": {
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanChange"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanIssue"
+            }
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanFile"
+            }
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "planId": {
+            "type": "string",
+            "description": "The identity of the set this plan describes; `POST /api/deployments` answers 409 when a\n`planId` it is given does not name the set it was sent."
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanIssue"
+            }
+          }
+        }
+      },
+      "BundlePlanRequest": {
+        "type": "object",
+        "description": "`POST /api/deployments/plan` body: one bundle's rendered Pipeline documents and file digests,\nfor one target. The same `resources` list the record call carries, so a `planId` names both.",
+        "required": [
+          "bundle",
+          "ownerGroup",
+          "target",
+          "resources"
+        ],
+        "properties": {
+          "bundle": {
+            "type": "string"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeploymentFile"
+            }
+          },
+          "ownerGroup": {
+            "type": "string"
+          },
+          "resources": {
+            "type": "array",
+            "items": {}
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The commit the bundle was read at; display metadata, not part of the plan's identity.\nNothing reads it yet: the record carries the revision, and a later slice shows it beside\nthe plan."
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
       "CatalogAccessUpdate": {
         "type": "object",
         "description": "One `PUT /api/admin/catalogs/{name}/access` body.\n\n`resourceVersion` is the value the page read: the API server rejects the merge\npatch with `409` when the object changed meanwhile, so two administrators\nediting the same catalog cannot silently overwrite each other.",
@@ -10627,6 +11227,59 @@
           }
         }
       },
+      "CheckView": {
+        "type": "object",
+        "description": "One check of one `quality` task. `rows` and `passed` are `None` until the task's log\ncarries the line (the task has not run, or has not reached the check yet).",
+        "required": [
+          "task",
+          "name",
+          "severity"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The check's name, as declared in `spec.tasks[].checks[].name`."
+          },
+          "passed": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "`Some(rows == 0)` once the log carries the line, `None` before that."
+          },
+          "rows": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The rows the assertion returned; `0` is a pass."
+          },
+          "severity": {
+            "type": "string",
+            "description": "`error` or `warn`; `warn` never fails the run."
+          },
+          "task": {
+            "type": "string",
+            "description": "The `quality` task's name."
+          }
+        }
+      },
+      "ChecksResponse": {
+        "type": "object",
+        "description": "`GET …/runs/{run_id}/checks`: one row per declared check of the run's `quality` tasks.",
+        "required": [
+          "checks"
+        ],
+        "properties": {
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckView"
+            }
+          }
+        }
+      },
       "ChunkView": {
         "type": "object",
         "description": "`GET /api/statements/{id}/chunks/{n}`.",
@@ -10784,6 +11437,7 @@
           "idleStopMinutes",
           "canUse",
           "canAct",
+          "viewers",
           "shared",
           "kind"
         ],
@@ -10931,6 +11585,13 @@
               "string",
               "null"
             ]
+          },
+          "viewers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The groups that may see the cluster without being its owner (`spec.viewers`)."
           },
           "yours": {
             "type": "boolean",
@@ -11081,6 +11742,16 @@
             "propertyNames": {
               "type": "string"
             }
+          },
+          "viewers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Groups that may see the cluster without being its owner (`spec.viewers`), read-only.\nAbsent keeps what the cluster carries; an empty list removes the key. At most 16."
           }
         },
         "additionalProperties": false
@@ -11281,6 +11952,17 @@
               }
             ]
           },
+          "publish": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Publish",
+                "description": "How the writes reach the tables people read (`spec.publish`, #114). Omitted on a create\nmeans `direct`; on an update it keeps what the pipeline says, and `direct` removes it."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "schedule": {
             "oneOf": [
               {
@@ -11303,7 +11985,7 @@
             "items": {
               "$ref": "#/components/schemas/PipelineTaskRequest"
             },
-            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook or a dbt run, with dependencies. Exclusive with `sql` and `notebook`."
+            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook, a dbt run or SQL checks, with dependencies. Exclusive with `sql` and\n`notebook`."
           },
           "viewers": {
             "type": [
@@ -12668,6 +13350,13 @@
             },
             "description": "The pipelines the deploy touched, at most 200."
           },
+          "planId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `planId` of the plan this apply followed (`POST /api/deployments/plan`), or absent. When\ngiven, the row must describe the same rendered set the plan named; otherwise 409."
+          },
           "previousDeploymentId": {
             "type": [
               "integer",
@@ -13357,6 +14046,17 @@
               "type": "string"
             }
           },
+          "publish": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Publish",
+                "description": "How the writes reach the tables people read (`spec.publish`); left out when the pipeline\nwrites straight to `main`."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "schedule": {
             "oneOf": [
               {
@@ -13513,7 +14213,7 @@
           },
           "editable": {
             "type": "boolean",
-            "description": "True when Nova may change it: Nova wrote it and it has the shape the form edits (one\n`run` task, a statement or a notebook). A pipeline that is not editable is still shown."
+            "description": "True when Nova may change it: Nova wrote it and it has the shape the form edits (one\n`run` task, a statement or a notebook) or a task list (every task `sql`, `notebook` or\n`dbt`), which an update replaces whole. A pipeline that is not editable is still shown."
           },
           "managedBy": {
             "type": "string",
@@ -13530,7 +14230,7 @@
       },
       "PipelineTaskRequest": {
         "type": "object",
-        "description": "One task of a task-list body (`#905`): the name the engine uses, exactly one of a statement, a\nnotebook and a dbt run, and the tasks that must succeed first.",
+        "description": "One task of a task-list body (`#905`): the name the engine uses, exactly one of a statement, a\nnotebook, a dbt run, a quality run and a spark-pipeline graph, and the tasks that must succeed\nfirst.",
         "required": [
           "name"
         ],
@@ -13539,7 +14239,7 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/DbtRequest",
-                "description": "A `dbt` run instead of a statement or a notebook (`#112`): exactly one of the three."
+                "description": "A `dbt` run instead of a statement or a notebook (`#112`): exactly one of the five."
               },
               {
                 "type": "null"
@@ -13568,9 +14268,38 @@
               }
             ]
           },
+          "quality": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/QualityRequest",
+                "description": "SQL assertions instead of a statement, a notebook or a dbt run (`#114`): exactly one of\nthe five."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sparkPipeline": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SparkPipelineRequest",
+                "description": "A declared Spark graph instead of a statement, a notebook, a dbt run or SQL checks\n(#80): exactly one of the five."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "sql": {
             "type": "string",
-            "description": "The statement to run; exactly one of this, `notebook` and `dbt` is given."
+            "description": "The statement to run; exactly one of this, `notebook`, `dbt`, `quality` and\n`sparkPipeline` is given."
+          },
+          "writes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16.\n`spec.publish: wap` audits exactly these tables (#114)."
           }
         }
       },
@@ -13586,7 +14315,8 @@
           "loaded",
           "state",
           "tasks",
-          "concurrency"
+          "concurrency",
+          "publish"
         ],
         "properties": {
           "canEdit": {
@@ -13662,6 +14392,10 @@
           "paused": {
             "type": "boolean"
           },
+          "publish": {
+            "type": "string",
+            "description": "`spec.publish`: `direct` (the default) or `wap` — a `wap` run writes an audit\nbranch, runs its checks, and only a passing run publishes (#114)."
+          },
           "runAs": {
             "type": [
               "string",
@@ -13726,6 +14460,71 @@
           "planId": {
             "type": "string",
             "description": "The identity of this plan: what `bundle approve` takes and what apply needs."
+          }
+        }
+      },
+      "PlanChange": {
+        "type": "object",
+        "required": [
+          "kind",
+          "name",
+          "action"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "`create`, `update` or `unchanged` (from `ValidatePipelineResponse::action`, with `create`\nwhen `action` is absent)."
+          },
+          "diff": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What an `update` would change, the sentences `pipelines_validate` answers."
+          },
+          "kind": {
+            "type": "string",
+            "description": "`Pipeline` today; the bundle's other kinds are a later slice."
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PlanFile": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "new"
+        ],
+        "properties": {
+          "new": {
+            "type": "boolean",
+            "description": "`true` when the newest applied deployment of this bundle and target does not name this path\nwith this digest; every file when no deployment was recorded yet."
+          },
+          "path": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          }
+        }
+      },
+      "PlanIssue": {
+        "type": "object",
+        "required": [
+          "path",
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "One sentence, the same sentence the write route would refuse with."
+          },
+          "path": {
+            "type": "string",
+            "description": "Where the problem is: `resources[2] (gold)` or `resources` (the set)."
           }
         }
       },
@@ -13955,6 +14754,14 @@
           }
         }
       },
+      "Publish": {
+        "type": "string",
+        "description": "How a pipeline's writes reach the tables people read: straight to `main`, or through an\naudit branch that a `quality` task must pass first (`spec.publish`, #114).",
+        "enum": [
+          "direct",
+          "wap"
+        ]
+      },
       "PublishedNotebook": {
         "type": "object",
         "required": [
@@ -14006,6 +14813,47 @@
           "unchanged": {
             "type": "boolean",
             "description": "`true` when the newest version already holds these exact bytes: nothing was stored and\n`objectVersion` is that version."
+          }
+        }
+      },
+      "QualityCheckRequest": {
+        "type": "object",
+        "description": "One SQL assertion of a `quality` task (`#114`): a name the task log shows, the statement that\nmust return no rows, and how a non-empty answer is treated.",
+        "required": [
+          "name",
+          "sql"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "`[A-Za-z0-9][A-Za-z0-9_-]{0,62}` and unique within the task."
+          },
+          "severity": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`error` fails the run, `warn` only logs it; omitted is `error`."
+          },
+          "sql": {
+            "type": "string",
+            "description": "The assertion: it passes when the query returns no rows."
+          }
+        }
+      },
+      "QualityRequest": {
+        "type": "object",
+        "description": "A `quality` task of a task list (`#114`): SQL assertions the loader runs after the task's\npredecessors. The rules are `demos/dags/stardelt_pipelines/plan.py`'s, so Nova refuses what the\nloader would refuse.",
+        "required": [
+          "checks"
+        ],
+        "properties": {
+          "checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QualityCheckRequest"
+            },
+            "description": "1 to 50 SQL assertions; a check passes when its query returns no rows."
           }
         }
       },
@@ -14688,6 +15536,13 @@
           "type"
         ],
         "properties": {
+          "bundle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The bundle the run's pipeline was deployed from, when it came from one."
+          },
           "durationSeconds": {
             "type": [
               "number",
@@ -14713,6 +15568,13 @@
               "null"
             ]
           },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The Git revision that deployment named; absent for a dirty tree."
+          },
           "runId": {
             "type": "string"
           },
@@ -14724,6 +15586,13 @@
           },
           "state": {
             "type": "string"
+          },
+          "target": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The stage (target) of that deployment."
           },
           "triggeredBy": {
             "type": [
@@ -14994,6 +15863,36 @@
             "items": {
               "$ref": "#/components/schemas/Workload"
             }
+          }
+        }
+      },
+      "SparkPipelineRequest": {
+        "type": "object",
+        "description": "A `spark-pipeline` task of a task list (#80): the declared graph `spark-pipelines` runs on\nthe owner group's `SparkCluster`. `project` is a directory of the bundle.",
+        "required": [
+          "project"
+        ],
+        "properties": {
+          "fullRefresh": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "Datasets to rebuild from scratch; 1 to 32 names."
+          },
+          "project": {
+            "type": "string",
+            "description": "The bundle directory that holds `spark-pipeline.yml`."
+          },
+          "refresh": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`incremental` (the default) or `full`."
           }
         }
       },
@@ -15772,6 +16671,16 @@
             },
             "description": "The task names this task waits for (`tasks[].dependsOn`)."
           },
+          "fullRefresh": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "The datasets a full refresh rebuilds, detail route only."
+          },
           "kind": {
             "type": "string"
           },
@@ -15805,11 +16714,32 @@
             ],
             "description": "The immutable object version a notebook task pins."
           },
+          "project": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The bundle directory of a `kind: \"spark-pipeline\"` task, detail route only."
+          },
+          "refresh": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`incremental` or `full` of a `kind: \"spark-pipeline\"` task, detail route only."
+          },
           "sql": {
             "type": [
               "string",
               "null"
             ]
+          },
+          "writes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "`tasks[].writes` (`catalog.schema.table`), detail route only (#114): the tables a\n`wap` run audits."
           }
         }
       },
@@ -15978,6 +16908,17 @@
               }
             ]
           },
+          "publish": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Publish",
+                "description": "How the writes reach the tables people read (`spec.publish`, #114). Omitted on a create\nmeans `direct`; on an update it keeps what the pipeline says, and `direct` removes it."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "resourceVersion": {
             "type": [
               "string",
@@ -16008,7 +16949,7 @@
             "items": {
               "$ref": "#/components/schemas/PipelineTaskRequest"
             },
-            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook or a dbt run, with dependencies. Exclusive with `sql` and `notebook`."
+            "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook, a dbt run or SQL checks, with dependencies. Exclusive with `sql` and\n`notebook`."
           },
           "viewers": {
             "type": [

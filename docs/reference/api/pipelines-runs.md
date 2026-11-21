@@ -69,6 +69,30 @@ One run of a pipeline with its task instances. The run id is looked up through t
 | `502` | The scheduler or the cluster did not answer |
 | `503` | No cluster connection, or the scheduler is not configured |
 
+## GET /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/checks
+
+Operation id `pipelines_run_checks`: in Python `client.call("pipelines_run_checks", …)`, on the command line `stardelt api pipelines_run_checks`.
+
+Every check a run's `quality` tasks declare, with its verdict: the rows the assertion returned (`0` is a pass) and the severity, read from the task's log line `check <name>: <error|warn>, <n> row(s)`. A check whose task has not run, or whose line is not in the log yet, answers `rows: null, passed: null`. `warn` checks with rows never fail the run. The same visibility rule as the run (404 for another group's pipeline).
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+| `run_id` | path | string | Yes | Airflow's run id |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The checks of the run |
+| `401` | No token to sign in with |
+| `404` | No such pipeline for this caller, or no such run |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
 ## GET /api/pipelines/\{namespace\}/\{name\}/runs/\{run_id\}/queries
 
 Operation id `pipelines_run_queries`: in Python `client.call("pipelines_run_queries", …)`, on the command line `stardelt api pipelines_run_queries`.
