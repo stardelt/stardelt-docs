@@ -36,6 +36,7 @@ apiVersion: stardelt.io/v1alpha1
 kind: Pipeline
 metadata:
   name: daily-revenue
+  namespace: stardelt
 spec:
   ownerGroup: shop
   runAs: pipeline-shop
@@ -48,7 +49,7 @@ spec:
       kind: notebook
       config:
         notebook: daily_revenue.ipynb
-        objectVersion: v7
+        objectVersion: 671ba4bb597f8ed679e5eacad127c706
       writes:
         - gold.shop.daily_revenue
     - name: checks
