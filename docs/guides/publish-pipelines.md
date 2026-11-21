@@ -88,6 +88,8 @@ stardelt bundle deploy shop -t dev
 {"action": "recorded", "id": 7}
 ```
 
+A deploy asks Nova for the plan before it writes anything and records the plan's `planId` in the deployment row, so the row says which checked set was applied.
+
 Each pipeline file gets the target's variables, its `sqlFile` is read into `sql`, and the bundle's group is its `ownerGroup` when the
 file names none. A `development` target deploys under `dev-<your sign-in name>-<pipeline>` and without a schedule, so two
 people can deploy one bundle side by side and nothing runs on its own. Start it yourself and wait for it:
