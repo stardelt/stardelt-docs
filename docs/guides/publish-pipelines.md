@@ -219,7 +219,23 @@ A stage where no deploy has run shows `Nothing was deployed from a bundle yet. P
 
 The page is built on `GET /api/pipelines` (the `deployment` stamp), `GET /api/stages/compare?peer=<name>` (`status: ok`, `unauthorized` or `unreachable`) and `GET /api/deployments`; [the API reference](/docs/reference/api) lists the fields.
 
+## Roll back a stage
+
+**The recorded deploy is the source.** A rollback replays the Pipeline documents one recorded deployment stored, so it needs no Git and applies exactly what ran. Nova records the replay as a new deployment whose `previous` row is the one it replayed, so the record shows both. Nothing is deleted.
+
+**In the interface.** Open a row of the recorded deployments on the Deployments page: its detail has a **Roll back** action, which asks you to confirm and then opens the deployment it recorded. It is offered to administrators and to members of the deployment's owner group, the bundle's group. A row whose status is not **Applied**, or that stored no documents, cannot be replayed, and the page says which of the two it is.
+
+**In the terminal.** `stardelt deployments list` prints the newest recorded deploys you may see, newest first, in the columns `id bundle target commit status by when`. The commit is the first seven characters of the revision, and `—` stands in for a deploy whose bundle directory was outside a Git checkout. `stardelt deployments show <id>` prints one row as the facts `id bundle ownerGroup target commit repository status by actor when pipelines resources files previous`, then one line per pipeline it wrote or removed and per bundle file it read; `--resources` adds the stored Pipeline documents as JSON, one per line. `stardelt bundle rollback --deployment <id>` takes the id of a row and lists what would change, and only `--yes` writes:
+
+```console
+$ stardelt deployments list --bundle shop-etl --target prod
+id  bundle    target  commit   status   by    when
+42  shop-etl  prod    9f3c2a1  applied  alex  2026-11-20T18:12:04Z
+$ stardelt deployments show 42
+$ stardelt bundle rollback --deployment 42          # lists what would change
+$ stardelt bundle rollback --deployment 42 --yes    # replays it
+```
+
 ## What is not there yet
 
-- A rollback button: to go back, check out the earlier commit and deploy again.
 - A temporary stage per pull request.
