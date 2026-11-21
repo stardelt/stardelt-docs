@@ -242,7 +242,11 @@ tasks:
 - Before the graph runs, the task runs `spark-pipelines dry-run` on it in the same pod; a graph the dry run rejects fails the task without writing anything.
 - The bundle file says `spark-pipeline`; `stardelt apply -f` and the API take the same task as `sparkPipeline`.
   Both spellings are accepted, and the command line sends the one Nova takes.
-- No runtime reads the graph yet (#80); it validates and deploys today.
+- stardelt runs the graph: the task gets a pod of the platform's Spark image, runs `spark-pipelines dry-run` on it, then
+  `spark-pipelines run` against the shared Spark Connect server, as the group's pipeline principal. `catalog`, `database`
+  and `storage` still come from the task's `writes` and the group's bucket, never from the file.
+- A `spark-pipeline` task can be the writer of a `publish: wap` pipeline: the run puts `spark.wap.branch` into the graph's
+  session and the checks read the branch. See [Publish only checked data](/docs/guides/checked-publishing).
 
 ### A pipeline with several tasks
 
