@@ -164,10 +164,25 @@ A run is also in your **Query log** with the source *Pipeline task*; the default
 - **Delete pipeline** removes it; past runs disappear from the page.
 
 Only members of the owning group see and manage it; a pipeline written in YAML is changed where it came
-from ([Publish pipelines from Git](publish-pipelines.md)). Every run is also in **Build** →
+from ([Publish pipelines from Git](publish-pipelines.md)). A pipeline Nova owns is edited in place: see
+[Edit a pipeline's YAML](#edit-a-pipelines-yaml). Every run is also in **Build** →
 [**Runs**](runs.md); the schedule's **Runs** table shows state, trigger, start and duration, and a run
 opens to its tasks, **View log** and **Open notebook**, the executed copy in a sandboxed frame. A failed
 one opens at the failing cell with the exception and **Traceback**; copies are kept 30 days.
+
+## Edit a pipeline's YAML
+
+A pipeline page has a **Definition** section, *"The pipeline as the document that creates it."* **Show definition** and **Hide definition** show it as YAML — the same document `stardelt get pipeline --format json` prints and `stardelt apply -f` accepts.
+
+Every pipeline you may see is readable. **Edit definition** appears only when Nova owns the pipeline; otherwise the panel says `This pipeline is managed outside Nova (kubectl or GitOps); change it where it comes from.` (created elsewhere) or `This pipeline has a shape the form cannot edit.` A pipeline deployed from a bundle carries `Deployed from <bundle> · <target> — the next deploy overwrites changes made here.`
+
+Editing parses the text in the browser and, once it rests, asks Nova (`pipelines_validate`, which writes nothing). While it waits the panel says `Checking…`. A parse error reads `Line <N>: <sentence>`; Nova's refusals are a list under the editor. If the pipeline disappeared meanwhile: `This pipeline no longer exists. Reload the definition.` A passing check says `This changes: <fields>.` and `Next runs: <times>`. **Apply changes** is disabled until the check passes **and** something changes, or reads `Nothing changed.`; **Cancel** leaves the pipeline as it was. Applying an edit made against an older version answers a conflict with **Reload the definition** — the edit is never silently overwritten.
+
+Only a member of the pipeline's owning group sees or changes it; the group cannot be changed from the
+editor, and neither can the name and the owner group.
+
+The schedule dialog still creates one-task pipelines; the YAML view is where a multi-task pipeline
+(`dependsOn`) is read and edited.
 
 ### Limits
 
