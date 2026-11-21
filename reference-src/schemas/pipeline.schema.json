@@ -217,7 +217,7 @@
                 "type": "array"
               },
               "kind": {
-                "description": "What a pipeline task does — the task contract behind `Pipeline`\n(master spec §5, plugs 6, 7 and 12). `sql`, `notebook` (scheduled jobs\nphases J0 and J1) and `dbt` run today; `python`, `quality` and\n`spark-pipeline` are accepted so manifests can be written ahead of their\nruntimes.",
+                "description": "What a pipeline task does — the task contract behind `Pipeline`\n(master spec §5, plugs 6, 7 and 12). `sql`, `notebook` (scheduled jobs\nphases J0 and J1), `dbt` and `quality` run today; `python` and\n`spark-pipeline` are accepted so manifests can be written ahead of their\nruntimes.",
                 "enum": [
                   "sql",
                   "notebook",
