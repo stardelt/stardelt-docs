@@ -25,7 +25,7 @@ spec:
   # ...
 ```
 
-Eleven kinds exist:
+Twelve kinds exist:
 
 | Kind | Scope |
 | --- | --- |
@@ -33,6 +33,7 @@ Eleven kinds exist:
 | `Connection` | namespaced |
 | `IngestionSource` | namespaced |
 | `Lakehouse` | namespaced |
+| `ModelEndpoint` | namespaced |
 | `Pipeline` | namespaced |
 | `PlatformInstance` | cluster |
 | `ServicePrincipal` | namespaced |
@@ -106,14 +107,23 @@ kubectl -n <namespace> rollout status deploy/stardelt-operator
 The [troubleshooting page on an ignored CRD field](./troubleshooting#a-new-crd-field-is-ignored)
 lists the fixes.
 
-## What is not promised yet
+## What an upgrade promises
 
-`v1alpha1` carries no compatibility promise:
+The seven kinds a team writes keep working across an upgrade: `PlatformInstance`, `Lakehouse`,
+`Catalog`, `Pipeline`, `Connection`, `ServicePrincipal` and `SqlWarehouse`. A field of one of
+those kinds is not renamed or removed within `v1alpha1`, so a resource file that applies today
+still applies after an upgrade. The operator applies its own schemas at start, as
+[above](#who-installs-the-schemas), so `helm upgrade` cannot leave an older schema serving your
+resources.
 
-- A field may be renamed or removed between releases without a migration for existing resources.
-- Because there is no conversion, a resource written for one version of a field is not rewritten
-  for you. Re-read the [resource reference](../reference/resources) after an upgrade and update
-  your files when a field changes.
+If a change cannot be made without breaking a stored resource, a new version of that kind is
+introduced, both versions are served for at least one release, and a conversion moves the stored
+resources. That has not happened yet: every kind is still `stardelt.io/v1alpha1`.
 
-There is no `v1beta1` yet, and no guarantee about when one arrives. When it does, this page is
-where the move is described.
+The other five kinds — `IngestionSource`, `ModelEndpoint`, `SparkCluster`, `StreamApp` and
+`Volume` — are `v1alpha1` too, but the promise above does not cover them yet: a field of one of
+them may change between releases. The release notes name the change.
+
+The platform is still 0.x, so a release note names every breaking change, whether it changes a
+resource's schema or only what the platform does with it. Read the notes before you upgrade
+production.
