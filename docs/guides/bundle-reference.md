@@ -177,8 +177,8 @@ schedule:
 - `ownerGroup` is optional; when it is there it must be the bundle's group.
 - **One of** `sql` (the statement), `sqlFile` (a file named under `files`; its text is read into `sql` when you plan or
   deploy), `notebook` (a published notebook and its version, or a file of the bundle: see below), `dbt` (a dbt project
-  that runs as a task), `quality` (SQL assertions for a run) or `spark-pipeline` (a declared Spark graph, written ahead of
-  its runtime), **or** a `tasks` list that gives each task its own statement, which may hold a `dbt`, `quality` or
+  that runs as a task), `quality` (SQL assertions for a run) or `spark-pipeline` (a declared Spark graph, run as a
+  task), **or** a `tasks` list that gives each task its own statement, which may hold a `dbt`, `quality` or
   `spark-pipeline` task ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
 - `schedule` needs both `cron` and `timezone` (an IANA zone such as `Europe/Berlin`); leave it out for an on-demand pipeline.
 - `params` and `options` are the pipeline's parameters and advanced options, as in `stardelt apply`.
@@ -242,7 +242,11 @@ tasks:
 - Before the graph runs, the task runs `spark-pipelines dry-run` on it in the same pod; a graph the dry run rejects fails the task without writing anything.
 - The bundle file says `spark-pipeline`; `stardelt apply -f` and the API take the same task as `sparkPipeline`.
   Both spellings are accepted, and the command line sends the one Nova takes.
-- No runtime reads the graph yet (#80); it validates and deploys today.
+- stardelt runs the graph: the task gets a pod of the platform's Spark image, runs `spark-pipelines dry-run` on it, then
+  `spark-pipelines run` against the shared Spark Connect server, as the group's pipeline principal. `catalog`, `database`
+  and `storage` still come from the task's `writes` and the group's bucket, never from the file.
+- A `spark-pipeline` task can be the writer of a `publish: wap` pipeline: the run puts `spark.wap.branch` into the graph's
+  session and the checks read the branch. See [Publish only checked data](/docs/guides/checked-publishing).
 
 ### A pipeline with several tasks
 
