@@ -239,6 +239,7 @@ tasks:
 - `refresh` is `incremental` (the default) or `full`; `fullRefresh` names datasets to rebuild. Both at once is refused.
 - stardelt sets `catalog`, `database` and `storage` of the graph at run time; a `spark-pipeline.yml` that sets them
   itself is refused when the bundle is validated.
+- Before the graph runs, the task runs `spark-pipelines dry-run` on it in the same pod; a graph the dry run rejects fails the task without writing anything.
 - The bundle file says `spark-pipeline`; `stardelt apply -f` and the API take the same task as `sparkPipeline`.
   Both spellings are accepted, and the command line sends the one Nova takes.
 - No runtime reads the graph yet (#80); it validates and deploys today.
