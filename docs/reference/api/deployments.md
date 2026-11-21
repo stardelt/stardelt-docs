@@ -56,6 +56,7 @@ Record one bundle deploy: the bundle, the owner group of its pipelines, the stag
 | `pipelines[].action` | string | Yes |  | `created`, `updated`, `deleted` or `unchanged`. |  |
 | `pipelines[].name` | string | Yes |  |  |  |
 | `pipelines[].namespace` | string | Yes |  |  |  |
+| `planId` | string (nullable) | No |  | The `planId` of the plan this apply followed (`POST /api/deployments/plan`), or absent. When given, the row must describe the same rendered set the plan named; otherwise 409. |  |
 | `previousDeploymentId` | integer (nullable) | No |  | The deployment a rollback replayed, or absent. It is display metadata: the page links to it, and a row the caller may not see answers 404 there. | format `int64` |
 | `repository` | string (nullable) | No |  | The bundle's repository, or absent. |  |
 | `resources` | array | No |  | The rendered Pipeline documents this deploy applied; empty for a failed deploy. |  |
@@ -71,7 +72,39 @@ Record one bundle deploy: the bundle, the owner group of its pipelines, the stag
 | `400` | A name is empty, too long or carries a `/`, the status or an action is not one of the known values, or there are more than 200 pipelines |
 | `401` | The caller has no identity |
 | `403` | Only a member of the pipeline's owner group may record a deployment |
+| `409` | The planId does not name the rendered set of this row |
 | `503` | The state store is not configured |
+
+## POST /api/deployments/plan
+
+Operation id `deployments_plan`: in Python `client.call("deployments_plan", …)`, on the command line `stardelt api deployments_plan`.
+
+`POST /api/deployments/plan` — what the set would do, `200` with the plan, nothing written.
+
+Say what applying one bundle's rendered Pipeline documents to one stage would do, writing nothing. Every document goes through the same create rules `pipelines_validate` and the write routes use, so the plan and the apply cannot disagree: `changes` names a `create`, an `update` (with the sentences it would change) or an `unchanged` document, `errors` carries the rule that refuses one, and `warnings` names a pipeline this bundle and stage own that the set does not name (today a warning, not a prune). `files` says which of the bundle's files are new against the newest applied deployment of this bundle and stage. `planId` is the identity of the rendered set: the SHA-256 of the bundle, the stage, the documents in the order given and the files sorted by path. A later `POST /api/deployments` may carry it as `planId`, and answers 409 when the row's set is not the planned one. `prune`, the stage modes and StreamApps are not covered yet.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `bundle` | string | Yes |  |  |  |
+| `files` | array of object | No |  |  |  |
+| `files[].path` | string | Yes |  | The path relative to the bundle directory, with `/` separators. |  |
+| `files[].sha256` | string | Yes |  | The file's content, lowercase hex sha256 (64 characters). |  |
+| `ownerGroup` | string | Yes |  |  |  |
+| `resources` | array | Yes |  |  |  |
+| `revision` | string (nullable) | No |  | The commit the bundle was read at; display metadata, not part of the plan's identity. Nothing reads it yet: the record carries the revision, and a later slice shows it beside the plan. |  |
+| `target` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The plan, with its identity |
+| `400` | A name is empty, too long or carries a `/`, or there are more than 200 resources or 200 file digests |
+| `401` | The caller has no identity |
+| `403` | Only a member of the pipeline's owner group may plan a deployment |
+| `503` | The state store is not configured, or there is no cluster connection |
 
 ## GET /api/deployments/\{id\}
 
