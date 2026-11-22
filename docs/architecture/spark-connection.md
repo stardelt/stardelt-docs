@@ -13,7 +13,7 @@ identity, and what each service on the way is allowed to decide. It is for a per
 know what they are using, an administrator who has to explain it, and a reviewer who has to
 accept it.
 
-![How a notebook reaches Spark: the kernel asks Trino which catalogs the person may see, takes that person's token, and creates a new Spark Connect session at sc://spark-connect.stardelt.svc.cluster.local:15002. The session configures one Iceberg REST catalog per name pointing at Lakekeeper with the person's token. The driver checks the token and the grants with Lakekeeper and creates executors per query, which drop to zero when idle and reach object storage with the platform's shared storage key. A NetworkPolicy admits members' notebook pods only on port 15002. A named cluster takes a side path through Nova's compute API.](/img/spark-connection.svg)
+![How a notebook reaches Spark: the kernel asks Trino which catalogs the person may see, takes that person's token, and creates a new Spark Connect session at sc://spark-connect.stardelt.svc.cluster.local:15002. The session configures one Iceberg REST catalog per name pointing at Lakekeeper with the person's token. The driver checks the token and the grants with Lakekeeper and creates executors per query, which drop to zero when idle and reach object storage with the credential the catalog vends for the table. A NetworkPolicy admits members' notebook pods only on port 15002, and every call from outside the cluster passes a token-checking front that refuses a call without a valid token. A named cluster takes a side path through Nova's compute API.](/img/spark-connection.svg)
 
 ## The short version
 
@@ -60,8 +60,9 @@ mostly about.
    the cluster manager. It asks Lakekeeper for the catalog, where your token
    and your grants are checked; it creates executor pods per query and releases them when the
    query is done, so an idle platform runs the driver alone. Executors read and write the table
-   files through Iceberg's S3 client with the platform's storage key, which each executor pod
-   receives from a Secret.
+   files through Iceberg's S3 client with the credential the catalog vends on every load, scoped to
+   that table; neither the driver nor an executor receives the platform's storage key, and the
+   executor admission policy refuses a pod that reads a Secret.
 
 7. **A named cluster.** Selecting a cluster — `STARDELT_CLUSTER` in the notebook's environment —
    sends `_remote_for_cluster()` to Nova's compute API
@@ -77,11 +78,10 @@ mostly about.
 | Which catalogs are there for me? | Trino, through `SHOW CATALOGS`, and then Lakekeeper | A catalog you have no grant on is refused and left out of the session; the rest are listed. |
 | May I read this table? | Lakekeeper, with your token | A grant, or an error — at catalog, schema and table level, per person. |
 | Are rows and columns masked? | Trino only | `%sql` applies row filters and column masks; `spark` does not, so a masked column is readable through Spark by anyone with the grant. Use `%sql` for tables with masks. |
-| Which files may the engine touch? | Nobody, per person | The shared storage key reaches every file the bucket holds, whatever the table grants say. |
-| Who may open a Connect channel at all? | Kubernetes, through a NetworkPolicy | Spark Connect has no authentication of its own, so port 15002 is ClusterIP-only and admits members' notebook pods: no public endpoint, and a scheduled pipeline notebook or a visitor's notebook is refused. |
+| Which files may the engine touch? | Nobody, per person | Spark: a short-lived, table-scoped credential the catalog vends on every load; it allows the reads and writes your grant allows, and the shared Connect server's driver and executors carry no platform key. Trino: the platform's S3 key; it reaches the bucket regardless of the table grants. |
+| Who may open a Connect channel at all? | Kubernetes, through a NetworkPolicy | From outside the cluster: a token-checking front (Envoy `jwt_authn`, audience `spark-connect`) on the public route `spark.<baseDomain>` over TLS, so a call without a valid token is refused `401`. Inside the cluster a notebook pod reaches the driver directly, and the NetworkPolicy admits members' notebook pods only, so a scheduled pipeline notebook's pod is still refused. |
 
-The same front is reachable from a laptop as `spark.<baseDomain>` over TLS; it checks the same token
-and audience (`spark-connect`). The in-cluster NetworkPolicy applies to pods, not to that route.
+The in-cluster NetworkPolicy applies to pods, not to the public route.
 
 ## Session life
 
@@ -100,8 +100,8 @@ and audience (`spark-connect`). The in-cluster NetworkPolicy applies to pods, no
 
 ## What changes next
 
-The two gaps above are known and planned, not hidden. Identity on the Connect channel would let
-the platform stop relying on a network boundary for who may connect at all. Per-person access to
-object storage — credentials handed out per session instead of one key for the whole install —
-would close the difference between "may use this table" and "may read this file". Until they land,
-use `%sql` where a policy must apply, and treat the storage key as the real boundary for the files.
+The remaining gaps are known and planned, not hidden. Row filters and column masks apply in Trino
+only, so a Spark read is governed by table grants and the files the table's credential reaches, not
+by a policy on the rows. The batch and stream paths — `SparkApplication`s run by the Spark Operator —
+still hold the platform's storage key (stardelt/stardelt#494); the Connect path no longer does.
+Until they land, use `%sql` where a policy must apply.
