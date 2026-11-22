@@ -28,7 +28,7 @@ One picture of the whole platform: who talks to what, and why. Open it [on its o
 - **One API.** Whatever you can click, you can call. See [Python](../guides/python.md).
 - **Nova acts as you.** With sign-in on, your token goes on to the engines, so what you may read is decided by the engine and the catalog for you, not by Nova's own power.
 - **Plugs, not a monolith.** The engine, the catalog, the identity provider and the object store are replaceable behind open contracts (SQL, the Iceberg REST catalog, OIDC, S3).
-- **Known limits.** Results Nova keeps in memory are capped (100 000 rows or about 64 MiB per statement); storage credentials are one platform key today, not yet one short-lived key per person.
+- **Known limits.** Results Nova keeps in memory are capped (100 000 rows or about 64 MiB per statement); storage credentials are the platform's S3 key for Trino and the batch path, and a short-lived credential the catalog vends per table for Spark Connect.
 
 ## Where each task is done
 
