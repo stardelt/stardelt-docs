@@ -20,9 +20,10 @@ accept it.
 `spark` is not a cluster the platform hands you: it is a client that builds a Spark Connect
 session for you, on first use, in your own name. It asks Trino which catalogs you can see and
 gives the new session one Iceberg catalog per name, each carrying your token, so the catalog
-service decides what you may read. Everything past that — the driver, the executors, the files —
-runs with the platform's credentials rather than yours, which is the boundary this page is
-mostly about.
+service decides what you may read. Everything past that runs on that token: the driver asks the
+catalog, the executors ask the driver, and the table files are reached with a short-lived credential
+the catalog vends for each table, not with a storage key of yours — which is the boundary this page
+is mostly about.
 
 ## Step by step
 
@@ -102,6 +103,6 @@ The in-cluster NetworkPolicy applies to pods, not to the public route.
 
 The remaining gaps are known and planned, not hidden. Row filters and column masks apply in Trino
 only, so a Spark read is governed by table grants and the files the table's credential reaches, not
-by a policy on the rows. The batch and stream paths — `SparkApplication`s run by the Spark Operator —
-still hold the platform's storage key (stardelt/stardelt#494); the Connect path no longer does.
-Until they land, use `%sql` where a policy must apply.
+by a policy on the rows. The batch and stream paths — a `SparkApplication`, from the Airflow
+loader or a `StreamApp` — still hold the platform's storage key (stardelt/stardelt#494); the
+Connect path no longer does. Until they land, use `%sql` where a policy must apply.
