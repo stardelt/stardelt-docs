@@ -147,6 +147,18 @@ platform reports; a phase it does not know is printed as it came.
 The next line says who may use the cluster — its group, else its person, else `—` — and then its size
 (**small**, **medium** or **large**) and its runtime, for example `spark-4.1-py3.13`.
 
+A cluster another group shares with you through its viewers shows on your page, but it is read-only for
+you: no **Start**, no **Stop**, no endpoint in the API, and the card says the owner's group runs the code.
+A viewer may see the cluster; running work on it would run as the owner group, so the platform does not
+offer it.
+
+Under those, a card says whose identity the cluster works with. **runs as** is the ServiceAccount its
+driver uses: `spark-cluster-driver` for a cluster owned by a person, `spark-cluster-driver-<group>` for a
+group's. **catalog identity** is the principal that ServiceAccount's token becomes in the catalog, written
+`kubernetes~<id>`. The owner group's catalog role is granted to that principal, so these two lines answer
+"whose tables does a job on this cluster touch?". Both are absent on the shared server and on the public
+demo's sandbox, which the platform installs itself.
+
 Below that, a shared cluster says `Shared · always on · for everyone` and offers no Start or Stop. Any other
 cluster says `Stops after <N> min idle`, with `Running since <time>` in front while it runs.
 
