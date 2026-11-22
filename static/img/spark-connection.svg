@@ -160,6 +160,6 @@
 <text x="464" y="925" class="d">catalog vends on every load; the Connect pods hold no platform key</text>
 
 <!-- the gap -->
-<rect x="440" y="962" width="368" height="26" rx="13" class="warn"/>
+<rect x="440" y="962" width="430" height="26" rx="13" class="warn"/>
 <text x="458" y="980" class="warnt">known gap · row and column masks apply in Trino only</text>
 </svg>
