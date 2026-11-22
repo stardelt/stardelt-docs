@@ -7,7 +7,7 @@ description: "Write-Audit-Publish on Iceberg branches: a pipeline writes a branc
 
 # Publish only checked data
 
-A pipeline that writes straight to its tables puts every row in front of its readers, checked or not. Write-Audit-Publish
+A pipeline that writes straight to its tables puts every row in front of readers, checked or not. Write-Audit-Publish
 (WAP) changes that: the run writes an Iceberg branch, its checks read the branch, and the tables people read move only when
 every check passes. You turn it on with one key, `spec.publish: wap`.
 
@@ -61,8 +61,8 @@ spec:
           sql: SELECT * FROM ${table} WHERE revenue IS NULL
 ```
 
-The notebook must be a published notebook version (`config.objectVersion`) and must write through the platform's Spark
-session, which is what carries `spark.wap.branch` into the writes.
+The notebook must be a published version (`config.objectVersion`) and write through the platform's Spark session, which
+carries `spark.wap.branch` into the writes.
 
 ## A graph as the writer
 
@@ -97,9 +97,9 @@ spec:
           sql: SELECT * FROM ${table} WHERE revenue IS NULL
 ```
 
-The `files` map is what the bundle renders from `project`; a bundle deploys the same graph from `spark/shop/` and names
-it by that directory. `writes` names the table the audit branch is cut on, and the check reads the branch snapshot, not
-`main`.
+The `files` map is what the bundle renders from `project`; a bundle deploys the same graph from a directory such as
+`spark/shop/` — [Declarative Spark pipelines](spark-pipelines.md) writes one. `writes` names the table the audit branch
+is cut on, and the check reads the branch snapshot, not `main`.
 
 ## Rules and limits
 
