@@ -175,11 +175,11 @@ schedule:
 
 - `name` is required and must be unique among the pipeline files of the bundle.
 - `ownerGroup` is optional; when it is there it must be the bundle's group.
-- **One of** `sql` (the statement), `sqlFile` (a file named under `files`; its text is read into `sql` when you plan or
+- **One of** `sql` (the statement), `sqlFile` (a file named under `files`, read into `sql` when you plan or
   deploy), `notebook` (a published notebook and its version, or a file of the bundle: see below), `dbt` (a dbt project
-  that runs as a task), `quality` (SQL assertions for a run) or `spark-pipeline` (a declared Spark graph, run as a
-  task), **or** a `tasks` list that gives each task its own statement, which may hold a `dbt`, `quality` or
-  `spark-pipeline` task ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
+  that runs as a task), `quality` (SQL assertions for a run) or `spark-pipeline` (a declared Spark graph — see
+  [Declarative Spark pipelines](spark-pipelines.md)), **or** a `tasks` list giving each task its own statement, which
+  may hold a `dbt`, `quality` or `spark-pipeline` task ([A pipeline with several tasks](#a-pipeline-with-several-tasks)).
 - `schedule` needs both `cron` and `timezone` (an IANA zone such as `Europe/Berlin`); leave it out for an on-demand pipeline.
 - `params` and `options` are the pipeline's parameters and advanced options, as in `stardelt apply`.
 
