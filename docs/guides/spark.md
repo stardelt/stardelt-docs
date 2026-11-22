@@ -150,6 +150,15 @@ os.environ["STARDELT_CLUSTER"] = "<cluster-name>"
 spark.table("shared.bronze.pegelonline_measurements").count()
 ```
 
+A named cluster is its **owner group's** compute. Its driver runs as
+`spark-cluster-driver-<group>`, and the catalog sees that ServiceAccount's principal
+(`kubernetes~<id>`) — so a job on the cluster reads and writes with the owner group's grants,
+not with yours, and the group's storage access is the one it uses. A cluster another group
+shares with you through its viewers is on your Compute page but cannot be used: the platform
+gives a viewer no endpoint and no Start or Stop. The Compute card says both, under **runs as**
+and **catalog identity**
+([Your own tools](/docs/guides/connect-your-tools#a-clusters-card)).
+
 A cluster you may not use, or one that is stopped, is refused rather than started behind your back; see
 [Your own tools](/docs/guides/connect-your-tools#your-own-spark-clusters) for the Compute page itself.
 
@@ -157,8 +166,11 @@ A cluster you may not use, or one that is stopped, is refused rather than starte
 
 - Row and column masks apply in `%sql` only: a masked column arrives unmasked through Spark. Read a
   masked table through `%sql`.
-- A table written through Spark is written with the platform's shared storage key, not with a key of
-  yours: use Spark where Trino cannot do the work, not to work around a policy.
+- A table written through Spark goes through the catalog: the session asks the catalog for a
+  credential scoped to that table (Spark asks for it on every load), so no storage key of yours is
+  used. The identity behind the request is the signed-in person's on the shared server and the
+  owner group's on a named cluster. Use Spark where Trino cannot do the work, not to work around a
+  policy.
 - `collect()` and `toPandas()` stop at 512 MB (`spark.driver.maxResultSize`); aggregate first, or write the
   result to a table and read it with SQL.
 - There is no RDD API and no `sparkContext`: the plan runs on the server, so `df.rdd` fails. Use

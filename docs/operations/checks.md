@@ -37,7 +37,7 @@ or `UNVERIFIED` — a namespace without the `Pipelines` pillar has no `airflow-n
 `make verify-airflow-runs` only reads (it reports every unpaused DAG's newest run) and it is not in
 `step-verify` yet.
 
-Six checks are run by hand because each needs something a converged cluster does not promise.
+Seven checks are run by hand because each needs something a converged cluster does not promise.
 `make verify-spark-query` starts a client pod in the notebook image and runs two jobs through the shared
 Spark Connect server (a session, `range(10)` and `range(1000).repartition(4)`); it is the check that saw
 the 2026-11-19 executor-ConfigMap outage while every read-only target passed. `make verify-spark-auth`
@@ -45,7 +45,11 @@ mints Keycloak tokens and proves the front at `spark.<baseDomain>`: a signed que
 unsigned call is refused with `Jwt is missing`, and a token without the `spark-connect` audience is
 refused. `make verify-spark-janitor` runs the ConfigMap janitor's own dry run with
 `JANITOR_MAX_AGE_SECONDS=1` and asserts it keeps the map a live Spark driver created and would delete
-nothing; it creates and deletes one Job. Each prints `UNVERIFIED` (exit 3) when what it needs is absent.
+nothing; it creates and deletes one Job. `make verify-spark-group-read` opens one client pod against
+the permanent demo `SparkCluster` and proves the session reads `gold.shop.daily_revenue` (365 rows)
+with the driver's projected token as `spark-cluster-driver-demo`; a session that names no catalog
+must be refused. It is `UNVERIFIED` (exit 3) on an install with no group-owned `SparkCluster` — not
+a failure. Each prints `UNVERIFIED` (exit 3) when what it needs is absent.
 
 The public demo's sandbox is judged by three checks of its own. `make verify-spark-demo-sandbox` reads what
 the sandbox *contains*, seven probes of `stardelt-demo-spark/spark-demo`: the namespace enforces Pod Security
