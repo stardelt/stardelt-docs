@@ -31,6 +31,7 @@ Remove one verified query. Only the owner group of its table and administrators 
 | Code | Description |
 | --- | --- |
 | `204` | Deleted |
+| `401` | Not signed in |
 | `403` | Only the owner group and administrators may delete a verified query |
 | `404` | No such verified query, or the id is not a number |
 | `502` | The catalog is not reachable or did not answer |
@@ -56,6 +57,7 @@ Run one verified query as the caller and compare its rows with the expected resu
 | --- | --- |
 | `200` | The updated row: `lastCheckPassed` and `lastCheckMessage` say what the check found |
 | `400` | The stored SQL is no longer one read-only statement |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such verified query, catalog or table |
 | `502` | The catalog is not reachable or did not answer |

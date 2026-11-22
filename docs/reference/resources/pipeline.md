@@ -40,8 +40,9 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].config` | object (map of string) | No |  | Task-specific parameters of the other kinds (model path, gate threshold, …). | max 32 |
 | `spec.tasks[].connection` | string (nullable) | No |  | The `Connection` whose secret fields this task receives as `CONN_<NAME>_<KEY>`: the name upper-cased with `-` written as `_`. The credentials reach the pod through `secretKeyRef`s and are never part of the resource, the DAG or a log. A `sql` task runs inside the engine and cannot name one. | min 1, max 40; pattern `^[a-z]([a-z0-9-]*[a-z0-9])?$` |
 | `spec.tasks[].dependsOn` | array of string | No |  | Names of the tasks that must succeed first. | max 8 |
+| `spec.tasks[].files` | object (map of string) | No |  | The graph's files for a `spark-pipeline` task: relative path to text, `spark-pipeline.yml` and its sources. Empty on every other kind. The loader caps one file at 64 KiB and a whole graph at 256 KiB; the schema caps the count and each file's length. | max 64 |
 | `spec.tasks[].fullRefresh` | array of string | No |  | Datasets to rebuild from scratch on every run; only a `spark-pipeline` task. | max 32 |
-| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql`, `notebook` (scheduled jobs phases J0 and J1), `dbt` and `quality` run today; `python` and `spark-pipeline` are accepted so manifests can be written ahead of their runtimes. | `sql`, `notebook`, `python`, `dbt`, `quality`, `spark-pipeline` |
+| `spec.tasks[].kind` | string | Yes |  | What a pipeline task does — the task contract behind `Pipeline`. `sql`, `notebook` (scheduled jobs phases J0 and J1), `dbt`, `quality` and `spark-pipeline` run today; `python` alone is accepted so a manifest can be written ahead of its runtime. | `sql`, `notebook`, `python`, `dbt`, `quality`, `spark-pipeline` |
 | `spec.tasks[].name` | string | Yes |  | Unique within the pipeline; becomes the task id in the engine. | min 1, max 63; pattern `^[A-Za-z0-9][A-Za-z0-9_-]*$` |
 | `spec.tasks[].project` | string (nullable) | No |  | The declared graph a `spark-pipeline` task runs: a directory of the bundle that holds `spark-pipeline.yml` and its sources. Absent on every other kind. | min 1, max 128; pattern `^[A-Za-z0-9][A-Za-z0-9._/-]*$` |
 | `spec.tasks[].refresh` | string (nullable) | No |  | `incremental` (the default) or `full`; only a `spark-pipeline` task. | `incremental`, `full`, `null` |
@@ -86,6 +87,8 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - only a quality task declares checks
 - a spark-pipeline task needs project (the bundle directory with spark-pipeline.yml)
 - only a spark-pipeline task names a project
+- only a spark-pipeline task carries files
+- a spark-pipeline task's files must hold spark-pipeline.yml
 - only a spark-pipeline task sets refresh
 - only a spark-pipeline task sets fullRefresh
 - a spark-pipeline task sets refresh: full or fullRefresh, not both

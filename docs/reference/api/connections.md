@@ -69,6 +69,7 @@ The last 200 break-glass reads and refusals, newest first, for administrators. T
 | Code | Description |
 | --- | --- |
 | `200` | The most recent events, newest first |
+| `401` | Not signed in |
 | `403` | Not an administrator |
 | `503` | The state store is not configured |
 

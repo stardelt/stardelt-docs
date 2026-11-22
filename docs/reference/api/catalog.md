@@ -23,6 +23,7 @@ The catalogs the caller may browse, each with its Lakekeeper warehouse id and it
 | Code | Description |
 | --- | --- |
 | `200` | The browsable catalogs and the default one |
+| `401` | Not signed in |
 | `502` | The query engine or the catalog is not reachable |
 | `503` | A catalog the engine lists has no warehouse |
 
@@ -37,6 +38,7 @@ What is in each catalog the caller may browse: schemas, tables, rows, bytes on t
 | Code | Description |
 | --- | --- |
 | `200` | One entry per browsable catalog, medallion layers first, then by name, with the totals |
+| `401` | Not signed in |
 | `403` | No catalog is open to the caller |
 | `502` | The query engine is not reachable, so the catalogs cannot be named |
 
@@ -51,6 +53,7 @@ Read every catalog again now, instead of waiting for the next background round (
 | Code | Description |
 | --- | --- |
 | `202` | The round is running; the numbers follow on the next read |
+| `401` | Not signed in |
 | `403` | Not an administrator |
 | `429` | The numbers were refreshed less than a minute ago |
 
@@ -72,6 +75,7 @@ List one catalog's namespaces (schemas). Each namespace is a list of levels. `?c
 | --- | --- |
 | `200` | Namespaces in the catalog |
 | `400` | The catalog name is not lower-case letters and digits |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
@@ -96,6 +100,7 @@ List tables in one namespace of one catalog. `?catalog=` picks the catalog; omit
 | --- | --- |
 | `200` | Table identifiers in the namespace |
 | `400` | The name is not a single path segment, or the catalog name is invalid |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
@@ -123,6 +128,7 @@ Find tables in one catalog. `q` is one or more words; a table matches when its `
 | --- | --- |
 | `200` | The matching tables |
 | `400` | `q` is missing or longer than 100 characters, a filter is blank or longer than 64 characters, or the catalog name is invalid |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
@@ -148,6 +154,7 @@ Iceberg metadata for one table (metadata location plus the metadata document). `
 | --- | --- |
 | `200` | The table metadata document |
 | `400` | A name is not a single path segment, or the catalog name is invalid |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog or no such table |
 | `502` | The catalog or the engine is not reachable |
@@ -179,6 +186,7 @@ Set or remove one column's description. The column must be a field of the curren
 | --- | --- |
 | `200` | The table's documentation after the change, freshly loaded |
 | `400` | The body is invalid, or the catalog name is invalid |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
 | `404` | No such catalog, no such table or no such column in the current schema |
 | `502` | The catalog or the engine is not reachable |
@@ -204,6 +212,7 @@ A table's documentation: the Iceberg `comment` as `description`, the `stardelt.t
 | --- | --- |
 | `200` | The table's documentation |
 | `400` | A name is not a single path segment, or the catalog name is invalid |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable or did not answer |
@@ -238,6 +247,7 @@ Set or remove a table's description, tags, owner, domain and guide in one Lakeke
 | --- | --- |
 | `200` | The documentation after the change, freshly loaded |
 | `400` | The body is invalid, the catalog name is invalid, or the table has no owner and this request does not claim it |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable, did not answer, or stayed busy |
@@ -263,6 +273,7 @@ The table's last 100 snapshots, newest first: `committed_at`, `snapshot_id`, `pa
 | --- | --- |
 | `200` | One row per snapshot |
 | `400` | A name is not a single path segment, or the engine refused the statement |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
@@ -293,6 +304,7 @@ Move the table's current pointer back to an earlier snapshot (`ALTER TABLE … E
 | --- | --- |
 | `200` | The engine's answer to the statement |
 | `400` | A name or the body is not valid, the snapshot is unknown, or the engine refused the statement |
+| `401` | Not signed in |
 | `403` | Only the catalog owner group or administrators may roll back |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
@@ -319,6 +331,7 @@ The verified queries of one table: questions its owners answered with one read-o
 | --- | --- |
 | `200` | The table's verified queries, newest first |
 | `400` | A name is not a single path segment, or the catalog name is invalid |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable or did not answer |
@@ -354,6 +367,7 @@ Verify one answer to a question about this table: the question (at most 500 char
 | --- | --- |
 | `201` | The stored row |
 | `400` | The question or the SQL is empty or too long, `expected` is not a list of at most 100 rows, the catalog name is invalid, or the statement is not one read-only statement |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog, or only the owner group and administrators may verify a query |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable or did not answer |
@@ -381,6 +395,7 @@ Run every verified query of one table as the caller, one after another, in id or
 | --- | --- |
 | `200` | The totals and the rows the checks left |
 | `400` | A name is not a single path segment, the catalog name is invalid, or a stored statement is no longer one read-only statement |
+| `401` | Not signed in |
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable or did not answer |
@@ -397,5 +412,6 @@ The resolved warehouse name and id (`demo` in demo mode).
 | Code | Description |
 | --- | --- |
 | `200` | Warehouse name and id |
+| `401` | Not signed in |
 | `502` | The catalog is not reachable |
 | `503` | The configured warehouse does not exist |

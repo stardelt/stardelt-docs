@@ -41,7 +41,7 @@ Operation id `deployments_record`: in Python `client.call("deployments_record", 
 
 `POST /api/deployments` — `201` with the stored row.
 
-Record one bundle deploy: the bundle, the owner group of its pipelines, the stage it went to, the commit and repository, whether it applied or failed, and the pipelines it touched. Only an administrator or a member of the owner group may record one; the caller is stored as `actor`. A token issued to the Keycloak client `stardelt-deploy-<stage>` (a deploy principal) is refused with 403 unless the target is `<stage>` and the caller is a member of the owner group; an administrator's credential has no such client and is unaffected.
+Record one bundle deploy: the bundle, the owner group of its pipelines, the stage it went to, the commit and repository, whether it applied or failed, and the rendered documents it applied (its `Pipeline`s and its `StreamApp`s). Only an administrator or a member of the owner group may record one; the caller is stored as `actor`. A token issued to the Keycloak client `stardelt-deploy-<stage>` (a deploy principal) is refused with 403 unless the target is `<stage>` and the caller is a member of the owner group; an administrator's credential has no such client and is unaffected.
 
 **Request body**
 
@@ -59,7 +59,7 @@ Record one bundle deploy: the bundle, the owner group of its pipelines, the stag
 | `planId` | string (nullable) | No |  | The `planId` of the plan this apply followed (`POST /api/deployments/plan`), or absent. When given, the row must describe the same rendered set the plan named; otherwise 409. |  |
 | `previousDeploymentId` | integer (nullable) | No |  | The deployment a rollback replayed, or absent. It is display metadata: the page links to it, and a row the caller may not see answers 404 there. | format `int64` |
 | `repository` | string (nullable) | No |  | The bundle's repository, or absent. |  |
-| `resources` | array | No |  | The rendered Pipeline documents this deploy applied; empty for a failed deploy. |  |
+| `resources` | array | No |  | The rendered documents this deploy applied — `Pipeline` and `StreamApp`; empty for a failed deploy. |  |
 | `revision` | string (nullable) | No |  | The commit that was deployed, or absent when it is not known. |  |
 | `status` | string | Yes |  | `applied` or `failed`. |  |
 | `target` | string | Yes |  | The stage the deploy went to, 1 to 64 characters, no `/`. |  |
@@ -136,7 +136,7 @@ Operation id `deployments_rollback`: in Python `client.call("deployments_rollbac
 
 `POST /api/deployments/{id}/rollback` — replay a recorded deployment, `201` with the new row.
 
-Roll back to what a recorded deployment applied: the stored rendered Pipeline documents of a row of the caller's groups are replayed as the caller — each missing one is created and each existing one updated — and the replay is recorded as a new deployment row whose `previousDeploymentId` points at the source. It needs no Git: it applies exactly what ran. Only a row with status `applied` and at least one stored resource can be replayed. A document the rules refuse stops the replay: the row is still recorded, as `failed`, and the answer is 409 with the sentence (400 when a stored document no longer fits a pipeline, 502/503 when the cluster did not answer). A token issued to the Keycloak client `stardelt-deploy-<stage>` (a deploy principal) is refused with 403 unless the row's stage is `<stage>` and the caller is a member of the row's owner group; an administrator's credential has no such client and is unaffected.
+Roll back to what a recorded deployment applied: the stored rendered documents of a row of the caller's groups are replayed as the caller — each missing one is created and each existing one updated — and the replay is recorded as a new deployment row whose `previousDeploymentId` points at the source. It needs no Git: it applies exactly what ran. Only a row with status `applied` and at least one stored resource can be replayed. A `StreamApp` document is replayed with the rules of `streams_put`: a stream the caller's group owns is created or updated, and a stream of another group or one Nova did not write is refused with that route's sentence. A document the rules refuse stops the replay: the row is still recorded, as `failed`, and the answer is 409 with the sentence (400 when a stored document no longer fits its kind — a pipeline or a stream, 502/503 when the cluster did not answer). A token issued to the Keycloak client `stardelt-deploy-<stage>` (a deploy principal) is refused with 403 unless the row's stage is `<stage>` and the caller is a member of the row's owner group; an administrator's credential has no such client and is unaffected.
 
 **Parameters**
 
@@ -149,7 +149,7 @@ Roll back to what a recorded deployment applied: the stored rendered Pipeline do
 | Code | Description |
 | --- | --- |
 | `201` | The new row recording the replay |
-| `400` | A stored document no longer fits a pipeline |
+| `400` | A stored document no longer fits its kind (a pipeline or a stream) |
 | `401` | The caller has no identity |
 | `403` | A deploy principal may not roll back a row of another stage or of another owner group |
 | `404` | No such row among the ones the caller may see |

@@ -206,6 +206,15 @@
                 "maxItems": 8,
                 "type": "array"
               },
+              "files": {
+                "additionalProperties": {
+                  "maxLength": 65536,
+                  "type": "string"
+                },
+                "description": "The graph's files for a `spark-pipeline` task: relative path to text, `spark-pipeline.yml`\nand its sources. Empty on every other kind. The loader caps one file at 64 KiB and a whole\ngraph at 256 KiB; the schema caps the count and each file's length.",
+                "maxProperties": 64,
+                "type": "object"
+              },
               "fullRefresh": {
                 "description": "Datasets to rebuild from scratch on every run; only a `spark-pipeline` task.",
                 "items": {
@@ -217,7 +226,7 @@
                 "type": "array"
               },
               "kind": {
-                "description": "What a pipeline task does — the task contract behind `Pipeline`\n(master spec §5, plugs 6, 7 and 12). `sql`, `notebook` (scheduled jobs\nphases J0 and J1), `dbt` and `quality` run today; `python` and\n`spark-pipeline` are accepted so manifests can be written ahead of their\nruntimes.",
+                "description": "What a pipeline task does — the task contract behind `Pipeline`\n(master spec §5, plugs 6, 7 and 12). `sql`, `notebook` (scheduled jobs\nphases J0 and J1), `dbt`, `quality` and `spark-pipeline` run today;\n`python` alone is accepted so a manifest can be written ahead of its runtime.",
                 "enum": [
                   "sql",
                   "notebook",
@@ -317,6 +326,14 @@
               {
                 "message": "only a spark-pipeline task names a project",
                 "rule": "self.kind == 'spark-pipeline' || !has(self.project)"
+              },
+              {
+                "message": "only a spark-pipeline task carries files",
+                "rule": "!has(self.files) || self.kind == 'spark-pipeline'"
+              },
+              {
+                "message": "a spark-pipeline task's files must hold spark-pipeline.yml",
+                "rule": "self.kind != 'spark-pipeline' || !has(self.files) || ('spark-pipeline.yml' in self.files)"
               },
               {
                 "message": "only a spark-pipeline task sets refresh",

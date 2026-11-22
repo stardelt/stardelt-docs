@@ -31,6 +31,7 @@ The notification destinations of the caller's groups, newest first. `?group=<gro
 | Code | Description |
 | --- | --- |
 | `200` | The caller's groups' destinations |
+| `401` | Not signed in |
 | `403` | The caller is not a member of the requested group |
 | `503` | The state store is not configured |
 
@@ -58,6 +59,7 @@ Create a notification destination for one of the caller's groups. An `email` des
 | --- | --- |
 | `201` | The stored row |
 | `400` | The kind, the address, the name or the group is not valid |
+| `401` | Not signed in |
 | `403` | The caller is not a member of the owner group |
 | `409` | A destination with this name already exists in the group |
 | `503` | The state store is not configured |
@@ -82,6 +84,7 @@ Delete one of the caller's groups' notification destinations.
 | --- | --- |
 | `204` | Deleted |
 | `400` | The id is not a number |
+| `401` | Not signed in |
 | `404` | No such destination, or it is not the caller's |
 | `503` | The state store is not configured |
 
@@ -105,5 +108,6 @@ Send one test message to a webhook destination and record the attempt. An email 
 | --- | --- |
 | `200` | What the attempt did |
 | `400` | An email destination, or a config without a usable url |
+| `401` | Not signed in |
 | `404` | No such destination, or it is not the caller's |
 | `503` | The state store is not configured |

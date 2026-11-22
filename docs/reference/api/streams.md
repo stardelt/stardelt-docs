@@ -162,6 +162,7 @@ Delete one StreamApp that the caller's group owns. The stream's Kafka topic is n
 | Code | Description |
 | --- | --- |
 | `204` | The StreamApp is gone |
+| `401` | Not signed in |
 | `404` | No such stream, another namespace, or the caller may not act on it |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |

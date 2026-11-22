@@ -52,6 +52,7 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `description` | string (nullable) | No |  | One line saying what the pipeline does (`spec.description`); at most 200 characters. Omitted or blank removes the line, as the rest of the body describes the whole editable state. |  |
 | `notebook` | object | No |  | The notebook, its version and its parameters for a notebook pipeline; a statement pipeline refuses it. |  |
 | `notebook.connection` | string (nullable) | No |  | The `Connection` whose secret fields the task pod receives as `CONN_<NAME>_<KEY>` (the CRD's `tasks[].connection`). Omitted: the pod gets no connection variable. Nova checks the shape only; whether the connection exists, is Ready, is of this group and is in its `usableBy` is the loader's job, and its sentence is the one the task log shows. |  |
 | `notebook.name` | string | Yes |  | `<group>/<name>` is the object key; the group is the pipeline's `ownerGroup`, so a notebook of another group can never be named. |  |
@@ -98,6 +99,7 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 | `tasks[].quality.checks[].severity` | string (nullable) | No |  | `error` fails the run, `warn` only logs it; omitted is `error`. |  |
 | `tasks[].quality.checks[].sql` | string | Yes |  | The assertion: it passes when the query returns no rows. |  |
 | `tasks[].sparkPipeline` | object | No |  | A declared Spark graph instead of a statement, a notebook, a dbt run or SQL checks: exactly one of the five. |  |
+| `tasks[].sparkPipeline.files` | object (map of string) | No |  | The graph's files, relative path to text; at most 64 files of 64 KiB each, the whole graph at most 256 KiB. `spark-pipeline.yml` must be one of them. |  |
 | `tasks[].sparkPipeline.fullRefresh` | array of string (nullable) | No |  | Datasets to rebuild from scratch; 1 to 32 names. |  |
 | `tasks[].sparkPipeline.project` | string | Yes |  | The bundle directory that holds `spark-pipeline.yml`. |  |
 | `tasks[].sparkPipeline.refresh` | string (nullable) | No |  | `incremental` (the default) or `full`. |  |
