@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" width="1200" height="1000" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
 <title id="title">How a notebook reaches Spark</title>
-<desc id="desc">A notebook kernel holds a lazy spark object. On first use it asks Trino for the catalogs the signed-in person may see, takes that person's token, and creates a new Spark Connect session at sc://spark-connect.stardelt.svc.cluster.local:15002. The session configures one Iceberg REST catalog per name, each pointing at Lakekeeper with the person's token, and reads and writes files through S3FileIO. The long-running Spark Connect driver checks the token and the grants with Lakekeeper and creates executor pods per query, which drop to zero when idle and reach object storage with the platform's shared storage key. A NetworkPolicy around port 15002 admits members' notebook pods only. A named cluster takes a side path: Nova's compute API answers the cluster's endpoint.</desc>
+<desc id="desc">A notebook kernel holds a lazy spark object. On first use it asks Trino for the catalogs the signed-in person may see, takes that person's token, and creates a new Spark Connect session at sc://spark-connect.stardelt.svc.cluster.local:15002. The session configures one Iceberg REST catalog per name, each pointing at Lakekeeper with the person's token, and reads and writes files through S3FileIO. The long-running Spark Connect driver checks the token and the grants with Lakekeeper and creates executor pods per query, which drop to zero when idle and reach object storage with the short-lived credential the catalog vends for each table. A NetworkPolicy around port 15002 admits members' notebook pods only, and every call from outside the cluster passes a token-checking front that refuses a call without a valid token. A named cluster takes a side path: Nova's compute API answers the cluster's endpoint.</desc>
 <defs>
   <marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0,0 L10,5 L0,10 Z" class="head"/></marker>
   <style>
@@ -122,6 +122,10 @@
 <text x="44" y="512" class="t">NetworkPolicy spark-connect-ingress</text>
 <text x="44" y="533" class="d">inbound port 15002: members'</text>
 <text x="44" y="550" class="d">notebook pods only</text>
+<text x="44" y="588" class="t">From outside the cluster</text>
+<text x="44" y="609" class="d">the token-checking front on</text>
+<text x="44" y="626" class="d">spark.&lt;baseDomain&gt;: no valid</text>
+<text x="44" y="643" class="d">token, no session</text>
 <path d="M420,505 L554,505" class="edge-dash"/>
 
 <!-- driver -->
@@ -152,10 +156,10 @@
 <path d="M995,800 L995,850" class="edge" marker-end="url(#ah)"/>
 <rect x="440" y="850" width="720" height="100" rx="12" class="box"/>
 <text x="464" y="882" class="t">Object storage — the table files</text>
-<text x="464" y="908" class="d">read and written by Iceberg's S3FileIO with the platform's own storage key,</text>
-<text x="464" y="925" class="d">not yours: the engine cannot tell your files from anyone else's</text>
+<text x="464" y="908" class="d">read and written by Iceberg's S3FileIO with the table-scoped credential the</text>
+<text x="464" y="925" class="d">catalog vends on every load; the Connect pods hold no platform key</text>
 
 <!-- the gap -->
-<rect x="440" y="962" width="330" height="26" rx="13" class="warn"/>
-<text x="458" y="980" class="warnt">known gap · one shared storage key</text>
+<rect x="440" y="962" width="430" height="26" rx="13" class="warn"/>
+<text x="458" y="980" class="warnt">known gap · row and column masks apply in Trino only</text>
 </svg>

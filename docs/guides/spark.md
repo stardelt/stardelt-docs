@@ -175,8 +175,10 @@ A cluster you may not use, or one that is stopped, is refused rather than starte
   result to a table and read it with SQL.
 - There is no RDD API and no `sparkContext`: the plan runs on the server, so `df.rdd` fails. Use
   `DataFrame` calls, `mapInPandas` or `applyInPandas`.
-- Inside the cluster, only members' notebook pods reach Spark Connect: port 15002 is ClusterIP-only and
-  the network policy admits those pods.
+- Every call from outside the cluster is checked. Connect itself authenticates nobody, so the public
+  route `spark.<your-domain>` sits behind a token-checking front over TLS: a call without a valid token
+  is refused. Inside the cluster a notebook pod reaches the driver directly, and the network policy
+  admits members' notebook pods only.
 - Public S3 buckets can be read anonymously (`s3a://bucket/path`); private buckets and the platform's own
   storage are not readable that way.
 - The notebook's Spark client and the platform's Spark server must be on the same Spark line; the session
@@ -188,8 +190,8 @@ A cluster you may not use, or one that is stopped, is refused rather than starte
   token. Install `stardelt[spark,jupyter]` on the laptop first (the Connect client must be on the same
   Spark line as the server, which the extra pins). See
   [Notebooks in VS Code](/docs/guides/develop#vs-code-on-your-laptop).
-- A pipeline's notebook task and a public-demo visitor still cannot reach Spark Connect: the network
-  policy refuses their pods, so a scheduled notebook uses `%sql`.
+- A pipeline's notebook task still cannot reach Spark Connect: the network policy refuses its pod, so
+  a scheduled notebook uses `%sql`. (The public demo has its own sandbox server.)
 
 The full list of what the platform does and does not protect is under
 [Known limits](../operations/security#known-limits).
