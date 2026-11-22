@@ -17,6 +17,7 @@ One deploy stage: the bundle target names the object, and spec.subject is the ex
 | --- | --- | --- | --- | --- | --- |
 | `spec.audience` | string | No | `stardelt-deploy` | The audience the realm client's mapper puts in the token this stage accepts. Default `stardelt-deploy`. | min 1, max 128; pattern `^[A-Za-z0-9][A-Za-z0-9._:-]*$` |
 | `spec.environment` | string (nullable) | No |  | The GitHub `environment` the token was issued for, when the subject names one. Pinning an environment drops the `ref` part of the subject, so the two are either/or. | min 1, max 64; pattern `^[a-z0-9][a-z0-9-]*$` |
+| `spec.group` | string (nullable) | No |  | The owner group this stage deploys: Nova lets a deploy principal whose client is this stage's act on a bundle of this group only. Optional; without it the deploy principal gets the "own group" refusal, which is the behaviour before this field existed. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.subject` | string | Yes |  | The exact CI subject as the identity provider receives it: `repo:<owner>/<name>:ref:refs/heads/<branch>` or `repo:<owner>/<name>:environment:<name>` (with GitHub's immutable ids: `repo:<owner>@<id>/<name>@<id>:ref:refs/heads/<branch>`). | min 8, max 512; pattern `^repo:[^\s]+:(ref:refs/heads/[^\s]+\|environment:[a-z0-9][a-z0-9-]*)$` |
 
 ## Status

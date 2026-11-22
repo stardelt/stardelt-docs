@@ -16,6 +16,8 @@ The operations Nova tags `public` under `/api/lineage`. Generated from `referenc
 
 Operation id `lineage_graph`: in Python `client.call("lineage_graph", …)`, on the command line `stardelt api lineage_graph`.
 
+The lineage graph around one table: the tables upstream and downstream within `depth` hops, the jobs that connect them, and what a change to the table would affect, from the lineage events of the last `days` days. 403 when the caller may not read the table.
+
 **Parameters**
 
 | Name | In | Type | Required | Description |
@@ -31,11 +33,14 @@ Operation id `lineage_graph`: in Python `client.call("lineage_graph", …)`, on 
 | Code | Description |
 | --- | --- |
 | `200` | Lineage graph |
+| `401` | Not signed in |
 | `403` | Not visible |
 
 ## GET /api/lineage/columns
 
 Operation id `lineage_columns`: in Python `client.call("lineage_columns", …)`, on the command line `stardelt api lineage_columns`.
+
+Column lineage for one table: for each output column, the source columns it was written from and when it was last written. A source in a catalog the caller cannot read is answered as `{ "hidden": true }`, without names.
 
 **Parameters**
 
@@ -52,11 +57,14 @@ Operation id `lineage_columns`: in Python `client.call("lineage_columns", …)`,
 | --- | --- |
 | `200` | Where each column comes from |
 | `400` | catalog/schema/table required |
+| `401` | Not signed in |
 | `403` | Not visible |
 
 ## GET /api/lineage/read-tables
 
 Operation id `lineage_read_tables`: in Python `client.call("lineage_read_tables", …)`, on the command line `stardelt api lineage_read_tables`.
+
+The tables the caller read most in the last `days` days, at most `limit`, newest read first. 503 when Nova has no state store.
 
 **Parameters**
 
@@ -70,11 +78,14 @@ Operation id `lineage_read_tables`: in Python `client.call("lineage_read_tables"
 | Code | Description |
 | --- | --- |
 | `200` | The tables the caller read most, newest read first |
+| `401` | Not signed in |
 | `503` | No state store |
 
 ## GET /api/lineage/runs/\{run_id\}
 
 Operation id `lineage_run_detail`: in Python `client.call("lineage_run_detail", …)`, on the command line `stardelt api lineage_run_detail`.
+
+One run from the lineage record, by its run ID. 404 when there is no such run.
 
 **Parameters**
 
@@ -87,4 +98,5 @@ Operation id `lineage_run_detail`: in Python `client.call("lineage_run_detail", 
 | Code | Description |
 | --- | --- |
 | `200` | Run detail |
+| `401` | Not signed in |
 | `404` | Not found |

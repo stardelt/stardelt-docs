@@ -21,6 +21,14 @@
           "pattern": "^[a-z0-9][a-z0-9-]*$",
           "type": "string"
         },
+        "group": {
+          "description": "The owner group this stage deploys (#57): Nova lets a deploy principal whose client is this\nstage's act on a bundle of this group only. Optional; without it the deploy principal gets\nthe \"own group\" refusal, which is the behaviour before this field existed.",
+          "maxLength": 64,
+          "minLength": 1,
+          "nullable": true,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
         "subject": {
           "description": "The exact CI subject as the identity provider receives it: `repo:<owner>/<name>:ref:refs/heads/<branch>` or `repo:<owner>/<name>:environment:<name>` (with GitHub's immutable ids: `repo:<owner>@<id>/<name>@<id>:ref:refs/heads/<branch>`).",
           "maxLength": 512,

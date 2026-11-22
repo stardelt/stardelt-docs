@@ -23,6 +23,7 @@ The statements the caller holds (at most ten), in order of their ids: state, row
 | Code | Description |
 | --- | --- |
 | `200` | The caller's statements |
+| `401` | Not signed in |
 
 ## POST /api/statements
 
@@ -45,6 +46,7 @@ Submit one SQL statement as the caller and get a handle to it. The call waits up
 | `200` | The statement ended within the wait |
 | `202` | The statement is still running; poll it |
 | `400` | The statement is empty |
+| `401` | Not signed in |
 | `429` | The caller already holds ten statements; read or cancel one |
 | `502` | The query engine is not reachable |
 | `503` | Not available in demo mode |
@@ -88,6 +90,7 @@ Cancel one of the caller's statements in the engine and forget it. Idempotent: i
 | Code | Description |
 | --- | --- |
 | `204` | Cancelled, or nothing to cancel |
+| `401` | Not signed in |
 
 ## GET /api/statements/\{id\}/chunks/\{n\}
 
@@ -107,4 +110,5 @@ One chunk (1 000 rows, the last one fewer) of a statement's rows, counted from 0
 | Code | Description |
 | --- | --- |
 | `200` | The rows of the chunk |
+| `401` | Not signed in |
 | `404` | No such statement of the caller's, or no such chunk (yet) |

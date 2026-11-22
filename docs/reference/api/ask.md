@@ -76,4 +76,5 @@ The caller's own last 20 Ask questions and answers, newest first. Nobody else's 
 | Code | Description |
 | --- | --- |
 | `200` | The conversations, newest first |
+| `401` | Not signed in |
 | `503` | No state store |

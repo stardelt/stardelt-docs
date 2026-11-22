@@ -30,4 +30,5 @@ Run one SQL statement as the caller and return the whole result. Synchronous: th
 | --- | --- |
 | `200` | The columns, the rows and the engine's query id |
 | `400` | The statement is empty, was refused or failed in the engine |
+| `401` | Not signed in |
 | `502` | The query engine is not reachable |

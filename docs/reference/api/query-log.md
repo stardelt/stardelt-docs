@@ -39,6 +39,7 @@ The statements run on the engine, newest first, a page at a time. A person sees 
 | --- | --- |
 | `200` | One page of the log |
 | `400` | A parameter is not valid; the message names it |
+| `401` | Not signed in |
 | `403` | scope=all by somebody who is not an administrator |
 | `503` | The state store is not configured |
 
@@ -66,6 +67,7 @@ Compute and bytes added up per person, warehouse or day, with the query log's vi
 | --- | --- |
 | `200` | The rows of the window and their total |
 | `400` | A parameter is not valid; the message names it |
+| `401` | Not signed in |
 | `403` | scope=all by somebody who is not an administrator |
 | `503` | The state store is not configured |
 
@@ -88,6 +90,7 @@ One query with its whole statement. Somebody else's query answers 404, exactly l
 | Code | Description |
 | --- | --- |
 | `200` | The stored query |
+| `401` | Not signed in |
 | `404` | No such query, or it is not the caller's to see |
 | `503` | The state store is not configured |
 
@@ -110,6 +113,7 @@ The last 20 runs of the same statement by the same principal: each one's state, 
 | Code | Description |
 | --- | --- |
 | `200` | The runs of the same statement, newest first |
+| `401` | Not signed in |
 | `404` | No such query, or it is not the caller's to see |
 | `503` | The state store is not configured |
 
@@ -132,5 +136,6 @@ The plan and per-operator statistics of one finished query. The same rule as the
 | Code | Description |
 | --- | --- |
 | `200` | The stored profile: plan, operators, spill and split counts, inputs |
+| `401` | Not signed in |
 | `404` | No such query, it is not the caller's to see, or it has no profile |
 | `503` | The state store is not configured |

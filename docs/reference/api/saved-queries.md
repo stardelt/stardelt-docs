@@ -25,6 +25,7 @@ The caller's own saved queries, most recently changed first. Times are epoch mil
 | Code | Description |
 | --- | --- |
 | `200` | The caller's saved queries |
+| `401` | Not signed in |
 | `503` | The state store is not configured |
 
 ## POST /api/saved-queries
@@ -49,6 +50,7 @@ Save a query for the caller. The title is at most 200 characters and the SQL at 
 | --- | --- |
 | `201` | The stored row |
 | `400` | The title or the SQL is empty or too long |
+| `401` | Not signed in |
 | `503` | The state store is not configured |
 
 ## DELETE /api/saved-queries/\{id\}
@@ -70,6 +72,7 @@ Delete one of the caller's saved queries.
 | Code | Description |
 | --- | --- |
 | `204` | Deleted |
+| `401` | Not signed in |
 | `404` | No such saved query, or it is not the caller's |
 | `503` | The state store is not configured |
 
@@ -99,6 +102,7 @@ Share one of the caller's saved queries with a group. Members of the group see i
 | --- | --- |
 | `204` | Shared, already shared, or not the caller's |
 | `400` | The group name is not valid |
+| `401` | Not signed in |
 | `404` | The id is not a number |
 | `503` | The state store is not configured |
 
@@ -122,5 +126,6 @@ Stop sharing one of the caller's saved queries with a group.
 | Code | Description |
 | --- | --- |
 | `204` | The share is gone |
+| `401` | Not signed in |
 | `404` | No such share, or the query is not the caller's |
 | `503` | The state store is not configured |
