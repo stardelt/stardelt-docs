@@ -52,8 +52,10 @@ The numbers in the first subject are GitHub's immutable ids for the repository a
 is what GitHub emits, and it stays valid when the repository or the owner is renamed, where a bare
 `repo:<owner>/<name>` would stop matching.
 
-`spec.audience` is what the provider puts in the realm token and defaults to `stardelt-deploy`;
-leave it out unless your realm expects another value. Check the object:
+`spec.audience` is a different value: the audience the realm client's mapper puts in the **realm**
+token this stage accepts, defaulting to `stardelt-deploy`. Setting it never changes the identity
+provider's `clientId`, which the GitHub token's audience must name; leave it out unless your realm
+expects another value. Check the object:
 
 ```bash
 kubectl -n stardelt get deploystage prod -o jsonpath='{.spec.subject}'
@@ -65,8 +67,9 @@ federated client authentication from GitHub Actions.
 ## The workflow step
 
 The assertion is GitHub's short-lived **identity token**, not `GITHUB_TOKEN`. The job needs
-`permissions: id-token: write`, fetches the token, asks for the client id as its audience, masks it
-and keeps it in a variable for the next step:
+`permissions: id-token: write`, fetches the token, asks GitHub for the identity provider's own
+`clientId` — `stardelt-deploy` in the shipped realm, not the stage's client id — masks it and keeps
+it in a variable for the next step:
 
 ```yaml
 permissions:
@@ -77,7 +80,7 @@ steps:
     run: |
       token=$(curl -sS \
         -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-        "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=stardelt-deploy-prod" | jq -r .value)
+        "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=stardelt-deploy" | jq -r .value)
       echo "::add-mask::$token"
       echo "CI_TOKEN=$token" >> "$GITHUB_ENV"
   - name: sign in and deploy
