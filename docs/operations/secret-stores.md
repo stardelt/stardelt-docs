@@ -112,6 +112,11 @@ Run `kubectl -n analytics get externalsecret conn-crm-db` for the sync state.
 above. The **Connections** page in Nova writes to the platform's own store and never sets
 `remoteRef`, so it cannot create an external-mode connection.
 
+It does **list** them, read-only: with no platform store the page answers from the `Connection`
+resources — your groups' connections, the ones your group views, and the managed ones for an
+administrator — with their settings, field names and sync state, never a value. To change one,
+`kubectl apply` again.
+
 The platform recommends one prefix per team in the store (`platform/<ownerGroup>/…`) but does not
 enforce it: the enterprise store's own policy decides who reads which path.
 
