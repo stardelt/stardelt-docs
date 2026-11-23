@@ -55,7 +55,10 @@ today; the [roadmap](../roadmap) carries the phasing.*
 
 ### Kubernetes — the platform you bring
 
-stardelt is *not* a Kubernetes distribution. Any conformant cluster works: EKS, GKE, AKS, OpenShift, Rancher RKE2, k3s, or a sovereign-cloud K8s (STACKIT, OVHcloud, IONOS, Hetzner, Open Telekom Cloud, Scaleway). Supported versions: current N and N-1.
+stardelt is *not* a Kubernetes distribution. It installs on a conformant Kubernetes cluster;
+[Prerequisites](../getting-started/prerequisites#verified-distributions) carries the support
+matrix — which distributions have been run, which are expected to work and which are not
+verified. Supported versions: current N and N-1.
 
 ### Core profile
 
