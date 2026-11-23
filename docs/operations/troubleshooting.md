@@ -144,8 +144,11 @@ see [Sizing](../getting-started/your-cluster#sizing).
 **Symptom.** The client blocks, and the SeaweedFS master log says
 `failed to find writable volumes … Not enough data nodes found`.
 
-**Cause.** The volume server is out of volume slots. The chart sets `maxVolumes: 100`, while the
-upstream default can be as low as 7. Raise the value and restart the volume server.
+**Cause.** The volume server is out of volume slots. It keeps 7 volumes per collection and one
+collection per S3 bucket, so the slots are a bucket budget: the chart's `maxVolumes: 500` fits about
+70 buckets, and the upstream default can be as low as 7. `make verify-storage-capacity` reads the
+live slot count and names the collections that hold it; raise `maxVolumes` and restart the volume
+server to widen the budget.
 
 ## A volume comes up without a claim
 
