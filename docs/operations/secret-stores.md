@@ -109,14 +109,21 @@ $ kubectl -n analytics get secret conn-crm-db -o jsonpath='{.data.keys}'
 
 Run `kubectl -n analytics get externalsecret conn-crm-db` for the sync state.
 
-**Registering the connection.** In external mode a `Connection` is created with `kubectl apply`, as
-above. The **Connections** page in Nova writes to the platform's own store and never sets
-`remoteRef`, so it cannot create an external-mode connection.
+**Registering the connection.** The **Connections** page creates it. In an install with no
+platform store the **New connection** form asks for the owning group, the connection type
+and its settings, the path in the enterprise store (`remoteRef`, for example
+`apps/shop/db`) and the field names the store entry carries (`user`, `password`, …), and
+creates a group `Connection`. No value passes through Nova: the operator renders the
+`ExternalSecret` against the group's store (`enterprise-<group>` when `spec.secrets.groups`
+lists the group) and the page shows the sync state.
 
-It does **list** them, read-only: with no platform store the page answers from the `Connection`
-resources — your groups' connections, the ones your group views, and the managed ones for an
-administrator — with their settings, field names and sync state, never a value. To change one,
-`kubectl apply` again.
+Rotation happens in the enterprise store: the page lists the row with its field names and
+sync state and offers no rotation in this mode. `kubectl apply` stays the way to keep the
+connection in Git, with the body above.
+
+The page lists the connections of your groups, the ones your group views, and the managed
+ones for an administrator, all built from the `Connection` resources and never carrying a
+value.
 
 The platform recommends one prefix per team in the store (`platform/<ownerGroup>/…`) but does not
 enforce it: the enterprise store's own policy decides who reads which path.

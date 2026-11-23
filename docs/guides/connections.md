@@ -197,14 +197,16 @@ Secret `conn-<name>`: `crm-db` gives `CONN_CRM_DB_USER` and `CONN_CRM_DB_PASSWOR
 
 A personal connection is refused: a pipeline is a service principal.
 
-A scheduled notebook's `stardelt.connection("<name>")` reads the values from the pod, so it works in
-every secret mode, including `external`; an interactive notebook uses the platform store.
+A scheduled notebook's `stardelt.connection("<name>")` reads the values from the pod, so it
+works in every secret mode, including `external`. An interactive notebook reads them from
+the platform's own store, so in `external` mode it cannot read a connection: run the
+notebook as a scheduled task, as above.
 
 ## When it does not work
 
 | Message | Where | What it means | What to do |
 |---|---|---|---|
-| `the secret store is not configured` | Nova, Connections page and API (503) | This installation has no secret store. | Ask an administrator to set it up. |
+| `the secret store is not configured` | Nova, Connections page and API (503) | This installation has neither a platform store nor `external` mode — a local or developer run without a store. | Ask an administrator to set it up. |
 | `the secret store is unavailable: …` | Nova (502) | Nova could not reach the store. | Retry. If it persists, ask an administrator to check the store. |
 | `the secret store refused the request: …` | Nova (502) | The store refused the operation, usually a policy or permission. | Check that you are in the owning group and that the connection still exists; ask an administrator if it persists. |
 | ``you are not a member of the group `…` `` | Nova (403) | You tried to create, rotate or delete a connection of a group you are not in. | Use a connection of your own group, or ask a member of that group. |
