@@ -87,8 +87,12 @@ create. The leader holds the `stardelt-operator-leader` Lease.
   (CVE-2026-77298, fixed in 4.40) and do not expose the Filer UI, which has no user authentication.
 - **Apache Kafka** is opt-in and off by default; a `StreamApp` needs `make step-kafka` and
   `make step-spark-operator`.
-- **External Secrets** in `external` mode publishes exactly one cluster-scoped store, `enterprise`;
-  the path prefixes are the enterprise store's policy, not a platform boundary.
+- **External Secrets** in `external` mode publishes exactly one cluster-scoped store,
+  `enterprise`, **unless** `spec.secrets.groups` is set: then every listed owner group gets its
+  own namespaced `SecretStore enterprise-<group>` and there is no cluster-scoped store, so one
+  group's identity cannot read another's path (stardelt/stardelt#1410). The path prefixes are
+  the enterprise store's policy, not a platform boundary. See
+  [Secret stores](../operations/secret-stores).
 - **CloudNativePG's** backups run through the Barman Cloud plugin (GPL-3.0, a documented exception in
   [Licenses](./licenses#documented-exceptions)).
 - **Cert-manager** is a cluster prerequisite for sign-in, not installed by stardelt.
