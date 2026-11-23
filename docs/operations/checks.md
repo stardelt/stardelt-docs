@@ -76,6 +76,7 @@ Run these before a tag, and take the 0.0.4 exit list as the answer the tag start
 | `make verify-superset-nova-identity` | The Superset user Nova acts as: Secret `superset-nova` exists, the user signs in, its role carries the dataset grants, and one real dashboard export answers 200 with a ZIP; read-only. | The row names the missing permission or the export's status; an install with no dashboard yet is `UNVERIFIED`, not a failure. |
 | `make verify-mcp` | The hosted MCP endpoint answers its resource metadata and its 401 challenge, in three unsigned requests that name the realm and the `stardelt:read` scope. | The install serves no agent endpoint, or its audience or scope document is wrong; `404` is the common one — the endpoint is off. |
 | `make verify-mcp-tools` | A signed-in agent's MCP token (`stardelt-mcp`, audience `<host>/mcp`) lists the shipped tools, `platform_status` answers, and `pipeline_start` is refused `403 insufficient_scope`. | Sign-in over MCP is muted or broken: the row names which — the token's audience, the tool list, the tool answer, or a write the token should not have. |
+| `make verify-pipeline-validate` | A document an agent writes: `POST /api/pipelines/validate` accepts it as a `create`, refuses a cron faster than one run per five minutes and two tasks that depend on each other, each with its own sentence, and writes nothing (the name then answers `404`). | The route answers `404` (an older Nova), a rule stopped refusing, or a validate created the pipeline it was asked about. |
 
 ## Nightly
 
