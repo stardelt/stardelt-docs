@@ -65,7 +65,7 @@ secret, who reads it and how to rotate it is under [Rotating secrets](#rotating-
 
 A cluster that enforces the `restricted` [Pod Security Standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/)
 admits a pod only when its spec declares the fields the standard asks for. stardelt's workloads
-declare them, with one measured exception named below, so a namespace labelled
+declare them, so a namespace labelled
 `pod-security.kubernetes.io/enforce=restricted` admits the platform's pods. `make verify-pod-security`
 in the platform repository re-admits every running pod and tells you whether your own cluster does.
 
@@ -82,7 +82,7 @@ and — on each container — `allowPrivilegeEscalation: false` with `capabiliti
 user by number: Spark and the StreamApp driver 185, Trino and Superset 1000, Airflow 50000, Nova,
 the operator and OpenFGA 65532, OpenBao 100, Reloader 65534.
 
-Measured on 2026-11-18 with `NS=stardelt make verify-pod-security` against a full lab install:
+Measured on 2026-11-23 with `NS=stardelt make verify-pod-security` against a full lab install:
 
 | Component | Pods | Declared by | `restricted` |
 |---|---|---|---|
@@ -102,7 +102,7 @@ Measured on 2026-11-18 with `NS=stardelt make verify-pod-security` against a ful
 | Airflow api-server, scheduler, dag-processor, triggerer, statsd | one pod each (5) | `make platform` | yes |
 | Airflow worker | `airflow-worker-…` (0) | `make platform` | — |
 | Keycloak | `keycloak-…` (1) | both | yes |
-| Lakekeeper catalog | `lakekeeper-…` (1) | `make platform` | exception (see below) |
+| Lakekeeper catalog | `lakekeeper-…` (1) | `make platform` | yes (the sidecar is patched) |
 | Lakekeeper init containers, migration Job | `lakekeeper-db-migration-…` (0) | `make platform` | — |
 | OpenFGA | `openfga-…` (1) | `make platform` | yes |
 | OpenBao | `openbao-0` (1) | `make platform` | yes |
@@ -126,17 +126,17 @@ that declares the fields itself, and `the operator` a pod template built by the 
 The counts are the pods running at that moment: a notebook, a Spark query and a Job come and go.
 A `—` in `restricted` marks a pod the sweep did not see; where the template is in the repository it
 was admitted with the same server-side dry run instead (the Spark Connect executor template above,
-and all 24 CronJob templates). A single-user notebook pod declares no security context of stardelt's
+and all 25 CronJob templates). A single-user notebook pod declares no security context of stardelt's
 own, so check that row after a notebook has run.
 
-### The exceptions
+### The chart exception
 
-One pod is refused: the `opa` sidecar of the Lakekeeper catalog pod. The row is what the API server
-answers when the live pod's spec is re-admitted into a `restricted` namespace.
-
-| Group | Pods | Why it cannot pass | Where the setting lives |
-|---|---|---|---|
-| Lakekeeper's policy sidecar | the `opa` container of `lakekeeper-…` | `allowPrivilegeEscalation != false` and `unrestricted capabilities` on the `opa` sidecar; the chart hardcodes its `securityContext` and exposes no value key for it | the `opa` sidecar only. The catalog container and its init containers, in the same pod, declare the fields and pass |
+The Lakekeeper chart hardcodes the `opa` sidecar's `securityContext` and exposes no value key for
+`allowPrivilegeEscalation` or `capabilities`, so the sidecar cannot declare the two fields from
+values alone. Every install path runs `platform/scripts/lakekeeper-opa-security.sh` after the Helm
+release — `step-lakekeeper`, `install-core`, and since `stardelt/stardelt#1365` also `catalogs` and
+`catalog-enforce` — which sets the fields on the deployment and waits for the rollout. The
+operator's `authz.backend: allowall` path has no `opa` container, so there is nothing to patch there.
 
 The five SeaweedFS pods are admitted. `helm-values/seaweedfs.yaml` sets each component's
 `podSecurityContext` and `containerSecurityContext` (uid/gid 65534, `RuntimeDefault` seccomp, all
@@ -144,9 +144,6 @@ capabilities dropped) and its log volume to `emptyDir`, so no `hostPath` remains
 2026-11-18 with the same server-side dry run (platform#1758). The operator path renders the same
 blocks from `crates/stardelt-operator/values/seaweedfs.yaml` for `master`, `volume`, `filer` and
 `s3`; its `admin` stays at the chart default (`enabled: false`).
-
-A cluster that enforces `restricted` must admit this pod under `baseline`, or run it with values that
-declare the fields. The sweep names it so a cluster operator sees it before the install does.
 
 The StreamApp driver is admitted on the pinned operator build; a cluster still on an older operator
 shows a refusal until the driver pod is replaced.
@@ -158,27 +155,29 @@ From the platform repository, with the namespace the platform runs in:
 ```console
 $ NS=<your-namespace> make verify-pod-security
 …
-PASS (46 of 47 pods admitted by restricted, 1 known exception)
+PASS (75 admitted by restricted: 50 of 50 pod(s) and 25 of 25 CronJob template(s), 0 known exceptions)
 ```
 
-The count follows the pods your install runs; the one exception is the pod named above.
+The count follows the pods your install runs.
 
 The target runs `scripts/verify-pod-security.sh`. For every running pod it takes the spec as the
 API server sees it, strips only what a scratch namespace cannot carry (its name, its node, its
 priority class), and creates it with `--dry-run=server` in a namespace labelled
 `pod-security.kubernetes.io/enforce=restricted`, which is deleted afterwards. Nothing in the
-platform's namespace is changed. A refusal that no `--allow` pattern matches fails the run; a
-`--allow` pattern that matches no refusal is reported so it can be dropped.
+platform's namespace is changed. It re-admits the namespace's CronJob pod templates the same way,
+because a pod that runs for seconds is invisible to a scan of running pods. A refusal that no
+`--allow` pattern matches fails the run; a `--allow` pattern that matches no refusal is reported so
+it can be dropped.
 
-`--allow <regex>` names a known exception. Today the target passes one pattern, `^lakekeeper-`, with
-its reason beside it in the `Makefile`. The StreamApp driver was the second; it declares the
-`restricted` fields on its own pinned operator build and is admitted, so its pattern was dropped
-(platform#1211).
+`--allow <regex>` names a known exception. Today the target passes no `--allow` pattern. The
+StreamApp driver's was dropped when the pinned operator declared the fields
+(`stardelt/stardelt#1211`), and the Lakekeeper sidecar's with the patch above
+(`stardelt/stardelt#1361`).
 
 ### If a pod is refused
 
-- Read the reason in the output: it names the container and the field (`container "opa" must set
-  securityContext.allowPrivilegeEscalation=false`), so there is nothing to guess.
+- Read the reason in the output: it names the container and the field (`container "sidecar" must set
+  securityContext.capabilities.drop=["ALL"]`), so there is nothing to guess.
 - The sweep admits the spec the API server holds. A pod that has just been replaced still shows the
   old spec until the new one is up; compare the pod's `metadata.creationTimestamp` with the change
   before you look for a cause.
