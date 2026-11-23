@@ -69,10 +69,13 @@ declare them, so a namespace labelled
 `pod-security.kubernetes.io/enforce=restricted` admits the platform's pods. `make verify-pod-security`
 in the platform repository re-admits every running pod and tells you whether your own cluster does.
 
-The install's own floor is `baseline`, not `restricted`: `manifests/namespace.yaml` labels the
-namespace `pod-security.kubernetes.io/enforce=baseline` with `warn` and `audit` at `restricted`, and
-`make install` applies it first through `step-namespace`. A fresh install therefore admits its own
-pods; the sweep below says what a `restricted` floor would still refuse.
+The install's own namespace enforces `restricted`, not `baseline`:
+`manifests/namespace.yaml` labels it `pod-security.kubernetes.io/enforce=restricted` (with
+`warn` and `audit` also at `restricted`), `make install` applies it first through
+`step-namespace`, and the operator labels a namespace it creates the same way
+(`platform_namespace` in `operator/crates/stardelt-operator/src/prerequisites.rs`). A fresh
+install therefore admits its own pods at the strictest level the standard has, and
+`make verify-pod-security` re-admits every running pod to prove it.
 
 ### What stardelt runs as
 
@@ -83,6 +86,8 @@ user by number: Spark and the StreamApp driver 185, Trino and Superset 1000, Air
 the operator and OpenFGA 65532, OpenBao 100, Reloader 65534.
 
 Measured on 2026-11-23 with `NS=stardelt make verify-pod-security` against a full lab install:
+`PASS (74 admitted by restricted: 49 of 49 pod(s) and 25 of 25 CronJob template(s), 0 known
+exceptions)`.
 
 | Component | Pods | Declared by | `restricted` |
 |---|---|---|---|
