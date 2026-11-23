@@ -22,7 +22,7 @@ not supported.
 
 | Requirement | Notes |
 |---|---|
-| **Kubernetes** | Any conformant distribution. Verified on k3s 1.37; other distributions and versions are expected to work but are not tested yet |
+| **Kubernetes** | Any conformant distribution; the matrix below says what has been run. The install owns a namespace and labels it `pod-security.kubernetes.io/enforce=restricted`, so the cluster must allow that label (see [Security](../operations/security#what-the-pods-may-do)) |
 | **A default StorageClass** | Volumes for the object store and the databases bind to it. Check with `kubectl get storageclass` |
 | **Cluster administrator rights for the install** | The install creates namespaces, CRDs and cluster roles |
 | **Outbound network access at install time** | Charts and images come from upstream registries. To install without internet access, mirror them first: see [Sovereignty](../architecture/sovereignty) |
@@ -31,6 +31,17 @@ not supported.
 
 `kubectl config current-context` decides which cluster you install into. To refuse any other, set
 `EXPECT_CONTEXT=<context>` when you run `make`.
+
+## Verified distributions
+
+"Verified" means a full install ran there and its own Pod Security check passed; every row names
+the run. Nothing else is called verified.
+
+| Distribution | Version | Status | Evidence |
+|---|---|---|---|
+| k3s, single node | v1.37.1+k3s1 on Ubuntu 26.04.1, containerd 2.3.4 | **verified** | the public dev lab, 2026-11-23: `make install`, then `NS=stardelt make -C platform verify-pod-security` printed `PASS` — every pod and every CronJob template admitted by `restricted`, 0 known exceptions |
+| another conformant Kubernetes (EKS, AKS, GKE, RKE2, kubeadm) | — | **expected to work, not tested** | — |
+| OpenShift | — | **not verified** | the platform's namespace labels and Pod Security floor are in place, but an arbitrary-UID (`restricted-v2`) install has not been run |
 
 ## How big a node
 
