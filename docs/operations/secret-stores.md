@@ -44,7 +44,8 @@ or `//`.
 
 ### The worked example
 
-The platform expects one store, a `ClusterSecretStore` named `enterprise`, with a HashiCorp Vault
+The platform expects one store, a `ClusterSecretStore` named `enterprise` (unless
+`spec.secrets.groups` gives each owner group its own store, below), with a HashiCorp Vault
 KV-v2 provider and **AppRole** authentication:
 
 ```yaml
@@ -256,12 +257,66 @@ The store's role and policy decide which paths the sync may read; the platform n
 
 ### One store, and what that means for namespaces
 
-`spec.secrets.mode: external` publishes exactly **one** cluster-scoped store, `enterprise`, and
-every `ExternalSecret` the operator writes references it
-(`crates/stardelt-operator/src/connection.rs`, `spec.secretStoreRef.name`). There is no
-per-namespace store on this path: the platform cannot give each team its own credential.
+With `spec.secrets.groups` empty, `spec.secrets.mode: external` publishes exactly **one**
+cluster-scoped store, `enterprise`, and every `ExternalSecret` the operator writes references it
+(`spec.secretStoreRef.name`). There is no per-namespace store on this path: the platform cannot
+give each team its own credential.
 
 Separation between groups is therefore the enterprise store's job: one policy path per group, or
 one store and credential per `PlatformInstance` (one install per stage or tenant). The recommended
 prefix `platform/<ownerGroup>/…` is a convention, not a boundary — in external mode the platform
 does not enforce the three path prefixes, the store's own policy does.
+
+#### One store per owner group
+
+Set `spec.secrets.groups` and the same mode publishes **no** cluster-scoped store. For each group
+the operator publishes, in the instance's namespace:
+
+- a namespaced `SecretStore` `enterprise-<group>`, from the same `spec.secrets.external.provider`
+  block;
+- a `ServiceAccount` `eso-<group>`, which External Secrets signs in as.
+
+Two rewrites make one provider block enough for several groups: every `${group}` in a string of
+the block becomes the group name, and every `serviceAccountRef.name` becomes `eso-<group>`. So a
+Kubernetes-auth role can be named per group (`role: "eso-${group}"`), and the block names no single
+ServiceAccount. A group `Connection` references its own group's `SecretStore` and still names its
+path in `remoteRef`, exactly as in the single-store case:
+
+```yaml
+# PlatformInstance.spec.secrets
+secrets:
+  mode: external
+  groups: [shop, finance]
+  external:
+    provider:
+      vault:
+        server: https://vault.example.com
+        path: secret
+        version: v2
+        auth:
+          kubernetes:
+            mountPath: kubernetes
+            role: eso-${group}
+            serviceAccountRef:
+              name: eso-shop   # rewritten to eso-<group> on publish
+              namespace: stardelt
+```
+
+**The honest limit.** The platform creates the store and the ServiceAccount; binding each
+`eso-<group>` to that group's cloud identity — an IAM role, a workload identity, a Vault role — is
+the customer's. A provider block that authenticates without a `serviceAccountRef` is refused while
+`spec.secrets.groups` is set: the PlatformInstance reports the component `secret-group-stores` as
+not ready, with `secrets.external.provider needs a serviceAccountRef (a ServiceAccount-authenticated
+provider) to give each owner group its own identity`. Without one, every group would sign in as the
+same credential and the per-group stores would be a formality.
+
+Two `Connection` refusals follow from the list:
+
+| Reason | When | Message |
+|---|---|---|
+| `GroupStoreMissing` | a group-scoped `Connection` whose `ownerGroup` is not in `spec.secrets.groups` | `secrets.mode external: the owner group <group> has no store; add it to spec.secrets.groups` |
+| `PerGroupStoreOnly` | a managed `Connection` while the list is set | `secrets.mode external with spec.secrets.groups gives each owner group its own store; a managed connection needs the single enterprise store, so remove spec.secrets.groups` |
+
+The stores and the `ServiceAccount`s sit in the instance's namespace, and the `stardelt-secrets`
+ConfigMap that tells a `Connection` its mode and group list is published only there, so a group
+`Connection` belongs in that namespace too.
