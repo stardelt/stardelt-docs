@@ -75,12 +75,16 @@ the streaming/ML components are off — they are heavy, and most clusters want t
 
 ## Settings an administrator owns
 
-Everything lives under `chart/values.yaml`; the table lists what you are expected to change.
+Everything lives under `chart/values.yaml`; the table lists what you are expected to change. With
+`ingress.mode: gateway` the chart needs the Gateway API v1 CRDs and a `Gateway` in the cluster;
+`ingress.className`, `ingress.annotations` and `ingress.tls` do not apply.
 
 | Setting | Default | Effect |
 |---|---|---|
 | `platform.baseDomain` | `""` | hostnames for the ingresses **and** the base for Nova's deep links |
 | `ingress.enabled` | `false` | render Ingress objects for the components that are enabled |
+| `ingress.mode` | `ingress` | `ingress` renders Ingress objects; `gateway` renders Gateway API `HTTPRoute` objects instead, for a cluster whose Gateway owns TLS and source filtering |
+| `ingress.gateway.name` | `""` | the Gateway the HTTPRoutes attach to; required when `mode` is `gateway`, ignored otherwise (`ingress.gateway.namespace` defaults to the release namespace) |
 | `ingress.className` | `""` | `ingressClassName`; empty = the cluster's default class |
 | `ingress.annotations` | `{}` | extra annotations for every Ingress (auth, proxy body size, …) |
 | `ingress.tls.enabled` | `false` | adds per-Ingress TLS and the cert-manager issuer annotation |

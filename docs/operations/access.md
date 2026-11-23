@@ -2,13 +2,14 @@
 title: "Access to catalogs and the network"
 sidebar_label: "Catalogs and network access"
 slug: /operations/access
-description: "Which groups may use which catalogs, and which addresses reach the platform, as grants and one Ingress annotation."
+description: "Which groups may use which catalogs, and which addresses reach the platform, as grants, one Ingress annotation or the Gateway's listener."
 ---
 
 # Access to catalogs and the network
 
 Two questions decide who gets in: which group may use which catalog, and which address may reach the
-platform. The **Catalogs** page answers the first, one Ingress annotation the second.
+platform. The **Catalogs** page answers the first; an Ingress annotation, or your Gateway's listener in
+gateway mode, answers the second.
 
 ## Who can do what
 
@@ -198,3 +199,37 @@ upgrade.
 
 Empty the list, or remove the field, and the annotation goes away on the next `helm upgrade` or reconcile:
 the endpoints are open to every address again.
+
+### Publishing through a Gateway API HTTPRoute instead of Ingress
+
+`ingress.mode: gateway` (chart) or `spec.ingress.mode: gateway` (`PlatformInstance`) publishes one
+`HTTPRoute` per component instead of Ingresses and attaches each to the `Gateway` named in
+`ingress.gateway.name` (and `ingress.gateway.namespace`, which defaults to the release
+namespace). The cluster needs the Gateway API v1 CRDs and that Gateway to exist; until every
+route reports `Accepted`, the operator keeps the Ingresses from the previous mode and says so in
+the instance's `ingress` status (`keeping the old Ingress … until the Gateway accepts every
+route`).
+
+```yaml
+ingress:
+  enabled: true
+  mode: gateway
+  gateway:
+    name: eg                 # your Gateway, in the release namespace unless gateway.namespace is set
+```
+
+**The allow-list does not apply.** `ingress.className`, `ingress.annotations`,
+`ingress.allowedCidrs` and `ingress.tls` are ignored: TLS, the hostname and source filtering
+belong to the Gateway's listeners. Keep the list but configure the equivalent on the Gateway (or
+a `NetworkPolicy` on its pods); the operator sets `AllowListNotEnforced=True` with reason
+`GatewayOwnsSourceFiltering` on the `PlatformInstance`, and the chart's `NOTES.txt` prints a
+warning at install time.
+
+**Body size.** In ingress mode nginx refuses a request body above 1 MiB unless a path sets
+`nginx.ingress.kubernetes.io/proxy-body-size` — Nova's notebook publish (up to 5 MiB) and a run's
+notebook (up to 25 MiB) need it. In gateway mode set the same limit on the Gateway; a smaller one
+fails the upload with the Gateway's own error, before Nova sees it.
+
+**Spark Connect is not published.** An `HTTPRoute` cannot carry the gRPC backend protocol
+`spark-connect` needs, so in gateway mode the operator renders no public name for it
+(`GRPCRoute` is a later slice). Use `kubectl port-forward` to reach it until then.
