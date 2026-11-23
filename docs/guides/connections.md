@@ -43,8 +43,7 @@ Rotating changes the password in one place; deleting removes the value.
 | **Who may rotate or delete it** | You | Members rotate and delete; an administrator outside the group may delete but not create or rotate | Administrators |
 | **Where it can be used today** | A Python notebook only | A Python notebook, and a scheduled notebook whose pipeline runs as that group | Platform-run work, as above |
 
-A group connection belongs to one of your groups; with none, the dialog offers none. An administrator
-outside it cannot create or rotate the connection:
+A group connection belongs to one of your groups; with none, the dialog offers none:
 
 ```text
 an administrator may delete a connection of the group `analytics` but not create or rotate one
@@ -193,12 +192,13 @@ spec:
         objectVersion: v7
 ```
 
-The pod gets one variable per secret field, `CONN_<NAME>_<KEY>` (upper case, `-` as `_`): `crm-db`
-with `user` and `password` gives `CONN_CRM_DB_USER` and `CONN_CRM_DB_PASSWORD` from the Secret
-`conn-<name>`.
+The pod gets one variable per secret field, `CONN_<NAME>_<KEY>` (upper case, `-` as `_`), from the
+Secret `conn-<name>`: `crm-db` gives `CONN_CRM_DB_USER` and `CONN_CRM_DB_PASSWORD`.
 
-A personal connection is refused (a pipeline is a service principal); a group connection must be its
-`ownerGroup`, a managed one must list it under **Used by** (`usableBy`).
+A personal connection is refused: a pipeline is a service principal.
+
+A scheduled notebook's `stardelt.connection("<name>")` reads the values from the pod, so it works in
+every secret mode, including `external`; an interactive notebook uses the platform store.
 
 ## When it does not work
 
