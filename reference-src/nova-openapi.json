@@ -359,6 +359,90 @@
         }
       }
     },
+    "/api/admin/dashboards/{id}/export": {
+      "get": {
+        "tags": [
+          "internal"
+        ],
+        "summary": "`GET /api/admin/dashboards/{id}/export`: the ZIP Superset exports for one dashboard,\nexactly as Superset sends it (including its `databases/` folder). Administrator-only.\nNova acts as its own Superset service user (`stardelt-nova`).",
+        "description": "The ZIP archive Superset exports for one dashboard, exactly as Superset sends it (including its `databases/` folder). Administrator-only. Nova acts as its own Superset service user (`stardelt-nova`).",
+        "operationId": "export_dashboard",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Superset's numeric dashboard id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ZIP archive Superset exports for one dashboard",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a platform administrator",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Superset has no such dashboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Superset answered an error, or could not be reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "This instance has no Superset service user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/mcp-audit": {
       "get": {
         "tags": [
@@ -2601,7 +2685,7 @@
           "public"
         ],
         "summary": "`GET /api/compute`: the Spark clusters this caller may use.",
-        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs (`endpoint` is absent when the caller reaches the cluster only through `spec.viewers`: such a server acts with its owner group's rights, so Nova issues a viewer no channel — #493), `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse`, `canAct`, whether the caller may start, stop or edit the cluster, and `shared`. Next to them the Spark servers the platform's own manifests install appear with `kind: platform` — the shared server and the public demo's sandbox — carrying `mode` (`kubernetes` or `local`), the container `limits`, who shares it (`audience`), when it is restarted (`resetsAt`) and `yours`, whether it is the Spark the caller's own notebook uses. A visitor of the public demo sees the sandbox only: their `spark` is not the shared server. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
+        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs (`endpoint` is absent when the caller reaches the cluster only through `spec.viewers`: such a server acts with its owner group's rights, so Nova issues a viewer no channel — #493), `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse`, `canAct`, whether the caller may start, stop or edit the cluster, and `shared`. Each `cluster` also carries `driverServiceAccount` and `workloadIdentity`, the ServiceAccount its driver runs as and the catalog principal its projected token becomes (`kubernetes~<uid>`); both are absent on a `platform` server. Next to them the Spark servers the platform's own manifests install appear with `kind: platform` — the shared server and the public demo's sandbox — carrying `mode` (`kubernetes` or `local`), the container `limits`, who shares it (`audience`), when it is restarted (`resetsAt`) and `yours`, whether it is the Spark the caller's own notebook uses. A visitor of the public demo sees the sandbox only: their `spark` is not the shared server. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
         "operationId": "compute_list",
         "responses": {
           "200": {
@@ -3798,6 +3882,158 @@
         }
       }
     },
+    "/api/dashboards/import": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "description": "Import one Superset dashboard archive for a bundle's target: every dataset is remapped onto the target's own `Trino <catalog>` database, the target's `databases/` file is added, every dashboard is stamped `certified_by: stardelt bundle <bundle>` / `certification_details: <target> @ <commit>`, and Superset imports the result. The caller must be a member of the bundle's owner group; a deploy principal may only import to its own stage. The answer is Superset's own import result plus the database stems that were mapped.",
+        "operationId": "dashboards_import",
+        "parameters": [
+          {
+            "name": "bundle",
+            "in": "query",
+            "description": "The bundle whose dashboards these are",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ownerGroup",
+            "in": "query",
+            "description": "The bundle's owner group",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "target",
+            "in": "query",
+            "description": "The stage the import is for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "commit",
+            "in": "query",
+            "description": "The commit the bundle was read at",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "overwrite",
+            "in": "query",
+            "description": "Replace a dashboard of the same name",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The dashboard archive (Superset's export, `databases/` optional)",
+          "content": {
+            "application/zip": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Superset's import result and the mapped database stems",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "The body is not a dashboard archive, or a name is empty or too long",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the bundle's owner group, or a deploy principal names another stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The archive is larger than 16 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The target has no database for one of the archive's catalogs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Superset answered an error, or could not be reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "This instance has no Superset service user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/deployments": {
       "get": {
         "tags": [
@@ -4060,7 +4296,7 @@
           "public"
         ],
         "summary": "`POST /api/deployments/plan` — what the set would do, `200` with the plan, nothing written.",
-        "description": "Say what applying one bundle's rendered Pipeline documents to one stage would do, writing nothing. Every document goes through the same create rules `pipelines_validate` and the write routes use, so the plan and the apply cannot disagree: `changes` names a `create`, an `update` (with the sentences it would change) or an `unchanged` document, `errors` carries the rule that refuses one, and `warnings` names a pipeline this bundle and stage own that the set does not name (a warning unless `prune` is true, when it is a `delete` change). `files` says which of the bundle's files are new against the newest applied deployment of this bundle and stage. `planId` is the identity of the rendered set: the SHA-256 of the bundle, the stage, the documents in the order given and the files sorted by path. A later `POST /api/deployments` may carry it as `planId`, and answers 409 when the row's set is not the planned one. A `prune: true` request names each owned pipeline the set omits as a `delete` change. The stage modes are not covered yet; a StreamApp document is checked with the rules its write runs, and every stream change reads as a create because a stream write is a PUT. A token issued to the Keycloak client `stardelt-deploy-<stage>` (a deploy principal, #57) answers 403 unless the target is `<stage>` and the caller is a member of the owner group; an administrator's credential has no such client and is unaffected.",
+        "description": "Say what applying one bundle's rendered Pipeline documents to one stage would do, writing nothing. Every document goes through the same create rules `pipelines_validate` and the write routes use, so the plan and the apply cannot disagree: `changes` names a `create`, an `update` (with the sentences it would change) or an `unchanged` document, `errors` carries the rule that refuses one, and `warnings` names a pipeline this bundle and stage own that the set does not name (a warning unless `prune` is true, when it is a `delete` change). `files` says which of the bundle's files are new against the newest applied deployment of this bundle and stage. `planId` is the identity of the rendered set: the SHA-256 of the bundle, the stage, the documents in the order given and the files sorted by path. A later `POST /api/deployments` may carry it as `planId`, and answers 409 when the row's set is not the planned one. A `prune: true` request names each owned pipeline the set omits as a `delete` change. The stage modes are not covered yet; a StreamApp document is checked with the rules its write runs, and reads as an update when a StreamApp of that name exists, a create otherwise (a stream write is a PUT, so a stream change carries no diff yet). A token issued to the Keycloak client `stardelt-deploy-<stage>` (a deploy principal, #57) answers 403 unless the target is `<stage>` and the caller is a member of the owner group; an administrator's credential has no such client and is unaffected.",
         "operationId": "deployments_plan",
         "requestBody": {
           "content": {
@@ -9098,7 +9334,7 @@
         "tags": [
           "public"
         ],
-        "description": "The service principals the caller may see: every `ServicePrincipal` of their groups, and all of them for an administrator. `purpose` is the resource's `spec.purpose` (default `pipeline`); `audiences` are the resource's audiences; `ready` is `status.ready`; `message` is `null` when ready, otherwise the `Ready` condition's message, or `no status yet`. Credentials are never part of an answer. Answers `Cache-Control: no-store`.",
+        "description": "The service principals the caller may see: every `ServicePrincipal` of their groups, and all of them for an administrator. `purpose` is the resource's `spec.purpose` (default `pipeline`); `audiences` are the resource's audiences; `workloadIdentity` is `status.workloadIdentity` — the catalog principal `kubernetes~<ServiceAccount uid>` (#492) — and `clientId` is `status.clientId`; both are absent until the operator has written them. `ready` is `status.ready`; `message` is `null` when ready, otherwise the `Ready` condition's message, or `no status yet`. Credentials are never part of an answer. Answers `Cache-Control: no-store`.",
         "operationId": "service_principals_list",
         "responses": {
           "200": {
@@ -12028,6 +12264,13 @@
               }
             ]
           },
+          "driverServiceAccount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`metadata.name` of the ServiceAccount the driver runs as: `spark-cluster-driver` for a\nperson-owned cluster, `spark-cluster-driver-<group>` for a group's (#1100, #1102)."
+          },
           "endpoint": {
             "type": [
               "string",
@@ -12148,6 +12391,13 @@
               "type": "string"
             },
             "description": "The groups that may see the cluster without being its owner (`spec.viewers`)."
+          },
+          "workloadIdentity": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The catalog principal the driver's projected token becomes, `kubernetes~<uid>` (#1102,\n#493). It is the identity `access-sync` adds to the owner group's catalog role."
           },
           "yours": {
             "type": "boolean",
@@ -12559,6 +12809,37 @@
               "type": "string"
             },
             "description": "Groups that may read the pipeline without being members (`spec.viewers`). At most 16,\neach a group name; omitted writes none. A bundle's pipeline file carries it (#79)."
+          }
+        }
+      },
+      "DashboardImportQuery": {
+        "type": "object",
+        "description": "`POST /api/dashboards/import`: one dashboard archive for the target, for dashboard bundles\n(#115 a/3b2). The query names the bundle, its owner group and the target; the body is the\nZIP the CLI exported (or zipped from `dashboards/<slug>/`).\n\nThe caller must be a member of the bundle's owner group, and a deploy principal (#57) may\nonly import to the stage its client names, the same rule `POST /api/deployments` uses.",
+        "required": [
+          "bundle",
+          "ownerGroup",
+          "target"
+        ],
+        "properties": {
+          "bundle": {
+            "type": "string",
+            "description": "The bundle that owns the dashboards, 1 to 64 characters."
+          },
+          "commit": {
+            "type": "string",
+            "description": "The commit the bundle was read at, for the provenance stamp."
+          },
+          "overwrite": {
+            "type": "boolean",
+            "description": "Replace a dashboard of the same name (`stardelt bundle deploy` passes its own flag)."
+          },
+          "ownerGroup": {
+            "type": "string",
+            "description": "The bundle's owner group; the caller must be a member."
+          },
+          "target": {
+            "type": "string",
+            "description": "The stage the import is for (`dev`, `prod`, …)."
           }
         }
       },
@@ -16364,6 +16645,13 @@
               "type": "string"
             }
           },
+          "clientId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`status.clientId`: the identity provider's client (`sp-<name>`); `null` until written."
+          },
           "message": {
             "type": [
               "string",
@@ -16382,6 +16670,13 @@
           },
           "ready": {
             "type": "boolean"
+          },
+          "workloadIdentity": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`status.workloadIdentity`: the catalog principal this principal's workloads become,\n`kubernetes~<ServiceAccount uid>` (#492, #650). `null` until the operator has written it."
           }
         }
       },

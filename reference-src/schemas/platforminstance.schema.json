@@ -186,6 +186,7 @@
           "default": {
             "allowedCidrs": [],
             "enabled": false,
+            "mode": "ingress",
             "tls": {
               "enabled": false,
               "secretNameTemplate": "{host}-tls"
@@ -195,7 +196,7 @@
           "properties": {
             "allowedCidrs": {
               "default": [],
-              "description": "Source ranges that may open a connection to the public endpoints\n(`stardelt-platform#427`). Empty = open to everyone. A non-empty list renders\n`nginx.ingress.kubernetes.io/whitelist-source-range` on every Ingress this operator\napplies (ingress-nginx; other controllers ignore it). Entries are CIDRs, at most 64.\nAlways include the cluster's own egress address: pods that call the public names\narrive through it.\n\nThe bounds are not cosmetic: the API server's CEL cost estimator treats an\nunbounded array under a `matches()` rule as unbounded, and refuses the whole\nCRD (\"estimated rule cost exceeds budget by factor of more than 100x\",\noperator#536). `maxItems`/`maxLength` are what make the rule affordable.",
+              "description": "Source ranges that may open a connection to the public endpoints\n(`stardelt-platform#427`). Empty = open to everyone. A non-empty list renders\n`nginx.ingress.kubernetes.io/whitelist-source-range` on every Ingress this operator\napplies (ingress-nginx; other controllers ignore it). Entries are CIDRs, at most 64.\nAlways include the cluster's own egress address: pods that call the public names\narrive through it.\n\nIgnored when `mode: gateway`: source filtering belongs to the Gateway's listener.\n\nThe bounds are not cosmetic: the API server's CEL cost estimator treats an\nunbounded array under a `matches()` rule as unbounded, and refuses the whole\nCRD (\"estimated rule cost exceeds budget by factor of more than 100x\",\noperator#536). `maxItems`/`maxLength` are what make the rule affordable.",
               "items": {
                 "maxLength": 64,
                 "minLength": 1,
@@ -205,7 +206,7 @@
               "type": "array"
             },
             "className": {
-              "description": "IngressClass name, for example `nginx` or `traefik`. Absent: the cluster default.",
+              "description": "IngressClass name, for example `nginx` or `traefik`. Absent: the cluster default.\nIgnored when `mode: gateway`.",
               "maxLength": 253,
               "minLength": 1,
               "nullable": true,
@@ -216,12 +217,44 @@
               "description": "Create an Ingress for Nova (on `baseDomain` itself); the identity provider\non `id.` with `identity.mode: platform`; Airflow on `airflow.` with the `pipelines` pillar;\nJupyterHub on `jupyter.` with `notebooks`.",
               "type": "boolean"
             },
+            "gateway": {
+              "description": "The Gateway the HTTPRoutes attach to; required by `mode: gateway`, ignored by\n`mode: ingress`. Its listeners own TLS, the host name and source filtering.",
+              "nullable": true,
+              "properties": {
+                "name": {
+                  "description": "Name of the Gateway in the cluster.",
+                  "maxLength": 253,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "namespace": {
+                  "description": "Namespace of the Gateway; absent means the instance's namespace.",
+                  "maxLength": 253,
+                  "minLength": 1,
+                  "nullable": true,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            },
+            "mode": {
+              "default": "ingress",
+              "description": "How the applications are reached; see [`IngressMode`]. Defaults to `ingress`.\nWith `gateway`, one `HTTPRoute` per application is rendered instead of Ingresses, and\n`className`, `allowedCidrs` and `tls` are ignored.",
+              "enum": [
+                "ingress",
+                "gateway"
+              ],
+              "type": "string"
+            },
             "tls": {
               "default": {
                 "enabled": false,
                 "secretNameTemplate": "{host}-tls"
               },
-              "description": "TLS through cert-manager.",
+              "description": "TLS through cert-manager on the Ingresses. Ignored when `mode: gateway`: TLS belongs to\nthe Gateway's listeners and their certificate references.",
               "properties": {
                 "enabled": {
                   "default": false,
