@@ -16,7 +16,7 @@ The operations Nova tags `public` under `/api/service-principals`. Generated fro
 
 Operation id `service_principals_list`: in Python `client.call("service_principals_list", …)`, on the command line `stardelt api service_principals_list`.
 
-The service principals the caller may see: every `ServicePrincipal` of their groups, and all of them for an administrator. `purpose` is the resource's `spec.purpose` (default `pipeline`); `audiences` are the resource's audiences; `ready` is `status.ready`; `message` is `null` when ready, otherwise the `Ready` condition's message, or `no status yet`. Credentials are never part of an answer. Answers `Cache-Control: no-store`.
+The service principals the caller may see: every `ServicePrincipal` of their groups, and all of them for an administrator. `purpose` is the resource's `spec.purpose` (default `pipeline`); `audiences` are the resource's audiences; `workloadIdentity` is `status.workloadIdentity` — the catalog principal `kubernetes~<ServiceAccount uid>` — and `clientId` is `status.clientId`; both are absent until the operator has written them. `ready` is `status.ready`; `message` is `null` when ready, otherwise the `Ready` condition's message, or `no status yet`. Credentials are never part of an answer. Answers `Cache-Control: no-store`.
 
 **Responses**
 

@@ -44,12 +44,14 @@ Spark compute for the platform, a team or one person: size, runtime, settings; s
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `status.driverServiceAccount` | string (nullable) | No |  | `metadata.name` of the ServiceAccount the driver runs as (`spark-cluster-driver` until #1100, then `spark-cluster-driver-<group>`). |  |
 | `status.endpoint` | string (nullable) | No |  | The Spark Connect endpoint while the cluster runs. |  |
 | `status.lastActivityAt` | string (nullable) | No |  |  |  |
 | `status.message` | string (nullable) | No |  |  |  |
 | `status.observedGeneration` | integer (nullable) | No |  |  | format `int64` |
 | `status.phase` | string | No | `""` | `Stopped`, `Starting`, `Running`, `Stopping` or `Failed`. |  |
 | `status.startedAt` | string (nullable) | No |  |  |  |
+| `status.workloadIdentity` | string (nullable) | No |  | The catalog principal the driver's projected token becomes: `kubernetes~<ServiceAccount uid>` (#538), the same form a ServicePrincipal records. Absent until the operator has applied the ServiceAccount. |  |
 
 ## Validation rules
 
