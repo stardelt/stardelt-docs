@@ -247,6 +247,15 @@ warning at install time.
 notebook (up to 25 MiB) need it. In gateway mode set the same limit on the Gateway; a smaller one
 fails the upload with the Gateway's own error, before Nova sees it.
 
-**Spark Connect is not published.** An `HTTPRoute` cannot carry the gRPC backend protocol
-`spark-connect` needs, so in gateway mode the operator renders no public name for it
-(`GRPCRoute` is a later slice). Use `kubectl port-forward` to reach it until then.
+**Spark Connect is published as a `GRPCRoute`.** An `HTTPRoute` cannot carry the gRPC backend
+protocol, so in gateway mode the operator renders a `GRPCRoute` named `spark-connect` on
+`spark.<baseDomain>` in place of the Ingress. It attaches to the `Gateway` named by
+`spec.ingress.gateway.name` (and `spec.ingress.gateway.namespace` when set), and one rule
+without matches sends every gRPC method on that host to `spark-connect-auth:15002`, the
+token-checking front that refuses a token whose audience is not `spark-connect`. The operator
+renders it only with `spec.ingress.enabled`, `spec.ingress.mode: gateway`, a gateway name, a
+base domain and an `identity.mode` other than `none`.
+
+The route carries no read or send timeout of its own: a Gateway that cuts a long-running
+`spark` call is configured on the Gateway. The Helm chart publishes no Spark Connect host in
+either mode; only the operator installs the token-checking front.
