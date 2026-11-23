@@ -215,8 +215,25 @@ ingress:
   enabled: true
   mode: gateway
   gateway:
-    name: eg                 # your Gateway, in the release namespace unless gateway.namespace is set
+    name: edge               # your Gateway, in the release namespace unless gateway.namespace is set
 ```
+
+The `PlatformInstance` takes the same fields:
+
+```yaml
+spec:
+  ingress:
+    enabled: true
+    mode: gateway
+    gateway:
+      name: edge             # a Gateway in the instance's namespace unless gateway.namespace is set
+```
+
+**Paths.** Every route matches plain `PathPrefix` strings, so each Gateway implementation reads them
+the same way. Nova, Airflow, JupyterHub and Superset match `/` on their own host name; Trino matches
+`/v1/statement` and `/oauth2`; the identity provider matches `/realms/stardelt`, `/resources`,
+`/robots.txt`, `/admin/stardelt`, `/admin/realms/stardelt` and `/admin/serverinfo` on
+`id.<baseDomain>`. The master realm is never published.
 
 **The allow-list does not apply.** `ingress.className`, `ingress.annotations`,
 `ingress.allowedCidrs` and `ingress.tls` are ignored: TLS, the hostname and source filtering
