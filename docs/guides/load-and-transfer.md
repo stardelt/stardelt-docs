@@ -123,8 +123,8 @@ from pyspark.sql import functions as F
      .writeTo("mobility.bronze.accounts").createOrReplace())   # .append() for the next batch
 ```
 
-Spark checks your catalog permissions with your token. Row and column masks apply only in SQL (`%sql`); see
-[Known limits](../operations/security#known-limits). Reading, transforming and upserting from a notebook
+Spark checks your catalog permissions with your token. Row and column masks are not available in this
+release; see [Security](../operations/security). Reading, transforming and upserting from a notebook
 is in [Spark in notebooks](spark).
 
 **Connections.** Create one on **Connections** in Nova: type, settings, owner group and secret. The

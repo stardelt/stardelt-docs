@@ -297,11 +297,11 @@ is the only component that calls it, and today the probe is the only caller.
   Spark's shared Connect server uses a credential the catalog vends per table for a short time, and
   neither its driver nor its executors carry a platform key (`make verify-spark-no-platform-key`);
   the batch and stream paths still do (stardelt/stardelt#494).
-- **Spark has weaker protection than Trino in one place: row filters and column masks.** `spark`
-  passes your token, so the catalog decides which tables you may use, and the public route
-  `spark.<baseDomain>` is behind a token-checking front. But masks apply only in Trino: use `%sql`
-  when a table has a row filter or a column mask. The plan to close the remaining gaps is
-  stardelt/stardelt#84.
+- **Row filters and column masks are not available in this release.** No install path lets you
+  define one yet: the engine's policy plane needs a rule source and the two policy URIs
+  (stardelt/stardelt#50), and the operator path renders no policy bridge. When they arrive, they
+  will apply in Trino only — a `%sql` query gets the filter or mask, a `spark` read does not, so
+  a masked column stays readable there by anyone with the grant (stardelt/stardelt#84).
 - **Network isolation is partial.** NetworkPolicies protect Lakekeeper, OpenFGA, JupyterHub and
   Superset's database on a `make` install. The rest of the namespace is flat, and the umbrella chart's
   core renders none.

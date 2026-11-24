@@ -78,7 +78,7 @@ is mostly about.
 |---|---|---|
 | Which catalogs are there for me? | Trino, through `SHOW CATALOGS`, and then Lakekeeper | A catalog you have no grant on is refused and left out of the session; the rest are listed. |
 | May I read this table? | Lakekeeper, with your token | A grant, or an error — at catalog, schema and table level, per person. |
-| Are rows and columns masked? | Trino only | `%sql` applies row filters and column masks; `spark` does not, so a masked column is readable through Spark by anyone with the grant. Use `%sql` for tables with masks. |
+| Are rows and columns masked? | Trino, once a policy exists | No row filter or column mask can be defined in this release (stardelt/stardelt#50). When one exists it applies to `%sql`; a `spark` read is governed by the table's grants, so a masked column is readable there. |
 | Which files may the engine touch? | Nobody, per person | Spark: a short-lived, table-scoped credential the catalog vends on every load; it allows the reads and writes your grant allows, and the shared Connect server's driver and executors carry no platform key. Trino: the platform's S3 key; it reaches the bucket regardless of the table grants. |
 | Who may open a Connect channel at all? | Kubernetes, through a NetworkPolicy | From outside the cluster: a token-checking front (Envoy `jwt_authn`, audience `spark-connect`) on the public route `spark.<baseDomain>` over TLS, so a call without a valid token is refused `401`. Inside the cluster a notebook pod reaches the driver directly, and the NetworkPolicy admits members' notebook pods only, so a scheduled pipeline notebook's pod is still refused. |
 
@@ -101,8 +101,9 @@ The in-cluster NetworkPolicy applies to pods, not to the public route.
 
 ## What changes next
 
-The remaining gaps are known and planned, not hidden. Row filters and column masks apply in Trino
-only, so a Spark read is governed by table grants and the files the table's credential reaches, not
-by a policy on the rows. The batch and stream paths — a `SparkApplication`, from the Airflow
-loader or a `StreamApp` — still hold the platform's storage key (stardelt/stardelt#494); the
-Connect path no longer does. Until they land, use `%sql` where a policy must apply.
+The remaining gaps are known and planned, not hidden. Row filters and column masks do not exist
+yet; when they do, they will apply in Trino only, so a Spark read is governed by table grants and
+the files the table's credential reaches, not by a policy on the rows. The batch and stream paths —
+a `SparkApplication`, from the Airflow loader or a `StreamApp` — still hold the platform's storage
+key (stardelt/stardelt#494); the Connect path no longer does. Until they land, use `%sql` where a
+policy must apply.
