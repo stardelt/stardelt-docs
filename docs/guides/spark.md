@@ -21,7 +21,7 @@ and `SHOW CATALOGS` answers the same question in a cell.
 | | `%sql` (Trino) | `spark` (Spark Connect) |
 |---|---|---|
 | Best for | queries, exploration, dashboards, one statement over any size | transforms in Python, writing a table from a DataFrame, joins that need a cluster |
-| Row and column masks | applied | not applied |
+| Row and column masks | not available yet | not available yet |
 | A scheduled notebook | works | refused; use `%sql` |
 | A large result | streamed to the client | `collect()` stops at 512 MB |
 
@@ -164,8 +164,9 @@ A cluster you may not use, or one that is stopped, is refused rather than starte
 
 ## Limits
 
-- Row and column masks apply in `%sql` only: a masked column arrives unmasked through Spark. Read a
-  masked table through `%sql`.
+- Row and column masks are not available in this release (see
+  [Security](../operations/security)); when they are, they apply in `%sql` only and a masked
+  column arrives unmasked through Spark.
 - A table written through Spark goes through the catalog: the session asks the catalog for a
   credential scoped to that table (Spark asks for it on every load), so no storage key of yours is
   used. The identity behind the request is the signed-in person's on the shared server and the
