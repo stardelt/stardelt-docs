@@ -33,6 +33,49 @@ The core fits an 8 GB node. The whole platform needs about 16 GB, and Airflow is
 A single node is for trying things out. For anything real, run at least **three** nodes and use a
 StorageClass whose volumes can follow a pod to another node. `local-path` cannot.
 
+### What the lab measures
+
+One node with **8 CPU** and 31.2 GiB of memory, measured on 2026-11-25 at commit `e64334c6`. Every
+workload runs as the public `demo` person through Nova, and every number is client wall-clock on
+that node, so it moves with the node's load.
+
+**Interactive statements** (`make perf-smoke`, three repeats per statement):
+
+| Statement | p50 | p95 |
+|---|---|---|
+| `scan` — `count(*)` over the demo's bronze table | 833 ms | 1179 ms |
+| `cpu` — an expression over a generated 1 000 × 1 000 cross join | 737 ms | 1594 ms |
+| `shuffle` — a grouped aggregate over the same cross join | 649 ms | 815 ms |
+| `nodepage` — `count(*)` over `system.runtime.nodes` | 481 ms | 490 ms |
+| `metadata` — `DESCRIBE` of the bronze table, five rows | 780 ms | 2190 ms |
+
+**Pipelines started at once** (`make perf-pipelines`): one run takes 21.4 s (p50 and p95 of one
+run); two different pipelines at once both succeed, p50 21.5 s and p95 23.6 s.
+
+**Ingest into Iceberg** (`make perf-ingest`, Trino statements as `demo`): 3 389 rows/s for 10 000
+rows (p50 2 933 ms for the single statement) and 11 431 rows/s for 50 000 rows in five statements
+(p50 488 ms).
+
+**Spark Connect** (`make perf-spark`, 5 000 000 generated rows): session 1 479 ms; aggregate
+8 755 ms; shuffle 1 746 ms; join 1 451 ms over 100 000 rows; write 2 108 ms for 1 000 000 rows.
+
+**Memory high-water** (`make perf-highwater`, while one pipeline run executes):
+
+| Pod | CPU peak | Memory peak |
+|---|---|---|
+| trino-worker | 87 m | 2 443 MiB |
+| trino-coordinator | 73 m | 2 320 MiB |
+| spc-demo-server | 6 m | 1 094 MiB |
+| kafka-kafka-0 | 126 m | 957 MiB |
+| pegelonline-driver | 121 m | 686 MiB |
+
+No pod was OOM-killed. A pod whose restart count is above zero is marked `(!)` in
+`make perf-report`; on this node those counts are days old.
+
+Larger sizes — the 8 GB single-node trial and a three-node department install — are **not
+measured yet**: every number above is the lab node's on the date shown, not a promise for another
+node. To measure your own, run the five workloads on it ([Performance baseline](./monitoring#performance-baseline)).
+
 ## What happens when something fails
 
 | Component | When it fails | What to do |
