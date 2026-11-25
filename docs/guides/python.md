@@ -14,10 +14,10 @@ API for notebooks and scripts; the same operations are the commands on [The comm
 ## Install
 
 ```bash
-pip install "stardelt @ git+https://github.com/stardelt/stardelt@python/v0.4.1#subdirectory=python"
+pip install "stardelt @ git+https://github.com/stardelt/stardelt@python/v0.4.3#subdirectory=python"
 ```
 
-The package is not on PyPI: this installs the current release `v0.4.1`, straight from
+The package is not on PyPI: this installs the current release `v0.4.3`, straight from
 its repository. A newer release has a newer tag.
 
 ## Sign in
