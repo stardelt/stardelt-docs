@@ -24,7 +24,7 @@ The examples name `shared`. Use a catalog your groups were granted to: the **Cat
 | the shared driver's heap | 1 GiB (`spark.driver.memory`), in a 3 GiB pod | a result that lands in the driver competes with the platform |
 | one result's maximum size | 512 MiB (`spark.driver.maxResultSize`) | above it the call fails, it does not slow down |
 | each executor | 1 core and 1 GiB (`spark.executor.cores`, `spark.executor.memory`) plus 384 MiB overhead (`spark.executor.memoryOverhead`) | one task at a time per executor |
-| executors at once | 2 (`spark.dynamicAllocation.maxExecutors`) | concurrency comes from the SQL, not from more tasks |
+| executors at once | 2 executors (`spark.dynamicAllocation.maxExecutors`) | concurrency comes from the SQL, not more tasks |
 
 Measured on 2026-10-21: chunks of 250 000 rows made tasks of 11 MiB, produced 305 warnings in three
 hours and ended with the driver OOMKilled. Chunks of at most 20 000 rows — about 1 MiB per task — and a
