@@ -193,6 +193,8 @@ A cluster you may not use, or one that is stopped, is refused rather than starte
   [Notebooks in VS Code](/docs/guides/develop#vs-code-on-your-laptop).
 - A pipeline's notebook task still cannot reach Spark Connect: the network policy refuses its pod, so
   a scheduled notebook uses `%sql`. (The public demo has its own sandbox server.)
+- The habits that keep the shared driver healthy — a bounded result, one job instead of one per
+  item, a released cache — are on [Performance](/docs/guides/performance).
 
 The full list of what the platform does and does not protect is under
 [Known limits](../operations/security#known-limits).
