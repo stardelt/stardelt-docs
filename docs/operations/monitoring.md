@@ -533,3 +533,26 @@ belong in the internal repository, not in a pull request.
 This is a baseline for one node, not a benchmark suite: it runs three fixed queries, with one
 administrator identity, against a synthetic catalog. Re-run it after a resize, a node change or a
 Trino upgrade. A broader benchmark suite is not available yet.
+
+### The five workloads a release reports
+
+The TPC-H baseline is the engine's own time: it uses an administrator token because the `tpch`
+catalog is administrator-only. The five workloads below need none — four go through Nova as the
+public `demo` person and the Spark one runs as a client pod next to the Connect server — and they
+time the path a person or a pipeline takes. Each writes one JSON file to `~/.cache/stardelt-perf/`,
+and `make perf-report` prints one block per workload from the newest file of each.
+
+| Command | What it measures | JSON file | Signs in as |
+|---|---|---|---|
+| `make perf-smoke` | five statements through Nova — scan, expression, grouped aggregate, `system.runtime.nodes`, `DESCRIBE` — three repeats each, p50/p95 per statement | `<UTC timestamp>.json` | `demo`, no token |
+| `make perf-pipelines` | N different pipelines started at once, from the start request to the terminal state, p50/p95 per level | `pipelines-<UTC timestamp>.json` | `demo`, no token |
+| `make perf-ingest` | rows per second into an Iceberg table at 10 000 and 50 000 rows, through Trino as a `%sql` task does it | `ingest-<UTC timestamp>.json` | `demo`, no token |
+| `make perf-spark` | one Spark Connect workload: session, aggregate, shuffle, join and write, each with its time and row count | `spark-<UTC timestamp>.json` | the notebook pod's shape, no token of its own |
+| `make perf-highwater` | peak CPU and memory per pod while one pipeline run executes, with restart counts and OOM kills | `highwater-<UTC timestamp>.json` | `demo`, no token |
+
+`make perf-pipelines PERF_LEVELS=1,2` and `make perf-ingest PERF_ROWS=10000,50000` set the levels.
+Run `perf-pipelines` and `perf-highwater` one after the other, not back to back: both start
+`shop-1-bronze`, and Nova refuses a second start while the previous run is still active.
+
+The numbers a release publishes, and what they say a node can hold, are in
+[Running stardelt in production](./production#sizing).
