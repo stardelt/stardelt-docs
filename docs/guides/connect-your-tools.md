@@ -203,6 +203,18 @@ card. The fields, in the order the dialog shows them:
 - **Display name** — optional; shown on the card instead of the name.
 - **Owner** — a group or a person, and which of the two.
 - **Size** — **small**, **medium** or **large**: the preset of driver, executor and executor count.
+
+  | Size | Driver | Each executor | Max executors |
+  |---|---|---|---|
+  | **small** | 1 core, 2 GiB | 1 core, 2 GiB | 2 |
+  | **medium** | 2 cores, 4 GiB | 2 cores, 4 GiB | 4 |
+  | **large** | 4 cores, 8 GiB | 4 cores, 8 GiB | 8 |
+
+  The **Driver**, **Executor** and **Max executors** fields override one value each; blank means
+  the size's number. On a named cluster the driver and each executor are pods of that shape, so
+  the size also decides how much of a node one cluster can take. The measured numbers a node
+  carries are on [Running in production](../operations/production#what-the-lab-measures).
+
 - **Driver** — cores and memory; blank means the size preset.
 - **Executor** — cores and memory; blank means the size preset.
 - **Max executors** — optional; blank means the size preset.
