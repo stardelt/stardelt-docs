@@ -16,7 +16,7 @@ disagree.
 ## Two modes, one knob
 
 The umbrella chart (`platform/chart/values.yaml`) already carries this block. The
-`PlatformInstance` CRD will carry the same five fields with the same meanings:
+`PlatformInstance` CRD carries the same five fields with the same meanings:
 
 ```yaml
 identity:
@@ -97,6 +97,96 @@ this; machine clients request it as optional.
 - **Token exchange.** Keycloak's Standard Token Exchange can mint a token for a different audience
   instead of every audience in one token. Lakekeeper's machine-client guidance enables it;
   stardelt does not depend on it yet.
+
+### A customer directory (LDAP)
+
+`platform` mode can import people and groups from a directory the customer already runs, through
+Keycloak's read-only LDAP federation. Only with `identity.mode: platform`: with `external` your own
+provider federates the directory and stardelt never sees it.
+
+**The Secret.** One `Opaque` Secret in the release namespace, two keys: the bind account's DN and
+its password. Keycloak reads both from the container environment, so neither enters the realm
+ConfigMap.
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata: { name: corp-directory, namespace: stardelt }
+type: Opaque
+stringData:
+  bind-dn: CN=svc-stardelt,OU=service,DC=example,DC=org
+  bind-password: <the bind account's password>
+```
+
+**The chart.** The block under `identity:`. An empty `host` leaves the realm as it is.
+
+```yaml
+identity:
+  mode: platform
+  keycloak:
+    ldap:
+      host: dir.example.com
+      port: 636
+      tls: ldaps            # none | starttls | ldaps
+      usersDn: ou=people,dc=example,dc=org
+      groupDn: ou=groups,dc=example,dc=org
+      bindSecretName: corp-directory
+      bindDnKey: bind-dn
+      bindPasswordKey: bind-password
+      syncSeconds: 3600
+```
+
+`tls: none` is plaintext on port 389, `starttls` upgrades a 389 connection, `ldaps` is TLS from the
+first byte on 636. `bindDnKey` and `bindPasswordKey` default to `bind-dn` and `bind-password`;
+`syncSeconds` defaults to 3600 and takes 60 to 86400.
+
+**The operator.** The same under `spec.identity.ldap`, with the Secret by reference. It lives in the
+instance's namespace.
+
+```yaml
+apiVersion: stardelt.io/v1alpha1
+kind: PlatformInstance
+metadata:
+  name: platform
+spec:
+  baseDomain: data.example.com
+  identity:
+    mode: platform
+    ldap:
+      host: dir.example.com
+      port: 636
+      tls: ldaps
+      usersDn: ou=people,dc=example,dc=org
+      groupDn: ou=groups,dc=example,dc=org
+      bindSecretRef:
+        name: corp-directory
+        dnKey: bind-dn              # default
+        passwordKey: bind-password  # default
+      syncSeconds: 3600
+```
+
+`ldap` is refused unless `identity.mode` is `platform`, which runs the Keycloak that imports it.
+
+**What the directory must look like.** The mapping is fixed, so a directory administrator can check
+it in advance:
+
+- People under `usersDn`, object classes `inetOrgPerson` and `organizationalPerson`, with `cn` and
+  `entryUUID`. The username is the entry's `cn`, not its `uid`.
+- Groups under `groupDn` as `groupOfNames`, named by `cn`, with membership in the `member`
+  attribute. `posixGroup`/`memberUid` groups and nested groups are not read.
+- The bind account needs read access on both subtrees.
+
+**What changes and when.** A person exists in the platform at first sign-in, because import is on.
+A changed or removed group membership, and a new group, are visible after the next sync — at most
+`syncSeconds` after the change, since the full and the changed sync interval are both that value.
+Groups that disappear from the directory are not dropped from the realm either. Removing the `ldap`
+block does not delete the people and groups it imported: they stay in the realm.
+
+Imported groups arrive through the realm's existing `groups` claim like any other group, so a
+directory group named `stardelt-admins` — the default `adminGroup` — is the platform admin group.
+
+**What it does not do.** No password change, no write-back, no self-service, no nested or
+`posixGroup` groups: the directory is read-only for the platform.
 
 ## Entra ID (external IdP)
 
