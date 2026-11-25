@@ -84,6 +84,78 @@ Before you tag or hand over a release, run the checks in [Before a release](chec
 There is no migration guide yet, so upgrade your dev install first and prod after it has run for a
 day.
 
+## Upgrading across a component's major version
+
+A component's chart can move a major version in one release. The new chart usually renders different
+objects than the old one, and Kubernetes refuses some of those changes while it accepts others
+silently. Work through these five points before you upgrade:
+
+- **Read the component chart's own upgrade notes.** They name removed values, moved templates and
+  required steps; the release note of stardelt only names the version move.
+- **Render the old and the new chart and diff the output.** No cluster is needed:
+
+  ```bash
+  helm template <release> <chart> --version <old> -f <values> > old.yaml
+  helm template <release> <chart> --version <new> -f <values> > new.yaml
+  diff -u old.yaml new.yaml
+  ```
+
+- **A changed `spec.selector.matchLabels` is not upgradeable in place.** Kubernetes forbids the
+  change to a Deployment's selector, so `helm upgrade` fails on that object. Delete the Deployment
+  before the upgrade; it is recreated with the new selector. `helm rollback` hits the same wall.
+- **Dump the component's database first when it has one.** The upgrade runs migrations that a
+  rollback does not undo.
+- **Keep the old values file readable.** A rollback re-renders the old chart, and it needs the
+  values that chart was installed with.
+
+### Worked example: Superset 0.15.5 to 0.22.8
+
+The two chart versions render the same two Deployments by name, but their selectors changed:
+
+```text
+=== 0.15.5                                  === 0.22.8
+name: rel-superset-worker                   name: rel-superset-worker
+  matchLabels:                                matchLabels:
+    app: superset-worker                        app.kubernetes.io/name: superset
+    release: rel                                app.kubernetes.io/instance: rel
+                                                app.kubernetes.io/component: worker
+name: rel-superset                          name: rel-superset
+  matchLabels:                                matchLabels:
+    app: superset                               app.kubernetes.io/name: superset
+    release: rel                                app.kubernetes.io/instance: rel
+                                                app.kubernetes.io/component: web
+```
+
+The umbrella chart sets `superset.fullnameOverride: superset`
+(`platform/chart/values.yaml`), so its two Deployments are `superset` and `superset-worker`; an
+install without that override names them `<release>-superset` and `<release>-superset-worker`. The
+commands below use the umbrella chart's names.
+
+```bash
+# 1. the dump, and wait for it
+kubectl -n stardelt create job --from=cronjob/superset-pg-dump superset-pg-dump-preupgrade
+kubectl -n stardelt wait --for=condition=complete --timeout=600s job/superset-pg-dump-preupgrade
+
+# 2. the two Deployments whose selectors changed (short outage starts here)
+kubectl -n stardelt delete deployment superset superset-worker
+
+# 3. the upgrade itself
+helm -n stardelt upgrade superset superset/superset --version 0.22.8 -f helm-values/superset.yaml
+
+# 4. the init Job must have run, and both Deployments must be Ready
+kubectl -n stardelt get job superset-init-db
+kubectl -n stardelt get deploy superset superset-worker
+```
+
+`helm rollback` needs step 2 as well: the old chart re-renders the old selectors over the
+Deployments the new chart created, and the API server rejects that change just as it rejects the
+forward one.
+
+Superset 0.22.8 also ignores `init.initscript`. It renders the init Job from `init.command`, so a
+values file that still sets `init.initscript` gets the chart's own script instead of yours. Move your
+script to `init.command` before the upgrade; the values file in `platform/helm-values/superset.yaml`
+shows the shape.
+
 ## Upgrading a resource
 
 Upgrade the platform, not the resources.
