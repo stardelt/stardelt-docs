@@ -31,6 +31,17 @@ A stardelt platform instance.
 | `spec.identity.groupClaim` | string (nullable) | No |  | Name of the token claim that carries group (or role) names. Defaults to `roles` for `entra` and `groups` otherwise. |  |
 | `spec.identity.issuerUrl` | string (nullable) | No |  | OIDC issuer URL, `https://` only. Required for `external`; for `platform` it is derived from `baseDomain` and must be left out. |  |
 | `spec.identity.jwksUri` | string (nullable) | No |  | `external` only: the provider's JWKS URL — `jwks_uri` in `<issuerUrl>/.well-known/openid-configuration`. Required for `external`: Envoy cannot discover it, and the operator does not fetch a customer's discovery document. A `platform` instance derives it from the Keycloak it deploys and must leave it out. | min 1, max 512; pattern `^https://\S+$` |
+| `spec.identity.ldap` | object (nullable) | No |  | `platform` only: a directory the platform-IdP imports people and groups from, through Keycloak's read-only LDAP federation. |  |
+| `spec.identity.ldap.bindSecretRef` | object | Yes |  | The Secret with the bind DN and its password; never the values themselves. |  |
+| `spec.identity.ldap.bindSecretRef.dnKey` | string | No | `bind-dn` |  | min 1, max 253 |
+| `spec.identity.ldap.bindSecretRef.name` | string | Yes |  |  | min 1, max 253; pattern `^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$` |
+| `spec.identity.ldap.bindSecretRef.passwordKey` | string | No | `bind-password` |  | min 1, max 253 |
+| `spec.identity.ldap.groupDn` | string | Yes |  | Subtree that holds groups, for example `ou=groups,dc=example,dc=org`. | min 3, max 512; pattern `^\S.*=\S.*$` |
+| `spec.identity.ldap.host` | string | Yes |  | Directory host name, without a scheme or port. | min 1, max 253; pattern `^[A-Za-z0-9][A-Za-z0-9.-]*$` |
+| `spec.identity.ldap.port` | integer | No | `389` | Port of the directory. `389` with `tls: none` or `tls: starttls`; `636` with `tls: ldaps`. | min 1, max 65535; format `int32` |
+| `spec.identity.ldap.syncSeconds` | integer | No | `3600` | Full sync interval in seconds. A revoked group keeps its access until the next sync, so `0` is refused: 60 to 86400, default 3600 (measured in #1516). | min 60, max 86400; format `int32` |
+| `spec.identity.ldap.tls` | string | No | `none` | How the connection is protected; see [`IdentityLdapTls`]. Defaults to `none`. | `none`, `starttls`, `ldaps` |
+| `spec.identity.ldap.usersDn` | string | Yes |  | Subtree that holds people, for example `ou=users,dc=example,dc=org`. | min 3, max 512; pattern `^\S.*=\S.*$` |
 | `spec.identity.mode` | string | No | `none` | Where users sign in. Two modes besides none: an identity provider the organization already runs (`external`, for example Entra or Okta), or one the platform runs itself (`platform`, Keycloak). An organization often runs the platform several times against one external provider; each instance then has its own app registrations and group mapping. | `none`, `platform`, `external` |
 | `spec.identity.provider` | string | No | `oidc` | `external` only: which kind of provider this instance talks to. | `oidc`, `entra` |
 | `spec.identity.tokenEndpoint` | string (nullable) | No |  | `external` only: the provider's OAuth2 token endpoint — `token_endpoint` in `<issuerUrl>/.well-known/openid-configuration`. Required for `external`: neither the operator (API-server proxy only) nor Helm can fetch an external discovery document. A `platform` instance derives it from the Keycloak it deploys and must leave it out. | min 1, max 512; pattern `^https://\S+$` |
@@ -130,6 +141,7 @@ A stardelt platform instance.
 - external mode needs a nova client
 - client names are nova, trino, lakekeeper, superset, airflow, jupyterhub and trino-group-sync
 - every client except lakekeeper needs a clientSecretRef
+- ldap only works with mode platform, which runs the Keycloak that imports it
 - ingress.tls.enabled needs ingress.tls.issuer, the name of a cert-manager ClusterIssuer
 - ingress.allowedCidrs: at most 64 entries
 - ingress.allowedCidrs: each entry is a CIDR such as 203.0.113.0/24

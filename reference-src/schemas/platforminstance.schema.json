@@ -118,6 +118,93 @@
               "pattern": "^https://\\S+$",
               "type": "string"
             },
+            "ldap": {
+              "description": "`platform` only: a directory the platform-IdP imports people and groups from, through\nKeycloak's read-only LDAP federation (#39).",
+              "nullable": true,
+              "properties": {
+                "bindSecretRef": {
+                  "description": "The Secret with the bind DN and its password; never the values themselves.",
+                  "properties": {
+                    "dnKey": {
+                      "default": "bind-dn",
+                      "maxLength": 253,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "name": {
+                      "maxLength": 253,
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9]([-a-z0-9.]*[a-z0-9])?$",
+                      "type": "string"
+                    },
+                    "passwordKey": {
+                      "default": "bind-password",
+                      "maxLength": 253,
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "groupDn": {
+                  "description": "Subtree that holds groups, for example `ou=groups,dc=example,dc=org`.",
+                  "maxLength": 512,
+                  "minLength": 3,
+                  "pattern": "^\\S.*=\\S.*$",
+                  "type": "string"
+                },
+                "host": {
+                  "description": "Directory host name, without a scheme or port.",
+                  "maxLength": 253,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9.-]*$",
+                  "type": "string"
+                },
+                "port": {
+                  "default": 389,
+                  "description": "Port of the directory. `389` with `tls: none` or `tls: starttls`; `636` with `tls: ldaps`.",
+                  "format": "int32",
+                  "maximum": 65535.0,
+                  "minimum": 1.0,
+                  "type": "integer"
+                },
+                "syncSeconds": {
+                  "default": 3600,
+                  "description": "Full sync interval in seconds. A revoked group keeps its access until the next sync,\nso `0` is refused: 60 to 86400, default 3600 (measured in #1516).",
+                  "format": "int32",
+                  "maximum": 86400.0,
+                  "minimum": 60.0,
+                  "type": "integer"
+                },
+                "tls": {
+                  "default": "none",
+                  "description": "How the connection is protected; see [`IdentityLdapTls`]. Defaults to `none`.",
+                  "enum": [
+                    "none",
+                    "starttls",
+                    "ldaps"
+                  ],
+                  "type": "string"
+                },
+                "usersDn": {
+                  "description": "Subtree that holds people, for example `ou=users,dc=example,dc=org`.",
+                  "maxLength": 512,
+                  "minLength": 3,
+                  "pattern": "^\\S.*=\\S.*$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "bindSecretRef",
+                "groupDn",
+                "host",
+                "usersDn"
+              ],
+              "type": "object"
+            },
             "mode": {
               "default": "none",
               "description": "Where users sign in (decision D20). Two modes besides none: an identity provider the\norganization already runs (`external`, for example Entra or Okta), or one the platform runs\nitself (`platform`, Keycloak). An organization often runs the platform several times against\none external provider; each instance then has its own app registrations and group mapping.",
@@ -179,6 +266,10 @@
             {
               "message": "every client except lakekeeper needs a clientSecretRef",
               "rule": "!has(self.clients) || self.clients.all(k, k == 'lakekeeper' || has(self.clients[k].clientSecretRef))"
+            },
+            {
+              "message": "ldap only works with mode platform, which runs the Keycloak that imports it",
+              "rule": "!has(self.ldap) || self.mode == 'platform'"
             }
           ]
         },
