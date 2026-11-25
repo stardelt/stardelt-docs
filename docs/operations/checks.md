@@ -35,13 +35,28 @@ as Nova's Airflow service user, pauses and resumes one DAG, and restores the sta
 `access-sync-script` (key `job.py`) is the repository's job byte for byte; run `make access-sync` or
 `make install-operator` when it is older.
 
-Seven more run by hand, each needing something a converged cluster does not promise:
+More run by hand, each needing something a converged cluster does not promise:
 `make verify-spark-query` runs two jobs through the shared Spark Connect server; `make verify-spark-auth`
 proves the front at `spark.<baseDomain>` (a signed query returns 10 rows, an unsigned call is refused
 with `Jwt is missing`, and so is a token without the `spark-connect` audience);
 `make verify-spark-janitor` runs the ConfigMap janitor's dry run with `JANITOR_MAX_AGE_SECONDS=1`;
 `make verify-spark-group-read` proves a session against the permanent demo `SparkCluster` reads
 `gold.shop.daily_revenue`; its write half, `make verify-spark-group-write`, runs nightly.
+
+Eight more need a shipped surface or a write that a converged cluster does not promise.
+`make verify-ask` walks Ask against a stub model: a keyless `ModelEndpoint` is probed `Ready` and one
+question comes back as a statement `EXPLAIN` accepted as the caller; it deletes the stub on every exit.
+`make verify-cli` runs the shipped CLI as `demo` — `whoami`, a query, the bundle, the skill, the
+deployment history, and a signed-out exit 3 — from a cached virtualenv. `make verify-usage` walks the
+usage answer: `401` without a token, `scope=all` refused `403` to a visitor, the group row, the estimate,
+and a total its items add up to. `make verify-perf` records the interactive path's latency as the
+visitor and compares it with `perf/perf-baseline.json`; it measures the node, it converges nothing.
+`make verify-product-path-create` is the product path's create half as `product-path`: create, schedule,
+run, read the log, delete. `make verify-warehouse-autostop` narrows every `Ready` class for about ten
+minutes, so the idle policy reaches 0, then lets it wake. `make verify-backup-config` asserts the live
+CNPG `Cluster` still declares `spec.backup` (a client-side apply without it removes it): `install-core`'s
+post-apply guard, which `make upgrade` also runs. `make verify-bridge-policy` proves the deployed OPA
+bridge loaded the policy document and answers both entry points Trino calls.
 
 The public demo's sandbox has three checks. `make verify-spark-demo-sandbox` reads what it contains: the
 namespace enforces `restricted`, its ServiceAccount cannot create pods, the driver carries no
