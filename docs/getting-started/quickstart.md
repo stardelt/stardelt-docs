@@ -100,3 +100,6 @@ This deletes the install and its data.
 helm uninstall stardelt -n stardelt
 kubectl delete namespace stardelt     # also deletes the data
 ```
+
+The whole path on a full install, with a real run, is in
+[A complete example in 15 minutes](../guides/fifteen-minutes).

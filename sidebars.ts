@@ -22,6 +22,7 @@ const sidebars: SidebarsConfig = {
   start: [
     'intro/overview',
     'getting-started/quickstart',
+    'guides/fifteen-minutes',
     'guides/pegelonline-demo',
     'architecture/how-it-works',
     cat('Why stardelt', ['architecture/sovereignty', 'architecture/current-generation']),
