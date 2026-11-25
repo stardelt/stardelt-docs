@@ -11,7 +11,7 @@ One path through the platform, with nothing left out: clone a bundle from Git, d
 into a stage of your own, run them, query what they wrote, change a file and read the plan, then remove
 the pipelines again. Every command below and every line it printed was measured on 2026-11-25 against
 the project's development install (one Kubernetes node, 32 GiB of memory, Kubernetes 1.37, `stardelt`
-0.4.3). It takes about four minutes of commands; three of those are the pipeline runs.
+0.4.3). It takes about four minutes of commands, nearly two of them the three pipeline runs.
 
 **Have ready:** an install with sign-in, the `stardelt` command line ([install and sign in](./python)),
 and the catalogs `bronze`, `silver` and `gold`. The bundle names the group `demo` as its owner, so you
