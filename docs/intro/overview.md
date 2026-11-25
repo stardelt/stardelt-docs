@@ -46,6 +46,7 @@ stardelt may not suit you if you want a managed service or do not want to operat
 | You want to | Read |
 |---|---|
 | See it working | [Quickstart](../getting-started/quickstart) |
+| Follow one example from clone to teardown | [A complete example in 15 minutes](../guides/fifteen-minutes) |
 | Understand the parts | [How it works](../architecture/how-it-works) |
 | Install it for real | [Prerequisites](../getting-started/prerequisites) |
 | Work with data | [Load data](../guides/load-and-transfer) |
