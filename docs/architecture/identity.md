@@ -35,7 +35,7 @@ explains each hop.
 | `identity.mode` | What happens |
 |---|---|
 | `none` (chart default) | No sign-in. Everyone is treated the same. For trying things out behind a port-forward |
-| `platform` | stardelt deploys Keycloak at `id.<baseDomain>` with the `stardelt` realm and its clients |
+| `platform` | stardelt deploys Keycloak at `id.<baseDomain>` with the `stardelt` realm and its clients. It can also [import people and groups from a customer directory over LDAP](../operations/sign-in#a-customer-directory-ldap) |
 | `external` | You bring the OIDC provider and register the clients yourself |
 
 Switching a running install to sign-in is a values change and a rollout, with no data migration.
