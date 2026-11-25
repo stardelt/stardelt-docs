@@ -21,7 +21,7 @@ may call is a [model endpoint](./models.md).
 
 ### Turn it on
 
-Three switches, one per install path:
+One switch per install path:
 
 - **Operator:** `spec.mcp.enabled: true` on the `PlatformInstance`.
 - **Chart:** `nova.mcp.enabled: true`.
@@ -36,7 +36,7 @@ default. Name it yourself with `mcp.audience` in the chart or `spec.mcp.audience
 when Nova's public address is not the install's base domain.
 :::
 
-On a realm that already exists, `make sync-mcp-client` creates or converges the `stardelt-mcp` client;
+On an existing realm, `make sync-mcp-client` creates or converges the `stardelt-mcp` client;
 `make install-identity` runs it.
 
 ### Connect an assistant
@@ -72,6 +72,7 @@ in a default token, so ask for it when the client is meant to start runs. Withou
 | `platform_status` | Whether the platform is up, and each component's version |
 | `catalog_list` | The catalogs, schemas and tables you may see |
 | `catalog_describe` | The columns, types and comment of one table |
+| `table_health` | Whether a table is as fresh as its owner promised: status, deadline, newest write; takes `namespace`, `table` (`catalog` if ambiguous) |
 | `table_documentation` | A table's description, owner group, domain, tags, column notes and usage guide; takes `namespace` and `table` (`catalog` if ambiguous) |
 | `catalog_search` | The tables that match a word |
 | `sql_read` | One read-only statement (`SELECT`, `WITH`, `VALUES`, `SHOW`, `DESCRIBE`, `TABLE` or `EXPLAIN`); at most 200 rows and 60 seconds |
@@ -125,7 +126,7 @@ changes no schedule and edits no pipeline.
 
 ### Where a query spent its time
 
-Two questions the interface answers, the endpoint answers the same way:
+Two questions the interface answers:
 
 1. `query_log_list` finds the query — state, duration and a preview of the statement.
 2. `query_log_profile` with that `id` shows where it spent its time: the plan, the operators that used the
@@ -133,7 +134,7 @@ Two questions the interface answers, the endpoint answers the same way:
    shows the last 20 runs of that statement by that person, the median wall time and whether this run is
    slower.
 3. `lineage_get` with `catalog`, `schema` and `table` shows what the table comes from, what is made from it
-   and the jobs that write it. `depth` (1 to 5) sets the steps each way, `days` (1 to 365) how far back.
+   and the jobs that write it.
 
 The hints come from the profile, not from a model.
 
