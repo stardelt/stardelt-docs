@@ -10,6 +10,9 @@ description: "Work on the platform as yourself: JupyterLab in the browser, VS Co
 Your code runs next to the data, as you: the kernel and every query use your platform identity. You choose the
 editor — JupyterLab in the browser, or VS Code on your workspace or on your laptop.
 
+Whatever you choose, the same rules keep the shared cluster fast for everyone:
+[Performance](performance.md) collects them with the limits they come from.
+
 ## Choose how you work
 
 | You want | Use | Where it runs |
