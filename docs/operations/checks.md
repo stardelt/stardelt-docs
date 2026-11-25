@@ -43,13 +43,15 @@ with `Jwt is missing`, and so is a token without the `spark-connect` audience);
 `make verify-spark-group-read` proves a session against the permanent demo `SparkCluster` reads
 `gold.shop.daily_revenue`; its write half, `make verify-spark-group-write`, runs nightly.
 
-Eight more need a shipped surface or a write that a converged cluster does not promise.
+Nine more need a shipped surface or a write that a converged cluster does not promise.
 `make verify-ask` walks Ask against a stub model: a keyless `ModelEndpoint` is probed `Ready` and one
 question comes back as a statement `EXPLAIN` accepted as the caller; it deletes the stub on every exit.
 `make verify-cli` runs the shipped CLI as `demo` — `whoami`, a query, the bundle, the skill, the
 deployment history, and a signed-out exit 3 — from a cached virtualenv. `make verify-usage` walks the
 usage answer: `401` without a token, `scope=all` refused `403` to a visitor, the group row, the estimate,
-and a total its items add up to. `make verify-perf` records the interactive path's latency as the
+and a total its items add up to. `make verify-access-requests` is the visitor's "ask for access" flow as
+`demo`: create, read, withdraw, `409` on a second withdraw, and the three refusals (`403` for another
+group, `400` for `manage`, `404` for an unknown id). `make verify-perf` records the interactive path's latency as the
 visitor and compares it with `perf/perf-baseline.json`; it measures the node, it converges nothing.
 `make verify-product-path-create` is the product path's create half as `product-path`: create, schedule,
 run, read the log, delete. `make verify-warehouse-autostop` narrows every `Ready` class for about ten

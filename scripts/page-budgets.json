@@ -48,7 +48,7 @@
   "operate": 96,
   "operations/access": 1971,
   "operations/backups": 2020,
-  "operations/checks": 4186,
+  "operations/checks": 4221,
   "operations/monitoring": 4104,
   "operations/production": 1628,
   "operations/secret-stores": 1752,
