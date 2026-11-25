@@ -16,6 +16,7 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 
 | Page | Operations |
 | --- | --- |
+| [/api/access-requests](/docs/reference/api/access-requests) | 4 |
 | [/api/ask](/docs/reference/api/ask) | 3 |
 | [/api/auth](/docs/reference/api/auth) | 1 |
 | [/api/catalog](/docs/reference/api/catalog) | 16 |

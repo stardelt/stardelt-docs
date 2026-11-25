@@ -16,6 +16,257 @@
     }
   ],
   "paths": {
+    "/api/access-requests": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/access-requests` — the caller's own requests, newest first, at most 50.",
+        "description": "The caller's own access requests: which catalog and group they asked for, the requested verbs and why, and whether the request is still open. Newest first, at most 50. Another person's requests are never listed.",
+        "operationId": "access_requests_list",
+        "responses": {
+          "200": {
+            "description": "The caller's requests, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccessRequest"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/access-requests` — `201` with the stored row.",
+        "description": "Ask the owner group of a catalog for access: the group (the caller must be a member of it), the catalog, one or more of `browse`, `select`, `write`, `create`, and a reason of at most 500 characters. `manage` belongs to the catalog's owner and cannot be requested. The requester is the signed-in caller, never part of the body. An owner group's IdP that leaves the groups out of the token cannot be judged here, so such a request is accepted and the approval decides. The request changes no grant.",
+        "operationId": "access_requests_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The stored row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The group, catalog or reason is empty, the reason is over 500 characters, or a verb is unknown, repeated or `manage`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the requested group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/access-requests/{id}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/access-requests/{id}` — the caller's own row; somebody else's is a 404.",
+        "description": "One of the caller's own access requests. Another person's request answers 404, exactly like an id that does not exist: the API never confirms that it is there.",
+        "operationId": "access_requests_read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The access request's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such request for this caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`DELETE /api/access-requests/{id}` — withdraw one's own open request; `200` with the row.",
+        "description": "Withdraw one of the caller's own open access requests: its state becomes `withdrawn` and it keeps that state. A request that is already withdrawn answers 409, another person's 404. Nothing is deleted, and no grant is touched.",
+        "operationId": "access_requests_withdraw",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The access request's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The row, now `withdrawn`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such request for this caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request was already withdrawn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/catalogs": {
       "get": {
         "tags": [
@@ -2922,7 +3173,7 @@
         "tags": [
           "public"
         ],
-        "description": "The caller's connections: their own, their groups', and — for administrators — the managed ones. Values are never part of an answer, only the field names.",
+        "description": "The caller's connections: their own, their groups', and — for administrators — the managed ones. Values are never part of an answer, only the field names. Without a configured store (an install with `spec.secrets.mode: external`) the answer is built from the `Connection` resources: the caller's groups' rows, the ones they are a viewer of, and managed ones for an administrator, with no value.",
         "operationId": "connections_list",
         "responses": {
           "200": {
@@ -2971,7 +3222,7 @@
         "tags": [
           "public"
         ],
-        "description": "Create a connection. The values in `secret` are written to the platform's secret store with the caller's own token and are never returned by any route.",
+        "description": "Create a connection. The values in `secret` are written to the platform's secret store with the caller's own token and are never returned by any route. In an install with `spec.secrets.mode: external` there is no platform store: the body names `remoteRef` (the path in the enterprise store) and `secretKeys`, carries no value, and the operator syncs the connection.",
         "operationId": "connections_create",
         "requestBody": {
           "content": {
@@ -3113,7 +3364,7 @@
         "tags": [
           "public"
         ],
-        "description": "Delete one of a group's connections. The value goes first, then the resource; if the resource delete fails the entry stays visible as not-ready and the delete can be retried.",
+        "description": "Delete one of a group's connections. The value goes first, then the resource; if the resource delete fails the entry stays visible as not-ready and the delete can be retried. In an install with `spec.secrets.mode: external` it deletes the `Connection` resource; the value in the enterprise's store is left alone.",
         "operationId": "connections_group_delete",
         "parameters": [
           {
@@ -7450,7 +7701,7 @@
         "tags": [
           "public"
         ],
-        "description": "Start a run now. A viewer (`spec.viewers`) may run the owner's statement and stop its runs: running cannot change what the pipeline does. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). The body is optional: `runDate` (a `YYYY-MM-DD` calendar date, past or future) applies to this run only, as does `params`, this run's values of the schedule's `${params.<name>}` placeholders (at most 16, lower-case names, values up to 256 characters); the stored schedule never changes, and neither value is audited. `logicalDate` stays now, UTC, whole seconds, so the run has tasks — the date travels as Airflow's `dag_run.conf` instead. An absent body or `{}` starts a run for now with the schedule's parameters, exactly as before. Every attempt that reaches the run logic, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.",
+        "description": "Start a run now. A viewer (`spec.viewers`) may run the owner's statement and stop its runs: running cannot change what the pipeline does. Nova refuses instead of passing Airflow's silent behaviour on: a pipeline the scheduler has not loaded yet answers 409, a paused pipeline 409 (Airflow would create a run that waits `queued` until someone resumes), more than ten starts per user per minute 429, and a `Forbid` or `Replace` pipeline whose latest five runs include a queued or running one 409 (`Allow` skips that check). The body is optional: `runDate` (a `YYYY-MM-DD` calendar date, past or future) applies to this run only, as does `params`, this run's values of the schedule's `${params.<name>}` placeholders (at most 16, lower-case names, values up to 256 characters); the stored schedule never changes, and neither value is audited. `logicalDate` stays now, UTC, with microseconds so two starts in one second are two runs and the run still has tasks — the date travels as Airflow's `dag_run.conf` instead. An absent body or `{}` starts a run for now with the schedule's parameters, exactly as before. Every attempt that reaches the run logic, including a refusal, writes one audit line without note text. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_run_trigger",
         "parameters": [
           {
@@ -8602,7 +8853,7 @@
           "public"
         ],
         "summary": "`GET /api/query-log/usage?scope=&by=&warehouse=&from=&to=` — compute and bytes added up.",
-        "description": "Compute and bytes added up per person, warehouse or day, with the query log's visibility: your own, your team's service principals, or everyone's for administrators. The window defaults to the last 7 days.",
+        "description": "Compute and bytes added up per person, warehouse, day or group, with the query log's visibility: your own, your team's service principals, or everyone's for administrators. A group is the `groups` claim the person's token carried at the last write to the person directory; a principal the directory does not know, such as the superset service account, and a person with no group fall into one honest 'unknown' row. A person in several groups appears in each of them, so the total counts every query once. The window defaults to the last 7 days. When a price per CPU-hour is configured, each row carries an estimated cost — an estimate, never a bill.",
         "operationId": "query_log_usage",
         "parameters": [
           {
@@ -8617,7 +8868,7 @@
           {
             "name": "by",
             "in": "query",
-            "description": "principal (default), warehouse or day (UTC)",
+            "description": "principal (default), warehouse, day (UTC) or group (the groups the sign-in token carried)",
             "required": false,
             "schema": {
               "type": "string"
@@ -10920,6 +11171,67 @@
   },
   "components": {
     "schemas": {
+      "AccessRequest": {
+        "type": "object",
+        "description": "A row as the API returns it. `created_at` and `state_changed_at` are RFC 3339 in UTC.",
+        "required": [
+          "id",
+          "requesterSub",
+          "requesterName",
+          "groupName",
+          "catalog",
+          "verbs",
+          "reason",
+          "state",
+          "createdAt",
+          "stateChangedAt"
+        ],
+        "properties": {
+          "catalog": {
+            "type": "string",
+            "description": "The catalog the access is asked for."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When it was created, RFC 3339."
+          },
+          "groupName": {
+            "type": "string",
+            "description": "The group whose approval is asked for."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why, in one sentence."
+          },
+          "requesterName": {
+            "type": "string",
+            "description": "Their display name, as the token carried it."
+          },
+          "requesterSub": {
+            "type": "string",
+            "description": "The `sub` of the person who asked."
+          },
+          "state": {
+            "type": "string",
+            "description": "`open` or `withdrawn`."
+          },
+          "stateChangedAt": {
+            "type": "string",
+            "description": "When its state last changed, RFC 3339."
+          },
+          "verbs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The requested verbs, sorted: one or more of `browse`, `select`, `write`, `create`."
+          }
+        }
+      },
       "AdminCatalog": {
         "type": "object",
         "description": "One catalog, as an administrator sees it.\n\n`displayName`, `description`, `owner`, `keyPrefix`, `warehouseId` and the two\ngeneration numbers are `null` when the resource does not carry them — never\nan empty string or a guessed value.",
@@ -12655,7 +12967,8 @@
         "type": "object",
         "description": "`GET /api/connections` answer.",
         "required": [
-          "connections"
+          "connections",
+          "store"
         ],
         "properties": {
           "connections": {
@@ -12663,6 +12976,41 @@
             "items": {
               "$ref": "#/components/schemas/ConnectionView"
             }
+          },
+          "store": {
+            "type": "boolean",
+            "description": "Whether this install has the platform's own secret store. `false` in\n`spec.secrets.mode: external`, where a connection names a path in the\nenterprise's store and the operator syncs it."
+          }
+        }
+      },
+      "CreateAccessRequest": {
+        "type": "object",
+        "description": "`POST /api/access-requests` body. The requester is never part of it.",
+        "required": [
+          "group",
+          "catalog",
+          "verbs",
+          "reason"
+        ],
+        "properties": {
+          "catalog": {
+            "type": "string",
+            "description": "The catalog the access is asked for."
+          },
+          "group": {
+            "type": "string",
+            "description": "The group whose approval is asked for; the caller must be a member."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why, in one sentence, at most 500 characters."
+          },
+          "verbs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What to ask for: one or more of `browse`, `select`, `write`, `create`."
           }
         }
       },
@@ -14136,6 +14484,13 @@
               "null"
             ]
           },
+          "remoteRef": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`secrets.mode: external`: the path of the value in the enterprise store. A request with\nthis carries no values; Nova creates the `Connection` and the operator syncs it."
+          },
           "scope": {
             "$ref": "#/components/schemas/Scope"
           },
@@ -14150,6 +14505,13 @@
               "type": "string",
               "writeOnly": true
             }
+          },
+          "secretKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "`secrets.mode: external`: the property names in the store entry, one per field."
           },
           "type": {
             "type": "string"
@@ -16123,6 +16485,58 @@
           }
         }
       },
+      "QueryUsageRow": {
+        "type": "object",
+        "description": "One line of the usage answer: a person, a warehouse or a day, and what it cost.",
+        "required": [
+          "key",
+          "queries",
+          "failed",
+          "cpuMs",
+          "wallMs",
+          "inputBytes",
+          "writtenBytes"
+        ],
+        "properties": {
+          "cpuMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "estimatedCost": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "CPU time at the configured price, rounded to cents; `null` when no price is configured."
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int64",
+            "description": "How many of `queries` failed."
+          },
+          "inputBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string",
+            "description": "The principal (engine user), the warehouse name, the UTC day as `YYYY-MM-DD`, or the\ngroup a person's token carried."
+          },
+          "queries": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "wallMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "writtenBytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "ReadTable": {
         "type": "object",
         "description": "One table a person read most, with its newest write.",
@@ -17974,7 +18388,7 @@
         "properties": {
           "by": {
             "type": "string",
-            "description": "principal, warehouse or day."
+            "description": "principal, warehouse, day or group."
           },
           "from": {
             "type": "integer",
@@ -17984,16 +18398,44 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/UsageRow"
+              "$ref": "#/components/schemas/QueryUsageRow"
             }
+          },
+          "price": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UsagePrice",
+                "description": "The rate `estimatedCost` uses; absent when showback is off."
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "to": {
             "type": "integer",
             "format": "int64"
           },
           "total": {
-            "$ref": "#/components/schemas/UsageRow",
+            "$ref": "#/components/schemas/QueryUsageRow",
             "description": "Every item added together; its `key` is `total`."
+          }
+        }
+      },
+      "UsagePrice": {
+        "type": "object",
+        "description": "The rate `estimatedCost` uses; absent when showback is off.",
+        "required": [
+          "cpuHourPrice",
+          "currency"
+        ],
+        "properties": {
+          "cpuHourPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string"
           }
         }
       },

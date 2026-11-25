@@ -49,13 +49,13 @@ Operation id `query_log_usage`: in Python `client.call("query_log_usage", …)`,
 
 `GET /api/query-log/usage?scope=&by=&warehouse=&from=&to=` — compute and bytes added up.
 
-Compute and bytes added up per person, warehouse or day, with the query log's visibility: your own, your team's service principals, or everyone's for administrators. The window defaults to the last 7 days.
+Compute and bytes added up per person, warehouse, day or group, with the query log's visibility: your own, your team's service principals, or everyone's for administrators. A group is the `groups` claim the person's token carried at the last write to the person directory; a principal the directory does not know, such as the superset service account, and a person with no group fall into one honest 'unknown' row. A person in several groups appears in each of them, so the total counts every query once. The window defaults to the last 7 days. When a price per CPU-hour is configured, each row carries an estimated cost — an estimate, never a bill.
 
 **Parameters**
 
 | Name | In | Type | Required | Description |
 | --- | --- | --- | --- | --- |
-| `by` | query | string | No | principal (default), warehouse or day (UTC) |
+| `by` | query | string | No | principal (default), warehouse, day (UTC) or group (the groups the sign-in token carried) |
 | `from` | query | integer | No | Created at or after this time; the last 7 days by default |
 | `scope` | query | string | No | mine (default), team or all. team is the service principals owned by the caller's groups; all is for administrators |
 | `to` | query | integer | No | Created at or before this time; now by default |

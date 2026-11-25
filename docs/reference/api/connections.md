@@ -16,7 +16,7 @@ The operations Nova tags `public` under `/api/connections`. Generated from `refe
 
 Operation id `connections_list`: in Python `client.call("connections_list", …)`, on the command line `stardelt api connections_list`.
 
-The caller's connections: their own, their groups', and — for administrators — the managed ones. Values are never part of an answer, only the field names.
+The caller's connections: their own, their groups', and — for administrators — the managed ones. Values are never part of an answer, only the field names. Without a configured store (an install with `spec.secrets.mode: external`) the answer is built from the `Connection` resources: the caller's groups' rows, the ones they are a viewer of, and managed ones for an administrator, with no value.
 
 **Responses**
 
@@ -31,7 +31,7 @@ The caller's connections: their own, their groups', and — for administrators �
 
 Operation id `connections_create`: in Python `client.call("connections_create", …)`, on the command line `stardelt api connections_create`.
 
-Create a connection. The values in `secret` are written to the platform's secret store with the caller's own token and are never returned by any route.
+Create a connection. The values in `secret` are written to the platform's secret store with the caller's own token and are never returned by any route. In an install with `spec.secrets.mode: external` there is no platform store: the body names `remoteRef` (the path in the enterprise store) and `secretKeys`, carries no value, and the operator syncs the connection.
 
 **Request body**
 
@@ -41,8 +41,10 @@ Create a connection. The values in `secret` are written to the platform's secret
 | `name` | string | Yes |  |  |  |
 | `ownerGroup` | string (nullable) | No |  |  |  |
 | `refreshInterval` | string (nullable) | No |  |  |  |
+| `remoteRef` | string (nullable) | No |  | `secrets.mode: external`: the path of the value in the enterprise store. A request with this carries no values; Nova creates the `Connection` and the operator syncs it. |  |
 | `scope` | string | Yes |  |  | `personal`, `group`, `managed` |
 | `secret` | object (map of string) | Yes |  | The secret field values. Write-only: Nova stores them and never reads them back. |  |
+| `secretKeys` | array of string | No |  | `secrets.mode: external`: the property names in the store entry, one per field. |  |
 | `type` | string | Yes |  |  |  |
 | `usableBy` | array of string | No |  |  |  |
 
@@ -77,7 +79,7 @@ The last 200 break-glass reads and refusals, newest first, for administrators. T
 
 Operation id `connections_group_delete`: in Python `client.call("connections_group_delete", …)`, on the command line `stardelt api connections_group_delete`.
 
-Delete one of a group's connections. The value goes first, then the resource; if the resource delete fails the entry stays visible as not-ready and the delete can be retried.
+Delete one of a group's connections. The value goes first, then the resource; if the resource delete fails the entry stays visible as not-ready and the delete can be retried. In an install with `spec.secrets.mode: external` it deletes the `Connection` resource; the value in the enterprise's store is left alone.
 
 **Parameters**
 
