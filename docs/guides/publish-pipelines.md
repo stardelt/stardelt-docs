@@ -125,6 +125,21 @@ The token is one Nova accepts for a member of the bundle's owner group; keep it 
 `plan` names the field that changes; add `--diff` to see the change itself: a unified diff of each changed field on standard error,
 after the JSON lines, which stay as they are.
 
+### A preview of the pull request
+
+A reviewer should see the change run, not only read it. `--preview` deploys the bundle as a copy whose names carry the pull request's id and whose schedules are removed, so nothing fires and nothing touches the stage's own pipelines:
+
+```bash
+stardelt bundle deploy shop -t dev --preview pr-123          # pr-123-<pipeline>, no schedule
+stardelt bundle deploy shop -t dev --preview pr-123 --ttl 3  # how many days it lives (1 to 30, default 7)
+```
+
+A preview is allowed on a **development** target only, and it creates or updates only the objects of this bundle and target: `pr-123-shop-1-bronze` is not the `shop-1-bronze` a merge deploys. The deploy records the id and the expiry on every pipeline and stream it writes (`stardelt.io/preview` and `stardelt.io/expires-at`); the pipeline page shows `preview pr-123 · expires …` under **Deployed from**, and Nova removes an expired copy within ten minutes, with one audit line per object.
+
+A preview whose target has **pending migrations** is refused: a migration changes tables outside the copy. Deploy the target without `--preview` once, then deploy the preview. At most **five** previews of one bundle per person and **twenty** preview copies per stage exist at once; the refusal names the copies to remove.
+
+`stardelt bundle destroy shop -t dev --preview pr-123 --yes` removes the copy at once. Run it when the pull request closes, so the copy does not wait for its expiry.
+
 ## 4. Publish to production
 
 ```bash
@@ -257,4 +272,4 @@ The page is built on `GET /api/pipelines` (the `deployment` stamp), `GET /api/st
 ## What is not there yet
 
 - Publishing only the data whose checks passed: [Publish only checked data](checked-publishing.md).
-- A temporary stage per pull request.
+- A comment on the pull request that links the preview's pipelines; today the deploy prints their names.
