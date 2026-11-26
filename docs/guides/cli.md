@@ -181,14 +181,16 @@ values each one takes.
 
 | Resource | Verbs |
 |---|---|
+| `access` | `requests-create`, `requests-list`, `requests-read`, `requests-withdraw` |
 | `ask` | `answer`, `feedback`, `history` |
 | `auth` | `config` |
-| `catalog` | `metrics-get`, `metrics-refresh`, `search` |
+| `catalog` | `health-list`, `metrics-get`, `metrics-refresh`, `search` |
 | `catalogs` | `list` |
 | `column` | `description-update` |
-| `compute` | `list`, `start`, `stop` |
+| `compute` | `ensure`, `list`, `start`, `stop` |
 | `connections` | `break-glass-log`, `create`, `group-break-glass`, `group-delete`, `group-rotate`, `list`, `managed-break-glass`, `managed-delete`, `managed-rotate`, `personal-break-glass`, `personal-delete`, `personal-rotate` |
-| `deployments` | `get`, `list`, `record` |
+| `deployments` | `get`, `list`, `plan`, `record`, `rollback` |
+| `destinations` | `create`, `list`, `remove`, `test` |
 | `health` | — |
 | `lineage` | `columns`, `graph`, `read-tables`, `run-detail` |
 | `me` | — |
@@ -196,8 +198,9 @@ values each one takes.
 | `model` | `endpoints-list` |
 | `namespaces` | `list` |
 | `notebooks` | `content`, `delete`, `list`, `parameters`, `publish`, `usage`, `versions` |
+| `nova` | `version` |
 | `openapi` | `document` |
-| `pipelines` | `check`, `create`, `delete`, `get`, `list`, `pause`, `preview-schedule`, `principals`, `resume`, `run-get`, `run-queries`, `run-retry`, `run-stop`, `run-task-logs`, `run-task-notebook`, `run-trigger`, `spec`, `update`, `validate` |
+| `pipelines` | `check`, `create`, `delete`, `get`, `list`, `pause`, `preview-schedule`, `principals`, `resume`, `run-checks`, `run-get`, `run-queries`, `run-retry`, `run-stop`, `run-task-logs`, `run-task-notebook`, `run-trigger`, `spec`, `update`, `validate` |
 | `query` | `log-detail`, `log-history`, `log-list`, `log-profile`, `log-usage`, `run` |
 | `runs` | `list` |
 | `saved` | `queries-create`, `queries-list`, `queries-remove`, `queries-share`, `queries-unshare` |
@@ -205,7 +208,7 @@ values each one takes.
 | `stages` | `compare` |
 | `statements` | `cancel`, `chunk-get`, `get`, `list`, `submit` |
 | `streams` | `delete`, `list`, `patch`, `put`, `validate` |
-| `table` | `documentation-get`, `documentation-update`, `history`, `metadata`, `rollback` |
+| `table` | `documentation-get`, `documentation-update`, `freshness-get`, `freshness-update`, `history`, `metadata`, `rollback` |
 | `tables` | `list` |
 | `verified` | `queries-check`, `queries-check-all`, `queries-create`, `queries-delete`, `queries-list` |
 | `warehouse` | `info` |
