@@ -35,7 +35,7 @@ but resources, APIs and install steps can still change before `0.1.0`. Install a
 - **Your data stays with you.** Everything runs in your cluster. stardelt's own components make no
   required outbound calls, and there is no license server. See [Sovereignty](../architecture/sovereignty).
 - **You can leave.** Tables are open Iceberg and Parquet files on storage you choose.
-- **No license surprises.** Permissive licenses throughout, with one documented exception. See the
+- **No license surprises.** Permissive licenses, with every exception named. See the
   [license policy](../architecture/licenses).
 - **Standard parts.** Trino, Iceberg, Airflow, Superset and JupyterHub are what they are upstream,
   so what you already know still applies.
