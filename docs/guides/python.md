@@ -47,11 +47,14 @@ by Nova from your groups, exactly as in the interface.
 
 ## The client
 
+The examples read `samples.trips`; on a fresh install, run `stardelt samples load trips` once first
+(the command names the catalog it wrote, so the full name may be `gold.samples.trips`).
+
 ```python
 import stardelt
 
 nova = stardelt.api.Client()
-nova.call("table_history", path={"ns": "demo", "tbl": "trips"})
+nova.call("table_history", path={"ns": "samples", "tbl": "trips"})
 nova.call("pipelines_run_trigger", path={"namespace": "etl", "name": "nyc_taxi"})
 ```
 
@@ -76,6 +79,9 @@ error that lists the accepted ones before any request is sent.
 The examples name `warehouse`, the platform's own catalog. On an install with sign-in it is
 **administrators only** — use a catalog your groups were granted. The **Catalogs** page lists yours, and
 `SHOW CATALOGS` answers the same question in the SQL editor.
+
+`stardelt samples load trips` writes the sample into the catalog you pass with `--catalog`, or the
+one Nova uses for you, and prints the full name: use that catalog in place of `warehouse` below.
 :::
 
 `stardelt sql` holds one request open until the query ends and returns at most 50 000 rows or about 64 MiB of data. For longer queries, or when you need
@@ -83,7 +89,7 @@ to cancel one from another process, submit a *statement*: you get a handle at on
 cancel it by its id.
 
 ```bash
-stardelt statements submit --body '{"sql": "select * from warehouse.demo.trips", "waitSeconds": 0}'   # answers with a statementId
+stardelt statements submit --body '{"sql": "select * from warehouse.samples.trips", "waitSeconds": 0}'   # answers with a statementId
 stardelt statements get STATEMENT_ID -q waitSeconds=10     # waits up to 10 seconds for it to end, then answers with its state
 stardelt statements chunk-get STATEMENT_ID 0               # rows 0 to 999; the next chunk is 1
 stardelt statements cancel STATEMENT_ID                    # stops it in the query engine and forgets it
@@ -91,7 +97,7 @@ stardelt statements cancel STATEMENT_ID                    # stops it in the que
 
 ```python
 nova = stardelt.api.Client()
-statement = nova.ops.statements.submit(body={"sql": "select * from warehouse.demo.trips", "waitSeconds": 0})
+statement = nova.ops.statements.submit(body={"sql": "select * from warehouse.samples.trips", "waitSeconds": 0})
 while statement["state"] in ("PENDING", "RUNNING"):
     statement = nova.ops.statements.get(id=statement["statementId"], waitSeconds=10)
 rows = nova.ops.statements.chunk_get(id=statement["statementId"], n=0)["rows"]
@@ -107,11 +113,11 @@ curl -s -H "Authorization: Bearer $STARDELT_TOKEN" -H 'Accept: text/csv' "$STARD
 When you just want the rows at the end, let the command or the notebook method do the submitting, polling and cancelling for you:
 
 ```bash
-stardelt sql "select * from warehouse.demo.trips" --long    # table, --format json or csv; up to 100 000 rows; Ctrl-C cancels it in the engine
+stardelt sql "select * from warehouse.samples.trips" --long    # table, --format json or csv; up to 100 000 rows; Ctrl-C cancels it in the engine
 ```
 
 ```python
-nova.statement("select * from warehouse.demo.trips").to_pandas()
+nova.statement("select * from warehouse.samples.trips").to_pandas()
 ```
 
 No request stays open while the query runs, and a statement that fails stops with the engine's sentence (the command exits `1`). The calls above are for

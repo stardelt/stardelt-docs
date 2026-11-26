@@ -44,6 +44,7 @@ sign-in is needed, so scripts can tell the cases apart.
 | `stardelt login` | sign in once with a code approved in a browser | [Sign in](#sign-in) |
 | `stardelt logout` | forget the stored sign-in | [Sign in](#sign-in) |
 | `stardelt sql` | run one statement as you | [Long-running SQL](./python#long-running-sql) |
+| `stardelt samples load` | load the generated sample table the guides use, as you, and print its full name | [Examples](#examples) |
 | `stardelt run` | start a pipeline run now; `--wait` waits for its end | [Pipelines from the command line](#pipelines-from-the-command-line) |
 | `stardelt apply` | create or update a pipeline from a JSON or YAML file | [Pipelines from the command line](#pipelines-from-the-command-line) |
 | `stardelt export` | write a pipeline as a file that `apply` accepts, YAML by default | [Pipelines from the command line](#pipelines-from-the-command-line) |
@@ -70,13 +71,19 @@ Run any of them with `--help` for the values it takes.
 
 ## Examples
 
+The examples read `warehouse.samples.trips`, a table no install ships. Create it once with
+`stardelt samples load trips`; the command writes it as you and prints the full name (for example
+`gold.samples.trips` when your groups may write `gold`), so use that name where the examples say
+`warehouse`.
+
 ```bash
-stardelt sql "select * from warehouse.demo.trips limit 5"   # a table; --format json or csv
+stardelt samples load trips                               # once: 10,000 generated rows, as you
+stardelt sql "select * from warehouse.samples.trips limit 5"   # a table; --format json or csv
 stardelt sql -f report.sql --format csv                     # from a file; -f - reads standard input
 stardelt run etl nyc_taxi --wait                            # exit 0 only when the run succeeded
 stardelt apply -f pipeline.yaml --dry-run                   # say what would happen, write nothing
 stardelt export etl nyc_taxi                                # the deployed pipeline as a YAML file
-stardelt lineage warehouse.demo.trips --downstream           # who depends on it
+stardelt lineage warehouse.samples.trips --downstream           # who depends on it
 stardelt bundle validate                                    # offline, in Git hooks and CI
 stardelt bundle plan -t dev                                 # what a deploy would change
 stardelt bundle deploy -t dev                               # checks every pipeline, then deploys
