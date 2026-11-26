@@ -269,12 +269,15 @@ kubectl -n stardelt get pods                     # everything Running/Completed
 ```
 
 ```console
-$ kubectl -n stardelt port-forward svc/trino 8443:8443
-$ trino --server https://localhost:8443 --insecure --external-authentication
+$ kubectl -n stardelt port-forward svc/trino 8080:8080
+$ trino --server http://localhost:8080
 trino> SELECT count(*) FROM system.runtime.nodes;
 ```
 
-The browser hands the token to the CLI (device grant) and you sign in with the same account as in Nova; `8080` answers `403` on purpose.
+That is the chart's default, `identity.mode: none`: Trino takes plain HTTP and no sign-in. A release install
+has sign-in: forward `svc/trino 8443:8443` and run
+`trino --server https://localhost:8443 --insecure --external-authentication`. The browser hands the token to
+the CLI and you sign in with the same account as in Nova; there `8080` answers `403` on purpose.
 
 Then open Nova (through your ingress, or run `kubectl -n stardelt port-forward svc/nova 8080:8080` and open http://localhost:8080).
 Its **Platform** page probes every service and lists each workload with the image it runs.
