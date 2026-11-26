@@ -16,8 +16,9 @@ and a sign-in: `stardelt login`, or `STARDELT_TOKEN` in a CI job. In CI, sign in
 
 Your group also needs a *pipeline identity*: the service identity `pipeline-<group>` that its pipelines run as, which an
 administrator creates once per group: a `ServicePrincipal` named `pipeline-<group>` with `spec.ownerGroup: <group>`. Until it is
-ready, `plan` and `deploy` refuse with `No principal for this group yet` and name the command to start with
-(`make sync-principal NAME=pipeline-<group> GROUP=<group>`). In the platform checkout, `make demo-access` does all of it for the
+ready, `plan` and `deploy` refuse with `No principal for this group yet` and name what to create (a
+`ServicePrincipal` named `pipeline-<group>` with `spec.ownerGroup: <group>`; on a `make install` platform,
+`make sync-principal NAME=pipeline-<group> GROUP=<group>`). In the platform checkout, `make demo-access` does all of it for the
 group `demo` (`GROUP=` names another one) and also checks that the Catalogs `bronze`, `silver` and `gold` exist.
 
 ## 1. Describe what you publish
