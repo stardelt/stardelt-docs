@@ -16,7 +16,7 @@ The operations Nova tags `public` under `/api/catalog`. Generated from `referenc
 
 Operation id `catalogs_list`: in Python `client.call("catalogs_list", …)`, on the command line `stardelt api catalogs_list`.
 
-The catalogs the caller may browse, each with its Lakekeeper warehouse id and its medallion layer when it has one, plus the catalog a request without `?catalog=` uses. Its `owner` is `spec.owner` of the catalog's `Catalog` resource and `description` is `spec.description` (null without a resource); `grants` is `spec.grants` in declared order — one group and one verb (`browse`, `select`, `write`, `create`, `manage`) each — and empty when the catalog declares none, so a member can see whose data it is and which groups may read or write it. The order is bronze, silver, gold first (in that order), then the rest alphabetically; `layer` is `stardelt.io/layer` from the catalog's `Catalog` resource, else the catalog's own name when that is `bronze`, `silver` or `gold`, and absent otherwise; `environment` is `production` when the resource carries `stardelt.io/environment: production`, and absent otherwise. The list is what the engine's `SHOW CATALOGS` shows the caller (through the caller's own token), minus the engine's own catalogs (`system`, `information_schema`, `memory`, `tpch`, `tpcds`, `jmx`); it is cached for 30 s (the layer for 60 s; the owner and grants are read on every request). Every other `/api/catalog/*` route takes the same `?catalog=`; a catalog the caller may not browse answers 403 there and is never proxied. Empty when no catalog is open to the caller. `demo` in demo mode.
+The catalogs the caller may browse, each with its Lakekeeper warehouse id and its medallion layer when it has one, plus the catalog a request without `?catalog=` uses. Its `owner` is `spec.owner` of the catalog's `Catalog` resource and `description` is `spec.description` (null without a resource); `grants` is `spec.grants` in declared order — one group and one verb (`browse`, `select`, `write`, `create`, `manage`) each — and empty when the catalog declares none, so a member can see whose data it is and which groups may read or write it. The order is bronze, silver, gold first (in that order), then the rest alphabetically; `layer` is `stardelt.io/layer` from the catalog's `Catalog` resource, else the catalog's own name when that is `bronze`, `silver` or `gold`, and absent otherwise; `environment` is `production` when the resource carries `stardelt.io/environment: production`, and absent otherwise. The list is what the engine's `SHOW CATALOGS` shows the caller (through the caller's own token), minus the engine's own catalogs (`system`, `information_schema`, `memory`, `tpch`, `tpcds`, `jmx`); it is cached for 30 s (the layer for 60 s; the owner and grants are read on every request). Every other `/api/catalog/*` route takes the same `?catalog=`; a catalog the caller may not browse answers 403 there and is never proxied. Empty when no catalog is open to the caller.
 
 **Responses**
 
@@ -109,7 +109,7 @@ List tables in one namespace of one catalog. `?catalog=` picks the catalog; omit
 
 Operation id `catalog_search`: in Python `client.call("catalog_search", …)`, on the command line `stardelt api catalog_search`.
 
-Find tables in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case, or when one of its documented fields (the description, a tag, the owner, the domain) contains every word — a table found both ways appears once. `tag`, `owner` and `domain` narrow the answer to documented tables: a table without a documentation row has no tag, owner or domain, so it is not shown. Those three filters need the state store and answer 503 without it (demo mode has none). The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only single-level namespaces are searched. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.
+Find tables in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case, or when one of its documented fields (the description, a tag, the owner, the domain) contains every word — a table found both ways appears once. `tag`, `owner` and `domain` narrow the answer to documented tables: a table without a documentation row has no tag, owner or domain, so it is not shown. Those three filters need the state store and answer 503 without it. The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only single-level namespaces are searched. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.
 
 **Parameters**
 
@@ -163,7 +163,7 @@ Iceberg metadata for one table (metadata location plus the metadata document). `
 
 Operation id `column_description_update`: in Python `client.call("column_description_update", …)`, on the command line `stardelt api column_description_update`.
 
-Set or remove one column's description. The column must be a field of the current schema, matched exactly. Nova runs `COMMENT ON COLUMN <catalog>.<ns>.<tbl>.<column>` through Trino **as the caller** (source `nova-catalog`), because a column description lives in a new Iceberg schema and only the engine writes it. `?catalog=` picks the catalog. Same 4,000-character limit and null rule as the table description. The interim rule is enforced by Nova; the catalog does not enforce it yet. Demo mode answers 503.
+Set or remove one column's description. The column must be a field of the current schema, matched exactly. Nova runs `COMMENT ON COLUMN <catalog>.<ns>.<tbl>.<column>` through Trino **as the caller** (source `nova-catalog`), because a column description lives in a new Iceberg schema and only the engine writes it. `?catalog=` picks the catalog. Same 4,000-character limit and null rule as the table description. The interim rule is enforced by Nova; the catalog does not enforce it yet.
 
 **Parameters**
 
@@ -190,13 +190,12 @@ Set or remove one column's description. The column must be a field of the curren
 | `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
 | `404` | No such catalog, no such table or no such column in the current schema |
 | `502` | The catalog or the engine is not reachable |
-| `503` | Demo mode |
 
 ## GET /api/catalog/tables/\{ns\}/\{tbl\}/documentation
 
 Operation id `table_documentation_get`: in Python `client.call("table_documentation_get", …)`, on the command line `stardelt api table_documentation_get`.
 
-A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).
+A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties.
 
 **Parameters**
 
@@ -221,7 +220,7 @@ A table's documentation: the Iceberg `comment` as `description`, the `stardelt.t
 
 Operation id `table_documentation_update`: in Python `client.call("table_documentation_update", …)`, on the command line `stardelt api table_documentation_update`.
 
-Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`. Demo mode answers 503.
+Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`.
 
 **Parameters**
 
@@ -251,7 +250,64 @@ Set or remove a table's description, tags, owner, domain and guide in one Lakeke
 | `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
 | `404` | No such catalog or no such table |
 | `502` | The catalog is not reachable, did not answer, or stayed busy |
-| `503` | Demo mode |
+
+## GET /api/catalog/tables/\{ns\}/\{tbl\}/health
+
+Operation id `table_freshness_get`: in Python `client.call("table_freshness_get", …)`, on the command line `stardelt api table_freshness_get`.
+
+Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{"by":"07:00","timezone":"Europe/Berlin","graceMinutes":60,"setAt":"2026-11-25T06:00:00Z"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The table's freshness at the moment of the read |
+| `400` | A name is not a single path segment, or the catalog name is invalid |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable or did not answer |
+
+## PUT /api/catalog/tables/\{ns\}/\{tbl\}/health
+
+Operation id `table_freshness_update`: in Python `client.call("table_freshness_update", …)`, on the command line `stardelt api table_freshness_update`.
+
+Set or remove a table's freshness promise, stored as the Iceberg property `stardelt.freshness` (`{"by":"07:00","timezone":"Europe/Berlin","graceMinutes":60,"setAt":"..."}`). `?catalog=` picks the catalog. `by` is required: a 24-hour clock time `HH:MM` names a deadline, `null` removes the promise. A deadline needs an IANA `timezone`; `graceMinutes` is 0 to 1440 and defaults to 60. Removing a promise takes only `by: null`. A write with nothing to change sends no commit and answers the current status. The promise travels with the table, so any engine can read it; Nova evaluates it when the status is read. The interim rule is enforced by Nova: the catalog does not enforce it yet, and anyone who reaches Lakekeeper or Trino directly can still change the property.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `by` | string (nullable) | No |  | The deadline (`null` removes the promise). |  |
+| `graceMinutes` | integer (nullable) | No |  | How long after the deadline the table is still `amber` (0 to 1440, default 60). | min 0; format `int32` |
+| `timezone` | string (nullable) | No |  | The IANA zone of the deadline; required with a deadline. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The table's freshness after the change, freshly loaded |
+| `400` | The body is invalid, the catalog name is invalid, or the table has no owner and this request does not claim it |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable, did not answer, or stayed busy |
 
 ## GET /api/catalog/tables/\{ns\}/\{tbl\}/history
 
@@ -405,7 +461,7 @@ Run every verified query of one table as the caller, one after another, in id or
 
 Operation id `warehouse_info`: in Python `client.call("warehouse_info", …)`, on the command line `stardelt api warehouse_info`.
 
-The resolved warehouse name and id (`demo` in demo mode).
+The resolved warehouse name and id.
 
 **Responses**
 

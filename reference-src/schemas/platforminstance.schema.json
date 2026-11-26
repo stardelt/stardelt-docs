@@ -33,6 +33,17 @@
           },
           "type": "object"
         },
+        "defaultTheme": {
+          "default": "graphite",
+          "description": "Default theme for Nova's interface (the four ids of the theme library); a person's own\nchoice in Preferences wins. One of `dark`, `light`, `graphite` or `silver`.",
+          "enum": [
+            "dark",
+            "light",
+            "graphite",
+            "silver"
+          ],
+          "type": "string"
+        },
         "dryRun": {
           "default": true,
           "description": "Plan only (no cluster changes) until explicitly disabled. Safe default.",
@@ -270,6 +281,14 @@
             {
               "message": "ldap only works with mode platform, which runs the Keycloak that imports it",
               "rule": "!has(self.ldap) || self.mode == 'platform'"
+            },
+            {
+              "message": "identity.ldap.port must be 636 when tls is ldaps",
+              "rule": "!has(self.ldap) || self.ldap.tls != 'ldaps' || self.ldap.port == 636"
+            },
+            {
+              "message": "identity.ldap.port 636 needs tls: ldaps",
+              "rule": "!has(self.ldap) || self.ldap.tls == 'ldaps' || self.ldap.port != 636"
             }
           ]
         },

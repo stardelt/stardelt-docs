@@ -19,6 +19,10 @@ metadata:
   name: cluster
 spec:
   profile: demo
+  pillars:                           # the lakehouse (storage, catalog, SQL, Nova) is always on
+    pipelines: true                  # scheduled pipelines (Airflow): Nova's Pipelines page, `stardelt bundle run`
+    dashboards: true                 # dashboards (Superset), with the platform sign-in
+    notebooks: false                 # true: notebooks for everyone (JupyterHub); needs more memory
   namespace: stardelt
   dryRun: false
   baseDomain: data.example.com       # Nova answers here, every other application on a subdomain

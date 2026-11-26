@@ -18,8 +18,10 @@ const srcDir = join(root, 'reference-src');
 const repo = 'stardelt/stardelt';
 const operatorDir = 'operator';
 const novaDir = 'nova';
+const pythonDir = 'python';
 const operatorLink = `https://github.com/${repo}/tree/main/${operatorDir}`;
 const novaLink = `https://github.com/${repo}/tree/main/${novaDir}`;
+const pythonLink = `https://github.com/${repo}/tree/main/${pythonDir}`;
 
 const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const headers = {
@@ -92,9 +94,10 @@ async function writeDownload(file, url) {
 }
 
 async function main() {
-  const [operatorSha, novaSha] = await Promise.all([
+  const [operatorSha, novaSha, cliSha] = await Promise.all([
     artifactSha(repo, [`${operatorDir}/schemas`, `${operatorDir}/examples`]),
     artifactSha(repo, [`${novaDir}/openapi/nova.json`]),
+    artifactSha(repo, [`${pythonDir}/stardelt/cli.json`]),
   ]);
 
   const schemas = await directory(repo, `${operatorDir}/schemas`, operatorSha);
@@ -135,6 +138,12 @@ async function main() {
     `https://raw.githubusercontent.com/${repo}/${novaSha}/${novaDir}/openapi/nova.json`,
   );
 
+  console.log(`CLI description from ${repo}/${pythonDir}@${cliSha.slice(0, 8)}:`);
+  await writeDownload(
+    join(srcDir, 'cli.json'),
+    `https://raw.githubusercontent.com/${repo}/${cliSha}/${pythonDir}/stardelt/cli.json`,
+  );
+
   const synced = new Date().toISOString().slice(0, 10);
   const previous = await readFile(join(srcDir, 'README.md'), 'utf8').catch(() => '');
   // A row keeps its date while its source commit is unchanged. Both rows name the same repository,
@@ -154,6 +163,11 @@ async function main() {
     novaSha,
     `| \`nova-openapi.json\` | [\`${repo}\` \`${novaDir}/\`](${novaLink}) | \`${novaSha}\` | ${synced} |`,
   );
+  const cliRow = keepDate(
+    pythonLink,
+    cliSha,
+    `| \`cli.json\` | [\`${repo}\` \`${pythonDir}/\`](${pythonLink}) | \`${cliSha}\` | ${synced} |`,
+  );
   const readme = `# Reference snapshots
 
 Do not edit these files by hand. \`npm run sync:reference\` rewrites them from the public repositories.
@@ -162,6 +176,7 @@ Do not edit these files by hand. \`npm run sync:reference\` rewrites them from t
 |---|---|---|---|
 ${operatorRow}
 ${novaRow}
+${cliRow}
 
 \`npm run gen:reference\` turns these snapshots into \`docs/reference/\`; CI fails when the committed pages and
 the snapshots disagree. The snapshots are byte copies, but the generator drops references to internal design

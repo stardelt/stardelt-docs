@@ -19,6 +19,7 @@ A stardelt platform instance.
 | `spec.clusterOperation` | object | No | `{"reconciliationPaused":false,"stopped":false}` | Freeze this resource: no cluster changes, status phase `Paused`. |  |
 | `spec.clusterOperation.reconciliationPaused` | boolean | No | `false` | Stop reconciling: the operator writes `Paused` and applies nothing. |  |
 | `spec.clusterOperation.stopped` | boolean | No | `false` | Stop the workloads: scale every rendered Deployment and StatefulSet to zero, hibernate the namespace's CNPG databases, and report `Stopped`. Data, PVCs and Secrets stay. |  |
+| `spec.defaultTheme` | string | No | `graphite` | Default theme for Nova's interface (the four ids of the theme library); a person's own choice in Preferences wins. One of `dark`, `light`, `graphite` or `silver`. | `dark`, `light`, `graphite`, `silver` |
 | `spec.dryRun` | boolean | No | `true` | Plan only (no cluster changes) until explicitly disabled. Safe default. |  |
 | `spec.identity` | object | No | `{"adminGroup":"stardelt-admins","mode":"none","provider":"oidc"}` | How users sign in; see [`IdentitySpec`]. |  |
 | `spec.identity.adminGroup` | string | No | `stardelt-admins` | Members of this group are platform administrators. |  |
@@ -142,6 +143,8 @@ A stardelt platform instance.
 - client names are nova, trino, lakekeeper, superset, airflow, jupyterhub and trino-group-sync
 - every client except lakekeeper needs a clientSecretRef
 - ldap only works with mode platform, which runs the Keycloak that imports it
+- identity.ldap.port must be 636 when tls is ldaps
+- identity.ldap.port 636 needs tls: ldaps
 - ingress.tls.enabled needs ingress.tls.issuer, the name of a cert-manager ClusterIssuer
 - ingress.allowedCidrs: at most 64 entries
 - ingress.allowedCidrs: each entry is a CIDR such as 203.0.113.0/24

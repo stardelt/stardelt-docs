@@ -22,5 +22,5 @@ The caller: static user in `dev` mode, verified claims (never tokens) in `oidc` 
 
 | Code | Description |
 | --- | --- |
-| `200` | Current user, auth mode, demo flag and warehouse |
+| `200` | Current user, auth mode and warehouse |
 | `401` | Not signed in |

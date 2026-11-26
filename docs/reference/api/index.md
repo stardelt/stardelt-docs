@@ -19,8 +19,8 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 | [/api/access-requests](/docs/reference/api/access-requests) | 4 |
 | [/api/ask](/docs/reference/api/ask) | 3 |
 | [/api/auth](/docs/reference/api/auth) | 1 |
-| [/api/catalog](/docs/reference/api/catalog) | 16 |
-| [/api/compute](/docs/reference/api/compute) | 3 |
+| [/api/catalog](/docs/reference/api/catalog) | 18 |
+| [/api/compute](/docs/reference/api/compute) | 4 |
 | [/api/connections](/docs/reference/api/connections) | 12 |
 | [/api/dashboards](/docs/reference/api/dashboards) | 1 |
 | [/api/deployments](/docs/reference/api/deployments) | 5 |
@@ -38,11 +38,13 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 | [/api/query](/docs/reference/api/query) | 1 |
 | [/api/query-log](/docs/reference/api/query-log) | 5 |
 | [/api/runs](/docs/reference/api/runs) | 1 |
+| [/api/samples](/docs/reference/api/samples) | 1 |
 | [/api/saved-queries](/docs/reference/api/saved-queries) | 5 |
 | [/api/service-principals](/docs/reference/api/service-principals) | 1 |
 | [/api/stages](/docs/reference/api/stages) | 1 |
 | [/api/statements](/docs/reference/api/statements) | 5 |
 | [/api/streams](/docs/reference/api/streams) | 5 |
 | [/api/verified-queries](/docs/reference/api/verified-queries) | 2 |
+| [/api/version](/docs/reference/api/version) | 1 |
 | [/api/warehouses](/docs/reference/api/warehouses) | 2 |
 | [/api/workspace](/docs/reference/api/workspace) | 3 |
