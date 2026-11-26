@@ -31,6 +31,22 @@ Schema (15 columns, in order):
 - `state_nsw_hsw`
 - `ingested_at`
 
+## Quality checks
+
+The pipeline's last task, `checks`, runs three SQL assertions after the silver and gold tables
+are written. A check passes when its query returns no rows:
+
+- `station_uuid_present` — no measurement has a null station id;
+- `one_row_per_measurement` — one row per station, time series and measurement time after the
+  silver de-duplication;
+- `value_in_range` — every value in the latest-per-gauge table is between -1000 and 10000
+  (PEGELONLINE reports water levels in centimetres around the gauge datum).
+
+A failed check fails the run with one sentence naming every check and its row count, for
+example `1 quality check failed: one_row_per_measurement (3 rows)`. The gold tables of that run
+were already written; the red run is the signal to read the `checks` task log before trusting
+them. Making the checks a gate before gold is a later slice.
+
 ## Enable it
 
 The DAG ships paused (Airflow's default for a new DAG), so nothing is written until it is turned on.
