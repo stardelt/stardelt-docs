@@ -27,6 +27,29 @@ The catalogs the caller may browse, each with its Lakekeeper warehouse id and it
 | `502` | The query engine or the catalog is not reachable |
 | `503` | A catalog the engine lists has no warehouse |
 
+## GET /api/catalog/health
+
+Operation id `catalog_health_list`: in Python `client.call("catalog_health_list", …)`, on the command line `stardelt api catalog_health_list`.
+
+Every table of one catalog that carries a freshness promise, the most broken first: `red`, then `amber`, then `green`, and inside one status by `namespace.name`. The list is the answer `table_health` gives for one table, applied to every table the catalog lists; the promise is the Iceberg property `stardelt.freshness`. `?catalog=` picks the catalog. Views are not listed (they cannot carry the property), and a table that vanished between the list and the read is skipped. A table without a promise is not listed. `checked` is how many tables were read; the list stops after 200 tables, so a larger catalog answers a prefix. The interim rule is enforced by Nova: `canEdit` says whether this caller may set a table's promise.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The promised tables, worst first |
+| `400` | The catalog name is invalid |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog |
+| `502` | The catalog is not reachable or did not answer |
+
 ## GET /api/catalog/metrics
 
 Operation id `catalog_metrics_get`: in Python `client.call("catalog_metrics_get", …)`, on the command line `stardelt api catalog_metrics_get`.
@@ -255,7 +278,7 @@ Set or remove a table's description, tags, owner, domain and guide in one Lakeke
 
 Operation id `table_freshness_get`: in Python `client.call("table_freshness_get", …)`, on the command line `stardelt api table_freshness_get`.
 
-Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{"by":"07:00","timezone":"Europe/Berlin","graceMinutes":60,"setAt":"2026-11-25T06:00:00Z"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise.
+Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{"by":"07:00","timezone":"Europe/Berlin","graceMinutes":60,"setAt":"2026-11-25T06:00:00Z"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise. `checks` names the verified queries whose last check failed (`null` when no state store is configured).
 
 **Parameters**
 
@@ -296,6 +319,7 @@ Set or remove a table's freshness promise, stored as the Iceberg property `stard
 | --- | --- | --- | --- | --- | --- |
 | `by` | string (nullable) | No |  | The deadline (`null` removes the promise). |  |
 | `graceMinutes` | integer (nullable) | No |  | How long after the deadline the table is still `amber` (0 to 1440, default 60). | min 0; format `int32` |
+| `notify` | array of string (nullable) | No |  | The alert destinations; absent or empty means no alert. Replaces the stored list. |  |
 | `timezone` | string (nullable) | No |  | The IANA zone of the deadline; required with a deadline. |  |
 
 **Responses**

@@ -1365,6 +1365,88 @@
         }
       }
     },
+    "/api/catalog/health": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "Every table of one catalog that carries a freshness promise, the most broken first: `red`, then `amber`, then `green`, and inside one status by `namespace.name`. The list is the answer `table_health` gives for one table, applied to every table the catalog lists; the promise is the Iceberg property `stardelt.freshness`. `?catalog=` picks the catalog. Views are not listed (they cannot carry the property), and a table that vanished between the list and the read is skipped. A table without a promise is not listed. `checked` is how many tables were read; the list stops after 200 tables, so a larger catalog answers a prefix. The interim rule is enforced by Nova: `canEdit` says whether this caller may set a table's promise.",
+        "operationId": "catalog_health_list",
+        "parameters": [
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The promised tables, worst first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogHealth"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/catalog/metrics": {
       "get": {
         "tags": [
@@ -2310,7 +2392,7 @@
         "tags": [
           "public"
         ],
-        "description": "Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"2026-11-25T06:00:00Z\"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise.",
+        "description": "Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"2026-11-25T06:00:00Z\"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise. `checks` names the verified queries whose last check failed (`null` when no state store is configured).",
         "operationId": "table_freshness_get",
         "parameters": [
           {
@@ -5274,7 +5356,7 @@
           "public"
         ],
         "summary": "`POST /api/destinations` — `201` with the stored row.",
-        "description": "Create a notification destination for one of the caller's groups. An `email` destination carries `config.recipients` (1 to 20 addresses); a `webhook` destination carries `config.url` (http or https). Nothing here sends anything.",
+        "description": "Create a notification destination for one of the caller's groups. An `email` destination carries `config.recipients` (1 to 20 addresses); a `webhook` destination carries `config.url` (http or https). Nothing here sends anything. A webhook must be a public address; Nova never follows a redirect.",
         "operationId": "destinations_create",
         "requestBody": {
           "content": {
@@ -7327,7 +7409,7 @@
         "tags": [
           "public"
         ],
-        "description": "The caller's own groups and the pipeline principal of each. `principal` is `pipeline-<group>` when a `ServicePrincipal` of that name with `spec.ownerGroup` equal to the group exists; `ready` is its `status.ready`. `message` is `null` when it is ready, otherwise the `Ready` condition's message (or `no status yet`), and for a group without a principal the `make sync-principal NAME=pipeline-<group> GROUP=<group>` command that creates one. A group without a ready principal cannot schedule. Answers `Cache-Control: no-store`.",
+        "description": "The caller's own groups and the pipeline principal of each. `principal` is `pipeline-<group>` when a `ServicePrincipal` of that name with `spec.ownerGroup` equal to the group exists; `ready` is its `status.ready`. `message` is `null` when it is ready, otherwise the `Ready` condition's message (or `no status yet`), and for a group without a principal the `ServicePrincipal` to apply (on a `make install` platform, the `make sync-principal NAME=pipeline-<group> GROUP=<group>` command). A group without a ready principal cannot schedule. Answers `Cache-Control: no-store`.",
         "operationId": "pipelines_principals",
         "responses": {
           "200": {
@@ -7743,6 +7825,327 @@
           },
           "503": {
             "description": "No cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pipelines/{namespace}/{name}/backfills": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "description": "Start a backfill: run the pipeline once for every scheduled date between `fromDate` and `toDate`, inclusive, through Airflow's own backfill API. This is a change, not a run: a viewer (`spec.viewers`) answers 403, a paused pipeline 409 (Airflow would create the backfill and leave every run `queued`), and a pipeline the scheduler has not loaded yet 409. A dry run decides first: a range with no date to run answers 409 (dates that already ran are skipped unless `reprocess` asks for them: `none` (the default), `failed` or `completed`), more than 31 dates answers 400. Airflow's own refusal (409 when a backfill is already open for this pipeline) is passed on with its sentence. `params` are this backfill's values of the schedule's `${params.<name>}` placeholders, and travel as Airflow's `dag_run_conf` into every run. Answers 201 with the backfill and the dates it will run. The attempt is audited, including a refusal. Answers `Cache-Control: no-store`.",
+        "operationId": "pipelines_backfill_start",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The Pipeline's namespace (Nova's own)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackfillStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The backfill, started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackfillView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body is not JSON, a date is not `YYYY-MM-DD`, `fromDate` is after `toDate`, or the range has more than 31 dates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may see but not change this pipeline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such pipeline for this caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The pipeline is paused or not loaded, no date in the range would run, or a backfill is already open",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The scheduler or the cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or the scheduler is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pipelines/{namespace}/{name}/backfills/{id}": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The state of a backfill: `isPaused`, `completedAt` (its only completion signal) and the runs it created (`backfill__…`, with their date and state). Like starting one, this is the owner group's and administrators' verb: a viewer answers 403, and a backfill that does not exist answers 404. Answers `Cache-Control: no-store`.",
+        "operationId": "pipelines_backfill_state",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The Pipeline's namespace (Nova's own)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Airflow's backfill id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The backfill and its runs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackfillStateView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may see but not change this pipeline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such pipeline for this caller, or no such backfill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The scheduler or the cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or the scheduler is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "public"
+        ],
+        "description": "Cancel a backfill: Airflow sets its `completedAt` and fails every run that is still `queued`; a run already running keeps running (its side effects can still commit). This is the owner group's and administrators' verb: a viewer answers 403, and a backfill that does not exist answers 404. Answers the backfill and `Cache-Control: no-store`. The attempt is audited, including a refusal.",
+        "operationId": "pipelines_backfill_cancel",
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "description": "The Pipeline's namespace (Nova's own)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Pipeline name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Airflow's backfill id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The backfill, now cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackfillView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may see but not change this pipeline",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such pipeline for this caller, or no such backfill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The scheduler or the cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection, or the scheduler is not configured",
             "content": {
               "application/json": {
                 "schema": {
@@ -12128,6 +12531,141 @@
           }
         }
       },
+      "BackfillDateView": {
+        "type": "object",
+        "description": "One date of the dry run.",
+        "required": [
+          "date"
+        ],
+        "properties": {
+          "date": {
+            "type": "string"
+          }
+        }
+      },
+      "BackfillRunView": {
+        "type": "object",
+        "description": "One run of a backfill.",
+        "required": [
+          "runId",
+          "date",
+          "state"
+        ],
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        }
+      },
+      "BackfillStart": {
+        "type": "object",
+        "description": "The body of `POST …/backfills`: an inclusive range of UTC days and how to treat dates that\nalready ran. The days are `YYYY-MM-DD`.",
+        "required": [
+          "fromDate",
+          "toDate"
+        ],
+        "properties": {
+          "fromDate": {
+            "type": "string"
+          },
+          "params": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "reprocess": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "toDate": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BackfillStateView": {
+        "type": "object",
+        "description": "The answer of `GET …/backfills/{id}`: the backfill and the runs it created.",
+        "required": [
+          "id",
+          "isPaused",
+          "runs"
+        ],
+        "properties": {
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "isPaused": {
+            "type": "boolean"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BackfillRunView"
+            }
+          }
+        }
+      },
+      "BackfillView": {
+        "type": "object",
+        "description": "The answer of a start and of a cancel.",
+        "required": [
+          "id",
+          "fromDate",
+          "toDate",
+          "reprocess",
+          "dates"
+        ],
+        "properties": {
+          "completedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BackfillDateView"
+            }
+          },
+          "fromDate": {
+            "type": "string"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reprocess": {
+            "type": "string"
+          },
+          "toDate": {
+            "type": "string"
+          }
+        }
+      },
       "BreakGlassLogResponse": {
         "type": "object",
         "description": "`GET /api/connections/break-glass-log`: the last 200 reads and refusals, newest first. It has\nno values by construction (see [`audit::BreakGlassRecord`]).",
@@ -12394,6 +12932,27 @@
           "verb": {
             "type": "string",
             "description": "One of `browse`, `select`, `write`, `create`, `manage`."
+          }
+        }
+      },
+      "CatalogHealth": {
+        "type": "object",
+        "description": "`GET /api/catalog/health`: every table that carries a freshness promise, worst first.",
+        "required": [
+          "tables",
+          "checked"
+        ],
+        "properties": {
+          "checked": {
+            "type": "integer",
+            "description": "How many tables were read; `tables` stops at 200.",
+            "minimum": 0
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListedHealth"
+            }
           }
         }
       },
@@ -13799,7 +14358,7 @@
       },
       "DeploymentView": {
         "type": "object",
-        "description": "What `view_of` shows of a [`Provenance`], with who deployed and when.",
+        "description": "What `view_of` shows of a [`Provenance`], with who deployed and when. A preview deploy also\nnames its id and the moment the copy is due (`stardelt.io/preview`, `stardelt.io/expires-at`);\nthe two come together or not at all.",
         "required": [
           "bundle",
           "target"
@@ -13820,12 +14379,26 @@
               "null"
             ]
           },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When the preview copy is due to be removed, when it is one."
+          },
           "modified": {
             "type": [
               "boolean",
               "null"
             ],
             "description": "`true` when what the deploy decides differs from what it wrote: a pipeline's run,\nschedule, parameters and options, or a stream's source, sink, engine and restart policy.\nSomeone used the form, the YAML editor or `kubectl` since. Left out when they match, and\nfor a resource stamped before the digest existed."
+          },
+          "preview": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The preview this deploy belongs to, when it is one."
           },
           "repository": {
             "type": [
@@ -14083,6 +14656,33 @@
           }
         }
       },
+      "FailingCheck": {
+        "type": "object",
+        "description": "One verified query whose last check failed.",
+        "required": [
+          "question"
+        ],
+        "properties": {
+          "lastCheckAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When its last check ran, RFC 3339, or `null` when it never ran."
+          },
+          "lastCheckMessage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "What the last check found, in one sentence."
+          },
+          "question": {
+            "type": "string",
+            "description": "The question the query answers, in words."
+          }
+        }
+      },
       "Freshness": {
         "type": "object",
         "description": "The freshness promise stored as JSON text in [`FRESHNESS_PROPERTY`].",
@@ -14101,6 +14701,13 @@
             "format": "int32",
             "description": "How long after the deadline the table is still `amber`.",
             "minimum": 0
+          },
+          "notify": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The destinations told when this table turns red, and when it is green again (#402).\nNames of `destination` rows of the table's owner group."
           },
           "setAt": {
             "type": "string",
@@ -14131,6 +14738,16 @@
             "format": "int32",
             "description": "How long after the deadline the table is still `amber` (0 to 1440, default 60).",
             "minimum": 0
+          },
+          "notify": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "The alert destinations; absent or empty means no alert. Replaces the stored list."
           },
           "timezone": {
             "type": [
@@ -14521,6 +15138,62 @@
           },
           "url": {
             "type": "string"
+          }
+        }
+      },
+      "ListedHealth": {
+        "type": "object",
+        "description": "One promised table in `GET /api/catalog/health`.",
+        "required": [
+          "catalog",
+          "namespace",
+          "name",
+          "status",
+          "canEdit",
+          "detail"
+        ],
+        "properties": {
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the interim rule lets this caller set the promise."
+          },
+          "catalog": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string",
+            "description": "The promise's own sentence, the one the table page shows (`TableFreshness.detail`)."
+          },
+          "dueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The most recent deadline at or before now, RFC 3339, or `null`."
+          },
+          "lastWrite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The newest commit, RFC 3339, or `null` for a table with no snapshot."
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "nextDueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The first deadline strictly after now, RFC 3339, or `null`."
+          },
+          "status": {
+            "type": "string",
+            "description": "`grey`, `green`, `amber` or `red`; a listed table is never `grey`."
           }
         }
       },
@@ -16128,7 +16801,8 @@
         "required": [
           "kind",
           "name",
-          "action"
+          "action",
+          "modified"
         ],
         "properties": {
           "action": {
@@ -16145,6 +16819,10 @@
           "kind": {
             "type": "string",
             "description": "`Pipeline` or `StreamApp`."
+          },
+          "modified": {
+            "type": "boolean",
+            "description": "`true` when the object was changed outside the bundle after its last deploy\n(`deployment.modified`): applying this document overwrites that change. `false` for a\n`create`, a delete row, and an object whose stamp carries no digest yet."
           },
           "name": {
             "type": "string"
@@ -16393,6 +17071,20 @@
           "bundle": {
             "type": "string",
             "description": "The bundle's name: 3 to 40 lower-case letters, digits and dashes."
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "When the preview copy is due to be removed, RFC 3339. At most 31 days after the deploy."
+          },
+          "preview": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The preview this deploy belongs to (`stardelt bundle deploy --preview ID`).\nOmitted on a normal deploy; set together with `expires_at`."
           },
           "repository": {
             "type": [
@@ -18279,6 +18971,41 @@
           }
         }
       },
+      "TableChecks": {
+        "type": "object",
+        "description": "The verified-query checks of one table, as they last ran (`#402` point 2).",
+        "required": [
+          "total",
+          "failed",
+          "failing"
+        ],
+        "properties": {
+          "failed": {
+            "type": "integer",
+            "description": "How many of them failed their last check.",
+            "minimum": 0
+          },
+          "failing": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FailingCheck"
+            },
+            "description": "At most five, newest check first."
+          },
+          "lastCheckedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The newest check time, RFC 3339, or absent when no query ever ran a check."
+          },
+          "total": {
+            "type": "integer",
+            "description": "How many verified queries the table has.",
+            "minimum": 0
+          }
+        }
+      },
       "TableDocumentation": {
         "type": "object",
         "description": "The documentation of one table, plus what the caller may do with it.",
@@ -18363,6 +19090,17 @@
           "canEdit": {
             "type": "boolean",
             "description": "Whether the interim rule lets this caller set the promise."
+          },
+          "checks": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TableChecks",
+                "description": "The verified-query checks of this table; `null` without a state store (`#402`)."
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "detail": {
             "type": "string",
@@ -19029,6 +19767,13 @@
               "null"
             ],
             "description": "`create` when the name is free, `update` when it names a pipeline Nova wrote and the caller\nmay change; absent when `ok` is false."
+          },
+          "adopt": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "`true` for an `update` of a pipeline that no bundle deploy stamped yet (`deployment` is\nabsent on the pipeline view): applying this document from a bundle would take it over.\nAbsent for a `create`, a refusal, and a pipeline a bundle already owns."
           },
           "changes": {
             "type": "array",

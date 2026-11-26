@@ -41,7 +41,7 @@ Operation id `destinations_create`: in Python `client.call("destinations_create"
 
 `POST /api/destinations` — `201` with the stored row.
 
-Create a notification destination for one of the caller's groups. An `email` destination carries `config.recipients` (1 to 20 addresses); a `webhook` destination carries `config.url` (http or https). Nothing here sends anything.
+Create a notification destination for one of the caller's groups. An `email` destination carries `config.recipients` (1 to 20 addresses); a `webhook` destination carries `config.url` (http or https). Nothing here sends anything. A webhook must be a public address; Nova never follows a redirect.
 
 **Request body**
 

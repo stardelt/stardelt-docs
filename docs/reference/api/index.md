@@ -19,7 +19,7 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 | [/api/access-requests](/docs/reference/api/access-requests) | 4 |
 | [/api/ask](/docs/reference/api/ask) | 3 |
 | [/api/auth](/docs/reference/api/auth) | 1 |
-| [/api/catalog](/docs/reference/api/catalog) | 18 |
+| [/api/catalog](/docs/reference/api/catalog) | 19 |
 | [/api/compute](/docs/reference/api/compute) | 4 |
 | [/api/connections](/docs/reference/api/connections) | 12 |
 | [/api/dashboards](/docs/reference/api/dashboards) | 1 |
@@ -33,7 +33,7 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 | [/api/notebooks](/docs/reference/api/notebooks) | 7 |
 | [/api/openapi.json](/docs/reference/api/openapi.json) | 1 |
 | [/api/pipelines](/docs/reference/api/pipelines) | 6 |
-| [one pipeline](/docs/reference/api/pipelines-item) | 6 |
+| [one pipeline](/docs/reference/api/pipelines-item) | 9 |
 | [/api/pipelines runs](/docs/reference/api/pipelines-runs) | 8 |
 | [/api/query](/docs/reference/api/query) | 1 |
 | [/api/query-log](/docs/reference/api/query-log) | 5 |

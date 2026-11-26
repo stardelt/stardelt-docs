@@ -70,6 +70,8 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 | `params` | object (map of string) | No |  | The whole parameter table; omitted means none. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this update deploys. Omitted leaves what the pipeline already says untouched; given, it replaces it. |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.expiresAt` | string (nullable) | No |  | When the preview copy is due to be removed, RFC 3339. At most 31 days after the deploy. |  |
+| `provenance.preview` | string (nullable) | No |  | The preview this deploy belongs to (`stardelt bundle deploy --preview ID`). Omitted on a normal deploy; set together with `expires_at`. |  |
 | `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
@@ -144,6 +146,91 @@ Delete a pipeline Nova created. Only the owner group and administrators may dele
 | `409` | The pipeline is managed outside Nova |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
+
+## POST /api/pipelines/\{namespace\}/\{name\}/backfills
+
+Operation id `pipelines_backfill_start`: in Python `client.call("pipelines_backfill_start", …)`, on the command line `stardelt api pipelines_backfill_start`.
+
+Start a backfill: run the pipeline once for every scheduled date between `fromDate` and `toDate`, inclusive, through Airflow's own backfill API. This is a change, not a run: a viewer (`spec.viewers`) answers 403, a paused pipeline 409 (Airflow would create the backfill and leave every run `queued`), and a pipeline the scheduler has not loaded yet 409. A dry run decides first: a range with no date to run answers 409 (dates that already ran are skipped unless `reprocess` asks for them: `none` (the default), `failed` or `completed`), more than 31 dates answers 400. Airflow's own refusal (409 when a backfill is already open for this pipeline) is passed on with its sentence. `params` are this backfill's values of the schedule's `${params.<name>}` placeholders, and travel as Airflow's `dag_run_conf` into every run. Answers 201 with the backfill and the dates it will run. The attempt is audited, including a refusal. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `fromDate` | string | Yes |  |  |  |
+| `params` | object (map of string) (nullable) | No |  |  |  |
+| `reprocess` | string (nullable) | No |  |  |  |
+| `toDate` | string | Yes |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The backfill, started |
+| `400` | The body is not JSON, a date is not `YYYY-MM-DD`, `fromDate` is after `toDate`, or the range has more than 31 dates |
+| `401` | No token to sign in with |
+| `403` | The caller may see but not change this pipeline |
+| `404` | No such pipeline for this caller |
+| `409` | The pipeline is paused or not loaded, no date in the range would run, or a backfill is already open |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+## GET /api/pipelines/\{namespace\}/\{name\}/backfills/\{id\}
+
+Operation id `pipelines_backfill_state`: in Python `client.call("pipelines_backfill_state", …)`, on the command line `stardelt api pipelines_backfill_state`.
+
+The state of a backfill: `isPaused`, `completedAt` (its only completion signal) and the runs it created (`backfill__…`, with their date and state). Like starting one, this is the owner group's and administrators' verb: a viewer answers 403, and a backfill that does not exist answers 404. Answers `Cache-Control: no-store`.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | Airflow's backfill id |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The backfill and its runs |
+| `401` | No token to sign in with |
+| `403` | The caller may see but not change this pipeline |
+| `404` | No such pipeline for this caller, or no such backfill |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
+
+## DELETE /api/pipelines/\{namespace\}/\{name\}/backfills/\{id\}
+
+Operation id `pipelines_backfill_cancel`: in Python `client.call("pipelines_backfill_cancel", …)`, on the command line `stardelt api pipelines_backfill_cancel`.
+
+Cancel a backfill: Airflow sets its `completedAt` and fails every run that is still `queued`; a run already running keeps running (its side effects can still commit). This is the owner group's and administrators' verb: a viewer answers 403, and a backfill that does not exist answers 404. Answers the backfill and `Cache-Control: no-store`. The attempt is audited, including a refusal.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `id` | path | integer | Yes | Airflow's backfill id |
+| `name` | path | string | Yes | Pipeline name |
+| `namespace` | path | string | Yes | The Pipeline's namespace (Nova's own) |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The backfill, now cancelled |
+| `401` | No token to sign in with |
+| `403` | The caller may see but not change this pipeline |
+| `404` | No such pipeline for this caller, or no such backfill |
+| `502` | The scheduler or the cluster did not answer |
+| `503` | No cluster connection, or the scheduler is not configured |
 
 ## POST /api/pipelines/\{namespace\}/\{name\}/pause
 

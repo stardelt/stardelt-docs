@@ -52,6 +52,13 @@
         },
         {
           "flags": [
+            "--direct"
+          ],
+          "help": "send the CI token to Nova itself, no provider exchange (a DeployStage verifies it; needs --federated and --host)",
+          "flag": true
+        },
+        {
+          "flags": [
             "--assertion-env"
           ],
           "help": "the environment variable that holds the CI token (default: STARDELT_CI_TOKEN)",
@@ -174,6 +181,21 @@
           ],
           "help": "with --wait: seconds between two looks (default 5)",
           "default": "5"
+        },
+        {
+          "flags": [
+            "--date"
+          ],
+          "help": "run it for this date instead of today; the schedule does not change",
+          "metavar": "YYYY-MM-DD"
+        },
+        {
+          "flags": [
+            "--param"
+          ],
+          "help": "this run's value of the schedule parameter NAME; repeat for more",
+          "metavar": "NAME=VALUE",
+          "repeatable": true
         }
       ],
       "commands": []
@@ -474,6 +496,14 @@
             },
             {
               "flags": [
+                "--adopt"
+              ],
+              "help": "take over a pipeline made in Nova (repeatable); without it such a pipeline is refused",
+              "metavar": "NAME",
+              "repeatable": true
+            },
+            {
+              "flags": [
                 "--diff"
               ],
               "help": "also show, on standard error, what each update would change (the deployed value against the bundle's)",
@@ -542,6 +572,14 @@
             },
             {
               "flags": [
+                "--adopt"
+              ],
+              "help": "take over a pipeline made in Nova (repeatable); without it such a pipeline is refused",
+              "metavar": "NAME",
+              "repeatable": true
+            },
+            {
+              "flags": [
                 "--diff"
               ],
               "help": "also show, on standard error, what each update changes (the deployed value against the bundle's)",
@@ -553,6 +591,33 @@
               ],
               "help": "also run migration statements that are not additive (a changed file is always refused)",
               "flag": true
+            },
+            {
+              "flags": [
+                "--smoke"
+              ],
+              "help": "after the deploy, run this pipeline of the bundle and fail unless it succeeds",
+              "metavar": "NAME"
+            },
+            {
+              "flags": [
+                "--smoke-timeout"
+              ],
+              "help": "with --smoke: give up waiting after N seconds (0: no limit); the run is not stopped",
+              "metavar": "SECONDS"
+            },
+            {
+              "flags": [
+                "--preview"
+              ],
+              "help": "deploy a preview: every name is prefixed with ID and its schedule is removed (a development target only)",
+              "metavar": "ID"
+            },
+            {
+              "flags": [
+                "--ttl"
+              ],
+              "help": "with --preview: how many days the copy lives (1 to 30; default 7)"
             }
           ],
           "commands": []
@@ -658,6 +723,13 @@
               ],
               "help": "really remove the pipelines (without it: only list them)",
               "flag": true
+            },
+            {
+              "flags": [
+                "--preview"
+              ],
+              "help": "remove only the pipelines and streams of this preview (a development target only)",
+              "metavar": "ID"
             }
           ],
           "commands": []

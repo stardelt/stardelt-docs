@@ -35,6 +35,7 @@ Sign in once with a code approved in a browser (device flow).
 | `--issuer` | a value | Your identity provider's realm address (default: $STARDELT_ISSUER, else asked from Nova's address). |
 | `--client-id` | a value | The public client to sign in with (default: stardelt-dev). |
 | `--federated` | — | Sign in with the CI's own token, no browser (a stage's federated client; #57). |
+| `--direct` | — | Send the CI token to Nova itself, no provider exchange (a DeployStage verifies it; needs --federated and --host). |
 | `--assertion-env` | a value | The environment variable that holds the CI token (default: STARDELT_CI_TOKEN). Default: `STARDELT_CI_TOKEN`. |
 
 ## `stardelt logout`
@@ -83,6 +84,8 @@ Start a pipeline run now; --wait waits for its end.
 | `--wait` | — | Wait until the run ends; exit 0 only when it succeeded. |
 | `--timeout` | a value | With --wait: give up after N seconds (0: no limit); the run is not stopped. |
 | `--interval` | a value | With --wait: seconds between two looks (default 5). Default: `5`. |
+| `--date` | `YYYY-MM-DD` | Run it for this date instead of today; the schedule does not change. |
+| `--param` | `NAME=VALUE` | This run's value of the schedule parameter NAME; repeat for more. May be given more than once. |
 
 ## `stardelt samples`
 
@@ -201,6 +204,7 @@ Ask Nova what deploying one target would do; writes nothing.
 | `-t`, `--target` | a value | The target to plan (a name under targets in bundle.yaml). Required. |
 | `--prune` | — | Also list the pipelines and stream apps of this bundle target that the bundle no longer names. |
 | `--accept-drift` | — | Overwrite a pipeline changed after its last deploy even when the target says drift: block. |
+| `--adopt` | `NAME` | Take over a pipeline made in Nova (repeatable); without it such a pipeline is refused. May be given more than once. |
 | `--diff` | — | Also show, on standard error, what each update would change (the deployed value against the bundle's). |
 | `--allow-breaking` | — | Also run migration statements that are not additive (a changed file is always refused). |
 | `--format` | `json`, `markdown` | Json: one object per line (default); markdown: a table for a pull request comment. Default: `json`. |
@@ -219,8 +223,13 @@ Deploy one target: Nova checks every pipeline first, then they are created or up
 | `--dry-run` | — | The same as `bundle plan`. |
 | `--prune` | — | Also remove the pipelines and stream apps of this bundle target that the bundle no longer names. |
 | `--accept-drift` | — | Overwrite a pipeline changed after its last deploy even when the target says drift: block. |
+| `--adopt` | `NAME` | Take over a pipeline made in Nova (repeatable); without it such a pipeline is refused. May be given more than once. |
 | `--diff` | — | Also show, on standard error, what each update changes (the deployed value against the bundle's). |
 | `--allow-breaking` | — | Also run migration statements that are not additive (a changed file is always refused). |
+| `--smoke` | `NAME` | After the deploy, run this pipeline of the bundle and fail unless it succeeds. |
+| `--smoke-timeout` | `SECONDS` | With --smoke: give up waiting after N seconds (0: no limit); the run is not stopped. |
+| `--preview` | `ID` | Deploy a preview: every name is prefixed with ID and its schedule is removed (a development target only). |
+| `--ttl` | a value | With --preview: how many days the copy lives (1 to 30; default 7). |
 
 ### `stardelt bundle approve`
 
@@ -269,6 +278,7 @@ Remove what a deploy of one target put on the stage; lists it first, removes onl
 | --- | --- | --- |
 | `-t`, `--target` | a value | The target to empty (a name under targets in bundle.yaml). Required. |
 | `--yes` | — | Really remove the pipelines (without it: only list them). |
+| `--preview` | `ID` | Remove only the pipelines and streams of this preview (a development target only). |
 
 ### `stardelt bundle rollback`
 
