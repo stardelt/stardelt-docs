@@ -20,7 +20,7 @@ These form the core: `make install-core`, or the umbrella chart's default values
 | stardelt Nova | The web interface and the API: catalog, SQL editor, loads, connections, pipelines, query log, lineage, health | Deployment, image pinned by digest | `manifests/nova-deployment.yaml` · part of `make install` | Apache 2.0 |
 | Apache Trino | The SQL engine for interactive queries, the SQL editor and dashboards | `trino/trino` 1.45.0, appVersion 484 | `helm-values/trino.yaml`, `helm-values/trino-identity.yaml` · `make step-trino` | Apache 2.0 |
 | Lakekeeper | The Iceberg REST catalog: which tables exist and which files belong to them | `lakekeeper/lakekeeper` 0.14.0, appVersion 0.15.0 | `helm-values/lakekeeper.yaml` · `make step-lakekeeper` | Apache 2.0 |
-| SeaweedFS | S3-compatible object storage, or bring your own S3-compatible store | `seaweedfs/seaweedfs` 4.25.1, appVersion 4.25 | `helm-values/seaweedfs.yaml` · `make step-storage` | Apache 2.0 |
+| SeaweedFS | S3-compatible object storage, or bring your own S3-compatible store | `seaweedfs/seaweedfs` 4.55.0, appVersion 4.55 | `helm-values/seaweedfs.yaml` · `make step-storage` | Apache 2.0 |
 | CloudNativePG | Runs the PostgreSQL databases of the platform's services | `cnpg/cloudnative-pg` 0.29.1, operator 1.30.1 | `helm-values/cnpg.yaml`, `manifests/cnpg-postgres.yaml` · `make step-cnpg` | Apache 2.0 |
 
 [Apache Iceberg](https://iceberg.apache.org) (Apache 2.0) is the open table format every engine reads
@@ -37,7 +37,7 @@ the table says otherwise.
 | OpenFGA | Stores who may do what on which table | `openfga/openfga` chart 0.4.1, image v1.22.1 | `helm-values/openfga.yaml` · `make install` | Apache 2.0 |
 | Open Policy Agent | Answers Trino's permission questions, next to Lakekeeper | Sidecar container in the Lakekeeper Deployment | `helm-values/lakekeeper.yaml`, `helm-values/trino-identity.yaml` · `make step-lakekeeper` | Apache 2.0 |
 | Apache Airflow | Runs scheduled pipelines | Apache Airflow chart 1.22.0, appVersion 3.2.2 | `helm-values/airflow.yaml` · `make step-airflow` | Apache 2.0 |
-| Apache Superset | Dashboards over Trino | Apache Superset chart 0.15.5, appVersion 5.0.0 | `helm-values/superset.yaml` · `make step-superset` | Apache 2.0 |
+| Apache Superset | Dashboards over Trino | Apache Superset chart 0.22.8, appVersion 6.1.0 | `helm-values/superset.yaml` · `make step-superset` | Apache 2.0 |
 | JupyterHub | Notebooks for each person | JupyterHub chart 4.4.5, appVersion 5.5.5 | `helm-values/jupyterhub.yaml` · `make install-notebooks` | BSD-3-Clause |
 | Apache Spark (Spark Connect + Spark Operator) | Distributed compute for jobs that outgrow Trino | Deployment, image pinned by digest | `manifests/spark.yaml` · `make install-spark` | Apache 2.0 |
 | Apache Kafka | The streaming bus: a `StreamApp` reads its topics and writes Iceberg tables | Strimzi chart 1.3.1, one KRaft broker | `helm-values/strimzi.yaml`, `manifests/kafka.yaml` · `make step-kafka` and `make step-spark-operator` | Apache 2.0 |
