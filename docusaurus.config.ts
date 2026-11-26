@@ -130,9 +130,9 @@ const config: Config = {
     ],
     image: 'img/og-stardelt.png',
     announcementBar: {
-      id: 'pre-alpha-disclaimer',
+      id: 'alpha-follows-main',
       content:
-        '<b>Pre-alpha.</b> stardelt changes quickly. <a href="/docs/roadmap#what-works-today">What works today →</a>',
+        '<b>Alpha.</b> These pages describe <code>main</code>, which can be ahead of the <a href="https://github.com/stardelt/stardelt/releases/latest">latest release</a>. <a href="/docs/roadmap#what-works-today">What works today →</a>',
       backgroundColor: '#282a2e',
       textColor: '#e8eaed',
       isCloseable: false,

@@ -7,10 +7,10 @@ description: "What stardelt needs from you to run in production, what it gives y
 
 # Running stardelt in production
 
-:::warning stardelt is pre-alpha
-It is not ready for regulated or business-critical workloads. There are no tagged releases and no
-upgrade guarantee. This page lists what you must provide, what the platform gives you, and what is
-missing.
+:::warning stardelt is alpha
+It is not ready for regulated or business-critical workloads. Releases are `0.0.x` snapshots, each proven on a
+fresh single-node cluster, and an upgrade is supported one release at a time ([Upgrade and versions](./upgrade)).
+This page lists what you must provide, what the platform gives you, and what is missing.
 :::
 
 ## Sizing

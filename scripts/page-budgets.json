@@ -50,7 +50,7 @@
   "operations/backups": 2020,
   "operations/checks": 4221,
   "operations/monitoring": 4104,
-  "operations/production": 1628,
+  "operations/production": 1643,
   "operations/secret-stores": 1752,
   "operations/security": 3255,
   "operations/sign-in": 2645,

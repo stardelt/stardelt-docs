@@ -873,7 +873,7 @@ function DiveDeeper(): ReactNode {
           </Link>
         </div>
         <p className={styles.roadmapLine}>
-          stardelt is pre-alpha and grows in milestones.{' '}
+          stardelt is alpha and grows in milestones.{' '}
           <Link to="/docs/roadmap">See what works today and what comes next →</Link>
         </p>
       </div>
