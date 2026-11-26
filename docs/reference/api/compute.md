@@ -18,7 +18,7 @@ Operation id `compute_list`: in Python `client.call("compute_list", …)`, on th
 
 `GET /api/compute`: the Spark clusters this caller may use.
 
-The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs (`endpoint` is absent when the caller reaches the cluster only through `spec.viewers`: such a server acts with its owner group's rights, so Nova issues a viewer no channel — #493), `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse`, `canAct`, whether the caller may start, stop or edit the cluster, and `shared`. Each `cluster` also carries `driverServiceAccount` and `workloadIdentity`, the ServiceAccount its driver runs as and the catalog principal its projected token becomes (`kubernetes~<uid>`); both are absent on a `platform` server. Next to them the Spark servers the platform's own manifests install appear with `kind: platform` — the shared server and the public demo's sandbox — carrying `mode` (`kubernetes` or `local`), the container `limits`, who shares it (`audience`), when it is restarted (`resetsAt`) and `yours`, whether it is the Spark the caller's own notebook uses. A visitor of the public demo sees the sandbox only: their `spark` is not the shared server. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.
+The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs (`endpoint` is absent when the caller reaches the cluster only through `spec.viewers`: such a server acts with its owner group's rights, so Nova issues a viewer no channel — #493), `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse`, `canAct`, whether the caller may start, stop or edit the cluster, and `shared`. Each `cluster` also carries `driverServiceAccount` and `workloadIdentity`, the ServiceAccount its driver runs as and the catalog principal its projected token becomes (`kubernetes~<uid>`); both are absent on a `platform` server. Next to them the Spark servers the platform's own manifests install appear with `kind: platform` — the shared server and the public demo's sandbox — carrying `mode` (`kubernetes` or `local`), the container `limits`, who shares it (`audience`), when it is restarted (`resetsAt`) and `yours`, whether it is the Spark the caller's own notebook uses. A visitor of the public demo sees the sandbox only: their `spark` is not the shared server. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.
 
 **Responses**
 
@@ -26,6 +26,32 @@ The Spark clusters the caller may use: an administrator sees every `SparkCluster
 | --- | --- |
 | `200` | The caller's clusters, sorted by name |
 | `401` | No token to sign in with |
+| `502` | The cluster did not answer |
+| `503` | No cluster connection |
+
+## POST /api/compute/ensure
+
+Operation id `compute_ensure`: in Python `client.call("compute_ensure", …)`, on the command line `stardelt api compute_ensure`.
+
+`POST /api/compute/ensure`: the caller's group cluster, reused or created (#493 point 3).
+
+The caller's group cluster: the one already owned by `group`, or a new `SparkCluster` named `group` with `size: small`, `runtime: spark-4.1-py3.13`, `idleStopMinutes: 60` and `state: Running`. Only a member of `group` may call it (administrators are not exempt). An existing cluster is answered as it is, `Stopped` included; a group whose name is not a valid cluster name (1 to 40 lower-case letters, digits and dashes, starting with a letter) answers `400` and keeps its administrator-made cluster. Two callers at once create one cluster: the loser reads the winner's. Answers the `ComputeCluster` view of the cluster. `Cache-Control: no-store`.
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `group` | string | Yes |  | The owner group; the caller must be a member of it. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The group's cluster, existing or created |
+| `400` | The group name cannot be a cluster name |
+| `401` | No token to sign in with |
+| `403` | The caller is not a member of the group |
+| `409` | The cluster changed while it was created |
 | `502` | The cluster did not answer |
 | `503` | No cluster connection |
 

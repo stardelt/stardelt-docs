@@ -41,7 +41,6 @@ Run a bundle's new migration files against one target, once each, and record the
 | `401` | No token to sign in with |
 | `409` | Refused before anything ran: a changed or reordered file (ApplyAnswer with the errors), or a breaking file without allowBreaking (one sentence) |
 | `502` | The query engine is not reachable |
-| `503` | The demo has no catalog to run migrations against |
 
 ## POST /api/migrations/approve
 
@@ -93,4 +92,3 @@ What a bundle's migration files would do to one target, and what already ran the
 | `400` | A malformed request, one sentence |
 | `401` | No token to sign in with |
 | `502` | The query engine is not reachable |
-| `503` | The demo has no catalog to plan migrations against |

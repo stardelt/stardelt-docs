@@ -51,6 +51,7 @@ const sidebars: SidebarsConfig = {
   ],
   reference: [
     'reference/index',
+    'reference/cli',
     cat('Resources', ['reference/resources/index', ...referenceResources]),
     cat('API', ['reference/api/index', ...apiPages], true),
     'guides/bundle-reference',

@@ -7,7 +7,7 @@
       "name": "Apache-2.0",
       "identifier": "Apache-2.0"
     },
-    "version": "0.1.0"
+    "version": "0.0.4"
   },
   "servers": [
     {
@@ -272,7 +272,7 @@
         "tags": [
           "internal"
         ],
-        "description": "Every `Catalog` of the platform namespace, ordered bronze, silver, gold, then the rest alphabetically (`layer`: the `stardelt.io/layer` label, else the catalog's own name; `environment`: `production` when the resource carries `stardelt.io/environment: production`, absent otherwise): identity, owner, managed access, the storage key prefix, phase and the grants and conditions the access-sync job last wrote. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. The write is `PUT /api/admin/catalogs/{name}/access`; this route never changes anything. A catalog the job has not observed yet answers `phase: \"Unknown\"` with no conditions. Without a cluster connection (demo mode, a local run) the answer is the one in-memory `warehouse` catalog. Answers `Cache-Control: no-store`.",
+        "description": "Every `Catalog` of the platform namespace, ordered bronze, silver, gold, then the rest alphabetically (`layer`: the `stardelt.io/layer` label, else the catalog's own name; `environment`: `production` when the resource carries `stardelt.io/environment: production`, absent otherwise): identity, owner, managed access, the storage key prefix, phase and the grants and conditions the access-sync job last wrote. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. The write is `PUT /api/admin/catalogs/{name}/access`; this route never changes anything. A catalog the job has not observed yet answers `phase: \"Unknown\"` with no conditions. Without a cluster connection (a local run) the answer is an empty list. Answers `Cache-Control: no-store`.",
         "operationId": "admin_catalogs_list",
         "responses": {
           "200": {
@@ -326,7 +326,7 @@
         "tags": [
           "internal"
         ],
-        "description": "Change one catalog's `spec.owner`, `spec.managedAccess` and `spec.grants` as a JSON merge patch on the `Catalog` resource, carrying the `resourceVersion` the page read. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. A malformed owner, group name, verb or a duplicate grant is a 400 in the words the form shows; a catalog that changed meanwhile is a 409 `this catalog changed since you opened it; reload`, and a catalog a GitOps tool owns (Argo CD or Flux, from its annotations or labels) is a 409 `<name> is managed by <tool>: change its grants in Git` with nothing patched; a name that is not a catalog or no longer exists is a 404; more than 30 changes per administrator in an hour is a 429. Without a cluster connection the answer is 503 `the cluster is not reachable from Nova` (demo mode changes memory instead). Answers the updated row, the same shape as the list, with the new `metadata.generation`; `status.observedGeneration` catches up when the access-sync job runs (about two minutes). Never carries a storage credential. `Cache-Control: no-store`.",
+        "description": "Change one catalog's `spec.owner`, `spec.managedAccess` and `spec.grants` as a JSON merge patch on the `Catalog` resource, carrying the `resourceVersion` the page read. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. A malformed owner, group name, verb or a duplicate grant is a 400 in the words the form shows; a catalog that changed meanwhile is a 409 `this catalog changed since you opened it; reload`, and a catalog a GitOps tool owns (Argo CD or Flux, from its annotations or labels) is a 409 `<name> is managed by <tool>: change its grants in Git` with nothing patched; a name that is not a catalog or no longer exists is a 404; more than 30 changes per administrator in an hour is a 429. Without a cluster connection the answer is 503 `the cluster is not reachable from Nova`. Answers the updated row, the same shape as the list, with the new `metadata.generation`; `status.observedGeneration` catches up when the access-sync job runs (about two minutes). Never carries a storage credential. `Cache-Control: no-store`.",
         "operationId": "admin_catalogs_access_update",
         "parameters": [
           {
@@ -953,7 +953,7 @@
         "tags": [
           "internal"
         ],
-        "description": "Every service of the platform (`nova`, `trino`, `lakekeeper`, `superset`, `airflow`, `jupyterhub`) with its category, the address a browser opens (empty without a base domain and for an app with no browsable surface), `browsable`, the liveness `status` (`up`, `unreachable`, `unknown` or `not-installed`) and the images its workloads run, read from the cluster (empty in demo mode or when the app is not installed). Administrator-only: anybody else gets 403. Field names are snake_case.",
+        "description": "Every service of the platform (`nova`, `trino`, `lakekeeper`, `superset`, `airflow`, `jupyterhub`) with its category, the address a browser opens (empty without a base domain and for an app with no browsable surface), `browsable`, the liveness `status` (`up`, `unreachable`, `unknown` or `not-installed`) and the images its workloads run, read from the cluster (empty when the app is not installed). Administrator-only: anybody else gets 403. Field names are snake_case.",
         "operationId": "apps_list",
         "responses": {
           "200": {
@@ -1319,7 +1319,7 @@
         "tags": [
           "public"
         ],
-        "description": "The catalogs the caller may browse, each with its Lakekeeper warehouse id and its medallion layer when it has one, plus the catalog a request without `?catalog=` uses. Its `owner` is `spec.owner` of the catalog's `Catalog` resource and `description` is `spec.description` (null without a resource); `grants` is `spec.grants` in declared order — one group and one verb (`browse`, `select`, `write`, `create`, `manage`) each — and empty when the catalog declares none, so a member can see whose data it is and which groups may read or write it. The order is bronze, silver, gold first (in that order), then the rest alphabetically; `layer` is `stardelt.io/layer` from the catalog's `Catalog` resource, else the catalog's own name when that is `bronze`, `silver` or `gold`, and absent otherwise; `environment` is `production` when the resource carries `stardelt.io/environment: production`, and absent otherwise. The list is what the engine's `SHOW CATALOGS` shows the caller (through the caller's own token), minus the engine's own catalogs (`system`, `information_schema`, `memory`, `tpch`, `tpcds`, `jmx`); it is cached for 30 s (the layer for 60 s; the owner and grants are read on every request). Every other `/api/catalog/*` route takes the same `?catalog=`; a catalog the caller may not browse answers 403 there and is never proxied. Empty when no catalog is open to the caller. `demo` in demo mode.",
+        "description": "The catalogs the caller may browse, each with its Lakekeeper warehouse id and its medallion layer when it has one, plus the catalog a request without `?catalog=` uses. Its `owner` is `spec.owner` of the catalog's `Catalog` resource and `description` is `spec.description` (null without a resource); `grants` is `spec.grants` in declared order — one group and one verb (`browse`, `select`, `write`, `create`, `manage`) each — and empty when the catalog declares none, so a member can see whose data it is and which groups may read or write it. The order is bronze, silver, gold first (in that order), then the rest alphabetically; `layer` is `stardelt.io/layer` from the catalog's `Catalog` resource, else the catalog's own name when that is `bronze`, `silver` or `gold`, and absent otherwise; `environment` is `production` when the resource carries `stardelt.io/environment: production`, and absent otherwise. The list is what the engine's `SHOW CATALOGS` shows the caller (through the caller's own token), minus the engine's own catalogs (`system`, `information_schema`, `memory`, `tpch`, `tpcds`, `jmx`); it is cached for 30 s (the layer for 60 s; the owner and grants are read on every request). Every other `/api/catalog/*` route takes the same `?catalog=`; a catalog the caller may not browse answers 403 there and is never proxied. Empty when no catalog is open to the caller.",
         "operationId": "catalogs_list",
         "responses": {
           "200": {
@@ -1745,7 +1745,7 @@
         "tags": [
           "public"
         ],
-        "description": "Find tables in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case, or when one of its documented fields (the description, a tag, the owner, the domain) contains every word — a table found both ways appears once. `tag`, `owner` and `domain` narrow the answer to documented tables: a table without a documentation row has no tag, owner or domain, so it is not shown. Those three filters need the state store and answer 503 without it (demo mode has none). The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only single-level namespaces are searched. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.",
+        "description": "Find tables in one catalog. `q` is one or more words; a table matches when its `namespace.table` contains every word, in any case, or when one of its documented fields (the description, a tag, the owner, the domain) contains every word — a table found both ways appears once. `tag`, `owner` and `domain` narrow the answer to documented tables: a table without a documentation row has no tag, owner or domain, so it is not shown. Those three filters need the state store and answer 503 without it. The catalog's namespaces and tables are listed the way `namespaces_list` and `tables_list` list them, so the answer shows only what the caller may browse; only single-level namespaces are searched. `?catalog=` picks the catalog; omitted, the default one is used. At most 100 namespaces are read per request: `truncated` says when the answer is a prefix.",
         "operationId": "catalog_search",
         "parameters": [
           {
@@ -1983,7 +1983,7 @@
         "tags": [
           "public"
         ],
-        "description": "Set or remove one column's description. The column must be a field of the current schema, matched exactly. Nova runs `COMMENT ON COLUMN <catalog>.<ns>.<tbl>.<column>` through Trino **as the caller** (source `nova-catalog`), because a column description lives in a new Iceberg schema and only the engine writes it. `?catalog=` picks the catalog. Same 4,000-character limit and null rule as the table description. The interim rule is enforced by Nova; the catalog does not enforce it yet. Demo mode answers 503.",
+        "description": "Set or remove one column's description. The column must be a field of the current schema, matched exactly. Nova runs `COMMENT ON COLUMN <catalog>.<ns>.<tbl>.<column>` through Trino **as the caller** (source `nova-catalog`), because a column description lives in a new Iceberg schema and only the engine writes it. `?catalog=` picks the catalog. Same 4,000-character limit and null rule as the table description. The interim rule is enforced by Nova; the catalog does not enforce it yet.",
         "operationId": "column_description_update",
         "parameters": [
           {
@@ -2093,16 +2093,6 @@
                 }
               }
             }
-          },
-          "503": {
-            "description": "Demo mode",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         }
       }
@@ -2112,7 +2102,7 @@
         "tags": [
           "public"
         ],
-        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties. Demo mode answers the seeded table's documentation read-only (`canEdit` and `canRollback` are false).",
+        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties.",
         "operationId": "table_documentation_get",
         "parameters": [
           {
@@ -2210,7 +2200,7 @@
         "tags": [
           "public"
         ],
-        "description": "Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`. Demo mode answers 503.",
+        "description": "Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`.",
         "operationId": "table_documentation_update",
         "parameters": [
           {
@@ -2311,9 +2301,207 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/catalog/tables/{ns}/{tbl}/health": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"2026-11-25T06:00:00Z\"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise.",
+        "operationId": "table_freshness_get",
+        "parameters": [
+          {
+            "name": "ns",
+            "in": "path",
+            "description": "Namespace (schema) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           },
-          "503": {
-            "description": "Demo mode",
+          {
+            "name": "tbl",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The table's freshness at the moment of the read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableFreshness"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A name is not a single path segment, or the catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "public"
+        ],
+        "description": "Set or remove a table's freshness promise, stored as the Iceberg property `stardelt.freshness` (`{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"...\"}`). `?catalog=` picks the catalog. `by` is required: a 24-hour clock time `HH:MM` names a deadline, `null` removes the promise. A deadline needs an IANA `timezone`; `graceMinutes` is 0 to 1440 and defaults to 60. Removing a promise takes only `by: null`. A write with nothing to change sends no commit and answers the current status. The promise travels with the table, so any engine can read it; Nova evaluates it when the status is read. The interim rule is enforced by Nova: the catalog does not enforce it yet, and anyone who reaches Lakekeeper or Trino directly can still change the property.",
+        "operationId": "table_freshness_update",
+        "parameters": [
+          {
+            "name": "ns",
+            "in": "path",
+            "description": "Namespace (schema) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tbl",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FreshnessUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The table's freshness after the change, freshly loaded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableFreshness"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body is invalid, the catalog name is invalid, or the table has no owner and this request does not claim it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog, or only the owner group and administrators may edit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable, did not answer, or stayed busy",
             "content": {
               "application/json": {
                 "schema": {
@@ -2884,7 +3072,7 @@
         "tags": [
           "public"
         ],
-        "description": "The resolved warehouse name and id (`demo` in demo mode).",
+        "description": "The resolved warehouse name and id.",
         "operationId": "warehouse_info",
         "responses": {
           "200": {
@@ -2936,7 +3124,7 @@
           "public"
         ],
         "summary": "`GET /api/compute`: the Spark clusters this caller may use.",
-        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs (`endpoint` is absent when the caller reaches the cluster only through `spec.viewers`: such a server acts with its owner group's rights, so Nova issues a viewer no channel — #493), `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse`, `canAct`, whether the caller may start, stop or edit the cluster, and `shared`. Each `cluster` also carries `driverServiceAccount` and `workloadIdentity`, the ServiceAccount its driver runs as and the catalog principal its projected token becomes (`kubernetes~<uid>`); both are absent on a `platform` server. Next to them the Spark servers the platform's own manifests install appear with `kind: platform` — the shared server and the public demo's sandbox — carrying `mode` (`kubernetes` or `local`), the container `limits`, who shares it (`audience`), when it is restarted (`resetsAt`) and `yours`, whether it is the Spark the caller's own notebook uses. A visitor of the public demo sees the sandbox only: their `spark` is not the shared server. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (demo mode, a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
+        "description": "The Spark clusters the caller may use: an administrator sees every `SparkCluster` of the platform namespace, everyone else the ones owned by one of their groups, owned by them (`owner.user` is the sign-in name) and the `shared` one. Each row carries the owner, the class `size`, the `runtime`, the operator's `phase` (`Starting` for a requested `Running` before it has reported, `Stopped` otherwise) and `message`, the operator's reason while a cluster is `Failed` (a refused `SparkConnect`, a runtime that is not in the catalogue, a driver that cannot start), the Connect `endpoint` and `startedAt` while it runs (`endpoint` is absent when the caller reaches the cluster only through `spec.viewers`: such a server acts with its owner group's rights, so Nova issues a viewer no channel — #493), `lastActivityAt` once the operator reports it, `idleStopMinutes` (`0` on the shared cluster), `canUse`, `canAct`, whether the caller may start, stop or edit the cluster, and `shared`. Each `cluster` also carries `driverServiceAccount` and `workloadIdentity`, the ServiceAccount its driver runs as and the catalog principal its projected token becomes (`kubernetes~<uid>`); both are absent on a `platform` server. Next to them the Spark servers the platform's own manifests install appear with `kind: platform` — the shared server and the public demo's sandbox — carrying `mode` (`kubernetes` or `local`), the container `limits`, who shares it (`audience`), when it is restarted (`resetsAt`) and `yours`, whether it is the Spark the caller's own notebook uses. A visitor of the public demo sees the sandbox only: their `spark` is not the shared server. Nothing in Nova is state of its own: the operator translates a `SparkCluster` into the Spark server. Without a cluster connection (a local run) the answer is the one shared cluster. Answers `Cache-Control: no-store`.",
         "operationId": "compute_list",
         "responses": {
           "200": {
@@ -2951,6 +3139,98 @@
           },
           "401": {
             "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The cluster did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No cluster connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/compute/ensure": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/compute/ensure`: the caller's group cluster, reused or created (#493 point 3).",
+        "description": "The caller's group cluster: the one already owned by `group`, or a new `SparkCluster` named `group` with `size: small`, `runtime: spark-4.1-py3.13`, `idleStopMinutes: 60` and `state: Running`. Only a member of `group` may call it (administrators are not exempt). An existing cluster is answered as it is, `Stopped` included; a group whose name is not a valid cluster name (1 to 40 lower-case letters, digits and dashes, starting with a letter) answers `400` and keeps its administrator-made cluster. Two callers at once create one cluster: the loser reads the winner's. Answers the `ComputeCluster` view of the cluster. `Cache-Control: no-store`.",
+        "operationId": "compute_ensure",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComputeEnsureBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The group's cluster, existing or created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComputeCluster"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The group name cannot be a cluster name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The cluster changed while it was created",
             "content": {
               "application/json": {
                 "schema": {
@@ -5273,7 +5553,7 @@
         "tags": [
           "internal"
         ],
-        "description": "Load a CSV or JSON text into the table `catalog.namespace.table` (default: the caller's first writable catalog, otherwise `shared`; `warehouse` is administrators-only). `catalog` is optional. The whole file is the string `content` of the request. `format` is `csv` (the default; any value except `json` is read as CSV) or `json` (an array of objects). Column types are inferred from the values. The rows are built in a staging table first and then replace the target, so an existing table of that name is replaced, not appended to. The statements run with the caller's own identity, so the engine's permissions apply. Every call is recorded as a job (`job_id`, listed by `GET /api/jobs`). A file that cannot be read or a statement the engine refuses is a 400 with a sentence, and the job is recorded as failed. In demo mode the rows go into an in-memory lakehouse.",
+        "description": "Load a CSV or JSON text into the table `catalog.namespace.table` (default: the caller's first writable catalog, otherwise `shared`; `warehouse` is administrators-only). `catalog` is optional. The whole file is the string `content` of the request. `format` is `csv` (the default; any value except `json` is read as CSV) or `json` (an array of objects). Column types are inferred from the values. The rows are built in a staging table first and then replace the target, so an existing table of that name is replaced, not appended to. The statements run with the caller's own identity, so the engine's permissions apply. Every call is recorded as a job (`job_id`, listed by `GET /api/jobs`). A file that cannot be read or a statement the engine refuses is a 400 with a sentence, and the job is recorded as failed.",
         "operationId": "ingest_upload",
         "requestBody": {
           "content": {
@@ -5670,7 +5950,7 @@
         "operationId": "me",
         "responses": {
           "200": {
-            "description": "Current user, auth mode, demo flag and warehouse",
+            "description": "Current user, auth mode and warehouse",
             "content": {
               "application/json": {
                 "schema": {
@@ -5752,16 +6032,6 @@
           },
           "502": {
             "description": "The query engine is not reachable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "The demo has no catalog to run migrations against",
             "content": {
               "application/json": {
                 "schema": {
@@ -5912,16 +6182,6 @@
                 }
               }
             }
-          },
-          "503": {
-            "description": "The demo has no catalog to plan migrations against",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         }
       }
@@ -5932,7 +6192,7 @@
           "public"
         ],
         "summary": "`GET /api/model-endpoints`: the models an administrator connected to the platform.",
-        "description": "Every `ModelEndpoint` of the platform namespace, name order: `name`, `model`, `location` (`on-premise` | `cloud`, default `on-premise`), `purposes` (default `[\"ask\",\"agents\"]`), `sendRows` (may query results be sent to this model; off by default), the quota of `spec.quota` — `perGroupMonthlyTokens` and `perPersonDailyTokens`, each `null` for no limit — and the probe's last answer — `reachable`, `toolCalling`, `jsonOutput`, `contextTokens`, `checkedAt`, `message`, each `null` until the probe has run. The endpoint's `url` and its `keyRef` are absent on purpose: the shape says that a model exists, what it is, where prompts go and whether it works, never the internal hostname or the name of the Connection holding the key. Without a cluster connection (demo mode, a local run) the answer is an empty list: no endpoint means no AI feature. A cluster that refuses or fails is a 502, never an empty list that would read as \"no model\". Answers `Cache-Control: no-store`.",
+        "description": "Every `ModelEndpoint` of the platform namespace, name order: `name`, `model`, `location` (`on-premise` | `cloud`, default `on-premise`), `purposes` (default `[\"ask\",\"agents\"]`), `sendRows` (may query results be sent to this model; off by default), the quota of `spec.quota` — `perGroupMonthlyTokens` and `perPersonDailyTokens`, each `null` for no limit — and the probe's last answer — `reachable`, `toolCalling`, `jsonOutput`, `contextTokens`, `checkedAt`, `message`, each `null` until the probe has run. The endpoint's `url` and its `keyRef` are absent on purpose: the shape says that a model exists, what it is, where prompts go and whether it works, never the internal hostname or the name of the Connection holding the key. Without a cluster connection (a local run) the answer is an empty list: no endpoint means no AI feature. A cluster that refuses or fails is a 502, never an empty list that would read as \"no model\". Answers `Cache-Control: no-store`.",
         "operationId": "model_endpoints_list",
         "responses": {
           "200": {
@@ -9275,6 +9535,107 @@
         }
       }
     },
+    "/api/samples/{name}": {
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "description": "Load one generated sample table as the caller. `trips` is the only sample: about 10 000 deterministic rows in `<catalog>.samples.trips`, generated by the engine, so it works on every profile and in an air-gapped install. Idempotent: a second call creates nothing and answers `created: false`. `?catalog=` picks the catalog; omitted, the caller's default one is used. Nothing is ever dropped.",
+        "operationId": "samples_load",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Sample name; `trips` is the only one",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The sample was already there; `created` is false",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SampleLoaded"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The sample was created; `rows` is its row count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SampleLoaded"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The engine refused the statement, or the catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such sample, or no such catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The query engine is not reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/saved-queries": {
       "get": {
         "tags": [
@@ -9977,16 +10338,6 @@
                 }
               }
             }
-          },
-          "503": {
-            "description": "Not available in demo mode",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         }
       }
@@ -10615,7 +10966,7 @@
         "tags": [
           "internal"
         ],
-        "description": "The query engine coordinator's own status page (`/v1/info`), passed through as the engine answers it: an object with `nodeVersion.version`, `environment`, `coordinator`, `starting` and `uptime`. The fields are the engine's and may change with its version; Nova adds nothing. In demo mode the answer is the fixed `{\"nodeVersion\": {\"version\": \"demo\"}, \"state\": \"ACTIVE\", \"demo\": true}`. The engine's own status code is passed through; when the engine cannot be reached the answer is 502 with a sentence. Administrator-only: anybody else gets 403.",
+        "description": "The query engine coordinator's own status page (`/v1/info`), passed through as the engine answers it: an object with `nodeVersion.version`, `environment`, `coordinator`, `starting` and `uptime`. The fields are the engine's and may change with its version; Nova adds nothing. The engine's own status code is passed through; when the engine cannot be reached the answer is 502 with a sentence. Administrator-only: anybody else gets 403.",
         "operationId": "trino_cluster",
         "responses": {
           "200": {
@@ -10832,13 +11183,44 @@
         }
       }
     },
+    "/api/version": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The version and commit of the running Nova process: `version` is `NOVA_VERSION` when the deployment sets it and the crate version otherwise, `commit` is `NOVA_COMMIT` or `unknown`. Nothing is fetched and nothing leaves the instance.",
+        "operationId": "nova_version",
+        "responses": {
+          "200": {
+            "description": "The running version",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No token to sign in with",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/warehouses": {
       "get": {
         "tags": [
           "public"
         ],
         "summary": "`GET /api/warehouses`: the compute classes of the platform, which one this caller may use\nand which one a query will land in.",
-        "description": "Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `medium`, `small`, `xs`; name order inside one size), each row carrying the class `size`, the numbers the resource group is rendered with (`running`, `queued`, `memoryShare`: the class defaults, overridden by `spec.concurrency`), `default`, `canUse` (one of the caller's groups is in `spec.grants`) and `yours` (the first usable row — the class the engine's first matching selector picks — or the default class when nothing is granted). An administrator gets one synthetic row first (`name: \"admin\"`, `displayName: \"Administrators\"`, `size: null`, 50/100/100 %: the `admin` root group access-sync renders) with `yours` on it and `yours: false` on every other row. `scale` is the scaler's verdict on the one engine the classes share (`phase`, `workers`, `queriesInFlight`, `lastQueryAt`), read from `status.scale`; `null` until the scaler has written one. Non-authoritative: the engine selects by identity, Nova only shows it. Without a cluster connection (demo mode, a local run) the answer is the one `small` class. A cluster that refuses or fails is a 502. Answers `Cache-Control: no-store`.",
+        "description": "Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `medium`, `small`, `xs`; name order inside one size), each row carrying the class `size`, the numbers the resource group is rendered with (`running`, `queued`, `memoryShare`: the class defaults, overridden by `spec.concurrency`), `default`, `canUse` (one of the caller's groups is in `spec.grants`) and `yours` (the first usable row — the class the engine's first matching selector picks — or the default class when nothing is granted). An administrator gets one synthetic row first (`name: \"admin\"`, `displayName: \"Administrators\"`, `size: null`, 50/100/100 %: the `admin` root group access-sync renders) with `yours` on it and `yours: false` on every other row. `scale` is the scaler's verdict on the one engine the classes share (`phase`, `workers`, `queriesInFlight`, `lastQueryAt`), read from `status.scale`; `null` until the scaler has written one. Non-authoritative: the engine selects by identity, Nova only shows it. Without a cluster connection (a local run) the answer is the one `small` class. A cluster that refuses or fails is a 502. Answers `Cache-Control: no-store`.",
         "operationId": "warehouses_list",
         "responses": {
           "200": {
@@ -10948,7 +11330,7 @@
             }
           },
           "503": {
-            "description": "No cluster connection (demo mode, a local run)",
+            "description": "No cluster connection (a local run)",
             "content": {
               "application/json": {
                 "schema": {
@@ -10966,7 +11348,7 @@
           "internal"
         ],
         "summary": "`GET /api/workloads` — every workload Nova can see, with the image it runs.",
-        "description": "Every Deployment and StatefulSet of Nova's namespace, flattened to `name`, `kind`, the `image` exactly as the cluster has it (tag or digest) and the `ready` and `desired` replica counts, ordered by name. The answer says how far to trust the list: `state` is `ok` (just read), `stale` (the last read failed, so `workloads` is the last good one, `error` says why and `age_seconds` how old it is) or `unreachable` (the read failed and there never was a good one: an empty list then does NOT mean nothing runs). Reads are cached for a few seconds. Administrator-only: anybody else gets 403. Without a cluster connection (demo mode, a local run) the list is empty or the demo set. Field names are snake_case.",
+        "description": "Every Deployment and StatefulSet of Nova's namespace, flattened to `name`, `kind`, the `image` exactly as the cluster has it (tag or digest) and the `ready` and `desired` replica counts, ordered by name. The answer says how far to trust the list: `state` is `ok` (just read), `stale` (the last read failed, so `workloads` is the last good one, `error` says why and `age_seconds` how old it is) or `unreachable` (the read failed and there never was a good one: an empty list then does NOT mean nothing runs). Reads are cached for a few seconds. Administrator-only: anybody else gets 403. Without a cluster connection (a local run) the list is empty. Field names are snake_case.",
         "operationId": "workloads_list",
         "responses": {
           "200": {
@@ -12717,6 +13099,20 @@
           }
         }
       },
+      "ComputeEnsureBody": {
+        "type": "object",
+        "description": "The body of `POST /api/compute/ensure`: the owner group whose cluster to reuse or create.",
+        "required": [
+          "group"
+        ],
+        "properties": {
+          "group": {
+            "type": "string",
+            "description": "The owner group; the caller must be a member of it."
+          }
+        },
+        "additionalProperties": false
+      },
       "ComputeEnvVar": {
         "type": "object",
         "description": "One environment variable of the driver and executors. `value` only: the operator\nrefuses `connectionRef` until internal#161 slice 7, so Nova does not offer it.",
@@ -13687,6 +14083,65 @@
           }
         }
       },
+      "Freshness": {
+        "type": "object",
+        "description": "The freshness promise stored as JSON text in [`FRESHNESS_PROPERTY`].",
+        "required": [
+          "by",
+          "timezone",
+          "setAt"
+        ],
+        "properties": {
+          "by": {
+            "type": "string",
+            "description": "The deadline: a 24-hour clock time, `HH:MM`."
+          },
+          "graceMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "description": "How long after the deadline the table is still `amber`.",
+            "minimum": 0
+          },
+          "setAt": {
+            "type": "string",
+            "description": "When Nova wrote the promise (RFC 3339); the baseline of a table with no snapshot."
+          },
+          "timezone": {
+            "type": "string",
+            "description": "The IANA zone the deadline is a wall-clock time in."
+          }
+        }
+      },
+      "FreshnessUpdate": {
+        "type": "object",
+        "description": "`PUT /api/catalog/tables/{ns}/{tbl}/health` body.\n\n`by: null` removes the promise; an absent key changes nothing.",
+        "properties": {
+          "by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The deadline (`null` removes the promise)."
+          },
+          "graceMinutes": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "How long after the deadline the table is still `amber` (0 to 1440, default 60).",
+            "minimum": 0
+          },
+          "timezone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The IANA zone of the deadline; required with a deadline."
+          }
+        },
+        "additionalProperties": false
+      },
       "Health": {
         "type": "object",
         "description": "What the readiness probe answers.",
@@ -14178,7 +14633,6 @@
         "required": [
           "user",
           "auth_mode",
-          "demo",
           "shared_account",
           "warehouse",
           "stage_kind",
@@ -14194,9 +14648,6 @@
           },
           "auth_mode": {
             "type": "string"
-          },
-          "demo": {
-            "type": "boolean"
           },
           "peers": {
             "type": "array",
@@ -14999,7 +15450,6 @@
         "required": [
           "user",
           "auth_mode",
-          "demo",
           "shared_account",
           "warehouse",
           "sub",
@@ -15036,9 +15486,6 @@
           },
           "auth_mode": {
             "type": "string"
-          },
-          "demo": {
-            "type": "boolean"
           },
           "email": {
             "type": [
@@ -15839,7 +16286,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Images the app's workloads actually run, read from the cluster. Empty when\nthere is no cluster to read (demo mode, local run) or the app is not installed."
+            "description": "Images the app's workloads actually run, read from the cluster. Empty when\nthere is no cluster to read (local run) or the app is not installed."
           },
           "name": {
             "type": "string"
@@ -16562,7 +17009,7 @@
           },
           "namespace": {
             "type": "string",
-            "description": "`<catalog>.<schema>` (demo data may carry the schema alone)."
+            "description": "`<catalog>.<schema>` (the schema alone when the caller gave no catalog)."
           },
           "queries": {
             "type": "integer",
@@ -16927,6 +17374,40 @@
           }
         ],
         "description": "One run in the cross-pipeline list (`GET /api/runs`)."
+      },
+      "SampleLoaded": {
+        "type": "object",
+        "description": "`POST /api/samples/{name}` answer.",
+        "required": [
+          "created",
+          "catalog",
+          "namespace",
+          "table",
+          "rows"
+        ],
+        "properties": {
+          "catalog": {
+            "type": "string",
+            "description": "The catalog the sample was loaded into."
+          },
+          "created": {
+            "type": "boolean",
+            "description": "`true` when this call created the table; `false` when it was already there."
+          },
+          "namespace": {
+            "type": "string",
+            "description": "The schema: always `samples`."
+          },
+          "rows": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The row count after the call."
+          },
+          "table": {
+            "type": "string",
+            "description": "The table name: `trips`."
+          }
+        }
       },
       "SavedQuery": {
         "type": "object",
@@ -17870,6 +18351,61 @@
           }
         }
       },
+      "TableFreshness": {
+        "type": "object",
+        "description": "One table's freshness: the promise, the newest commit and the status both imply.",
+        "required": [
+          "status",
+          "detail",
+          "canEdit"
+        ],
+        "properties": {
+          "canEdit": {
+            "type": "boolean",
+            "description": "Whether the interim rule lets this caller set the promise."
+          },
+          "detail": {
+            "type": "string",
+            "description": "One sentence a person or an assistant can repeat."
+          },
+          "dueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The most recent deadline at or before now, RFC 3339, or `null`."
+          },
+          "lastWrite": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The newest commit, RFC 3339, or `null` for a table with no snapshot."
+          },
+          "nextDueAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The first deadline strictly after now, RFC 3339, or `null`."
+          },
+          "promise": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Freshness",
+                "description": "The stored promise, or `null` when the table carries none (or one that does not parse)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "type": "string",
+            "description": "`grey`, `green`, `amber` or `red`."
+          }
+        }
+      },
       "TableIdentifier": {
         "type": "object",
         "description": "One Iceberg object identifier: a table or a view.",
@@ -18606,9 +19142,27 @@
           }
         }
       },
+      "Version": {
+        "type": "object",
+        "description": "The version and the commit of the running process.",
+        "required": [
+          "version",
+          "commit"
+        ],
+        "properties": {
+          "commit": {
+            "type": "string",
+            "description": "`NOVA_COMMIT` when the deployment sets it, else `unknown`."
+          },
+          "version": {
+            "type": "string",
+            "description": "`NOVA_VERSION` when the deployment sets it, else the crate version."
+          }
+        }
+      },
       "WarehouseInfo": {
         "type": "object",
-        "description": "OpenAPI shapes for the catalog routes (first slice of ticket #107).\n\nNova proxies these bodies — from Lakekeeper upstream, or from the\nin-memory demo shapes in `demo.rs` — so the structs below mirror the\nproxied Iceberg REST shapes rather than being constructed anywhere.\n`#[schema(rename = …)]` keeps the hyphenated Iceberg field names.",
+        "description": "OpenAPI shapes for the catalog routes (first slice of ticket #107).\n\nNova proxies these bodies from Lakekeeper upstream, so the structs below mirror the\nproxied Iceberg REST shapes rather than being constructed anywhere.\n`#[schema(rename = …)]` keeps the hyphenated Iceberg field names.",
         "required": [
           "name",
           "id"
@@ -18616,7 +19170,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The Lakekeeper warehouse id, or `\"demo\"` in demo mode."
+            "description": "The Lakekeeper warehouse id."
           },
           "name": {
             "type": "string",

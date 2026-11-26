@@ -1,0 +1,979 @@
+{
+  "generated_by": "python/scripts/cli_reference.py",
+  "name": "stardelt",
+  "help": "A thin client for Nova's public API.",
+  "arguments": [],
+  "options": [
+    {
+      "flags": [
+        "--host"
+      ],
+      "help": "Nova's base URL (default: $STARDELT_NOVA_URL)"
+    }
+  ],
+  "commands": [
+    {
+      "name": "whoami",
+      "help": "who Nova thinks you are (JSON)",
+      "arguments": [],
+      "options": [],
+      "commands": []
+    },
+    {
+      "name": "doctor",
+      "help": "check the host, Nova, the sign-in and who you are; each failure names its fix",
+      "arguments": [],
+      "options": [],
+      "commands": []
+    },
+    {
+      "name": "login",
+      "help": "sign in once with a code approved in a browser (device flow)",
+      "arguments": [],
+      "options": [
+        {
+          "flags": [
+            "--issuer"
+          ],
+          "help": "your identity provider's realm address (default: $STARDELT_ISSUER, else asked from Nova's address)"
+        },
+        {
+          "flags": [
+            "--client-id"
+          ],
+          "help": "the public client to sign in with (default: stardelt-dev)"
+        },
+        {
+          "flags": [
+            "--federated"
+          ],
+          "help": "sign in with the CI's own token, no browser (a stage's federated client; #57)",
+          "flag": true
+        },
+        {
+          "flags": [
+            "--assertion-env"
+          ],
+          "help": "the environment variable that holds the CI token (default: STARDELT_CI_TOKEN)",
+          "default": "STARDELT_CI_TOKEN"
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "logout",
+      "help": "forget the stored sign-in",
+      "arguments": [],
+      "options": [],
+      "commands": []
+    },
+    {
+      "name": "setup",
+      "help": "install local integration files (the VS Code kernel)",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "vscode",
+          "help": "write the stardelt kernelspec for VS Code",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--host"
+              ],
+              "help": "Nova's address (default: STARDELT_NOVA_URL or the stored sign-in)"
+            },
+            {
+              "flags": [
+                "--spark-host"
+              ],
+              "help": "the Spark Connect host (default spark.<Nova's domain>)"
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "sql",
+      "help": "run one statement as you",
+      "arguments": [
+        {
+          "name": "statement",
+          "help": "the SQL text; or use -f",
+          "optional": true
+        }
+      ],
+      "options": [
+        {
+          "flags": [
+            "-f",
+            "--file"
+          ],
+          "help": "read the SQL text from this file, or from standard input when it is -"
+        },
+        {
+          "flags": [
+            "--format"
+          ],
+          "help": "",
+          "choices": [
+            "table",
+            "json",
+            "csv"
+          ],
+          "default": "table"
+        },
+        {
+          "flags": [
+            "--max-rows"
+          ],
+          "help": "print at most N rows (0: all Nova returned)"
+        },
+        {
+          "flags": [
+            "--long"
+          ],
+          "help": "run it as a statement: no request stays open, up to 100000 rows, Ctrl-C cancels it in the engine",
+          "flag": true
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "run",
+      "help": "start a pipeline run now; --wait waits for its end",
+      "arguments": [
+        {
+          "name": "namespace",
+          "help": ""
+        },
+        {
+          "name": "name",
+          "help": ""
+        }
+      ],
+      "options": [
+        {
+          "flags": [
+            "--wait"
+          ],
+          "help": "wait until the run ends; exit 0 only when it succeeded",
+          "flag": true
+        },
+        {
+          "flags": [
+            "--timeout"
+          ],
+          "help": "with --wait: give up after N seconds (0: no limit); the run is not stopped"
+        },
+        {
+          "flags": [
+            "--interval"
+          ],
+          "help": "with --wait: seconds between two looks (default 5)",
+          "default": "5"
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "samples",
+      "help": "load one sample table every guide's example can use",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "load",
+          "help": "load a sample as you, into <catalog>.samples.<name>",
+          "arguments": [
+            {
+              "name": "name",
+              "help": "",
+              "choices": [
+                "trips"
+              ]
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--catalog"
+              ],
+              "help": "the catalog to load into (default: the catalog Nova uses for you)"
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "api",
+      "help": "call any public operation by its operationId",
+      "arguments": [
+        {
+          "name": "operation",
+          "help": "an operationId (see --list)",
+          "optional": true
+        }
+      ],
+      "options": [
+        {
+          "flags": [
+            "--list"
+          ],
+          "help": "list the operations",
+          "flag": true
+        },
+        {
+          "flags": [
+            "-p",
+            "--path"
+          ],
+          "help": "",
+          "metavar": "NAME=VALUE",
+          "repeatable": true
+        },
+        {
+          "flags": [
+            "-q",
+            "--query"
+          ],
+          "help": "",
+          "metavar": "NAME=VALUE",
+          "repeatable": true
+        },
+        {
+          "flags": [
+            "--body"
+          ],
+          "help": "the request body, as JSON; @FILE reads it from a file, @- from standard input"
+        },
+        {
+          "flags": [
+            "--format"
+          ],
+          "help": "json (default) or a table when the answer is a list",
+          "choices": [
+            "json",
+            "table"
+          ],
+          "default": "json"
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "apply",
+      "help": "create or update a pipeline from a JSON or YAML file",
+      "arguments": [],
+      "options": [
+        {
+          "flags": [
+            "-f",
+            "--file"
+          ],
+          "help": "a pipeline as JSON or YAML, a directory of such files, or - for stdin",
+          "required": true
+        },
+        {
+          "flags": [
+            "--dry-run"
+          ],
+          "help": "say what would happen; write nothing",
+          "flag": true
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "export",
+      "help": "write a pipeline as a file that `apply` accepts (YAML by default)",
+      "arguments": [
+        {
+          "name": "namespace",
+          "help": ""
+        },
+        {
+          "name": "name",
+          "help": ""
+        }
+      ],
+      "options": [
+        {
+          "flags": [
+            "--format"
+          ],
+          "help": "yaml (default) or json",
+          "choices": [
+            "yaml",
+            "json"
+          ],
+          "default": "yaml"
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "lineage",
+      "help": "where a table comes from and what depends on it (upstream and downstream)",
+      "arguments": [
+        {
+          "name": "table",
+          "help": "the table as catalog.schema.table"
+        }
+      ],
+      "options": [
+        {
+          "flags": [
+            "--depth"
+          ],
+          "help": "how many hops each way (default 2)",
+          "default": "2"
+        },
+        {
+          "flags": [
+            "--days"
+          ],
+          "help": "the time window in days (default 30)",
+          "default": "30"
+        },
+        {
+          "flags": [
+            "--upstream"
+          ],
+          "help": "only the tables it is built from",
+          "flag": true
+        },
+        {
+          "flags": [
+            "--downstream"
+          ],
+          "help": "only the tables built from it",
+          "flag": true
+        },
+        {
+          "flags": [
+            "--format"
+          ],
+          "help": "",
+          "choices": [
+            "table",
+            "json"
+          ],
+          "default": "table"
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "mcp",
+      "help": "a local MCP server over the public API",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "serve",
+          "help": "serve the read-only tools on stdio, for an MCP client",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--allow"
+              ],
+              "help": "also offer this operation (e.g. query_run)",
+              "metavar": "OPERATION_ID",
+              "repeatable": true
+            },
+            {
+              "flags": [
+                "--no-sql"
+              ],
+              "help": "leave out the guarded SQL tools sql_read and sql_explain",
+              "flag": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "config",
+          "help": "print how to register the server in an MCP client",
+          "arguments": [],
+          "options": [],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "bundle",
+      "help": "work with a bundle: a directory in Git that describes what a team publishes",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "init",
+          "help": "write a small bundle that passes validate",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "where to write it (default: the current directory)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--name"
+              ],
+              "help": "the bundle's name (lower-case letters, digits, dashes)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--group"
+              ],
+              "help": "the group that owns the bundle's pipelines",
+              "required": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "plan",
+          "help": "ask Nova what deploying one target would do; writes nothing",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-t",
+                "--target"
+              ],
+              "help": "the target to plan (a name under targets in bundle.yaml)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--prune"
+              ],
+              "help": "also list the pipelines and stream apps of this bundle target that the bundle no longer names",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--accept-drift"
+              ],
+              "help": "overwrite a pipeline changed after its last deploy even when the target says drift: block",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--diff"
+              ],
+              "help": "also show, on standard error, what each update would change (the deployed value against the bundle's)",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--allow-breaking"
+              ],
+              "help": "also run migration statements that are not additive (a changed file is always refused)",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--format"
+              ],
+              "help": "json: one object per line (default); markdown: a table for a pull request comment",
+              "choices": [
+                "json",
+                "markdown"
+              ],
+              "default": "json"
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "deploy",
+          "help": "deploy one target: Nova checks every pipeline first, then they are created or updated",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-t",
+                "--target"
+              ],
+              "help": "the target to deploy (a name under targets in bundle.yaml)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--dry-run"
+              ],
+              "help": "the same as `bundle plan`",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--prune"
+              ],
+              "help": "also remove the pipelines and stream apps of this bundle target that the bundle no longer names",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--accept-drift"
+              ],
+              "help": "overwrite a pipeline changed after its last deploy even when the target says drift: block",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--diff"
+              ],
+              "help": "also show, on standard error, what each update changes (the deployed value against the bundle's)",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--allow-breaking"
+              ],
+              "help": "also run migration statements that are not additive (a changed file is always refused)",
+              "flag": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "approve",
+          "help": "approve a migration plan that a production deploy needs a second person for",
+          "arguments": [
+            {
+              "name": "plan_id",
+              "help": "the planId a refused deploy named; the plan's author cannot approve it"
+            }
+          ],
+          "options": [],
+          "commands": []
+        },
+        {
+          "name": "summary",
+          "help": "show what a deploy of one target left on the stage: commit, who, when, changed since",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-t",
+                "--target"
+              ],
+              "help": "the target to show (a name under targets in bundle.yaml)",
+              "required": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "run",
+          "help": "start the pipelines a deploy of one target left on the stage and wait for each; stops at the first that fails",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-t",
+                "--target"
+              ],
+              "help": "the target whose pipelines to run (a name under targets in bundle.yaml)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--only"
+              ],
+              "help": "run only this pipeline (its name in the bundle, without the dev- prefix)",
+              "metavar": "NAME"
+            },
+            {
+              "flags": [
+                "--timeout"
+              ],
+              "help": "give up waiting for a run after N seconds (0: no limit); the run is not stopped"
+            },
+            {
+              "flags": [
+                "--interval"
+              ],
+              "help": "seconds between two looks at a run (default 5)",
+              "default": "5"
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "destroy",
+          "help": "remove what a deploy of one target put on the stage; lists it first, removes only with --yes",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-t",
+                "--target"
+              ],
+              "help": "the target to empty (a name under targets in bundle.yaml)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--yes"
+              ],
+              "help": "really remove the pipelines (without it: only list them)",
+              "flag": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "rollback",
+          "help": "replay the documents one recorded deployment applied; lists it first, writes only with --yes",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--deployment"
+              ],
+              "help": "the deployment id to replay (from `stardelt deployments` or the Deployments page)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--yes"
+              ],
+              "help": "really create and update the pipelines (without it: only check every stored document and list what would change)",
+              "flag": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "generate",
+          "help": "write a pipeline that was made in the interface into the bundle: its file and its SQL file",
+          "arguments": [
+            {
+              "name": "namespace",
+              "help": ""
+            },
+            {
+              "name": "name",
+              "help": ""
+            },
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [],
+          "commands": []
+        },
+        {
+          "name": "validate",
+          "help": "check a bundle offline (no host, no sign-in)",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-t",
+                "--target"
+              ],
+              "help": "check this target only"
+            },
+            {
+              "flags": [
+                "--format"
+              ],
+              "help": "text: sentences and one line per target (default); json: one object for machines",
+              "choices": [
+                "text",
+                "json"
+              ],
+              "default": "text"
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "deployments",
+      "help": "read the deployment record: what each bundle deploy put on a stage",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "list",
+          "help": "the newest recorded deploys you may see, newest first",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--bundle"
+              ],
+              "help": "only this bundle"
+            },
+            {
+              "flags": [
+                "--target"
+              ],
+              "help": "only this stage (target)"
+            },
+            {
+              "flags": [
+                "--format"
+              ],
+              "help": "",
+              "choices": [
+                "table",
+                "json"
+              ],
+              "default": "table"
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "show",
+          "help": "one recorded deploy: its pipelines and the documents it applied",
+          "arguments": [
+            {
+              "name": "id",
+              "help": "the deployment id, from `stardelt deployments list`"
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--format"
+              ],
+              "help": "",
+              "choices": [
+                "table",
+                "json"
+              ],
+              "default": "table"
+            },
+            {
+              "flags": [
+                "--resources"
+              ],
+              "help": "also print each rendered Pipeline document this deploy applied, one JSON object per line",
+              "flag": true
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "maintenance",
+      "help": "run a catalog's table maintenance through Trino (used by the operator's nightly job)",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "run",
+          "help": "optimize small files, expire snapshots and remove orphan files for every table of a catalog",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--catalog"
+              ],
+              "help": "the catalog to maintain (a Trino catalog name)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--policy"
+              ],
+              "help": "the maintenance policy as JSON (default: $STARDELT_MAINTENANCE_POLICY, else the CRD's defaults)"
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "skill",
+      "help": "print the agent skill (SKILL.md); with --write DIR install it",
+      "arguments": [],
+      "options": [
+        {
+          "flags": [
+            "--write"
+          ],
+          "help": "write DIR/stardelt/SKILL.md, for example .claude/skills",
+          "metavar": "DIR"
+        }
+      ],
+      "commands": []
+    },
+    {
+      "name": "notebook",
+      "help": "work with published notebooks",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "publish",
+          "help": "publish a notebook as a new version that a schedule can pin",
+          "arguments": [
+            {
+              "name": "file",
+              "help": "the .ipynb file"
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--group"
+              ],
+              "help": "the owner group (default: your only group)"
+            },
+            {
+              "flags": [
+                "--name"
+              ],
+              "help": "the name in Nova (default: the file name)"
+            },
+            {
+              "flags": [
+                "--viewers"
+              ],
+              "help": "comma-separated groups that may read the version without being members (at most 8)",
+              "metavar": "GROUPS"
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "dashboards",
+      "help": "work with Superset dashboards",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "export",
+          "help": "write a dashboard as an unzipped Superset export for a bundle (databases/ is not stored)",
+          "arguments": [
+            {
+              "name": "dashboard_id",
+              "help": "the dashboard's Superset id (the number in its URL)"
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-o",
+                "--out"
+              ],
+              "help": "the bundle folder to write, for example dashboards/shop",
+              "metavar": "DIR",
+              "required": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "import",
+          "help": "import a dashboard folder for a bundle's target (the target's databases are remapped)",
+          "arguments": [
+            {
+              "name": "DIR",
+              "help": "the bundle folder to import, for example dashboards/shop"
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--bundle"
+              ],
+              "help": "the bundle that owns the dashboards",
+              "metavar": "NAME",
+              "required": true
+            },
+            {
+              "flags": [
+                "--owner-group"
+              ],
+              "help": "the bundle's owner group",
+              "metavar": "GROUP",
+              "required": true
+            },
+            {
+              "flags": [
+                "--target"
+              ],
+              "help": "the stage the import is for (dev, prod, …)",
+              "metavar": "STAGE",
+              "required": true
+            },
+            {
+              "flags": [
+                "--commit"
+              ],
+              "help": "the commit the bundle was read at, for the provenance stamp",
+              "metavar": "SHA",
+              "default": ""
+            },
+            {
+              "flags": [
+                "--overwrite"
+              ],
+              "help": "replace a dashboard of the same name",
+              "flag": true
+            }
+          ],
+          "commands": []
+        }
+      ]
+    }
+  ]
+}

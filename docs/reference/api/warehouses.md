@@ -18,7 +18,7 @@ Operation id `warehouses_list`: in Python `client.call("warehouses_list", …)`,
 
 `GET /api/warehouses`: the compute classes of the platform, which one this caller may use and which one a query will land in.
 
-Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `medium`, `small`, `xs`; name order inside one size), each row carrying the class `size`, the numbers the resource group is rendered with (`running`, `queued`, `memoryShare`: the class defaults, overridden by `spec.concurrency`), `default`, `canUse` (one of the caller's groups is in `spec.grants`) and `yours` (the first usable row — the class the engine's first matching selector picks — or the default class when nothing is granted). An administrator gets one synthetic row first (`name: "admin"`, `displayName: "Administrators"`, `size: null`, 50/100/100 %: the `admin` root group access-sync renders) with `yours` on it and `yours: false` on every other row. `scale` is the scaler's verdict on the one engine the classes share (`phase`, `workers`, `queriesInFlight`, `lastQueryAt`), read from `status.scale`; `null` until the scaler has written one. Non-authoritative: the engine selects by identity, Nova only shows it. Without a cluster connection (demo mode, a local run) the answer is the one `small` class. A cluster that refuses or fails is a 502. Answers `Cache-Control: no-store`.
+Every `SqlWarehouse` of the platform namespace, largest class first (`large`, `medium`, `small`, `xs`; name order inside one size), each row carrying the class `size`, the numbers the resource group is rendered with (`running`, `queued`, `memoryShare`: the class defaults, overridden by `spec.concurrency`), `default`, `canUse` (one of the caller's groups is in `spec.grants`) and `yours` (the first usable row — the class the engine's first matching selector picks — or the default class when nothing is granted). An administrator gets one synthetic row first (`name: "admin"`, `displayName: "Administrators"`, `size: null`, 50/100/100 %: the `admin` root group access-sync renders) with `yours` on it and `yours: false` on every other row. `scale` is the scaler's verdict on the one engine the classes share (`phase`, `workers`, `queriesInFlight`, `lastQueryAt`), read from `status.scale`; `null` until the scaler has written one. Non-authoritative: the engine selects by identity, Nova only shows it. Without a cluster connection (a local run) the answer is the one `small` class. A cluster that refuses or fails is a 502. Answers `Cache-Control: no-store`.
 
 **Responses**
 
@@ -51,4 +51,4 @@ Wake the engine for one SQL compute class by writing the class's `stardelt.io/la
 | `403` | None of the caller's groups is granted this class |
 | `404` | No such warehouse |
 | `502` | The cluster did not answer |
-| `503` | No cluster connection (demo mode, a local run) |
+| `503` | No cluster connection (a local run) |

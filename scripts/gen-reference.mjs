@@ -535,6 +535,47 @@ function renderApi(document) {
   return pages;
 }
 
+/** The command-line reference, from reference-src/cli.json (python/scripts/cli_reference.py). */
+function renderCli(doc) {
+  const optionRows = (options) =>
+    options.map((o) => [
+      o.flags.map((f) => `\`${f}\``).join(', '),
+      o.flag ? '—' : o.choices ? o.choices.map((c) => `\`${c}\``).join(', ') : o.metavar ? `\`${o.metavar}\`` : 'a value',
+      [
+        sentence(proseText(o.help)),
+        o.default !== undefined ? `Default: \`${o.default}\`.` : '',
+        o.required ? 'Required.' : '',
+        o.repeatable ? 'May be given more than once.' : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    ]);
+  const argumentRows = (args) =>
+    args.map((a) => [
+      `\`${a.name}\``,
+      [sentence(proseText(a.help)), a.optional ? 'Optional.' : '', a.many ? 'One or more.' : ''].filter(Boolean).join(' '),
+    ]);
+  // CLI help lines are lower-case fragments; on a page they read as sentences.
+  const sentence = (text) => (text ? `${text[0].toUpperCase()}${text.slice(1)}${/[.!?]$/.test(text) ? '' : '.'}` : '');
+  const section = (node, path, depth) => {
+    const parts = [`${'#'.repeat(depth)} \`${[...path, node.name].join(' ')}\``];
+    if (node.help) parts.push(mdText(sentence(proseText(node.help))));
+    if (node.arguments.length) parts.push(renderTable(['Argument', 'Meaning'], argumentRows(node.arguments)));
+    if (node.options.length) parts.push(renderTable(['Option', 'Value', 'Meaning'], optionRows(node.options)));
+    for (const sub of node.commands) parts.push(section(sub, [...path, node.name], Math.min(depth + 1, 4)));
+    return parts.join('\n\n');
+  };
+  const body = [
+    '# Command line',
+    `Every command and option of \`${doc.name}\` in this release, generated from its parser (\`python/stardelt/cli.json\`). How to install it, sign in and combine the commands: [The command line](../guides/cli).`,
+    ...(doc.options.length
+      ? ['## Options for every command', renderTable(['Option', 'Value', 'Meaning'], optionRows(doc.options))]
+      : []),
+    ...doc.commands.map((command) => section(command, [doc.name], 2)),
+  ].join('\n\n');
+  return page('Command line', 'Command line', body, '/reference/cli');
+}
+
 function main() {
   const schemaFiles = readdirSync(schemaDir)
     .filter((name) => name.endsWith('.json'))
@@ -564,6 +605,11 @@ function main() {
     writeFileSync(join(apiDir, `${id}.md`), content);
   }
 
+  // The command-line page, when the CLI's description was synced (docs#1157).
+  const cliPath = join(srcDir, 'cli.json');
+  const cli = existsSync(cliPath);
+  if (cli) writeFileSync(join(outDir, 'cli.md'), renderCli(JSON.parse(readFileSync(cliPath, 'utf8'))));
+
   // The Reference tab's landing page is prose, not a snapshot: it is kept in
   // reference-src/index.md, outside the generated folder, and copied through here
   // so that docs/reference/ stays entirely generated (CI regenerates and diffs it).
@@ -573,7 +619,7 @@ function main() {
   );
 
   console.log(
-    `generated ${schemas.length} resource pages, the index and ${apiPages.size} API pages in docs/reference/`,
+    `generated ${schemas.length} resource pages, the index, ${apiPages.size} API pages${cli ? ' and the command-line page' : ''} in docs/reference/`,
   );
 }
 

@@ -49,7 +49,6 @@ Submit one SQL statement as the caller and get a handle to it. The call waits up
 | `401` | Not signed in |
 | `429` | The caller already holds ten statements; read or cancel one |
 | `502` | The query engine is not reachable |
-| `503` | Not available in demo mode |
 
 ## GET /api/statements/\{id\}
 
