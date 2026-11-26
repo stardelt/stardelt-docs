@@ -173,6 +173,16 @@ schedule's parameters for this run. Both apply to that run only; the schedule do
 stardelt run etl nyc_taxi --date 2026-11-20 --param region=eu --wait
 ```
 
+For a range of days, start a backfill. Nova runs it through the scheduler's own backfill, one run per UTC day from
+`fromDate` to `toDate` (both included, at most 31 days); days that already ran are skipped unless `reprocess` says
+otherwise. Only the owner group may start one, and a paused pipeline is refused:
+
+```bash
+stardelt pipelines backfill-start etl nyc_taxi --body '{"fromDate": "2026-11-01", "toDate": "2026-11-07"}'
+stardelt pipelines backfill-state etl nyc_taxi BACKFILL_ID     # the backfill and its runs
+stardelt pipelines backfill-cancel etl nyc_taxi BACKFILL_ID    # stop it
+```
+
 A failed run names its failed tasks on standard error. `--interval` sets the seconds between two looks (5 unless you change it). When `--timeout` runs out the
 run is NOT stopped and keeps going; `stardelt pipelines run-stop etl nyc_taxi RUN_ID` marks it failed, but work already in flight can still finish. Nova
 refuses to start a run of a paused pipeline, or of a `Forbid` or `Replace` pipeline that already has an active run, and allows ten starts per person per
