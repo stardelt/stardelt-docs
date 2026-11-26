@@ -67,6 +67,19 @@ kubectl apply --server-side -f chart/crds/
 
 ## Upgrade a running platform
 
+**A release install** upgrades by applying the next release's `install.yaml` the same way:
+
+```bash
+kubectl apply --server-side \
+  -f https://github.com/stardelt/stardelt/releases/download/v0.0.N/install.yaml
+```
+
+The operator applies its new CRDs at start and reconciles your `PlatformInstance` with the new
+digests. Upgrade one release at a time (`v0.0.4` → `v0.0.5`, never skip one), and read the release
+notes first.
+
+**A checkout install:**
+
 ```bash
 cd platform
 git pull

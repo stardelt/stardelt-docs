@@ -7,9 +7,10 @@ slug: /roadmap
 
 # Roadmap
 
-stardelt is **pre-alpha**: there is no release yet, you install from `main`, and things change
-without notice. Versions are `0.0.x` until the first official release, `0.1.0`; until then nothing
-has a stability promise.
+stardelt is **alpha**: the first release is
+[`v0.0.4`](https://github.com/stardelt/stardelt/releases/tag/v0.0.4), and things still change
+without notice between releases. Versions are `0.0.x` until the first official release, `0.1.0`;
+until then nothing has a stability promise.
 
 **[The milestones on GitHub](https://github.com/stardelt/stardelt/milestones?direction=asc&sort=title&state=open)**
 are the plan: each one names its theme, what is in it, and how you can tell it is done. Its issues
