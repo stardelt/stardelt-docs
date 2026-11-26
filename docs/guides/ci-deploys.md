@@ -18,6 +18,13 @@ pinned, and answers with an ordinary realm token whose `azp` is `stardelt-deploy
 accepts that token for the stage it names and for the pipelines of that stage's own group, and
 refuses it for every other stage and every other group. No secret is stored anywhere.
 
+That paragraph describes `identity.mode: platform`, where the platform runs Keycloak. With
+`identity.mode: external` (your own provider) no client is created: Nova verifies the GitHub token
+itself against `https://token.actions.githubusercontent.com`, and the `DeployStage` you create below
+is the whole setup. The checks are the same — signature against the issuer's published keys, `aud`,
+the pinned `sub`, and a token that has not been used before — only the component that makes them
+differs, and so does the sign-in command.
+
 ## Create the stage
 
 A `DeployStage` pins one repository and one branch to a stage. The `metadata.name` is the stage
@@ -61,8 +68,10 @@ expects another value. Check the object:
 kubectl -n stardelt get deploystage prod -o jsonpath='{.spec.subject}'
 ```
 
-The operator creates the Keycloak client `stardelt-deploy-prod` for this stage, configured for
-federated client authentication from GitHub Actions.
+With `identity.mode: platform` the operator creates the Keycloak client `stardelt-deploy-prod` for
+this stage, configured for federated client authentication from GitHub Actions. With
+`identity.mode: external` it creates no client — it never writes to an identity provider it does not
+own — and Nova reads the `DeployStage` itself.
 
 ## The workflow step
 
@@ -93,6 +102,21 @@ steps:
 the sign-in it stores lasts the token's five minutes. The job also needs `STARDELT_NOVA_URL` (or
 `--host`) to say which install to deploy to.
 
+With `identity.mode: external` the provider exchange is skipped: `--direct` sends GitHub's token to
+Nova as the bearer itself. There is no client to name, so `--client-id` is left out, and `--host`
+must be given:
+
+```yaml
+  - name: sign in and deploy
+    run: |
+      stardelt login --federated --direct --assertion-env CI_TOKEN --host "$STARDELT_NOVA_URL"
+      stardelt bundle deploy examples/shop-bundle -t prod
+```
+
+The CLI keeps the token in the credentials file for four minutes and, when the next request finds
+less than a minute left, reads the environment variable named by `--assertion-env` again instead of
+asking the provider for anything.
+
 ## What the platform refuses
 
 | What is presented | What answers, and what it says |
@@ -105,6 +129,10 @@ the sign-in it stores lasts the token's five minutes. The job also needs `STARDE
 | A deploy to another stage | Nova: `this token belongs to deploy stage prod; it may only record a deployment to that stage` |
 | A deployment of a pipeline in another group | Nova: `a deploy principal may only record a deployment of its own group` |
 
+With `identity.mode: external` there is no provider in the path, so Nova answers every row itself:
+HTTP `401` with `{"error":"unauthenticated"}` and a `detail` that says only that the token was
+refused. The checks, and the outcome, are the ones in the table.
+
 ## What it does not do
 
 - **No secret to rotate.** The trust is the repository, the branch or the environment; delete the
@@ -114,6 +142,12 @@ the sign-in it stores lasts the token's five minutes. The job also needs `STARDE
   group.
 - **Five minutes.** The realm token lives that long and cannot be renewed without the CI token, so
   a job that outlives the sign-in signs in again in its next step.
+- **GitHub Actions only.** Nova knows one CI issuer, a constant
+  (`GITHUB_ACTIONS_ISSUER`, `https://token.actions.githubusercontent.com`). Another CI provider
+  needs its own design; the token it mints would not match a stage today.
+- **One Nova replica.** "Not used before" is kept in Nova's process memory for ten minutes. With
+  more than one replica, a token replayed inside its five minutes could be accepted by a replica
+  that did not see it; the state store is the fix when Nova runs more than one copy.
 
 ## Next
 
