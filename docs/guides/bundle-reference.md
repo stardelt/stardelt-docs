@@ -59,7 +59,7 @@ A target is one stage: `dev`, `test`, `prod` or any name you choose.
 |---|---|---|
 | `mode` | yes | `development` or `production` |
 | `variables` | no | a value for each variable you want to set for this stage; a variable must be declared under `variables` |
-| `runAs` | in `production` | the pipeline identity the pipelines run as: `pipeline-<ownerGroup>`, or that name with a suffix (`pipeline-shop-nightly`) |
+| `runAs` | in `production` | the pipeline identity the pipelines run as: exactly `pipeline-<ownerGroup>` (Nova writes that name itself; a suffix is refused) |
 | `drift` | no | `warn` (the default), `block`, or `heal` (a `development` target only): what to do with a pipeline someone changed after its last deploy |
 | `onGateFail` | no | `none` (the default) or `rollback`: what a failed `bundle deploy --smoke` gate does; `rollback` replays the newest applied deployment of the same bundle and target |
 
