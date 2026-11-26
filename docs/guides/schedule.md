@@ -172,6 +172,25 @@ from ([Publish pipelines from Git](publish-pipelines.md)). A pipeline Nova owns 
 opens to its tasks, **View log** and **Open notebook**, the executed copy in a sandboxed frame. A failed
 one opens at the failing cell with the exception and **Traceback**; copies are kept 30 days.
 
+## When a scheduled run is missed
+
+A pipeline does not catch up after the scheduler was down. Airflow creates a run only for a
+fire time it was up for (`catchup=False` in the pipeline loader); a fire time that passed
+while the scheduler was stopped gets no run, and the next fire time runs as usual. Nothing
+is queued in secret, and no later run silently takes yesterday's date.
+
+The run is therefore **missing**, not late: the runs list has no row for that date. If the
+date's result matters, run it yourself with **Run now** on the pipeline page and pick the
+missing date in the form, or from a terminal:
+
+```console
+$ stardelt run sales/orders --date 2026-11-25
+```
+
+The date applies to that run only; the stored schedule and its parameters do not change. For
+several dates in a row use **Run for a range** on the same page (one run per date, oldest
+first), which stops at the first failure.
+
 ## Edit a pipeline's YAML
 
 A pipeline page has a **Definition** section, *"The pipeline as the document that creates it."* **Show definition** and **Hide definition** show it as YAML — the same document `stardelt export <group> <name>` prints and `stardelt apply -f` accepts.

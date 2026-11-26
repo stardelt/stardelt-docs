@@ -93,7 +93,8 @@ Both kinds land in the same table, so a SQL pipeline and a notebook schedule are
 
 A person's run may also name the date it runs for and values for the pipeline's parameters — the
 pipeline page's **Run now** form, or `stardelt run` with `--date` and `--param`; the date and the values
-apply to that run only.
+apply to that run only. A fire time the scheduler missed has no row at all — see
+[when a scheduled run is missed](/docs/guides/schedule#when-a-scheduled-run-is-missed).
 
 For several days at once, **Run for a range** on the pipeline page starts a backfill: one run for every scheduled
 date from **First date** to **Last date**, both included, at most 31 dates. **Dates that already ran** says what
