@@ -80,7 +80,7 @@ The token belongs to your session. When it expires, restart your server from Nov
 A local kernel reaches the warehouse through Nova's statement API with a sign-in you store once — no workspace:
 
 ```console
-$ pip install "stardelt[spark,jupyter] @ https://github.com/stardelt/stardelt/releases/download/v0.0.4/stardelt-0.0.4-py3-none-any.whl"
+$ pip install "stardelt[spark,jupyter] @ https://github.com/stardelt/stardelt/releases/download/@tag@/stardelt-@python@-py3-none-any.whl"
 $ stardelt login --host https://<your-nova>
 $ stardelt setup vscode
 ```

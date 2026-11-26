@@ -75,7 +75,7 @@ kubectl apply --server-side \
 ```
 
 The operator applies its new CRDs at start and reconciles your `PlatformInstance` with the new
-digests. Upgrade one release at a time (`v0.0.4` → `v0.0.5`, never skip one), and read the release
+digests. Upgrade one release at a time (`v0.0.N` → `v0.0.N+1`, never skip one), and read the release
 notes first.
 
 **A checkout install:**

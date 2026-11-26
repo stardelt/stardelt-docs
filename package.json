@@ -15,6 +15,7 @@
     "typecheck": "tsc",
     "check:sidebars": "tsx scripts/check-sidebars.mjs",
     "check:page-budget": "node scripts/check-page-budget.mjs",
+    "check:release-words": "node scripts/check-release-words.mjs",
     "wallpapers": "node scripts/wallpapers/render.mjs",
     "sync:reference": "node scripts/sync-reference.mjs",
     "gen:reference": "node scripts/gen-reference.mjs",

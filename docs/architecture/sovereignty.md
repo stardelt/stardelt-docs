@@ -18,7 +18,7 @@ your data on them.
 
 | Property | How you can check it |
 |---|---|
-| **No required outbound calls from stardelt's own components.** There is no license server, no telemetry and no "stardelt cloud" | Read the code: [Nova](https://github.com/stardelt/stardelt/tree/main/nova), [Operator](https://github.com/stardelt/stardelt/tree/main/operator). Upstream components keep their own behaviour |
+| **No required outbound calls from stardelt's own components.** There is no license server, no telemetry and no "stardelt cloud" | Read the code: [Nova](https://github.com/stardelt/stardelt/tree/@ref@/nova), [Operator](https://github.com/stardelt/stardelt/tree/@ref@/operator). Upstream components keep their own behaviour |
 | **Open formats for your data.** Tables are Apache Iceberg with Parquet files, on storage you choose | Read a table with any Iceberg engine |
 | **You can leave.** Uninstall stardelt and your tables stay on your object store. Iceberg metadata describes itself | [How it works](./how-it-works) |
 | **Permissive licenses.** Apache 2.0, MIT or BSD; named exceptions: MPL 2.0, GPL-3.0, Artistic-1.0 | [License policy](./licenses) |

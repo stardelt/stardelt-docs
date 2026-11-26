@@ -14,10 +14,10 @@ API for notebooks and scripts; the same operations are the commands on [The comm
 ## Install
 
 ```bash
-pip install "stardelt @ https://github.com/stardelt/stardelt/releases/download/v0.0.4/stardelt-0.0.4-py3-none-any.whl"
+pip install "stardelt @ https://github.com/stardelt/stardelt/releases/download/@tag@/stardelt-@python@-py3-none-any.whl"
 ```
 
-The package is not on PyPI: this installs the current release, `v0.0.4`, from its
+The package is not on PyPI: this installs the release `@tag@` from its
 [release page](https://github.com/stardelt/stardelt/releases). A newer release has a newer file.
 
 Use the command from the same release as your Nova: a release ships the client that speaks to it,
