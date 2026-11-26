@@ -79,7 +79,17 @@ function useLabStatus(url: string): Status {
 /*  Things to try                                                       */
 /* ------------------------------------------------------------------ */
 
-const thingsToTry = [
+type TryCard = {
+  title: string
+  sql: string
+  note: string | null
+  /** A path on the lab, appended to `demoUrl`; the card shows a link only when it is set. */
+  href?: string
+  /** The link's words. */
+  link?: string
+}
+
+const thingsToTry: TryCard[] = [
   {
     title: 'Look at the shop',
     sql: 'select * from gold.shop.daily_revenue order by order_date desc limit 7;',
@@ -94,6 +104,13 @@ const thingsToTry = [
     title: 'Make your own table',
     sql: 'create table playground.scratch.my_orders as select * from silver.shop.stg_order_lines limit 100;',
     note: 'Then open it in the catalog and look at its lineage.',
+  },
+  {
+    title: 'Run the shop with dbt',
+    sql: 'dbt build --select tag:seed\ndbt build --select tag:load\ndbt build --select tag:marts',
+    note: 'The shop-dbt pipeline rebuilds the shop in dbt: seeds, loads and marts. Open it, press Run, and the run log names every model and test.',
+    href: '/pipelines/stardelt/shop-dbt',
+    link: 'Open Pipelines → shop-dbt',
   },
 ];
 
@@ -182,6 +199,15 @@ export default function Demo(): ReactNode {
                   <code>{item.sql}</code>
                 </pre>
                 {item.note ? <p className={styles.note}>{item.note}</p> : null}
+                {item.href ? (
+                  <a
+                    className={styles.tryLink}
+                    href={`${demoUrl}${item.href}`}
+                    target="_blank"
+                    rel="noopener">
+                    {item.link}
+                  </a>
+                ) : null}
               </article>
             ))}
           </div>
