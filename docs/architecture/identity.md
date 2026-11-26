@@ -86,6 +86,13 @@ and role mapping, not group-derived table permissions. Use `identity.mode: platf
 permissions by group are needed; bringing another provider to parity is tracked in
 `stardelt/stardelt#61`.
 
+**Which installs ship group sync.** The `access-sync` job runs on the `make install` platform and on
+an operator install (`PlatformInstance`); both also install the permission store it writes to. The
+umbrella Helm chart in `platform/chart` renders no `access-sync` job and no permission store —
+Lakekeeper runs with `allowall` unless you configure another authorizer — so a chart install has no
+group-derived table permissions at all. Use `make platform` (or a release install) when you need
+permissions by group.
+
 ## Names
 
 | Thing | Value | Notes |
