@@ -57,6 +57,8 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this pipeline is deployed from (`stardelt bundle deploy`). |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.expiresAt` | string (nullable) | No |  | When the preview copy is due to be removed, RFC 3339. At most 31 days after the deploy. |  |
+| `provenance.preview` | string (nullable) | No |  | The preview this deploy belongs to (`stardelt bundle deploy --preview ID`). Omitted on a normal deploy; set together with `expires_at`. |  |
 | `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
@@ -154,7 +156,7 @@ The next fire times of a cron in its zone, RFC 3339 with that zone's offset (for
 
 Operation id `pipelines_principals`: in Python `client.call("pipelines_principals", …)`, on the command line `stardelt api pipelines_principals`.
 
-The caller's own groups and the pipeline principal of each. `principal` is `pipeline-<group>` when a `ServicePrincipal` of that name with `spec.ownerGroup` equal to the group exists; `ready` is its `status.ready`. `message` is `null` when it is ready, otherwise the `Ready` condition's message (or `no status yet`), and for a group without a principal the `make sync-principal NAME=pipeline-<group> GROUP=<group>` command that creates one. A group without a ready principal cannot schedule. Answers `Cache-Control: no-store`.
+The caller's own groups and the pipeline principal of each. `principal` is `pipeline-<group>` when a `ServicePrincipal` of that name with `spec.ownerGroup` equal to the group exists; `ready` is its `status.ready`. `message` is `null` when it is ready, otherwise the `Ready` condition's message (or `no status yet`), and for a group without a principal the `ServicePrincipal` to apply (on a `make install` platform, the `make sync-principal NAME=pipeline-<group> GROUP=<group>` command). A group without a ready principal cannot schedule. Answers `Cache-Control: no-store`.
 
 **Responses**
 
@@ -195,6 +197,8 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | `params` | object (map of string) | No |  | Values for `${params.<name>}` in the statement; at most 16. A notebook's values are in `notebook.params`, not here. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this pipeline is deployed from (`stardelt bundle deploy`). |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.expiresAt` | string (nullable) | No |  | When the preview copy is due to be removed, RFC 3339. At most 31 days after the deploy. |  |
+| `provenance.preview` | string (nullable) | No |  | The preview this deploy belongs to (`stardelt bundle deploy --preview ID`). Omitted on a normal deploy; set together with `expires_at`. |  |
 | `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |

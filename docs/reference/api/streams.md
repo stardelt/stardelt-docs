@@ -41,6 +41,8 @@ Check a stream write without writing it. The body is the body of `streams_put`: 
 | `ownerGroup` | string | Yes |  | The group that owns the stream; the caller must be a member. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this write deploys (`stardelt bundle deploy`). Omitted leaves what the stream already carries untouched. |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.expiresAt` | string (nullable) | No |  | When the preview copy is due to be removed, RFC 3339. At most 31 days after the deploy. |  |
+| `provenance.preview` | string (nullable) | No |  | The preview this deploy belongs to (`stardelt bundle deploy --preview ID`). Omitted on a normal deploy; set together with `expires_at`. |  |
 | `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
@@ -86,6 +88,8 @@ Create or update one stream (`StreamApp`, D42). The body is the body of `streams
 | `ownerGroup` | string | Yes |  | The group that owns the stream; the caller must be a member. |  |
 | `provenance` | object | No |  | Which bundle, target and commit this write deploys (`stardelt bundle deploy`). Omitted leaves what the stream already carries untouched. |  |
 | `provenance.bundle` | string | Yes |  | The bundle's name: 3 to 40 lower-case letters, digits and dashes. |  |
+| `provenance.expiresAt` | string (nullable) | No |  | When the preview copy is due to be removed, RFC 3339. At most 31 days after the deploy. |  |
+| `provenance.preview` | string (nullable) | No |  | The preview this deploy belongs to (`stardelt bundle deploy --preview ID`). Omitted on a normal deploy; set together with `expires_at`. |  |
 | `provenance.repository` | string (nullable) | No |  | The bundle's repository as an `https://host/path` address, so a later stage can link the pull request that promotes a commit. Omitted when the bundle's checkout names none. |  |
 | `provenance.revision` | string (nullable) | No |  | The commit the bundle was read at: 7 to 64 hex digits, with `-dirty` appended when the working tree had uncommitted changes. Omitted when the bundle is not in a Git checkout. |  |
 | `provenance.target` | string | Yes |  | The target of the bundle: 1 to 32 lower-case letters, digits and dashes. |  |
