@@ -51,7 +51,7 @@ Anything that touches a real service needs a real node: see
 ## The two rules
 
 1. **Everything arrives as a pull request.** `main` is protected.
-2. **`main` stays installable.** There are no tagged releases yet, so people install from it.
+2. **`main` stays installable.** Users install releases, but the lab and every contributor install from `main`.
 
 The only required check on `main` is `gate`, the always-running `ci gate` workflow. Every other
 workflow has a `paths` filter and runs only for the folder it belongs to, so requiring those checks
@@ -107,7 +107,7 @@ A reviewer asks:
 4. Does it fit the [rules](https://github.com/stardelt/stardelt/blob/main/CONTRIBUTING.md#rules-that-hold-everywhere) and the license policy?
 
 A change to how the platform is designed starts with an issue, so the discussion happens before the
-code. Breaking changes are allowed during pre-alpha, if the title says so and the docs change with them.
+code. Breaking changes are allowed while stardelt is alpha (`0.0.x`), if the title says so and the docs change with them.
 
 ## Using an AI assistant
 
