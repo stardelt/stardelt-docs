@@ -61,6 +61,7 @@ A target is one stage: `dev`, `test`, `prod` or any name you choose.
 | `variables` | no | a value for each variable you want to set for this stage; a variable must be declared under `variables` |
 | `runAs` | in `production` | the pipeline identity the pipelines run as: `pipeline-<ownerGroup>`, or that name with a suffix (`pipeline-shop-nightly`) |
 | `drift` | no | `warn` (the default), `block`, or `heal` (a `development` target only): what to do with a pipeline someone changed after its last deploy |
+| `onGateFail` | no | `none` (the default) or `rollback`: what a failed `bundle deploy --smoke` gate does; `rollback` replays the newest applied deployment of the same bundle and target |
 
 - A **`development`** target deploys every pipeline under the name `dev-<your sign-in name>-<pipeline>` (the whole name at most 40
   characters) and without its schedule, so two people can deploy one bundle side by side and nothing runs on its own. It needs a
@@ -319,7 +320,7 @@ sign-in; the others talk to Nova.
 | `bundle init [DIR] --name NAME --group GROUP` | writes a small bundle that passes `validate` | no |
 | `bundle validate [DIR] [-t TARGET] [--format text\|json]` | checks the bundle offline (every target, or one): the same checks the schema describes, plus the ones that need the files | no |
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
-| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff] [--smoke NAME [--smoke-timeout SECONDS]]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan`; `--smoke NAME` then runs that pipeline of the bundle and fails the deploy unless the run succeeds | yes |
+| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff] [--smoke NAME [--smoke-timeout SECONDS]]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan`; `--smoke NAME` then runs that pipeline of the bundle and fails the deploy unless the run succeeds; with `onGateFail: rollback` on the target, a failed gate replays the newest applied deployment and the problem names both ids | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
