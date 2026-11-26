@@ -19,6 +19,10 @@ pip install "stardelt @ https://github.com/stardelt/stardelt/releases/download/v
 The package is not on PyPI: this installs the current release, `v0.0.4`, from its
 [release page](https://github.com/stardelt/stardelt/releases). A newer release has a newer file.
 
+Use the command from the same release as your Nova: a release ships the client that speaks to it,
+and a client of another release warns once per command with the install line for the server's
+version. See [the client that goes with a release](../operations/upgrade#the-client-that-goes-with-a-release).
+
 ## Sign in
 
 ```bash
