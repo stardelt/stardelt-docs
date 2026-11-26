@@ -97,6 +97,22 @@ Before you tag or hand over a release, run the checks in [Before a release](chec
 There is no migration guide yet, so upgrade your dev install first and prod after it has run for a
 day.
 
+## The client that goes with a release
+
+The command line and the notebook library are released with the platform: a `v0.0.N` release
+ships the client that speaks to `v0.0.N`. Install it from the same release page as your Nova:
+
+```bash
+pip install "stardelt[jupyter] @ https://github.com/stardelt/stardelt/releases/download/v0.0.N/stardelt-0.0.N-py3-none-any.whl"
+```
+
+A client of another release still works for the operations both know. It warns once per command,
+prints the install line with the server's release number, and fails only on an operation your
+release does not serve — so a mismatch is a warning to act on, not a broken install.
+
+An install from the retired `0.4.x` line sorts above `0.0.x` for pip. Upgrade it with
+`pip install --force-reinstall` and the line above.
+
 ## Upgrading across a component's major version
 
 A component's chart can move a major version in one release. The new chart usually renders different
