@@ -1,6 +1,7 @@
 import { themes as prismThemes } from 'prism-react-renderer';
 import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import releaseWords from './src/remark/release-words.mjs';
 
 const config: Config = {
   title: 'stardelt',
@@ -127,6 +128,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/docs',
           editUrl: 'https://github.com/stardelt/stardelt-docs/tree/main/',
+          beforeDefaultRemarkPlugins: [releaseWords],
         },
         blog: false,
         theme: { customCss: './src/css/custom.css' },

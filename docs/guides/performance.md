@@ -234,5 +234,5 @@ assistant does not already have these rules, install the Skill and ask it to rea
 
 - [Sizing](../operations/production#sizing) — what one node carries and how a component scales.
 - [Spark in notebooks](./spark) — the workspace, its limits and the messages it prints.
-- The notebook helper's [README](https://github.com/stardelt/stardelt/blob/main/python/stardelt/README.md#keeping-the-shared-driver-healthy)
+- The notebook helper's [README](https://github.com/stardelt/stardelt/blob/@ref@/python/stardelt/README.md#keeping-the-shared-driver-healthy)
   — the table the seven habits come from, with the same numbers.

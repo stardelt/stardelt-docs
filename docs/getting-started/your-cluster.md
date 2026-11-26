@@ -44,9 +44,9 @@ A release installs the operator, which installs the rest of the platform from on
 
 ```bash
 kubectl apply --server-side \
-  -f https://github.com/stardelt/stardelt/releases/download/v0.0.4/install.yaml
+  -f https://github.com/stardelt/stardelt/releases/download/@tag@/install.yaml
 
-curl -fsSLO https://github.com/stardelt/stardelt/releases/download/v0.0.4/platform-minimal.yaml
+curl -fsSLO https://github.com/stardelt/stardelt/releases/download/@tag@/platform-minimal.yaml
 # set spec.baseDomain, spec.ingress.className and spec.ingress.tls.issuer, then:
 kubectl apply -f platform-minimal.yaml
 kubectl -n stardelt wait --for=condition=Ready platforminstance/cluster --timeout=25m

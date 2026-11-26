@@ -144,12 +144,12 @@ written still succeeds — the pipelines are what matter — and its last line i
 
 ### Editor completion
 
-[`python/stardelt/bundle.schema.json`](https://github.com/stardelt/stardelt/blob/main/python/stardelt/bundle.schema.json) is a
+[`python/stardelt/bundle.schema.json`](https://github.com/stardelt/stardelt/blob/@ref@/python/stardelt/bundle.schema.json) is a
 JSON Schema (draft 2020-12) of this file. One modeline at the top of `bundle.yaml` gives an editor that speaks the YAML language
 server the keys, the modes and the patterns, so a typo such as `targts:` is marked while you type:
 
 ```yaml
-# yaml-language-server: $schema=https://raw.githubusercontent.com/stardelt/stardelt/main/python/stardelt/bundle.schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/stardelt/stardelt/@ref@/python/stardelt/bundle.schema.json
 ```
 
 The schema is structural only: it cannot see whether the files exist, whether every `${var.x}` resolves or whether a production
