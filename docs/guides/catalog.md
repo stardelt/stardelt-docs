@@ -64,6 +64,26 @@ most 16,000 characters; **Edit** shows it in a textarea labelled **How to use th
 and clearing it removes the guide. The guide travels as the Iceberg table property `stardelt.guide`, so any Iceberg
 client sees it, and an agent reads it through the [`table_documentation`](./mcp.md) tool.
 
+### Freshness: a promise the table's owner keeps
+
+The **Freshness** card answers "can I trust this table today?". The owner sets a promise — a
+wall-clock deadline in a timezone, plus a grace period — and the card shows a badge for the moment
+you look:
+
+| Badge | What it means |
+|---|---|
+| `No promise` | nobody has promised a time; the card says only when the table last changed |
+| `Fresh` | the newest write (or the moment the promise was set, if nothing was written since) is at or after the most recent deadline |
+| `Late (grace)` | the deadline has passed, but the grace period has not |
+| `Late` | the deadline and the grace have both passed |
+
+To set one, choose the deadline, the timezone (for example `Europe/Berlin`) and the grace in minutes
+(0 to 1440), then choose **Set**; **Remove** takes the promise away. Only the table's owner group or
+an administrator sees the form. The promise travels as the Iceberg property `stardelt.freshness`,
+so another engine can read it, and Nova evaluates the status each time the card is read: nothing
+runs in the background, and no message is sent when a table turns `Late`. The same read and write
+are the routes [`table_freshness_get` and `table_freshness_update`](../reference/api/catalog).
+
 ### Verified queries
 
 A verified query is a question the table answers, with the one statement that answers it, kept beside the table
