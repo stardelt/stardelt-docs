@@ -15,7 +15,7 @@ when_to_use: Adding or changing anything under stardelt-docs/docs, outside the g
 | Keep it running | `docs/operations/` |
 | Understand how it fits | `docs/architecture/` |
 | Know one component | `docs/architecture/services.md` |
-| Contribute | `docs/developer/` |
+| Contribute | `project/developer/` |
 
 `docs/reference/` is generated, so never edit it. List a new page in `sidebars.ts`.
 

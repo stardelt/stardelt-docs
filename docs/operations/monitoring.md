@@ -470,7 +470,7 @@ platform's services with their live status.
 
 There is no central log store and no search across components. This page is the index and `kubectl`
 is the reader, so each source is only as complete as the component that wrote it. Collecting and
-searching them in one place is planned, not promised: the [roadmap](../roadmap) names the work that
+searching them in one place is planned, not promised: the [roadmap](/project/roadmap) names the work that
 is planned.
 
 ## Performance baseline

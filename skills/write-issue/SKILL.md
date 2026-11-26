@@ -6,7 +6,7 @@ when_to_use: Filing an implementation ticket, or turning a bug or a plan into wo
 
 # Write an issue
 
-Rules and a full example: `docs/developer/writing-issues.md`. Template:
+Rules and a full example: `project/developer/writing-issues.md`. Template:
 `stardelt/.github`, `.github/ISSUE_TEMPLATE/implementation_ticket.md`.
 
 ## Before you write
