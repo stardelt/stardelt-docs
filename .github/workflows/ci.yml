@@ -26,3 +26,18 @@ jobs:
       - run: git diff --exit-code docs/reference
       - run: test -z "$(git status --porcelain --untracked-files=all docs/reference)"
       - run: npm run build
+  commands:
+    name: Every stardelt command in the docs exists on main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: stardelt/stardelt
+          path: .product
+          sparse-checkout: python
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - run: pip install ./.product/python
+      - run: python .product/python/scripts/check_doc_commands.py docs
