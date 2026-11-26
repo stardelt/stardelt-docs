@@ -117,6 +117,17 @@ The CLI keeps the token in the credentials file for four minutes and, when the n
 less than a minute left, reads the environment variable named by `--assertion-env` again instead of
 asking the provider for anything.
 
+On a **pull request** the same job can deploy a preview instead of the stage's own pipelines:
+
+```yaml
+  - name: sign in and deploy the preview
+    run: |
+      stardelt login --federated --direct --assertion-env CI_TOKEN --host "$STARDELT_NOVA_URL"
+      stardelt bundle deploy examples/shop-bundle -t dev --preview "pr-${{ github.event.number }}"
+```
+
+The preview is a copy whose names carry the pull request's id, with no schedules; Nova removes it after its expiry, and a job on the `pull_request` **closed** event runs `stardelt bundle destroy examples/shop-bundle -t dev --preview "pr-${{ github.event.number }}" --yes` to remove it at once. A development target only; [Publish pipelines from Git](/docs/guides/publish-pipelines#a-preview-of-the-pull-request) has the limits and the migration refusal.
+
 ## What the platform refuses
 
 | What is presented | What answers, and what it says |
