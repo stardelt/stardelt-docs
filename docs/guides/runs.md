@@ -150,6 +150,10 @@ order:
 A webhook's **URL** starts with `http://` or `https://` and points at something that accepts a `POST` of JSON. For an
 email destination, **Recipients** is one or more addresses separated by commas.
 
+Nova sends a webhook only to a public address and follows no redirect. An address inside the cluster or on a private
+network is refused with `the webhook address is not a public address`. To reach a receiver inside the cluster, an
+administrator names its host in the setting `NOVA_WEBHOOK_ALLOW_HOSTS` on Nova (comma-separated host names).
+
 **Create destination** stores it and shows `Created “<name>”.` **Cancel** closes the form without saving anything.
 
 ### Test a webhook
