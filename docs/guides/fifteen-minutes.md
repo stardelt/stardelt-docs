@@ -34,7 +34,9 @@ $ cd stardelt
   stage. `dev` is `mode: development` with `schema: shop_dev`; `prod` is production, with
   `schema: shop` and `runAs: pipeline-demo`.
 - `resources/1-bronze.yaml`, `2-silver.yaml`, `3-gold.yaml` — one pipeline per catalog layer, each a
-  list of SQL tasks.
+  list of SQL tasks. `4-graph.yaml` (`shop-4-graph`) is a fourth pipeline, a
+  [declarative Spark graph](./spark-pipelines) that runs on the group's Spark Connect server. It was
+  added after the outputs below were measured, so on `main` each list of pipelines has a fourth line.
 - `sql/*.sql` — the statements those tasks run. `01_schema_bronze.sql` opens with
   `create schema if not exists bronze.${params.schema}`, which is how the target's `schema` becomes a
   schema name.
@@ -53,8 +55,8 @@ Open the link on any device and approve the code; the command waits for it. (Pat
 
 ```console
 $ stardelt bundle validate demos/examples/shop-bundle
-dev (development): shop-1-bronze, shop-2-silver, shop-3-gold
-prod (production): shop-1-bronze, shop-2-silver, shop-3-gold
+dev (development): shop-1-bronze, shop-2-silver, shop-3-gold, shop-4-graph
+prod (production): shop-1-bronze, shop-2-silver, shop-3-gold, shop-4-graph
 $ stardelt bundle plan demos/examples/shop-bundle -t dev
 {"action": "would-create", "name": "dev-product-path-shop-1-bronze", "kind": "Pipeline"}
 {"action": "would-create", "name": "dev-product-path-shop-2-silver", "kind": "Pipeline"}
