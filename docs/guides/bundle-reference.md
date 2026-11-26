@@ -60,14 +60,15 @@ A target is one stage: `dev`, `test`, `prod` or any name you choose.
 | `mode` | yes | `development` or `production` |
 | `variables` | no | a value for each variable you want to set for this stage; a variable must be declared under `variables` |
 | `runAs` | in `production` | the pipeline identity the pipelines run as: `pipeline-<ownerGroup>`, or that name with a suffix (`pipeline-shop-nightly`) |
-| `drift` | no | `warn` (the default) or `block`: what to do with a pipeline someone changed after its last deploy |
+| `drift` | no | `warn` (the default), `block`, or `heal` (a `development` target only): what to do with a pipeline someone changed after its last deploy |
 
 - A **`development`** target deploys every pipeline under the name `dev-<your sign-in name>-<pipeline>` (the whole name at most 40
   characters) and without its schedule, so two people can deploy one bundle side by side and nothing runs on its own. It needs a
   sign-in name, so `plan` and `deploy` for it require `stardelt login` (or a token).
 - A **`production`** target deploys the pipelines under the names the files give, with their schedules.
 - With **`drift: block`**, `plan` and `deploy` exit with `2` for every pipeline that was changed after its last deploy, and a deploy
-  writes nothing, until you pass `--accept-drift`. With `warn` they only report it.
+  writes nothing, until you pass `--accept-drift`. With `warn` they only report it. With **`heal`**, allowed only on a `development`
+  target, they report it and the deploy writes over the change, so an experiment made in the interface is simply replaced.
 
 ### Variables
 
@@ -318,12 +319,13 @@ sign-in; the others talk to Nova.
 | `bundle init [DIR] --name NAME --group GROUP` | writes a small bundle that passes `validate` | no |
 | `bundle validate [DIR] [-t TARGET] [--format text\|json]` | checks the bundle offline (every target, or one): the same checks the schema describes, plus the ones that need the files | no |
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
-| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan` | yes |
+| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff] [--smoke NAME [--smoke-timeout SECONDS]]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan`; `--smoke NAME` then runs that pipeline of the bundle and fails the deploy unless the run succeeds | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
 | `bundle destroy [DIR] -t TARGET [--yes]` | lists, and with `--yes` removes, what a deploy of the target left on the stage | with `--yes` |
-| `bundle generate NAMESPACE NAME [DIR]` | writes a pipeline made in the interface into the bundle (its file and its SQL file); never overwrites | no |
+| `bundle generate NAMESPACE NAME [DIR]` | writes a pipeline made in the interface into the bundle (its file, and its SQL or notebook file); never overwrites | no |
+| `bundle rollback --deployment ID [--yes]` | lists, and with `--yes` replays, the documents one recorded deployment applied (the ID is in `stardelt deployments list`) | with `--yes` |
 
 `--prune` also handles the pipelines and stream apps that this bundle and this target deployed earlier and the bundle no longer
 names (`would-delete` in a plan, removed after everything else succeeded in a deploy; a stream row carries `"kind": "StreamApp"`).
