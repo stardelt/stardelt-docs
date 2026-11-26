@@ -505,20 +505,14 @@
         },
         "pillars": {
           "default": {
-            "batch": false,
             "dashboards": false,
             "lakehouse": true,
-            "ml": false,
             "notebooks": false,
             "pipelines": false,
             "streaming": false
           },
           "description": "Which pillars a platform instance enables.",
           "properties": {
-            "batch": {
-              "default": false,
-              "type": "boolean"
-            },
             "dashboards": {
               "default": false,
               "description": "BI dashboards (Superset). Off by default: it brings a metadata database, Redis and\nthree long-running pods. People sign in through the platform IdP, with the local\nadministrator kept as break-glass; each group sees the dashboards its catalog role allows.",
@@ -526,10 +520,6 @@
             },
             "lakehouse": {
               "default": true,
-              "type": "boolean"
-            },
-            "ml": {
-              "default": false,
               "type": "boolean"
             },
             "notebooks": {
