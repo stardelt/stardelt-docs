@@ -172,7 +172,7 @@ one opens at the failing cell with the exception and **Traceback**; copies are k
 
 ## Edit a pipeline's YAML
 
-A pipeline page has a **Definition** section, *"The pipeline as the document that creates it."* **Show definition** and **Hide definition** show it as YAML — the same document `stardelt get pipeline --format json` prints and `stardelt apply -f` accepts.
+A pipeline page has a **Definition** section, *"The pipeline as the document that creates it."* **Show definition** and **Hide definition** show it as YAML — the same document `stardelt export <group> <name>` prints and `stardelt apply -f` accepts.
 
 Every pipeline you may see is readable. **Edit definition** appears only when Nova owns the pipeline; otherwise the panel says `This pipeline is managed outside Nova (kubectl or GitOps); change it where it comes from.` (created elsewhere) or `This pipeline has a shape the form cannot edit.` A pipeline deployed from a bundle carries `Deployed from <bundle> · <target> — the next deploy overwrites changes made here.`
 
