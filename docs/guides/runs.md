@@ -95,6 +95,14 @@ A person's run may also name the date it runs for and values for the pipeline's 
 pipeline page's **Run now** form, or `stardelt run` with `--date` and `--param`; the date and the values
 apply to that run only.
 
+For several days at once, **Run for a range** on the pipeline page starts a backfill: one run for every scheduled
+date from **First date** to **Last date**, both included, at most 31 dates. **Dates that already ran** says what
+happens to a date that has a run: **Skip them** (the default), **Redo failed** or **Redo all**. Only people who may
+edit the pipeline see the button, and only when the pipeline has a schedule; a paused pipeline is refused. A banner
+on the page follows the backfill until it ends. **Cancel backfill** stops the dates that have not started; a run
+that is already running finishes. The CLI starts the same backfill:
+[Run a pipeline and wait for it](/docs/guides/cli#run-a-pipeline-and-wait-for-it).
+
 ## Who sees what
 
 You see the runs of the pipelines you may see: those of your groups' pipelines, and every pipeline if you are
