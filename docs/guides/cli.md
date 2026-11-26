@@ -13,11 +13,11 @@ permissions, the same catalogs, the same runs.
 ## Install
 
 ```bash
-pip install "stardelt @ git+https://github.com/stardelt/stardelt@python/v0.4.1#subdirectory=python"
+pip install "stardelt @ https://github.com/stardelt/stardelt/releases/download/v0.0.4/stardelt-0.0.4-py3-none-any.whl"
 ```
 
-The package is not on PyPI: this installs the current release `v0.4.1` from its repository. A newer release has a
-newer tag.
+The package is not on PyPI: this installs the current release, `v0.0.4`, from its
+[release page](https://github.com/stardelt/stardelt/releases). A newer release has a newer file.
 
 ## Sign in
 

@@ -37,7 +37,33 @@ and client certificates from it. Turning the backup off is the one way to instal
 `postgres.backup.enabled: false` means no WAL archive and no base backup, so the databases have no
 recovery point.
 
-## Install
+## Install a release
+
+A release installs the operator, which installs the rest of the platform from one
+`PlatformInstance`. Your cluster needs an ingress controller and cert-manager (see above).
+
+```bash
+kubectl apply --server-side \
+  -f https://github.com/stardelt/stardelt/releases/download/v0.0.4/install.yaml
+
+curl -fsSLO https://github.com/stardelt/stardelt/releases/download/v0.0.4/platform-minimal.yaml
+# set spec.baseDomain, spec.ingress.className and spec.ingress.tls.issuer, then:
+kubectl apply -f platform-minimal.yaml
+kubectl -n stardelt wait --for=condition=Ready platforminstance/cluster --timeout=25m
+kubectl -n stardelt wait --for=condition=Ready lakehouse/main --timeout=25m
+```
+
+`--server-side` is needed because the operator owns its CRDs by server-side apply. Every release
+lists its image digests in `versions.yaml` on the
+[release page](https://github.com/stardelt/stardelt/releases).
+
+:::danger Do not delete install.yaml to uninstall
+`kubectl delete -f install.yaml` deletes the CRDs, and with them every PlatformInstance, Catalog and
+Pipeline in the cluster. To remove stardelt, delete your `PlatformInstance` first and wait until it
+is gone; delete the CRDs only when you mean to lose every stardelt resource.
+:::
+
+## Install from a checkout (development)
 
 Check that cert-manager is working before the chart is built — the release cannot be installed
 without it:

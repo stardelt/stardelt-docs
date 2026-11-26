@@ -15,7 +15,7 @@
   "getting-started/hetzner-k3s": 367,
   "getting-started/prerequisites": 596,
   "getting-started/quickstart": 448,
-  "getting-started/your-cluster": 1698,
+  "getting-started/your-cluster": 1842,
   "glossary": 153,
   "guides/airflow": 473,
   "guides/ask": 1053,
@@ -23,7 +23,7 @@
   "guides/catalog": 1801,
   "guides/checked-publishing": 759,
   "guides/ci-deploys": 798,
-  "guides/cli": 2040,
+  "guides/cli": 2041,
   "guides/connect-your-tools": 2175,
   "guides/connections": 1946,
   "guides/develop": 1285,
@@ -55,7 +55,7 @@
   "operations/security": 3255,
   "operations/sign-in": 2645,
   "operations/troubleshooting": 2274,
-  "operations/upgrade": 1222,
-  "roadmap": 394,
+  "operations/upgrade": 1278,
+  "roadmap": 393,
   "use": 126
 }
