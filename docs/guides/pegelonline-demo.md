@@ -47,6 +47,18 @@ example `1 quality check failed: one_row_per_measurement (3 rows)`. The gold tab
 were already written; the red run is the signal to read the `checks` task log before trusting
 them. Making the checks a gate before gold is a later slice.
 
+## As a data product
+
+The gold tables are the demo's working copy. The name it publishes is
+`shared.gold.pegelonline_levels_v1`, a view over the latest measurement per station and time
+series; the pipeline recreates it on every run, so a changed column fails the run instead of a
+reader's query.
+
+That gives the demo the parts of a [data product](./data-products): an owner group
+(`stardelt-users`), an hourly schedule, the three quality checks above, and a versioned name
+that stays the same when the tables under it change. The owner group decides who may read the
+view.
+
 ## Enable it
 
 The DAG ships paused (Airflow's default for a new DAG), so nothing is written until it is turned on.
