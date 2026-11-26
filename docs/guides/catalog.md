@@ -80,9 +80,15 @@ you look:
 To set one, choose the deadline, the timezone (for example `Europe/Berlin`) and the grace in minutes
 (0 to 1440), then choose **Set**; **Remove** takes the promise away. Only the table's owner group or
 an administrator sees the form. The promise travels as the Iceberg property `stardelt.freshness`,
-so another engine can read it, and Nova evaluates the status each time the card is read: nothing
-runs in the background, and no message is sent when a table turns `Late`. The same read and write
-are the routes [`table_freshness_get` and `table_freshness_update`](../reference/api/catalog).
+so another engine can read it, and Nova evaluates the status each time the card is read. The same
+read and write are the routes [`table_freshness_get` and `table_freshness_update`](../reference/api/catalog).
+
+A promise can also **tell** someone. Under **Tell**, pick up to five destinations of the table's
+owner group (a table with no owner cannot name one). Nova sends one message when the table turns
+`Late` and one when it is `Fresh` again; nothing repeats while it stays `Late`, and `Late (grace)`
+sends nothing. Every attempt is recorded as a delivery of the table it is about. Only webhook
+destinations deliver today: an email destination is recorded as a failed attempt, because the
+platform's SMTP relay is not configured.
 
 ### Verified queries
 
