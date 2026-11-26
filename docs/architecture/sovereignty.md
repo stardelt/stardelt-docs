@@ -21,7 +21,7 @@ your data on them.
 | **No required outbound calls from stardelt's own components.** There is no license server, no telemetry and no "stardelt cloud" | Read the code: [Nova](https://github.com/stardelt/stardelt/tree/main/nova), [Operator](https://github.com/stardelt/stardelt/tree/main/operator). Upstream components keep their own behaviour |
 | **Open formats for your data.** Tables are Apache Iceberg with Parquet files, on storage you choose | Read a table with any Iceberg engine |
 | **You can leave.** Uninstall stardelt and your tables stay on your object store. Iceberg metadata describes itself | [How it works](./how-it-works) |
-| **Permissive licenses.** Apache 2.0, MIT or BSD, with one documented MPL 2.0 exception | [License policy](./licenses) |
+| **Permissive licenses.** Apache 2.0, MIT or BSD; named exceptions: MPL 2.0, GPL-3.0, Artistic-1.0 | [License policy](./licenses) |
 | **Your identity provider.** Users and groups can come from your own OIDC provider. Nova keeps no passwords | [Identity](./identity), [Requirements](./identity#bring-your-own-oidc-provider) |
 | **Your storage.** Use the bundled SeaweedFS, or point the platform at your own S3-compatible store | [Install on your own cluster](../getting-started/your-cluster) |
 | **Mirrorable images.** stardelt's own images live under `ghcr.io/stardelt/*` and deployments pin digests | [Install on your own cluster](../getting-started/your-cluster#distribution-notes) |
