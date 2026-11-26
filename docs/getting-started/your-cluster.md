@@ -63,6 +63,32 @@ Pipeline in the cluster. To remove stardelt, delete your `PlatformInstance` firs
 is gone; delete the CRDs only when you mean to lose every stardelt resource.
 :::
 
+### Sign in the first time
+
+With `identity.mode: platform`, the operator creates the first person, `admin`, in the group
+`stardelt-admins`. Its password is in a Secret in the platform namespace:
+
+```bash
+kubectl -n stardelt get secret stardelt-realm-admin -o jsonpath='{.data.password}' | base64 -d; echo
+```
+
+Open `https://<baseDomain>` and sign in as `admin` with that password. With `identity.mode: external`,
+your own provider signs people in, and this section and the next do not apply.
+
+### Add your team
+
+stardelt never creates people or groups. With the platform's own identity provider, `admin` adds
+them in the provider's console:
+
+1. Open `https://id.<baseDomain>/admin/stardelt/console/` and sign in as `admin`.
+2. Choose **Users**, then **Add user**. Fill in **Username** and **Email**, choose **Join groups**,
+   pick `stardelt-users`, and choose **Create**.
+3. On the **Credentials** tab, choose **Set password** and leave **Temporary** on, so the person
+   picks their own password at the first sign-in.
+
+Groups decide what people may read and write: grant a group a catalog in
+[Access to catalogs](../operations/access#grant-access-to-a-group).
+
 ## Install from a checkout (development)
 
 Check that cert-manager is working before the chart is built — the release cannot be installed
