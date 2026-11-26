@@ -166,6 +166,13 @@ run with its tasks and exits `0` only when the run succeeded, so a CI job can us
 stardelt run etl nyc_taxi --wait --timeout 3600     # exit 0: the run succeeded; exit 1: it failed, was refused, or the time ran out
 ```
 
+To run it for another date, after an outage or a fix, add `--date`; `--param NAME=VALUE` sets one of the
+schedule's parameters for this run. Both apply to that run only; the schedule does not change:
+
+```bash
+stardelt run etl nyc_taxi --date 2026-11-20 --param region=eu --wait
+```
+
 A failed run names its failed tasks on standard error. `--interval` sets the seconds between two looks (5 unless you change it). When `--timeout` runs out the
 run is NOT stopped and keeps going; `stardelt pipelines run-stop etl nyc_taxi RUN_ID` marks it failed, but work already in flight can still finish. Nova
 refuses to start a run of a paused pipeline, or of a `Forbid` or `Replace` pipeline that already has an active run, and allows ten starts per person per

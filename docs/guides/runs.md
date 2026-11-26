@@ -92,7 +92,8 @@ Both kinds land in the same table, so a SQL pipeline and a notebook schedule are
 **Trigger** column says which of the two ways a run started: the schedule, or a person pressing **Run now**.
 
 A person's run may also name the date it runs for and values for the pipeline's parameters — the
-pipeline page's **Run now** form; the date and the values apply to that run only.
+pipeline page's **Run now** form, or `stardelt run` with `--date` and `--param`; the date and the values
+apply to that run only.
 
 ## Who sees what
 
