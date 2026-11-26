@@ -72,11 +72,9 @@ A stardelt platform instance.
 | `spec.monitoring.enabled` | boolean | No | `false` | Render a ServiceMonitor for every component that exposes Prometheus metrics. Needs the monitoring.coreos.com/v1 CRDs; without them the operator renders nothing and reports MonitoringCRDsMissing. |  |
 | `spec.monitoring.labels` | object (map of string) | No | `{}` | Labels added to every rendered object, so the customer's Prometheus selects them (for example `release: kube-prometheus-stack`). |  |
 | `spec.namespace` | string | No | `stardelt` | Namespace the platform's own components are installed into. |  |
-| `spec.pillars` | object | No | `{"batch":false,"dashboards":false,"lakehouse":true,"ml":false,"notebooks":false,"pipelines":false,"streaming":false}` | Which pillars a platform instance enables. |  |
-| `spec.pillars.batch` | boolean | No | `false` |  |  |
+| `spec.pillars` | object | No | `{"dashboards":false,"lakehouse":true,"notebooks":false,"pipelines":false,"streaming":false}` | Which pillars a platform instance enables. |  |
 | `spec.pillars.dashboards` | boolean | No | `false` | BI dashboards (Superset). Off by default: it brings a metadata database, Redis and three long-running pods. People sign in through the platform IdP, with the local administrator kept as break-glass; each group sees the dashboards its catalog role allows. |  |
 | `spec.pillars.lakehouse` | boolean | No | `true` |  |  |
-| `spec.pillars.ml` | boolean | No | `false` |  |  |
 | `spec.pillars.notebooks` | boolean | No | `false` | Multi-user notebooks (JupyterHub). Off by default: a notebook stack is heavy, and a cluster that only serves queries should not carry it. |  |
 | `spec.pillars.pipelines` | boolean | No | `false` | Scheduled pipelines and jobs (Airflow, run as `KubernetesExecutor`). Off by default: it brings a metadata database and four long-running pods, and a cluster that only serves queries does not need them. Nova's Pipelines page and `stardelt bundle run` need it. |  |
 | `spec.pillars.streaming` | boolean | No | `false` |  |  |
