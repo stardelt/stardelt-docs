@@ -92,7 +92,7 @@ such as `nova`, `operator` or `chart`. A pull request's title follows the same s
 - If a reader would see a difference, update the docs in the same pull request.
 - Follow the [recipe](https://github.com/stardelt/stardelt/blob/main/CONTRIBUTING.md#recipes) if there is one for your change.
 - Drawing a diagram? Start from [Diagrams](./diagrams.md) so it matches the palette and the rules.
-- Keep dependencies within the [license policy](../architecture/licenses.md).
+- Keep dependencies within the [license policy](/docs/architecture/licenses).
 
 ## Review
 

@@ -108,4 +108,4 @@ A service joins the platform only if it meets all of these:
 5. **Open contract:** it sits behind a published interface (SQL, Iceberg REST, S3, OIDC), so it can be
    replaced.
 
-What may come later is on the [roadmap](../roadmap).
+What may come later is on the [roadmap](/project/roadmap).

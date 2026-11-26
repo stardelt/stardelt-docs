@@ -22,7 +22,7 @@ function walk(dir) {
 }
 
 function pageId(file) {
-  return path.relative('docs', file).split(path.sep).join('/').replace(/\.md$/, '');
+  return file.split(path.sep).slice(1).join('/').replace(/\.md$/, '');
 }
 
 function hasDescription(text) {
@@ -37,7 +37,7 @@ function hasDescription(text) {
   });
 }
 
-const pages = walk('docs').sort().map((file) => {
+const pages = [...walk('docs'), ...walk('project')].sort().map((file) => {
   const text = readFileSync(file, 'utf8');
   return {
     id: pageId(file),

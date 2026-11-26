@@ -26,7 +26,6 @@ const sidebars: SidebarsConfig = {
     'guides/pegelonline-demo',
     'architecture/how-it-works',
     cat('Why stardelt', ['architecture/sovereignty', 'architecture/current-generation']),
-    'roadmap',
   ],
   use: [
     'use',
@@ -57,12 +56,6 @@ const sidebars: SidebarsConfig = {
     'guides/bundle-reference',
     cat('Architecture', ['architecture/overview', 'architecture/spark-connection', 'architecture/services', 'architecture/identity', 'architecture/licenses']),
     'glossary',
-  ],
-  contribute: [
-    'developer/index',
-    'developer/writing-issues',
-    'developer/diagrams',
-    'community/wallpapers',
   ],
 };
 

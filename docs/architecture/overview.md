@@ -51,7 +51,7 @@ graph LR
 
 *The target architecture — it names services that are
 specified but not built yet. [Services](./services) is the honest list of what an install contains
-today; the [roadmap](../roadmap) carries the phasing.*
+today; the [roadmap](/project/roadmap) carries the phasing.*
 
 ### Kubernetes — the platform you bring
 
@@ -70,7 +70,7 @@ Services you can enable on top of the core, off by default. See [Services](./ser
 
 ### Planned services
 
-Services designed for later phases but not in the install path yet. See [Services](./services) and the [roadmap](../roadmap).
+Services designed for later phases but not in the install path yet. See [Services](./services) and the [roadmap](/project/roadmap).
 
 ## How the services connect
 

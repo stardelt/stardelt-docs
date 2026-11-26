@@ -33,7 +33,7 @@ docs/operations/       how to keep it running
 docs/architecture/     how it fits together
 docs/architecture/services.md  the component table: chart, values file, make target, licence
 docs/reference/        generated from reference-src/; never edit by hand
-docs/developer/        how to contribute
+project/               roadmap and how to contribute (never versioned)
 sidebars.ts            the navigation
 src/pages/index.tsx    the home page
 ```

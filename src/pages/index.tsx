@@ -874,7 +874,7 @@ function DiveDeeper(): ReactNode {
         </div>
         <p className={styles.roadmapLine}>
           stardelt is alpha and grows in milestones.{' '}
-          <Link to="/docs/roadmap">See what works today and what comes next →</Link>
+          <Link to="/project/roadmap">See what works today and what comes next →</Link>
         </p>
       </div>
     </section>
@@ -891,7 +891,7 @@ function StarBand(): ReactNode {
         </p>
         <div className={styles.starRow}>
           <StarButton variant="band" />
-          <Link to="/docs/developer">Or contribute →</Link>
+          <Link to="/project/developer">Or contribute →</Link>
         </div>
       </div>
     </section>

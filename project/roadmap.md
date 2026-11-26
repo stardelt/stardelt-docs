@@ -24,14 +24,14 @@ are the open work.
 - **Work:** the Nova interface (catalog with table guides and verified queries, SQL editor, loads,
   connections, pipelines, query log and its usage view, lineage, warehouse states with Start now),
   notebooks, dashboards, scheduled pipelines, Spark Connect.
-- **Ask and models:** [Admin → Models](guides/models) connects a model endpoint by URL and key,
+- **Ask and models:** [Admin → Models](/docs/guides/models) connects a model endpoint by URL and key,
   shows the probe's checks and each group's monthly token budget, and lists the last calls. With an
-  endpoint connected, the [assistant](guides/ask) answers a question as checked SQL, with history.
+  endpoint connected, the [assistant](/docs/guides/ask) answers a question as checked SQL, with history.
 - **Automate:** an API, a Python package, a command line and a local MCP server.
 - **Access:** sign-in through your OIDC provider (Keycloak, deployed by stardelt, or your own), and table permissions by group.
 - **Keep it running:** backups of the databases and the data, with commands that check them.
 
-The [services page](architecture/services) lists what an install contains, and each guide says what is
+The [services page](/docs/architecture/services) lists what an install contains, and each guide says what is
 not available yet.
 
 ## What stardelt will not be
@@ -44,8 +44,8 @@ not available yet.
 
 ## How decisions are made
 
-The maintainers decide, using the [license policy](architecture/licenses), the
-[sovereignty goals](architecture/sovereignty) and the milestones. To propose a change,
+The maintainers decide, using the [license policy](/docs/architecture/licenses), the
+[sovereignty goals](/docs/architecture/sovereignty) and the milestones. To propose a change,
 [open an issue](https://github.com/stardelt/stardelt-docs/issues/new/choose) that says what you
 need and why. A formal governance model will come once the project has more than one active
 organization behind it.

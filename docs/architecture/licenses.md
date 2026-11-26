@@ -77,7 +77,7 @@ Components people often ask about that the policy excludes, and what stardelt us
 | Metabase (community edition) | AGPL-3.0 | Apache Superset |
 | HashiCorp Vault | BSL 1.1 | OpenBao |
 | Grafana | AGPL-3.0 | Nothing bundled; bring your own monitoring |
-| Airbyte (platform) | ELv2 | Nothing bundled yet: see the [roadmap](../roadmap) |
+| Airbyte (platform) | ELv2 | Nothing bundled yet: see the [roadmap](/project/roadmap) |
 
 A license can change. Check the upstream license for the version you run if this matters to you.
 
