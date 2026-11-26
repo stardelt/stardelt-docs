@@ -65,6 +65,14 @@ for: a table you use every day that nothing has refreshed.
 
 Click a table to open its page. Before you have read anything, the card says `No tables read yet`.
 
+## Tables at risk
+
+**Tables at risk** lists up to five tables with a
+[freshness promise](/docs/guides/catalog#freshness-a-promise-the-tables-owner-keeps) that are late, from every
+catalog you may browse: `Late` first, then `Late (grace)`. Each line names the table, repeats the sentence of its
+table page and says when it was last written; click it to open the table. With no late table the card says
+`Every promised table is fresh`, and before any table has a promise it says `No promised tables yet`.
+
 ## Catalogs
 
 The **Catalogs** card has one row per catalog you can see: its name, then **Schemas**, **Tables**,
