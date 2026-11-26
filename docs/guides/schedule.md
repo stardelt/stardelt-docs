@@ -18,8 +18,10 @@ that a schedule pins. Runs and logs are on **Pipelines**.
   `you are not a member of the group <g>`, administrators included.
 - JupyterHub signs you in with your Nova account, so `stardelt.publish` already knows you.
 - The group's pipeline identity `pipeline-<group>` exists; otherwise the dialog says `No principal for
-  this group yet` and the group's row names the command an administrator runs:
-  `make sync-principal NAME=pipeline-<group> GROUP=<group>` ([Service principals](service-principals)).
+  this group yet` and the group's row names what to create: a `ServicePrincipal` named
+  `pipeline-<group>` with `spec.ownerGroup: <group>`. On a `make install` platform the same row also
+  names `make sync-principal NAME=pipeline-<group> GROUP=<group>`
+  ([Service principals](service-principals)).
 - Use **fully qualified names** (`warehouse.analytics.daily_trips`): a scheduled statement has no
   default catalog or schema. One statement per schedule; a trailing `;` is fine.
 - No passwords or tokens in SQL: the statement is shown to every member of the group (there is
