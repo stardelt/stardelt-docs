@@ -15,9 +15,10 @@ storing, querying, scheduling and showing data. [See a team's day in five steps]
 
 *Nova, stardelt's interface: catalogs, recent loads and queries, and the services, in one place.*
 
-:::warning Pre-alpha
-APIs, resources and install steps change without notice. There are no tagged releases yet. Try it,
-but do not run your business on it.
+:::warning Alpha
+stardelt is alpha (`0.0.x`): each release is proven on a fresh single-node cluster before it is published,
+but resources, APIs and install steps can still change before `0.1.0`. Install a
+[release](https://github.com/stardelt/stardelt/releases/latest), try it, and do not run your business on it yet.
 :::
 
 ## What you can do with it
