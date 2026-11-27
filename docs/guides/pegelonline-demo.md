@@ -33,8 +33,8 @@ Schema (15 columns, in order):
 
 ## Quality checks
 
-The pipeline's last task, `checks`, runs three SQL assertions after the silver and gold tables
-are written. A check passes when its query returns no rows:
+The checks are two tasks: the two silver checks run before gold is written, the range check after
+gold and before the view. A check passes when its query returns no rows:
 
 - `station_uuid_present` — no measurement has a null station id (`checks-silver`);
 - `one_row_per_measurement` — one row per station, time series and measurement time after the
