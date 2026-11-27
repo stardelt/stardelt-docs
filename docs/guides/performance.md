@@ -34,8 +34,8 @@ table that records finished chunks do not.
 
 ## The seven habits
 
-These are the same seven rules the notebook helper prints with `stardelt.spark_tips()`, each with the
-limit it comes from.
+These are the seven rules, each with the limit it comes from; keep this page open beside the
+notebook.
 
 ### 1. Bound a result before it crosses into the driver
 
