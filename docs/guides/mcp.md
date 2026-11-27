@@ -76,6 +76,7 @@ in a default token, so ask for it when the client is meant to start runs. Withou
 | `table_documentation` | A table's description, owner group, domain, tags, column notes, usage guide and metric definitions; takes `namespace` and `table` (`catalog` if ambiguous) |
 | `catalog_search` | The tables that match a word |
 | `data_products` | The tables a catalog publishes as data products: lifecycle, owner group, domain and, when deprecated, the replacing table; takes `catalog` and `domain`, both optional |
+| `evals` | The questions with known answers that check Ask in one catalog, each with its newest verdict: passed, or failed and why; takes `catalog`, optional |
 | `sql_read` | One read-only statement (`SELECT`, `WITH`, `VALUES`, `SHOW`, `DESCRIBE`, `TABLE` or `EXPLAIN`); at most 200 rows and 60 seconds |
 | `sql_explain` | The plan of one read-only statement, without running it (`EXPLAIN`, never `EXPLAIN ANALYZE`) |
 | `query_log_list` | Your own recent queries: state, duration, statement preview |
