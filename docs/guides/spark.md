@@ -185,7 +185,9 @@ A cluster you may not use, or one that is stopped, is refused rather than starte
 - The notebook's Spark client and the platform's Spark server must be on the same Spark line; the session
   refuses with a sentence when they are not.
 - A restart of the Spark server ends the session: DataFrames and temporary views are gone, a running job is
-  not retried, and the next cell opens a new session.
+  not retried, and the next cell opens a new session. When a named cluster's server dies (for example out of
+  memory), the operator recreates it after five minutes; its status message says
+  `the server pod <pod> exited with <code>; recreating the server` until it runs again.
 - A kernel on your own machine reaches Spark Connect too: `stardelt setup vscode` writes a kernel that
   sends `spark` through the platform's external front, `spark.<your-domain>`, with your `stardelt login`
   token. Install `stardelt[spark,jupyter]` on the laptop first (the Connect client must be on the same

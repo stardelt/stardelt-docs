@@ -119,7 +119,9 @@ In **About this table**, set **Data product** to `draft` while you build it and 
 Nova refuses `published` until the table has an owner, a description and a domain, and while one of its
 verified queries failed its last check (step 4). The refusal names the question and the difference, for example
 `a published table may not have a failed check: "How many orders in March?" — the result differs: expected 1284, got 1279`.
-Fix the table or the query, run **Check now**, and publish again. A table that is a data product
+Fix the table or the query, run **Check now**, and publish again. A draft row on **Share → Data products** has its
+own **Publish** button; it stays disabled until the table has an owner, a description and a domain, and any other
+refusal appears above the list in Nova's words. A table that is a data product
 appears on **Share → Data products**, grouped by domain, with its owner and a state badge.
 `GET /api/catalog/products` and `stardelt api catalog_products` give the same list.
 

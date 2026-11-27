@@ -86,6 +86,7 @@ The audit record carries administrator, group, connection, reason and outcome, n
 | **REST API** | Base URL (required) | **Token:** Token (required). **Client credentials:** Client ID (required), Client secret (required) |
 | **Object store (S3)** | Bucket (required), Endpoint, Region | Access key ID (required), Secret access key (required) |
 | **Kafka** | Bootstrap servers (required) | User (required), Password (required) |
+| **MLflow tracking server** | Tracking URL (required) | **Bearer token:** Token (optional) |
 | **SFTP** | Host (required), Port (default 22) | **Password:** User (required), Password (required). **Private key:** User (required), Private key (required) |
 | **Other secret (any fields)** | None fixed: you name the settings | None fixed: you name the secret fields; at least one is required |
 
@@ -174,6 +175,22 @@ Printing shows name, scope, type and field *names*, never a value: `Connection('
 
 Managed connections have no reader: `scope must be 'personal' or 'group' (managed connections are not
 revealed).`
+
+### Point a notebook at MLflow
+
+With an **MLflow tracking server** connection named `mlflow`, one call sets the tracking address (and the token,
+when the connection has one) for the MLflow client in the notebook:
+
+```python
+import stardelt
+stardelt.mlflow()          # or stardelt.mlflow("other-name", group="analytics")
+import mlflow
+mlflow.autolog()
+```
+
+The platform installs no MLflow and serves no model: the connection points at a tracking server you run, and
+the notebook image has no `mlflow` package, so install it first (`%pip install mlflow`) or use your own image. A
+connection of another type is refused with `connection 'mlflow' is a 'generic' connection, not an MLflow tracking server`.
 
 ### In a scheduled notebook
 
