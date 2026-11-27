@@ -19,7 +19,6 @@ Each row is one `StreamApp`:
 | Phase | The phase the operator reports: `Running`, `Stopped`, `Failed` or `Pending`. A second badge carries the operator's `Ready` reason when it differs from the phase. |
 | Source | The `Connection` (or the platform bus) and the Kafka topic the stream reads. |
 | Sink | The catalog, table and mode (`merge` or `append`) the stream writes. |
-| Checkpoint | The operator does not report a checkpoint time yet, so this column says `not reported yet`; the checkpoint itself is written to the object store and survives a stop. |
 | Last error | The most recent error, if any. |
 | Job | One **Stop** or **Resume** button. |
 
@@ -31,9 +30,28 @@ operator's ten-minute window, and `3× submissions` in grey once that window has
 passed. The number is historical; only the blue form says the stream is recovering
 now, which is the same window that produces the `Restarting` reason below.
 
-If nothing runs on the bus yet, the page is empty and says: "No streams yet. A stream is
-created as a `StreamApp` resource; ask an administrator to add one." A stream can also come from a
-bundle in Git — see [Deploy a stream from Git](#deploy-a-stream-from-git).
+If you can see no stream yet, the page says `No streams yet` and "Create one to read a topic into a table."
+A stream can also come from a bundle in Git — see [Deploy a stream from Git](#deploy-a-stream-from-git).
+
+Click a stream's name to open its own page. It shows the source and the sink, the identity the stream runs
+as, its viewers, how often Spark submitted it, when it was last submitted, and the last error. It also has
+the same **Stop** or **Resume** button.
+
+## Create a stream
+
+**New stream** opens a form:
+- **Name**: 1 to 40 lower-case letters, digits and dashes, starting with a letter.
+- **Owner group**: one of your groups.
+- **Topic**: the Kafka topic to read.
+- **Source connection**: blank reads the platform's own bus.
+- **Catalog** and **Table** (`schema.table`): where it writes.
+- **Write mode**: `merge`, with **Merge keys**, or `append`.
+- **Restart policy**: `always` or `on-failure`.
+- **Viewers**: optional groups that may see the stream.
+- **Checkpoint prefix**: optional; blank uses the platform's default.
+
+**Create stream** checks the whole form with Nova before it writes anything. A refusal shows Nova's own
+sentences, and nothing is created. The stream runs as its owner group's pipeline identity, never as you.
 
 ## When the phase and the reason disagree
 
