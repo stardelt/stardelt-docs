@@ -36,18 +36,22 @@ Schema (15 columns, in order):
 The pipeline's last task, `checks`, runs three SQL assertions after the silver and gold tables
 are written. A check passes when its query returns no rows:
 
-- `station_uuid_present` — no measurement has a null station id;
+- `station_uuid_present` — no measurement has a null station id (`checks-silver`);
 - `one_row_per_measurement` — one row per station, time series and measurement time after the
-  silver de-duplication;
+  silver de-duplication (`checks-silver`);
 - `value_in_range` — the water level in centimetres (time series `W`, unit `cm`, the one
   series with a fixed physical range) is between -1000 and 10000 around the gauge datum. The
   other series (discharge in m³/s, conductivity in µS/cm, temperature and the rest) each carry
-  their own unit, so one numeric bound is not applied to them.
+  their own unit, so one numeric bound is not applied to them (`checks`).
+
+The two silver checks run as the `checks-silver` task, before either gold table is written, so a
+bad run stops there and leaves the previous gold tables in place. The range check runs as the
+`checks` task after the gold tables and before the view, so a published
+`shared.gold.pegelonline_levels_v1` is never replaced by a run whose values failed the check.
 
 A failed check fails the run with one sentence naming every check and its row count, for
-example `1 quality check failed: one_row_per_measurement (3 rows)`. The gold tables of that run
-were already written; the red run is the signal to read the `checks` task log before trusting
-them. Making the checks a gate before gold is a later slice.
+example `1 quality check failed: one_row_per_measurement (3 rows)`. The run stops at the failed
+task; read its log before trusting the tables the run wrote.
 
 ## As a data product
 
