@@ -44,7 +44,7 @@ sign-in is needed, so scripts can tell the cases apart.
 | `stardelt whoami` | who Nova thinks you are, as JSON | [Sign in](#sign-in) |
 | `stardelt login` | sign in once with a code approved in a browser | [Sign in](#sign-in) |
 | `stardelt logout` | forget the stored sign-in | [Sign in](#sign-in) |
-| `stardelt doctor` | check the host, Nova, the sign-in and who you are; each failure names its fix | [Sign in](#sign-in) |
+| `stardelt doctor` | check the host, Nova, the sign-in, who you are and which model answers Ask; each failure names its fix | [Sign in](#sign-in) |
 | `stardelt sql` | run one statement as you | [Long-running SQL](./python#long-running-sql) |
 | `stardelt samples load` | load the generated sample table the guides use, as you, and print its full name | [Examples](#examples) |
 | `stardelt run` | start a pipeline run now; `--wait` waits for its end | [Pipelines from the command line](#pipelines-from-the-command-line) |

@@ -116,11 +116,15 @@ a request itself yet.
 ## 7. Publish it, and retire it with a successor
 
 In **About this table**, set **Data product** to `draft` while you build it and to `published` when it is ready.
-Nova refuses `published` until the table has an owner, a description and a domain. A table that is a data product
+Nova refuses `published` until the table has an owner, a description and a domain, and while one of its
+verified queries failed its last check (step 4). The refusal names the question and the difference, for example
+`a published table may not have a failed check: "How many orders in March?" — the result differs: expected 1284, got 1279`.
+Fix the table or the query, run **Check now**, and publish again. A table that is a data product
 appears on **Share → Data products**, grouped by domain, with its owner and a state badge.
 `GET /api/catalog/products` and `stardelt api catalog_products` give the same list.
 
-A row shows the table, its description, its owning group, its **Freshness** and its **State**.
+A row shows the table, its description, its owning group, its **Freshness**, its **Readers** (the people and
+services that read it in the last 30 days, from the query log) and its **State**.
 Freshness is the promise the table's owner set in step 3 — `Fresh`, `Late (grace)`, `Late`, or
 `—` when the table promises no time — read from the same catalog-health answer the Overview
 uses; point at the badge to see the promise in words.
