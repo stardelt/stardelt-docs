@@ -61,7 +61,9 @@ Each answer is one card:
 - **The check** — `✓ Checked: EXPLAIN passed as you` in green, or `✕ Not runnable: <engine error>. The
   model tried twice.` in red. Nova asks the model for one correction before it reports a failure; the
   statement from the second attempt is shown either way.
-- **Sources** — the tables the model was given for the question, each a link into the catalog.
+- **Sources** — the tables the model was given for the question, each a link into the catalog. With each
+  table, the model also gets up to five of its [verified queries](/docs/guides/catalog#verified-queries) and is told
+  to copy a matching one's shape, so a table whose owners wrote verified queries gets answers in their words.
 - **Open in SQL editor** — takes the statement to `/query` with the `sql` parameter, filled in and
   **not run**. `⌘`/`Ctrl+Enter` does the same for the last answer.
 - **👍 / 👎** — one vote per answer. A vote writes to the `model_call` row the answer's model call
