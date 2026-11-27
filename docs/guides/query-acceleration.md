@@ -22,6 +22,11 @@ page pays for it again, although the result stays the same until the source chan
 When the answer may lag behind the source — daily revenue, a monthly total, a per-customer lifetime
 value — compute it once, after the source has settled, and let the dashboard read the small result.
 
+Nova finds these statements for you. **Accelerations** in the menu lists the statements you repeat
+(**Scope**: **Mine** or **My teams**) over the last 30 days, worst first by total time. Statements that
+differ only in string values or spacing count as one. Each row shows the runs, the total and the average
+time, and has **Copy SQL**. `stardelt query log-repeated` gives the same list.
+
 ## The pattern
 
 The shop example in `demos/examples/shop-bundle/` does exactly this once a day. The statement is
