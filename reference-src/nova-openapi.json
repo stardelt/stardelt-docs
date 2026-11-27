@@ -1095,7 +1095,7 @@
           "public"
         ],
         "summary": "`POST /api/ask` — a question in, checked SQL out.",
-        "description": "A question in words, one Trino statement out. Nova searches the catalog as the caller for at most five tables, sends the question and **the documentation of those tables only** — description, tags, owner, domain, column names and their descriptions — to the first `ModelEndpoint` (name order) whose purpose list contains `ask` and whose probe found it reachable with JSON output, and answers the statement the model writes. No row, no query result and no table data ever leaves the platform, whatever the endpoint's `sendRows` says; never the endpoint's URL or its key either. The statement is **checked with `EXPLAIN` as the caller and is not run**: `explain` is `passed` or `failed`, and a failed check keeps the SQL in the answer with the engine's sentence in `error` (one correction is asked of the model first). No matching table is a `200` with `sql: null` and a sentence saying so; a model endpoint that is refused, unreachable or does not answer in the JSON shape is a `502`. A spent budget is the `429` the model budget answers (see `/api/admin/model-usage`). Every answer carries `Cache-Control: no-store`.",
+        "description": "A question in words, one Trino statement out. Nova searches the catalog as the caller for at most five tables — the tables whose name contains every word of the question, or, when none does, the tables sharing the most words with it — sends the question and **the documentation of those tables only** — description, tags, owner, domain, column names and their descriptions — to the first `ModelEndpoint` (name order) whose purpose list contains `ask` and whose probe found it reachable with JSON output, and answers the statement the model writes. No row, no query result and no table data ever leaves the platform, whatever the endpoint's `sendRows` says; never the endpoint's URL or its key either. The statement is **checked with `EXPLAIN` as the caller and is not run**: `explain` is `passed` or `failed`, and a failed check keeps the SQL in the answer with the engine's sentence in `error` (one correction is asked of the model first). No matching table is a `200` with `sql: null` and a sentence saying so; a model endpoint that is refused, unreachable or does not answer in the JSON shape is a `502`. A spent budget is the `429` the model budget answers (see `/api/admin/model-usage`). Every answer carries `Cache-Control: no-store`.",
         "operationId": "ask_answer",
         "requestBody": {
           "content": {
@@ -1370,7 +1370,7 @@
         "tags": [
           "public"
         ],
-        "description": "Every table of one catalog that carries a freshness promise, the most broken first: `red`, then `amber`, then `green`, and inside one status by `namespace.name`. The list is the answer `table_health` gives for one table, applied to every table the catalog lists; the promise is the Iceberg property `stardelt.freshness`. `?catalog=` picks the catalog. Views are not listed (they cannot carry the property), and a table that vanished between the list and the read is skipped. A table without a promise is not listed. `checked` is how many tables were read; the list stops after 200 tables, so a larger catalog answers a prefix. The interim rule is enforced by Nova: `canEdit` says whether this caller may set a table's promise.",
+        "description": "Every table of one catalog that carries a freshness promise, the most broken first: `red`, then `amber`, then `green`, and inside one status by `namespace.name`. The list is the answer `table_health` gives for one table, applied to every table the catalog lists; the promise is the Iceberg property `stardelt.freshness`. `?catalog=` picks the catalog. Views are not listed (they cannot carry the property), and a table that vanished between the list and the read is skipped. A table without a promise is not listed. `checked` is how many tables were read; the list stops after 200 tables, so a larger catalog answers a prefix, and it evaluates the `checkPipeline` of at most 20 promised tables per call, worst first; a table beyond the cap answers its freshness verdict only. The interim rule is enforced by Nova: `canEdit` says whether this caller may set a table's promise.",
         "operationId": "catalog_health_list",
         "parameters": [
           {
@@ -2392,7 +2392,7 @@
         "tags": [
           "public"
         ],
-        "description": "Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"2026-11-25T06:00:00Z\"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise. `checks` names the verified queries whose last check failed (`null` when no state store is configured).",
+        "description": "Whether this table's data is as fresh as its owner promised. The promise is the Iceberg table property `stardelt.freshness`, a JSON object `{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"2026-11-25T06:00:00Z\"}`: a wall-clock deadline in an IANA zone, a grace period of 0 to 1440 minutes (default 60) and the moment the promise was set. `?catalog=` picks the catalog. `status` is `grey` when the table has no promise (or one that does not parse — never an error), `green` when the newest commit (else `setAt`) is at or after the most recent deadline, `amber` while `now` is still inside the grace after that deadline, and `red` once the grace has passed. `lastWrite` is the newest commit's time and `dueAt`/`nextDueAt` the most recent and the next deadline. A wall clock the zone skips at a DST jump is not a deadline. The interim rule is enforced by Nova: `canEdit` says whether this caller may set the promise. `checks` names the verified queries whose last check failed (`null` when no state store is configured). `checkPipeline` is `<namespace>/<name>`; the read evaluates its newest completed run's failed `quality` checks (severity `error`) and `dbt` tests that name this table, and a failure answers `status: red` with `pipelineChecks.failed` naming them; the list route (`GET /api/catalog/health`) evaluates at most 20 promised tables per call, worst first, and a table beyond the cap answers its freshness verdict only.",
         "operationId": "table_freshness_get",
         "parameters": [
           {
@@ -2490,7 +2490,7 @@
         "tags": [
           "public"
         ],
-        "description": "Set or remove a table's freshness promise, stored as the Iceberg property `stardelt.freshness` (`{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"...\"}`). `?catalog=` picks the catalog. `by` is required: a 24-hour clock time `HH:MM` names a deadline, `null` removes the promise. A deadline needs an IANA `timezone`; `graceMinutes` is 0 to 1440 and defaults to 60. Removing a promise takes only `by: null`. A write with nothing to change sends no commit and answers the current status. The promise travels with the table, so any engine can read it; Nova evaluates it when the status is read. The interim rule is enforced by Nova: the catalog does not enforce it yet, and anyone who reaches Lakekeeper or Trino directly can still change the property.",
+        "description": "Set or remove a table's freshness promise, stored as the Iceberg property `stardelt.freshness` (`{\"by\":\"07:00\",\"timezone\":\"Europe/Berlin\",\"graceMinutes\":60,\"setAt\":\"...\"}`). `?catalog=` picks the catalog. `by` is required: a 24-hour clock time `HH:MM` names a deadline, `null` removes the promise. A deadline needs an IANA `timezone`; `graceMinutes` is 0 to 1440 and defaults to 60. Removing a promise takes only `by: null`. A write with nothing to change sends no commit and answers the current status. The promise travels with the table, so any engine can read it; Nova evaluates it when the status is read. The interim rule is enforced by Nova: the catalog does not enforce it yet, and anyone who reaches Lakekeeper or Trino directly can still change the property.. `checkPipeline` is `<namespace>/<name>`; the read evaluates its newest completed run's failed `quality` checks (severity `error`) and `dbt` tests that name this table, and a failure answers `status: red` with `pipelineChecks.failed` naming them; the list route (`GET /api/catalog/health`) evaluates at most 20 promised tables per call, worst first, and a table beyond the cap answers its freshness verdict only.",
         "operationId": "table_freshness_update",
         "parameters": [
           {
@@ -10923,7 +10923,7 @@
         "tags": [
           "public"
         ],
-        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is the time of the newest checkpoint commit, absent until the operator reports it. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
+        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
         "operationId": "streams_list",
         "responses": {
           "200": {
@@ -14656,6 +14656,31 @@
           }
         }
       },
+      "FailedCheck": {
+        "type": "object",
+        "description": "One failed check of the required pipeline.",
+        "required": [
+          "task",
+          "check"
+        ],
+        "properties": {
+          "check": {
+            "type": "string",
+            "description": "A quality check's name, or a dbt test's unique id."
+          },
+          "table": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The table a dbt test guards, when its log line names one."
+          },
+          "task": {
+            "type": "string",
+            "description": "The task that ran the check."
+          }
+        }
+      },
       "FailingCheck": {
         "type": "object",
         "description": "One verified query whose last check failed.",
@@ -14696,6 +14721,13 @@
             "type": "string",
             "description": "The deadline: a 24-hour clock time, `HH:MM`."
           },
+          "checkPipeline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The pipeline whose checks must pass (`<namespace>/<name>`), or `None` (#402)."
+          },
           "graceMinutes": {
             "type": "integer",
             "format": "int32",
@@ -14729,6 +14761,13 @@
               "null"
             ],
             "description": "The deadline (`null` removes the promise)."
+          },
+          "checkPipeline": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The pipeline whose checks must pass; absent or empty removes it."
           },
           "graceMinutes": {
             "type": [
@@ -16254,6 +16293,41 @@
           }
         }
       },
+      "PipelineChecks": {
+        "type": "object",
+        "description": "The verdict of the pipeline a promise requires (#402).",
+        "required": [
+          "pipeline",
+          "failed"
+        ],
+        "properties": {
+          "failed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FailedCheck"
+            },
+            "description": "The failed checks; empty when every declared check passed."
+          },
+          "pipeline": {
+            "type": "string",
+            "description": "The pipeline the promise names, `<namespace>/<name>`."
+          },
+          "runId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The run the verdict comes from; absent when the pipeline has no completed run yet."
+          },
+          "state": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "That run's state: `success` or `failed`."
+          }
+        }
+      },
       "PipelineDetail": {
         "allOf": [
           {
@@ -16740,7 +16814,7 @@
               "string",
               "null"
             ],
-            "description": "The cron schedule, with the time zone in parentheses when there is one."
+            "description": "The schedule as a person reads it: the cron with its time zone in parentheses, or `when <tables> is updated` for a table trigger."
           },
           "state": {
             "type": "string",
@@ -18779,12 +18853,6 @@
               }
             ]
           },
-          "last_checkpoint_at": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "last_error": {
             "type": [
               "string",
@@ -19126,6 +19194,17 @@
               "null"
             ],
             "description": "The first deadline strictly after now, RFC 3339, or `null`."
+          },
+          "pipelineChecks": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PipelineChecks",
+                "description": "The checks of the pipeline this promise requires; absent when it names none (#402)."
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "promise": {
             "oneOf": [

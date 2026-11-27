@@ -26,7 +26,7 @@ A managed Trino + catalog + Iceberg unit on object storage.
 | `spec.compute.spark.enabled` | boolean | No | `false` |  |  |
 | `spec.deletionPolicy` | string | No | `Retain` | What happens to the data when this resource is deleted. Defaults to Retain. | `Retain`, `Delete` |
 | `spec.dryRun` | boolean | No | `true` | Plan only (no cluster changes) until explicitly disabled. Safe default. |  |
-| `spec.profile` | string | No | `demo` | Deployment size / capability profile. | `demo`, `full`, `airgap` |
+| `spec.profile` | string | No | `starter` | Deployment size / capability profile. | `starter`, `enterprise`, `demo`, `full`, `airgap` |
 | `spec.set` | object (map of object (map of string)) | No |  | `--set` overrides per component: `set.<component>.<helm.key>: "value"`. Highest precedence — Helm applies `--set` after any values document. |  |
 | `spec.storage` | object | No | `{"bucket":null,"implementation":"seaweedfs"}` |  |  |
 | `spec.storage.bucket` | string (nullable) | No |  |  |  |

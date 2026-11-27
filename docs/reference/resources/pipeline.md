@@ -50,6 +50,9 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |
 | `spec.tasks[].writes` | array of string | No |  | The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone. | max 16 |
 | `spec.timeout` | string (nullable) | No |  | Longest a whole run may take, for example `2h`. |  |
+| `spec.triggers` | array of object | No |  | Tables whose update starts a run. At most one trigger today, and not together with `spec.schedule`; absent means the pipeline starts on demand or by its cron only. | max 1 |
+| `spec.triggers[].mode` | string | No | `all` | `all` (default) waits for every table, `any` for one of them. | `all`, `any` |
+| `spec.triggers[].tablesUpdated` | array of string | Yes |  | Tables whose update starts the pipeline, as `catalog.schema.table`; 1 to 10. | min 1, max 10 |
 | `spec.viewers` | array of string | No |  | Groups that may READ the pipeline in Nova — list it, open it, see its runs — and nothing else. Running, pausing, resuming and deleting stay with `ownerGroup`. Absent means the owner group only, which is what every pipeline had before this field. | max 16 |
 
 ## Status
@@ -78,6 +81,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - publish: wap needs a quality task with at least one check
 - publish: wap needs a task that writes at least one table
 - notify needs an ownerGroup: only a pipeline's owner group can name destinations
+- a pipeline has spec.schedule or spec.triggers, not both
 - a notebook task needs config.notebook (a .ipynb file name) and config.objectVersion (the published version)
 - notebook tasks accept only notebook, objectVersion and params
 - notebook params must be a JSON object string of at most 4096 characters
