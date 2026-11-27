@@ -161,7 +161,9 @@ context:
 
 - The guide is literal text or Markdown, at most 16 000 characters; a bundle never substitutes `${var.x}` in it. It is
   trimmed at its ends and keeps its line breaks.
-- Only the table's owner (or an administrator) may write its guide, as on the table page; Nova refuses anyone else.
+- Only the table's owner (or an administrator) may write its guide, as on the table page; Nova refuses anyone else. A table
+  that has no owner yet must be claimed first: set one of your groups as its owner on the table page (`stardelt bundle
+  context` changes only the guide), otherwise Nova refuses the write with `choose an owner: one of your groups`.
 - `stardelt bundle context DIR` sets every guide that differs and prints one `unchanged` or `set` row per table;
   `--check` writes nothing, prints `would-set` for a table whose guide differs, and exits `1`: the form a CI job runs.
 - `context` is not part of `bundle deploy`: a documentation write has no document to record or replay, so it stays out of the
