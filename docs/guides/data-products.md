@@ -113,6 +113,17 @@ with `GET /api/access-requests` and withdraws one with `DELETE /api/access-reque
 Catalogs page ([the access-request routes](../reference/api/access-requests.md)). Nova does not approve
 a request itself yet.
 
+## 7. Publish it, and retire it with a successor
+
+In **About this table**, set **Data product** to `draft` while you build it and to `published` when it is ready.
+Nova refuses `published` until the table has an owner, a description and a domain. A table that is a data product
+appears on **Share → Data products**, grouped by domain, with its owner and a state badge.
+`GET /api/catalog/products` and `stardelt catalog products` give the same list.
+
+To retire a data product, set it to `deprecated` and name its successor in **Replaced by**
+(`catalog.schema.table`); a deprecated table must name one. The table page and the list then say
+`replaced by` that table, so readers know where to move.
+
 ## The checklist
 
 - [ ] Does the table page name one owning group?
@@ -121,6 +132,7 @@ a request itself yet.
 - [ ] Does the pipeline that writes it have a `quality` task whose failed check fails the run?
 - [ ] Does **About this table** hold a description, tags, a domain and a **How to use this table** guide?
 - [ ] Can a reader find the group to ask and record a request that says what and why?
+- [ ] Is the table `published` on **Data products**, and does a retired one name its replacement?
 
 ## A worked example
 
