@@ -48,8 +48,13 @@ The **How it works** aside lists the four steps:
 3. Rows are written through the engine into Iceberg.
 4. The load appears under **Recent activity** on the Overview, with a row count.
 
-CSV and JSON arrays of objects are supported. The whole file is sent in one request, so keep it
-small.
+CSV and JSON arrays of objects are supported. The file travels as JSON text inside one request
+body, and the API refuses a body over 2 MiB with HTTP 413 and an error sentence, so a file above
+that size is refused and nothing is loaded. The cap belongs to this page, not to the platform:
+for a bigger file, or a load that repeats, put it in a pipeline instead, where a `notebook` task
+reads through a [connection](./connections) — the `public-db` example
+(`demos/examples/public-db/notebooks/load_rnacentral.ipynb`) loads RNAcentral's public PostgreSQL
+schema that way. [Schedule SQL and notebooks](./schedule) turns the notebook into that pipeline.
 
 ## Transfer a table
 
