@@ -144,6 +144,42 @@ written still succeeds — the pipelines are what matter — and its last line i
 `{"action": "not-recorded", "reason": "…"}`. The Deployments page lists the record under
 [Recorded deployments](/docs/guides/publish-pipelines#recorded-deployments).
 
+### Table context
+
+A table's **guide** is the knowledge an agent needs: which columns join, which rows to leave out. A bundle can carry the
+guides of the tables its pipelines write, so they are reviewed in a pull request and applied by a command instead of edited
+only in the interface. `context.tables` is a list of up to 50 rows; each row names `table` as `catalog.namespace.table` and
+its `guide`:
+
+```yaml
+context:
+  tables:
+    - table: bronze.shop.customers
+      guide: |
+        One row per customer id. Join orders on customer_id; leave out rows with deleted_at set.
+```
+
+- The guide is literal text or Markdown, at most 16 000 characters; a bundle never substitutes `${var.x}` in it. It is
+  trimmed at its ends and keeps its line breaks.
+- Only the table's owner (or an administrator) may write its guide, as on the table page; Nova refuses anyone else.
+- `stardelt bundle context DIR` sets every guide that differs and prints one `unchanged` or `set` row per table;
+  `--check` writes nothing, prints `would-set` for a table whose guide differs, and exits `1`: the form a CI job runs.
+- `context` is not part of `bundle deploy`: a documentation write has no document to record or replay, so it stays out of the
+  deploy and rollback record.
+
+```console
+$ stardelt bundle context shop --check
+bronze.shop.customers  would-set
+$ echo $?
+1
+
+$ stardelt bundle context shop
+bronze.shop.customers  set
+
+$ stardelt bundle context shop --check
+bronze.shop.customers  unchanged
+```
+
 ### Editor completion
 
 [`python/stardelt/bundle.schema.json`](https://github.com/stardelt/stardelt/blob/@ref@/python/stardelt/bundle.schema.json) is a
@@ -325,6 +361,7 @@ sign-in; the others talk to Nova.
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff] [--adopt NAME]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
 | `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff] [--smoke NAME [--smoke-timeout SECONDS]] [--adopt NAME] [--preview ID [--ttl DAYS]]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan`; `--smoke NAME` then runs that pipeline of the bundle and fails the deploy unless the run succeeds; with `onGateFail: rollback` on the target, a failed gate replays the newest applied deployment and the problem names both ids; `--preview ID` deploys a development target as `<ID>-<name>` with no schedule and no table trigger, for a pull request (1 to 20 lower-case letters, digits and dashes; `--ttl` 1 to 30 days, default 7), and records its expiry so Nova removes the copy | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
+| `bundle context [DIR] [--check]` | sets the guides of the bundle's `context:` block on their tables; `--check` answers what would change, writes nothing and exits `1` on drift | without `--check` |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
 | `bundle destroy [DIR] -t TARGET [--yes] [--preview ID]` | lists, and with `--yes` removes, what a deploy of the target left on the stage; with `--preview ID` only that preview's pipelines and streams | with `--yes` |
