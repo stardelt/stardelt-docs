@@ -64,6 +64,7 @@ Each answer is one card:
 - **Sources** — the tables the model was given for the question, each a link into the catalog. With each
   table, the model also gets up to five of its [verified queries](/docs/guides/catalog#verified-queries) and is told
   to copy a matching one's shape, so a table whose owners wrote verified queries gets answers in their words.
+  It also gets the table's metric definitions (name, description, expression, time column and dimensions).
 - **Open in SQL editor** — takes the statement to `/query` with the `sql` parameter, filled in and
   **not run**. `⌘`/`Ctrl+Enter` does the same for the last answer.
 - **👍 / 👎** — one vote per answer. A vote writes to the `model_call` row the answer's model call

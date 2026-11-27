@@ -127,9 +127,13 @@ these over writing new SQL.
 
 A table's owners can also declare **metric definitions**: a named number (`daily_revenue`), a description, the
 SQL expression that computes it, an optional time column and up to 10 dimensions to cut it by. A definition is
-stored, never run; it says what the owners mean by the number. There is no screen for it yet: use
-`POST /api/catalog/tables/{ns}/{tbl}/metrics` or `stardelt metric definitions-create`. Anyone who may see the
-table lists the definitions with `stardelt metric definitions-list`.
+stored, never run; it says what the owners mean by the number. The **Metrics** part of **About this table**
+shows each one: its expression, `Counted over` its time column, its dimensions and who verified it when. An
+owner adds one with **+ Add a metric** and removes one with **Delete**, then **Confirm delete**; other readers see
+the part once a definition exists. `POST /api/catalog/tables/{ns}/{tbl}/metrics` and
+`stardelt metric definitions-create` do the same from a script, and anyone who may see the table lists the
+definitions with `stardelt metric definitions-list`. Ask and the `table_documentation` tool give the model the
+definitions with the table's documentation, so an answer about `daily_revenue` uses the owners' expression.
 
 While the list is empty and someone may add one, the card reads `No verified queries yet. Add the question the
 table answers, and the SQL that answers it.`. Everyone else sees no card at all until the first query exists.
