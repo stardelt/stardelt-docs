@@ -77,9 +77,10 @@ Without `--catalog`, both commands use your default catalog.
 
 ## The verdict
 
-The Evals page's **Last run** column shows the newest run of each question: `passed`, `failed —
-<reason>`, or `not run yet` when the eval has not been run since it was written, and the header of
-the list shows the score as `<n> of <m> passed`.
+The Evals page's **Last run** column shows each question's newest run: `passed`, `failed — <reason>`,
+or `not run yet` when the question has not been run since it was written. Above the list,
+`<n> of <m> passed` counts the questions that have a run, passed over run; the line is absent until
+one has run.
 
 A failure is a finding, not a block: nothing stops because an eval failed today. The notice to the
 owner group and a gate on a model change, a guide promotion or a publication are not in this release.
