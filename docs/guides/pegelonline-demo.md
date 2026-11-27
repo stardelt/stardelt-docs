@@ -72,6 +72,14 @@ kubectl -n stardelt exec deploy/airflow-scheduler -c scheduler -- \
 
 You can do the same in the Airflow UI at the platform's Airflow host.
 
+The DAG only fills bronze. The silver, gold and view tasks are a `Pipeline` resource, applied
+from this repository after the pipeline principal exists; the
+[demo README](https://github.com/stardelt/stardelt/blob/@ref@/demos/examples/pegelonline/README.md)
+lists the three commands (`make sync-principal …`, the `ServicePrincipal` object, then
+`kubectl apply -f demos/examples/pegelonline/pipeline.yaml`). Within a few minutes the
+pipeline's own DAG appears; its first run is the next `:23`, or use **Run now** on the
+Pipelines page.
+
 ## Check it
 
 List the DAG runs in the scheduler:
