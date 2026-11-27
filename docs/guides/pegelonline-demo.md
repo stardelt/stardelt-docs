@@ -39,8 +39,10 @@ are written. A check passes when its query returns no rows:
 - `station_uuid_present` — no measurement has a null station id;
 - `one_row_per_measurement` — one row per station, time series and measurement time after the
   silver de-duplication;
-- `value_in_range` — every value in the latest-per-gauge table is between -1000 and 10000
-  (PEGELONLINE reports water levels in centimetres around the gauge datum).
+- `value_in_range` — the water level in centimetres (time series `W`, unit `cm`, the one
+  series with a fixed physical range) is between -1000 and 10000 around the gauge datum. The
+  other series (discharge in m³/s, conductivity in µS/cm, temperature and the rest) each carry
+  their own unit, so one numeric bound is not applied to them.
 
 A failed check fails the run with one sentence naming every check and its row count, for
 example `1 quality check failed: one_row_per_measurement (3 rows)`. The gold tables of that run
