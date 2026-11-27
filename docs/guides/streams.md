@@ -51,7 +51,13 @@ the same **Stop** or **Resume** button.
 - **Checkpoint prefix**: optional; blank uses the platform's default.
 
 **Create stream** checks the whole form with Nova before it writes anything. A refusal shows Nova's own
-sentences, and nothing is created. The stream runs as its owner group's pipeline identity, never as you.
+sentences, and nothing is created. The stream runs as its owner group's pipeline identity, never as you,
+so the group needs `write` on the sink catalog for the rows to land.
+
+A created stream starts at once: it submits a Spark application when the create lands, and it holds an
+executor while it reads. On a shared node, stop a stream you are not using with **Stop**, so another one
+gets the CPU — see `ExecutorsUnschedulable` under
+[When the phase and the reason disagree](#when-the-phase-and-the-reason-disagree).
 
 ## When the phase and the reason disagree
 
