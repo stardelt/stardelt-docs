@@ -146,10 +146,10 @@ written still succeeds — the pipelines are what matter — and its last line i
 
 ### Table context
 
-A table's **guide** is the knowledge an agent needs: which columns join, which rows to leave out. A bundle can carry the
-guides of the tables its pipelines write, so they are reviewed in a pull request and applied by a command instead of edited
-only in the interface. `context.tables` is a list of up to 50 rows; each row names `table` as `catalog.namespace.table` and
-its `guide`:
+A table's **guide** is the knowledge an agent needs: which columns join, which rows to leave out. A bundle carries the
+guides of its tables, so they are reviewed in a pull request instead of edited only in the interface. `context.tables`
+lists 1 to 50 rows; `table` is `catalog.namespace.table` and `guide` is literal text or Markdown (at most 16 000
+characters, trimmed at its ends; `${var.x}` is not substituted):
 
 ```yaml
 context:
@@ -159,28 +159,11 @@ context:
         One row per customer id. Join orders on customer_id; leave out rows with deleted_at set.
 ```
 
-- The guide is literal text or Markdown, at most 16 000 characters; a bundle never substitutes `${var.x}` in it. It is
-  trimmed at its ends and keeps its line breaks.
-- Only the table's owner (or an administrator) may write its guide, as on the table page; Nova refuses anyone else. A table
-  that has no owner yet must be claimed first: set one of your groups as its owner on the table page (`stardelt bundle
-  context` changes only the guide), otherwise Nova refuses the write with `choose an owner: one of your groups`.
+- Only the table's owner (or an administrator) may write its guide. A table with no owner must be claimed on its page
+  first, because the command changes only the guide.
 - `stardelt bundle context DIR` sets every guide that differs and prints one `unchanged` or `set` row per table;
-  `--check` writes nothing, prints `would-set` for a table whose guide differs, and exits `1`: the form a CI job runs.
-- `context` is not part of `bundle deploy`: a documentation write has no document to record or replay, so it stays out of the
-  deploy and rollback record.
-
-```console
-$ stardelt bundle context shop --check
-bronze.shop.customers  would-set
-$ echo $?
-1
-
-$ stardelt bundle context shop
-bronze.shop.customers  set
-
-$ stardelt bundle context shop --check
-bronze.shop.customers  unchanged
-```
+  `--check` writes nothing, prints `would-set` and exits `1`: the form a CI job runs. It is not part of `bundle deploy`,
+  because a documentation write has no document to record or replay.
 
 ### Editor completion
 
