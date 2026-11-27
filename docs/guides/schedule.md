@@ -177,9 +177,12 @@ tables, each written `catalog.schema.table`.
 **One trigger per pipeline, and not together with a cron.** `spec.schedule` and `spec.triggers` exclude
 each other; a pipeline starts at a time or on a table update.
 
-**Where the event comes from.** The pipeline that writes the table raises it when its task declares
-`writes` — a `sql`, `notebook` or `spark-pipeline` task. A `sql` task raises it when its statement
-succeeded. A stream's sink raises no event yet; that follows in later work.
+**Where the event comes from.** Two places raise it. The pipeline that writes the table raises it when
+its task declares `writes` — a `sql`, `notebook` or `spark-pipeline` task; a `sql` task raises it when
+its statement succeeded. Nova also raises it for every write that finishes through Trino: a statement in
+the SQL editor, a dbt model or any other Trino client. A write to a WAP branch raises none; the publish
+raises the table's event. A Spark write outside a pipeline task and a stream's sink raise no event yet;
+that follows in later work.
 
 **It must not trigger itself.** A table a pipeline writes cannot be listed in its own trigger; the
 operator refuses the resource with `a pipeline cannot be triggered by its own output`.
