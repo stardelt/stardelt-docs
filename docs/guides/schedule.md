@@ -187,7 +187,8 @@ operator refuses the resource with `a pipeline cannot be triggered by its own ou
 **Where you see it.** **Pipelines** shows `when <table> is updated` in its **Schedule** column, and the
 pipeline page the same under **Schedule** — `when all of a, b are updated` for `all`, `when any of a, b
 are updated` for `any`. The pipeline page's Runs table shows the run's type **Table update**, and the run
-starts at the event's time: there is no scheduled date.
+starts at the event's time: there is no scheduled date. The table's own page in the catalog says
+`Updates start:` with a link to each pipeline its update starts, as far as you may see them.
 
 **Nothing else changes.** Retries, the time limit, the group's principal, **Pause** and **Resume**, and
 **Run now** work the same. A triggered pipeline is not caught up for events that arrived while it was
