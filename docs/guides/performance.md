@@ -11,7 +11,9 @@ Every notebook and every scheduled job on the platform shares one small cluster:
 at most two executors. A pattern that is fine on a laptop — reading a whole table into pandas, one job
 per item of a loop, a cache nobody releases — is expensive when ten people do it at the same time, and
 it is the driver of everyone's session that pays. This page is the rules; [Sizing](../operations/production#sizing)
-is what the node under them can carry.
+is what the node under them can carry. A statement a dashboard runs on every page load has a second
+lever: pre-compute it into a small table a schedule keeps fresh
+([Query acceleration](./query-acceleration)).
 
 :::note Which catalog the examples use
 The examples name `shared`. Use a catalog your groups were granted to: the **Catalogs** page lists yours.
