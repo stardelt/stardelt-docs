@@ -14,8 +14,8 @@ match the question, a model endpoint connected by your administrator writes the 
 checks it with `EXPLAIN` **as you** before it answers — with the tables the statement reads. Nova never
 runs the statement: you do, from the SQL editor.
 
-- **What it sends** — your question, and the name, description, tags, owner, domain and column names and
-  descriptions of at most five candidate tables.
+- **What it sends** — your question, and the name, description, tags, owner, domain, **How to use this table**
+  guide and column names and descriptions of at most five candidate tables. The model is told to follow a guide.
 - **What it never sends** — a row, a result, or the endpoint's key.
 
 After a model, a guide or a schema changes, [an eval](/docs/guides/evals) asks the questions whose answers you know and says whether they still pass.

@@ -169,7 +169,8 @@ It has three parts:
   prompts leave the cluster), the purposes, what the probe last found (`Ready` or `Not ready`, with
   when it was checked and the status message that says what is missing) and **Probe now**, the same
   check as `POST /api/model-endpoints/{name}/probe`. **Rated** counts this month's 👍 and 👎 on the
-  endpoint's answers (`👍 12 · 👎 3`), or shows `—` when nobody rated one.
+  endpoint's answers (`👍 12 · 👎 3`), or shows `—` when nobody rated one. **Evals** shows how many of the
+  last 30 days' [eval](/docs/guides/evals) runs on the endpoint passed (`18 of 20`), or `—` without a run.
 - **This month — `YYYY-MM`** — tokens in, tokens out and the number of calls, per group and
   endpoint, largest first. `(none)` is the probe's own rows and callers without a group. A count
   with "about" after it was estimated from the bytes sent (`ceil(bytes / 4)`) because the endpoint
@@ -180,7 +181,7 @@ It has three parts:
   questions from [Ask about your data](./ask.md), and a 👍 or 👎 on an answer is stored on that row.
 
 The page is administrator-only, and the same numbers are one API call away:
-`GET /api/admin/model-usage` answers `{month, groups, calls, feedback}`; a non-administrator gets `403`. No
+`GET /api/admin/model-usage` answers `{month, groups, calls, feedback, evals}`; a non-administrator gets `403`. No
 prompt and no answer text is in either view — the table stores sizes and hashes only.
 
 Rows are pruned once an hour. `NOVA_MODEL_CALL_RETENTION_DAYS` keeps 30 days by default; `0` keeps
