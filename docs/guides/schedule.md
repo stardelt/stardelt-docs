@@ -105,10 +105,13 @@ behind" when it lags.
 1. Open **SQL editor**, write the statement and check it runs.
 2. Press **Schedule**; the dialog **Schedule this statement** opens with your statement.
 3. Fill in **Name** (1 to 40 lower-case letters, digits and dashes, starting with a letter), **Group**
-   (groups without a ready identity are disabled and say why), **When** (*On demand only*, *Every hour*,
+   (groups without a ready identity are disabled and say why) and **Statement** (editable, up to
+   20,000 characters). **When** is one of two things: a clock preset — *On demand only*, *Every hour*,
    *Every day at*, *Every weekday at*, *Every week on*, *Every month on the 1st at* or *Custom
-   schedule*), **Time zone** (your browser's; the time of day is read there) and **Statement** (editable,
-   up to 20,000 characters).
+   schedule*, with **Time zone** and **Time of day** (your browser's; the time of day is read there) —
+   or the checkbox **When these tables are updated**. Then name 1 to 10 tables as
+   `catalog.schema.table`, one per line, and pick **Start when** *all of them update* or *any of them
+   updates*; the clock fields and **Next runs** are hidden in that mode.
 4. **Create schedule**; the pipeline appears under **Pipelines** within a minute.
 
 **Custom schedule** takes five fields, `minute hour day month weekday`: `0 3 * * *` is 03:00 every day,
@@ -153,9 +156,11 @@ was published by hand.`
 
 ## When a table is updated
 
-A pipeline can also start when a table changes, instead of at a time. This is written in the pipeline's
-YAML, or sent as `triggers` to `POST /api/pipelines` and `PUT /api/pipelines/{namespace}/{name}`; the
-dialogs do not offer it yet.
+A pipeline can also start when a table changes, instead of at a time. Choose it in the Schedule
+dialog: tick **When these tables are updated** under **When**, list 1 to 10 tables as
+`catalog.schema.table`, one per line, and pick whether all of them or any of them must update. The
+same field in a pipeline's YAML looks like this, and can be sent as `triggers` to
+`POST /api/pipelines` and `PUT /api/pipelines/{namespace}/{name}`:
 
 ```yaml
 spec:
