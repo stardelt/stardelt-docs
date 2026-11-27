@@ -16,7 +16,7 @@ The operations Nova tags `public` under `/api/streams`. Generated from `referenc
 
 Operation id `streams_list`: in Python `client.call("streams_list", …)`, on the command line `stardelt api streams_list`.
 
-The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `lastCheckpointAt` is the time of the newest checkpoint commit, absent until the operator reports it. `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.
+The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.
 
 **Responses**
 

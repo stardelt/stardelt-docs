@@ -86,9 +86,11 @@
           "type": "boolean"
         },
         "profile": {
-          "default": "demo",
+          "default": "starter",
           "description": "Deployment size / capability profile.",
           "enum": [
+            "starter",
+            "enterprise",
             "demo",
             "full",
             "airgap"

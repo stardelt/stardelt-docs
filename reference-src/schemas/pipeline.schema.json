@@ -358,6 +358,40 @@
           "nullable": true,
           "type": "string"
         },
+        "triggers": {
+          "description": "Tables whose update starts a run. At most one trigger today, and not together with\n`spec.schedule`; absent means the pipeline starts on demand or by its cron only.",
+          "items": {
+            "description": "What starts a run besides a person: the update of one or more tables.",
+            "properties": {
+              "mode": {
+                "default": "all",
+                "description": "`all` (default) waits for every table, `any` for one of them.",
+                "enum": [
+                  "all",
+                  "any"
+                ],
+                "type": "string"
+              },
+              "tablesUpdated": {
+                "description": "Tables whose update starts the pipeline, as `catalog.schema.table`; 1 to 10.",
+                "items": {
+                  "maxLength": 512,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "tablesUpdated"
+            ],
+            "type": "object"
+          },
+          "maxItems": 1,
+          "type": "array"
+        },
         "viewers": {
           "description": "Groups that may READ the pipeline in Nova — list it, open it, see its runs — and\nnothing else. Running, pausing, resuming and deleting stay with `ownerGroup`.\nAbsent means the owner group only, which is what every pipeline had before this field.",
           "items": {
@@ -398,6 +432,10 @@
         {
           "message": "notify needs an ownerGroup: only a pipeline's owner group can name destinations",
           "rule": "!has(self.notify) || has(self.ownerGroup)"
+        },
+        {
+          "message": "a pipeline has spec.schedule or spec.triggers, not both",
+          "rule": "!has(self.schedule) || !has(self.triggers)"
         }
       ]
     },

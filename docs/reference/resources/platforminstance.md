@@ -78,7 +78,7 @@ A stardelt platform instance.
 | `spec.pillars.notebooks` | boolean | No | `false` | Multi-user notebooks (JupyterHub). Off by default: a notebook stack is heavy, and a cluster that only serves queries should not carry it. |  |
 | `spec.pillars.pipelines` | boolean | No | `false` | Scheduled pipelines and jobs (Airflow, run as `KubernetesExecutor`). Off by default: it brings a metadata database and four long-running pods, and a cluster that only serves queries does not need them. Nova's Pipelines page and `stardelt bundle run` need it. |  |
 | `spec.pillars.streaming` | boolean | No | `false` |  |  |
-| `spec.profile` | string | No | `demo` | Deployment size / capability profile. | `demo`, `full`, `airgap` |
+| `spec.profile` | string | No | `starter` | Deployment size / capability profile. | `starter`, `enterprise`, `demo`, `full`, `airgap` |
 | `spec.secrets` | object | No | `{"mode":"none"}` | Where the credentials of `Connection` objects come from; see [`SecretsSpec`]. |  |
 | `spec.secrets.external` | object (nullable) | No |  | The enterprise's store; required for `external`, refused for the other modes. |  |
 | `spec.secrets.external.provider` | object | Yes |  | The `provider` block of the `ClusterSecretStore` (`vault`, `aws`, `azurekv`, …), passed to External Secrets verbatim. Exactly one provider key; credentials are referenced by Secret name inside the block, never inline. |  |

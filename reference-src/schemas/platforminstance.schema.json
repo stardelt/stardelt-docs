@@ -540,9 +540,11 @@
           "type": "object"
         },
         "profile": {
-          "default": "demo",
+          "default": "starter",
           "description": "Deployment size / capability profile.",
           "enum": [
+            "starter",
+            "enterprise",
             "demo",
             "full",
             "airgap"
