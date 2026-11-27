@@ -18,6 +18,8 @@ runs the statement: you do, from the SQL editor.
   descriptions of at most five candidate tables.
 - **What it never sends** — a row, a result, or the endpoint's key.
 
+After a model, a guide or a schema changes, [an eval](./evals.md) asks the questions whose answers you know and says whether they still pass.
+
 ## What it needs
 
 An administrator connects a [model endpoint](./models.md) with `purposes: [ask]` and waits until its
