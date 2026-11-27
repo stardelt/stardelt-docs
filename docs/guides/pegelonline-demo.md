@@ -56,8 +56,10 @@ reader's query.
 
 That gives the demo the parts of a [data product](./data-products): an owner group
 (`stardelt-users`), an hourly schedule, the three quality checks above, and a versioned name
-that stays the same when the tables under it change. The owner group decides who may read the
-view.
+that stays the same when the tables under it change. Who may read it: grants name a **catalog**,
+not a view or a table, today — a group with `select` on `shared` reads the view and every other
+table in that catalog. Table- and schema-level grants do not exist yet; the view is the stable
+name a query uses, not a permission boundary.
 
 ## Enable it
 
