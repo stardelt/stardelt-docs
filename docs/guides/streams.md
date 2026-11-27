@@ -35,7 +35,9 @@ A stream can also come from a bundle in Git — see [Deploy a stream from Git](#
 
 Click a stream's name to open its own page. It shows the source and the sink, the identity the stream runs
 as, its viewers, how often Spark submitted it, when it was last submitted, and the last error. It also has
-the same **Stop** or **Resume** button.
+the same **Stop** or **Resume** button. **Sink rows** and **Last commit** come from the sink table's history.
+A stream that is `Running` but whose last commit does not move writes nothing; if the table is missing, the
+page says `The sink table does not exist.`
 
 ## Create a stream
 
