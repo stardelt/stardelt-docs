@@ -55,7 +55,7 @@ const sidebars: SidebarsConfig = {
     cat('Resources', ['reference/resources/index', ...referenceResources]),
     cat('API', ['reference/api/index', ...apiPages], true),
     'guides/bundle-reference',
-    cat('Architecture', ['architecture/overview', 'architecture/spark-connection', 'architecture/services', 'architecture/identity', 'architecture/licenses']),
+    cat('Architecture', ['architecture/overview', 'architecture/what-ships', 'architecture/spark-connection', 'architecture/services', 'architecture/identity', 'architecture/licenses']),
     'glossary',
   ],
 };
