@@ -154,7 +154,8 @@ was published by hand.`
 ## When a table is updated
 
 A pipeline can also start when a table changes, instead of at a time. This is written in the pipeline's
-YAML; the dialogs do not offer it yet.
+YAML, or sent as `triggers` to `POST /api/pipelines` and `PUT /api/pipelines/{namespace}/{name}`; the
+dialogs do not offer it yet.
 
 ```yaml
 spec:
@@ -172,8 +173,8 @@ tables, each written `catalog.schema.table`.
 each other; a pipeline starts at a time or on a table update.
 
 **Where the event comes from.** The pipeline that writes the table raises it when its task declares
-`writes` — today a `spark-pipeline` or a `notebook` task. A `sql` task cannot declare `writes` yet, so a
-plain SQL load raises no event, and a stream's sink does not either; both follow in later work.
+`writes` — a `sql`, `notebook` or `spark-pipeline` task. A `sql` task raises it when its statement
+succeeded. A stream's sink raises no event yet; that follows in later work.
 
 **It must not trigger itself.** A table a pipeline writes cannot be listed in its own trigger; the
 operator refuses the resource with `a pipeline cannot be triggered by its own output`.

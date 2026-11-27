@@ -105,8 +105,8 @@ is cut on, and the check reads the branch snapshot, not `main`.
 
 - `publish: wap` needs at least one `quality` task with a check, and at least one task that declares `writes`; the API refuses
   the pipeline otherwise.
-- `writes` is a `notebook` or `spark-pipeline` task's field; a Trino `sql` task cannot write an Iceberg branch, so it cannot
-  be a WAP writer.
+- A `sql` task may declare `writes` too, but not under `publish: wap`: a Trino `sql` task writes `main`, not the audit
+  branch, so the pipeline is refused with `publish: wap moves main from the audit branch, so a sql task cannot declare writes`.
 - A `notebook` or `spark-pipeline` task is a WAP writer. A graph's tables must exist with a `main` snapshot before the
   first WAP run: the run creates the audit branch from `main`, so a table the writer would create from nothing is
   refused by the prepare step — load it once with `publish: direct`, then turn the checks on.
