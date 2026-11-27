@@ -157,13 +157,25 @@ context:
     - table: bronze.shop.customers
       guide: |
         One row per customer id. Join orders on customer_id; leave out rows with deleted_at set.
+      metrics:
+        - name: active_customers
+          description: Customers with an order in the period
+          expression: count(DISTINCT customer_id)
+          timeColumn: ordered_at
+          dimensions: [country]
 ```
+
+A row needs `table` and a `guide`, `metrics` or both. `metrics` holds 1 to 20
+[metric definitions](/docs/guides/catalog#verified-queries), with the same fields as on the table page. A
+definition whose words differ is deleted and created again (Nova never edits one), and a metric the bundle does not
+name is left alone.
 
 - Only the table's owner (or an administrator) may write its guide. A table with no owner is claimed for the bundle's
   `ownerGroup` in the same write, so `bundle.ownerGroup` is required; without it the command refuses with
   `bundle.ownerGroup: must be a group name, so a table with no owner can be claimed`.
-- `stardelt bundle context DIR` sets every guide that differs and prints one `unchanged` or `set` row per table;
-  `--check` writes nothing, prints `would-set` and exits `1`: the form a CI job runs. It is not part of `bundle deploy`,
+- `stardelt bundle context DIR` sets every guide that differs and prints one `unchanged` or `set` row per table, and
+  one `unchanged`, `created` or `replaced` row per metric; `--check` writes nothing, prints `would-set`,
+  `would-create` or `would-replace` and exits `1`: the form a CI job runs. It is not part of `bundle deploy`,
   because a documentation write has no document to record or replay.
 
 ### Editor completion

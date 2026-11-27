@@ -39,7 +39,9 @@ catalog.
 
 **Add eval** opens the form: **Question**, **Owner group** (it suggests the groups you belong to)
 and **Expected answer**, which takes the JSON of one of the three shapes above. **Add eval** saves
-it; **Cancel** closes the form. **Remove** in a row deletes that eval.
+it; **Cancel** closes the form. **Remove** in a row deletes that eval. To correct a question or its expected
+answer and keep the eval's runs, use `stardelt eval update ID` (`PUT /api/evals/{id}`); both fields are sent and
+checked as on create, and the catalog and the owner group stay.
 
 Only a member of the owner group or an administrator may add or remove one. A refused save shows the
 API's sentence in red, and nothing is stored.
