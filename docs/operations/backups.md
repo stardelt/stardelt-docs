@@ -203,7 +203,7 @@ Write down how long each step took. The total is your real recovery time.
 
 - **Notebook homes.** Each person's home (`claim-<username>`) is scratch space and is not copied. Work that matters belongs in Git; published notebooks are in the bucket.
 - **The event log of streams.** The Kafka broker's volume holds in-flight events and is not copied. The durable copy is the Iceberg table a [stream](../guides/streams.md) writes; a lost node loses events not yet written there.
-- **The bundled secret store.** The starter secret store of the `demo` profile keeps its data on one volume that is not copied; if it is lost, people enter their connection secrets again. `make export-recovery-secrets` (in `platform/`) saves the keys that open it. In production, connect your own secret store ([Secret stores](./secret-stores)); its backup is part of that store.
+- **The bundled secret store.** The starter secret store of the `starter` profile (formerly `demo`) keeps its data on one volume that is not copied; if it is lost, people enter their connection secrets again. `make export-recovery-secrets` (in `platform/`) saves the keys that open it. In production, connect your own secret store ([Secret stores](./secret-stores)); its backup is part of that store.
 - **Cluster state.** Resources such as `Pipeline`, `Catalog` and `SqlWarehouse`, and the platform's Secrets, live in your Kubernetes control plane. Keep the resources in Git (bundles; see the [rebuild drill](#rebuild-drill)) and back up the control plane with your Kubernetes platform's own tool.
 - **Losing the cluster.** The archive is a second bucket in the *same* SeaweedFS instance. It
   survives a mistake, not a fire. For real off-site protection use SeaweedFS' own replication to a
