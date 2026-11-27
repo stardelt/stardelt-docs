@@ -118,7 +118,12 @@ a request itself yet.
 In **About this table**, set **Data product** to `draft` while you build it and to `published` when it is ready.
 Nova refuses `published` until the table has an owner, a description and a domain. A table that is a data product
 appears on **Share → Data products**, grouped by domain, with its owner and a state badge.
-`GET /api/catalog/products` and `stardelt catalog products` give the same list.
+`GET /api/catalog/products` and `stardelt api catalog_products` give the same list.
+
+A row shows the table, its description, its owning group, its **Freshness** and its **State**.
+Freshness is the promise the table's owner set in step 3 — `Fresh`, `Late (grace)`, `Late`, or
+`—` when the table promises no time — read from the same catalog-health answer the Overview
+uses; point at the badge to see the promise in words.
 
 To retire a data product, set it to `deprecated` and name its successor in **Replaced by**
 (`catalog.schema.table`); a deprecated table must name one. The table page and the list then say
