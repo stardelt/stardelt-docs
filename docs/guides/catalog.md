@@ -90,6 +90,12 @@ sends nothing. Every attempt is recorded as a delivery of the table it is about.
 destinations deliver today: an email destination is recorded as a failed attempt, because the
 platform's SMTP relay is not configured.
 
+A promise can also name the **pipeline whose checks must pass**, as `checkPipeline` (`<namespace>/<name>`) on
+the write route; the card has no field for it yet. Nova then reads that pipeline's newest completed run, and the
+table shows `Late` while a `quality` check of severity `error` in it failed or a `dbt` test in it names the table.
+The card's sentence then ends with `Required check "<check>" of <namespace>/<name> failed (run <id>).`, and the
+Overview's **Tables at risk** card and the **Tell** message see the same `Late`.
+
 ### Verified queries
 
 A verified query is a question the table answers, with the one statement that answers it, kept beside the table
