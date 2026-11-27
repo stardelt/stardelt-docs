@@ -52,6 +52,8 @@ page says `The sink table does not exist.`
 - **Viewers**: optional groups that may see the stream.
 - **Checkpoint prefix**: optional; blank uses the platform's default.
 
+The sink table must exist: create it with SQL first, or the form says
+`the sink table … does not exist — create it with SQL before the stream can write to it`.
 **Create stream** checks the whole form with Nova before it writes anything. A refusal shows Nova's own
 sentences, and nothing is created. The stream runs as its owner group's pipeline identity, never as you,
 so the group needs `write` on the sink catalog for the rows to land.
@@ -107,7 +109,8 @@ kubectl -n <namespace> patch streamapp <name> --type merge -p '{"spec":{"stopped
 
 ## Deleting a stream
 
-There is no **Delete** button on the Streams page; a stream is removed with `kubectl`. Deleting a
+**Delete** on a stream's own page removes it, after one confirmation. Only its owner group may delete it.
+The dialog says what happens to the topic. Deleting a
 `StreamApp` also deletes the `KafkaTopic` the operator created for it, and deleting a
 `KafkaTopic` deletes the topic in Kafka — together with every message in it, including messages
 a producer wrote before the stream existed.
