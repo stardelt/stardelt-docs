@@ -159,8 +159,9 @@ context:
         One row per customer id. Join orders on customer_id; leave out rows with deleted_at set.
 ```
 
-- Only the table's owner (or an administrator) may write its guide. A table with no owner must be claimed on its page
-  first, because the command changes only the guide.
+- Only the table's owner (or an administrator) may write its guide. A table with no owner is claimed for the bundle's
+  `ownerGroup` in the same write, so `bundle.ownerGroup` is required; without it the command refuses with
+  `bundle.ownerGroup: must be a group name, so a table with no owner can be claimed`.
 - `stardelt bundle context DIR` sets every guide that differs and prints one `unchanged` or `set` row per table;
   `--check` writes nothing, prints `would-set` and exits `1`: the form a CI job runs. It is not part of `bundle deploy`,
   because a documentation write has no document to record or replay.
