@@ -25,8 +25,8 @@ posting a run need a member of the eval's owner group or an administrator.
 | Shape | Example | Passes when |
 |---|---|---|
 | one value | `{"kind":"value","value":1284}` | the answer is one row of one cell equal to the value; two numbers are equal by value |
-| a small table | `{"kind":"rows","rows":[[1,"north"],[2,"south"]]}` | the answer's rows are the same as a multiset: the same rows, in any order |
-| the tables a statement uses | `{"kind":"uses","tables":["shop.orders","shop.regions"]}` | the answer's SQL names every expected `namespace.table` |
+| a small table | `{"kind":"rows","rows":[[1,"north"],[2,"south"]]}` | the answer's rows are the same as a multiset: the same rows, in any order, numbers equal by value (`10` and `10.0`) |
+| the tables a statement uses | `{"kind":"uses","tables":["shop.orders","shop.regions"]}` | the answer's SQL names every expected `namespace.table`, quoted (`"shop"."orders"`) or with its catalog in front |
 
 A `rows` answer holds 1 to 100 rows of 1 to 50 values, each a number, a boolean, null or a string of
 at most 500 characters. A `uses` answer holds 1 to 10 `namespace.table` names.

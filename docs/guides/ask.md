@@ -69,6 +69,10 @@ Each answer is one card:
   It also gets the table's metric definitions (name, description, expression, time column and dimensions).
 - **Open in SQL editor** — takes the statement to `/query` with the `sql` parameter, filled in and
   **not run**. `⌘`/`Ctrl+Enter` does the same for the last answer.
+- **Mark as verified** — keeps a good answer as a [verified query](/docs/guides/catalog#verified-queries): pick one of
+  the sources as **Table**, edit the **Question** if needed, and save. The statement is saved as shown, and the
+  panel says `Verified on <catalog>.<ns>.<table>`. Only an administrator or the table's owner group may save one;
+  anyone else gets the API's sentence under the form.
 - **👍 / 👎** — one vote per answer. A vote writes to the `model_call` row the answer's model call
   recorded, and you can read it on **Admin → Models** → **Last calls**.
 
