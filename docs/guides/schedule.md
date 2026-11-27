@@ -2,13 +2,14 @@
 title: "Schedule SQL and notebooks"
 sidebar_label: "Schedule SQL and notebooks"
 slug: /guides/schedule
-description: "Turn a SQL statement or a pinned notebook into a pipeline on a cron, owned by a group and run as it."
+description: "Turn a SQL statement or a pinned notebook into a pipeline on a cron or a table update, owned by a group and run as it."
 ---
 
 # Schedule SQL and notebooks
 
-A schedule is a **pipeline** on a cron: one SQL statement or one pinned notebook version, owned by one
-of your groups and run as that group's service identity, so it reaches only what the group may. A SQL
+A schedule is a **pipeline**: one SQL statement or one pinned notebook version, owned by one
+of your groups and run as that group's service identity, so it reaches only what the group may. It
+starts on a cron, or when a table it reads is updated — a pipeline has one or the other. A SQL
 editor statement becomes a pipeline without YAML; a notebook runs as a **published**, immutable copy
 that a schedule pins. Runs and logs are on **Pipelines**.
 
@@ -150,6 +151,42 @@ stamped is refused with `In production a notebook comes from Git. Deploy it with
 save; an existing schedule keeps running, with **Deployed from** saying `Not from Git — this notebook
 was published by hand.`
 
+## When a table is updated
+
+A pipeline can also start when a table changes, instead of at a time. This is written in the pipeline's
+YAML; the dialogs do not offer it yet.
+
+```yaml
+spec:
+  triggers:
+    - tablesUpdated:
+        - warehouse.silver.orders
+        - warehouse.silver.order_lines
+      mode: all
+```
+
+`mode: all` (the default) waits for every listed table; `mode: any` starts on one of them. One to ten
+tables, each written `catalog.schema.table`.
+
+**One trigger per pipeline, and not together with a cron.** `spec.schedule` and `spec.triggers` exclude
+each other; a pipeline starts at a time or on a table update.
+
+**Where the event comes from.** The pipeline that writes the table raises it when its task declares
+`writes` — today a `spark-pipeline` or a `notebook` task. A `sql` task cannot declare `writes` yet, so a
+plain SQL load raises no event, and a stream's sink does not either; both follow in later work.
+
+**It must not trigger itself.** A table a pipeline writes cannot be listed in its own trigger; the
+operator refuses the resource with `a pipeline cannot be triggered by its own output`.
+
+**Where you see it.** **Pipelines** shows `when <table> is updated` in its **Schedule** column, and the
+pipeline page the same under **Schedule** — `when all of a, b are updated` for `all`, `when any of a, b
+are updated` for `any`. The pipeline page's Runs table shows the run's type **Table update**, and the run
+starts at the event's time: there is no scheduled date.
+
+**Nothing else changes.** Retries, the time limit, the group's principal, **Pause** and **Resume**, and
+**Run now** work the same. A triggered pipeline is not caught up for events that arrived while it was
+paused or the platform was down.
+
 ## Manage a schedule
 
 A run is also in your **Query log** with the source *Pipeline task*; the defaults are one run at a time,
@@ -211,7 +248,7 @@ The schedule dialog still creates one-task pipelines; the YAML view is where a m
 - Statement: 20,000 characters, one statement.
 - The dialog creates **one task**. A pipeline written in YAML can have several steps with `dependsOn`;
   see the [Pipeline reference](../reference/resources/pipeline).
-- Not available yet: triggers other than a clock.
+- Not available yet: a trigger other than a cron or a table update.
 
 ## When it refuses
 
