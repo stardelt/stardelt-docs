@@ -10,9 +10,9 @@ description: "Keep a catalog's questions with their known answers, run them afte
 ## What an eval is
 
 An **eval** is one question and the answer it must produce, kept with the catalog it belongs to. It
-sits next to that catalog's [guides](/docs/guides/catalog) and verified queries, and an agent reads
-it like the rest of the catalog's context — but the eval is a test for people, not a capability of
-the model. It records what the answer should be, so a later run can say whether it still is.
+is catalog context like a [guide](/docs/guides/catalog): reading it takes what browsing the catalog
+takes. But the eval is a test for people, not a capability of the model — the expected answer is
+never sent to a model, and a run only compares what came back with it.
 
 Each eval holds the question (1 to 500 characters), the expected answer, the owner group and the
 catalog. Reading a catalog's evals needs what browsing the catalog needs. Writing, removing one and
