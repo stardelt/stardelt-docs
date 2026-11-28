@@ -22,7 +22,7 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 | [/api/catalog](/docs/reference/api/catalog) | 24 |
 | [/api/compute](/docs/reference/api/compute) | 4 |
 | [/api/connections](/docs/reference/api/connections) | 12 |
-| [/api/dashboards](/docs/reference/api/dashboards) | 2 |
+| [/api/dashboards](/docs/reference/api/dashboards) | 4 |
 | [/api/deployments](/docs/reference/api/deployments) | 5 |
 | [/api/destinations](/docs/reference/api/destinations) | 4 |
 | [/api/evals](/docs/reference/api/evals) | 4 |

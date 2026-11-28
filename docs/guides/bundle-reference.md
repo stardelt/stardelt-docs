@@ -356,8 +356,12 @@ The stream's row appears among the bundle's pipeline rows; each block above show
 
 ## A dashboard folder
 
-A bundle can carry Superset dashboards as an unzipped export, for example under `dashboards/shop/`. `bundle deploy`
-does not import them; two commands do:
+A bundle may name folders under `dashboards:`, each an unzipped Superset export (for example `dashboards/shop/`).
+`bundle plan` shows one `would-import-dashboards` row per folder, `bundle deploy` imports them, and `--prune` removes
+the dashboards the bundle no longer names — never a dashboard without this bundle's stamp. See
+[Dashboards](/docs/guides/dashboards) for the whole flow.
+
+The manual path runs the two commands without a bundle deploy:
 
 ```bash
 stardelt dashboards export 12 -o dashboards/shop
@@ -368,8 +372,8 @@ stardelt dashboards import dashboards/shop --bundle shop --owner-group shop-team
   a member of the owner group. Nova drops the export's `databases/` folder, so the bundle never holds a connection
   address.
 - `import` points every dataset at the target's own `Trino <catalog>` database and stamps each dashboard
-  `certified_by: stardelt bundle <bundle>`. `--commit SHA` adds the commit to that stamp, and `--overwrite`
-  replaces a dashboard of the same name.
+  `certified_by: stardelt bundle <bundle>` and `certification_details: <target> @ <commit> by <ownerGroup>`.
+  `--commit SHA` provides the commit in that stamp, and `--overwrite` replaces a dashboard of the same name.
 
 ## The commands
 
@@ -381,9 +385,10 @@ sign-in; the others talk to Nova.
 | `bundle init [DIR] --name NAME --group GROUP` | writes a small bundle that passes `validate` | no |
 | `bundle validate [DIR] [-t TARGET] [--format text\|json]` | checks the bundle offline (every target, or one): the same checks the schema describes, plus the ones that need the files | no |
 | `bundle plan [DIR] -t TARGET [--prune] [--accept-drift] [--diff] [--adopt NAME]` | plans the target's new migrations first, then asks Nova what deploying the target would do | no |
-| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff] [--smoke NAME [--smoke-timeout SECONDS]] [--adopt NAME] [--preview ID [--ttl DAYS]]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan`; `--smoke NAME` then runs that pipeline of the bundle and fails the deploy unless the run succeeds; with `onGateFail: rollback` on the target, a failed gate replays the newest applied deployment and the problem names both ids; `--preview ID` deploys a development target as `<ID>-<name>` with no schedule and no table trigger, for a pull request (1 to 20 lower-case letters, digits and dashes; `--ttl` 1 to 30 days, default 7), and records its expiry so Nova removes the copy | yes |
+| `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff] [--smoke NAME [--smoke-timeout SECONDS]] [--adopt NAME] [--preview ID [--ttl DAYS]]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them, imports the target's `dashboards:` folders and records one row in Nova's deployment record; `--dry-run` is `plan`; `--smoke NAME` then runs that pipeline of the bundle and fails the deploy unless the run succeeds; with `onGateFail: rollback` on the target, a failed gate replays the newest applied deployment and the problem names both ids; `--preview ID` deploys a development target as `<ID>-<name>` with no schedule and no table trigger, for a pull request (1 to 20 lower-case letters, digits and dashes; `--ttl` 1 to 30 days, default 7), and records its expiry so Nova removes the copy | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
 | `bundle context [DIR] [--check]` | sets the guides of the bundle's `context:` block on their tables; `--check` answers what would change, writes nothing and exits `1` on drift | without `--check` |
+| `bundle dashboards [DIR] -t TARGET [--overwrite]` | imports the `dashboards:` folders for one target: each dataset is remapped to the target's `Trino <catalog>` database and each dashboard is stamped; `--overwrite` replaces a dashboard of the same name | yes |
 | `bundle evals [DIR] [--check]` | creates or corrects the `evals:` questions in their catalog; `--check` answers what would change, writes nothing and exits `1` on drift | without `--check` |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
@@ -392,7 +397,8 @@ sign-in; the others talk to Nova.
 | `bundle rollback --deployment ID [--yes]` | lists, and with `--yes` replays, the documents one recorded deployment applied (the ID is in `stardelt deployments list`) | with `--yes` |
 
 `--prune` also handles the pipelines and stream apps that this bundle and this target deployed earlier and the bundle no longer
-names (`would-delete` in a plan, removed after everything else succeeded in a deploy; a stream row carries `"kind": "StreamApp"`).
+names (`would-delete` in a plan, removed after everything else succeeded in a deploy; a stream row carries `"kind": "StreamApp"`),
+and the dashboards the bundle no longer names (`would-delete-dashboards` in a plan, `deleted-dashboards` in a deploy).
 `destroy` and `--prune` only ever touch objects stamped with this bundle's name and this target; in a `development` target only
 your own `dev-<your name>-` ones.
 

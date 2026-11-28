@@ -5017,6 +5017,101 @@
         }
       }
     },
+    "/api/dashboards": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/dashboards`: the dashboards **this bundle and this owner group** imported, with\nthe target and commit of the stamp the import wrote (#115 decision 6). A dashboard without\nthat stamp, and one another group imported, is never listed. At most 100 (Superset's page\nsize). The caller's rule is the export's owner-group rule.",
+        "description": "The dashboards this bundle and this owner group imported, each with the target and commit of the stamp the import wrote. A dashboard without that stamp, and one another group imported, is never listed. At most 100 (Superset's page size). The caller must be a member of the bundle's owner group, and a deploy principal sees its own group.",
+        "operationId": "dashboards_list",
+        "parameters": [
+          {
+            "name": "bundle",
+            "in": "query",
+            "description": "The bundle that imported the dashboards",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ownerGroup",
+            "in": "query",
+            "description": "The bundle's owner group; the caller must be a member",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The dashboards this bundle imported, in Superset's order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DashboardImported"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The bundle name or owner group is empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the bundle's owner group, or a deploy principal names another stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Superset answered an error, or could not be reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "This instance has no Superset service user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dashboards/import": {
       "post": {
         "tags": [
@@ -5097,7 +5192,7 @@
             }
           },
           "400": {
-            "description": "The body is not a dashboard archive, or a name is empty or too long",
+            "description": "The body is not a dashboard archive, or a field has the wrong shape: `bundle` 3–40 lower-case letters, digits and dashes; `target` and `ownerGroup` 1–64 letters, digits, dots, underscores or dashes; `commit` lower-case hex",
             "content": {
               "application/json": {
                 "schema": {
@@ -5169,12 +5264,117 @@
         }
       }
     },
+    "/api/dashboards/{id}": {
+      "delete": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`DELETE /api/dashboards/{id}`: remove one dashboard **this bundle imported**. The\ndashboard's `certified_by` must be `stardelt bundle <bundle>` and its\n`certification_details` must end with ` by <ownerGroup>`; a dashboard without the stamp,\nor one another group imported, is refused and stays (#115 decision 6). The caller's rule\nis the export's owner-group rule.",
+        "description": "Remove one dashboard that this bundle imported. The dashboard's `certified_by` must be `stardelt bundle <bundle>` and its `certification_details` must name the caller's `ownerGroup` as the group that imported it; a dashboard without that stamp is refused. The caller must be a member of the bundle's owner group, and a deploy principal may only remove for its own group.",
+        "operationId": "dashboards_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Superset's numeric dashboard id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "bundle",
+            "in": "query",
+            "description": "The bundle that imported the dashboard",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ownerGroup",
+            "in": "query",
+            "description": "The bundle's owner group; the caller must be a member",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "400": {
+            "description": "The bundle name or owner group is empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the bundle's owner group, or the dashboard is not stamped by this bundle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Superset has no such dashboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Superset answered an error, or could not be reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "This instance has no Superset service user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dashboards/{id}/export": {
       "get": {
         "tags": [
           "public"
         ],
-        "description": "The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export for its own stage. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.",
+        "description": "The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export for its own stage. A dashboard whose stamp names another bundle or another group is refused; an unstamped one is the author's to export. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.",
         "operationId": "dashboards_export",
         "parameters": [
           {
@@ -5238,7 +5438,7 @@
             }
           },
           "403": {
-            "description": "The caller is not a member of the bundle's owner group, or a deploy principal names another stage",
+            "description": "The caller is not a member of the bundle's owner group, a deploy principal names another stage, or the dashboard carries another bundle's or group's stamp",
             "content": {
               "application/json": {
                 "schema": {
@@ -12052,7 +12252,7 @@
         "tags": [
           "public"
         ],
-        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `stopped` is `spec.stopped`. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
+        "description": "The calling user's streams: every `StreamApp` of their groups, and all of them for an administrator. `phase` is the operator's `status.phase` (`Pending` when it has not reported yet); `lastError` is the application's own terminal message when the phase is `Failed`; `stopped` is `spec.stopped`. `deletionPolicy` is `Retain` or `Delete`: `Retain` keeps the source topic and its messages when the stream is deleted. `attempts` is how many times Spark has submitted the application and `lastSubmittedAt` when it last did; both are absent until the operator reports them. `namespace` is Nova's own namespace; every stream lives there, and it is the `<namespace>` segment a write's path takes. No connection credentials and no checkpoint prefix are part of an answer. Answers `Cache-Control: no-store`.",
         "operationId": "streams_list",
         "responses": {
           "200": {
@@ -12273,7 +12473,7 @@
         "tags": [
           "public"
         ],
-        "description": "Delete one StreamApp that the caller's group owns. A `KafkaTopic` the operator created for the stream (platform bus, no `connectionRef`) is owned by the `StreamApp`, so Kubernetes deletes it and the topic operator deletes the topic with every message in it; a topic read through a `Connection`, or one another `KafkaTopic` manages, stays. Answers 204 when the object is gone, including when it was already gone.",
+        "description": "Delete one StreamApp that the caller's group owns. A `KafkaTopic` the operator created for the stream (platform bus, no `connectionRef`) follows `spec.deletionPolicy`: with `Delete` the topic is owned by the `StreamApp`, so Kubernetes deletes it and the topic operator deletes the topic with every message in it; with `Retain` (the default) the `KafkaTopic` carries no owner reference and stays, with every message, still managed. A topic read through a `Connection`, or one another `KafkaTopic` manages, always stays. Answers 204 when the object is gone, including when it was already gone.",
         "operationId": "streams_delete",
         "parameters": [
           {
@@ -15261,6 +15461,24 @@
           }
         }
       },
+      "DashboardDeleteQuery": {
+        "type": "object",
+        "description": "`DELETE /api/dashboards/{id}` query: the bundle whose import stamped the dashboard.",
+        "required": [
+          "bundle",
+          "ownerGroup"
+        ],
+        "properties": {
+          "bundle": {
+            "type": "string",
+            "description": "The bundle that owns the dashboard, 1 to 64 characters."
+          },
+          "ownerGroup": {
+            "type": "string",
+            "description": "The bundle's owner group; the caller must be a member."
+          }
+        }
+      },
       "DashboardImportQuery": {
         "type": "object",
         "description": "`POST /api/dashboards/import`: one dashboard archive for the target, for dashboard bundles\n(#115 a/3b2). The query names the bundle, its owner group and the target; the body is the\nZIP the CLI exported (or zipped from `dashboards/<slug>/`).\n\nThe caller must be a member of the bundle's owner group, and a deploy principal (#57) may\nonly import to the stage its client names, the same rule `POST /api/deployments` uses.",
@@ -15289,6 +15507,35 @@
           "target": {
             "type": "string",
             "description": "The stage the import is for (`dev`, `prod`, …)."
+          }
+        }
+      },
+      "DashboardImported": {
+        "type": "object",
+        "description": "One dashboard a bundle's import left on a target: Superset's id and title, and the target\nand commit the import recorded in the dashboard's stamp.",
+        "required": [
+          "id",
+          "title",
+          "target",
+          "commit"
+        ],
+        "properties": {
+          "commit": {
+            "type": "string",
+            "description": "The bundle's commit the import recorded, or `\"\"`."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Superset's numeric dashboard id."
+          },
+          "target": {
+            "type": "string",
+            "description": "The target the import was for (`prod`, from the stamp)."
+          },
+          "title": {
+            "type": "string",
+            "description": "The dashboard's title in Superset."
           }
         }
       },
@@ -20503,6 +20750,7 @@
           "owner_group",
           "phase",
           "stopped",
+          "deletion_policy",
           "source_connection",
           "source_topic",
           "sink_catalog",
@@ -20518,6 +20766,10 @@
             ],
             "format": "int64",
             "description": "How many times Spark has submitted the application (`status.attempts`); absent until\nthe operator reports it (operator#336)."
+          },
+          "deletion_policy": {
+            "type": "string",
+            "description": "`spec.deletionPolicy`, defaulted: `Retain` keeps the source topic and its messages when\nthis stream is deleted; `Delete` deletes the topic too (D18). Only a topic the operator\ncreated on the internal bus is affected."
           },
           "deployment": {
             "oneOf": [
