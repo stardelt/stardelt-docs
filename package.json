@@ -39,9 +39,9 @@
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/tsconfig": "3.10.2",
     "@docusaurus/types": "3.10.2",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "tsx": "^4.23.15",
-    "typescript": "~5.9.3"
+    "typescript": "~7.0.2"
   },
   "browserslist": {
     "production": [
