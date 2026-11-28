@@ -347,6 +347,23 @@ $ stardelt bundle summary shop -t prod
 
 The stream's row appears among the bundle's pipeline rows; each block above shows only that row.
 
+## A dashboard folder
+
+A bundle can carry Superset dashboards as an unzipped export, for example under `dashboards/shop/`. `bundle deploy`
+does not import them; two commands do:
+
+```bash
+stardelt dashboards export 12 -o dashboards/shop
+stardelt dashboards import dashboards/shop --bundle shop --owner-group shop-team --target prod
+```
+
+- `export` runs inside the bundle and reads `bundle.name` and `bundle.ownerGroup` from `bundle.yaml`. You must be
+  a member of the owner group. Nova drops the export's `databases/` folder, so the bundle never holds a connection
+  address.
+- `import` points every dataset at the target's own `Trino <catalog>` database and stamps each dashboard
+  `certified_by: stardelt bundle <bundle>`. `--commit SHA` adds the commit to that stamp, and `--overwrite`
+  replaces a dashboard of the same name.
+
 ## The commands
 
 All take the bundle directory as an optional argument (the current directory by default). The first two need no host and no

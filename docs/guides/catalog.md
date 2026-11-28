@@ -171,7 +171,10 @@ The tabs below the cards each answer one question about the same table:
   null % and distinct values*. A nested column has no counts and no range, and a type the engine cannot order has no
   range; the table shows `—`.
 - **Columns** lists each column with its type and its description; choose **Edit** beside a description to change
-  it and **Save** to keep it. The **From** column names the columns of other tables this one was built from,
+  it and **Save** to keep it. **Class** says what a column holds: `public`, `personal`, `financial` or `secret`.
+  Whoever may edit the description picks it from a list. The class is stored in the table's
+  `stardelt.column-classes` property, so it travels with the table to every engine. The **From** column
+  names the columns of other tables this one was built from,
   following each name to its table's lineage page; a source you may not read is one muted line instead of a name.
 - **Details** shows the table's identity and layout: UUID, location, when it was last updated, the metadata file,
   the partitioning (or that it is unpartitioned) and the table properties.
