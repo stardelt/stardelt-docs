@@ -374,6 +374,8 @@ stardelt dashboards import dashboards/shop --bundle shop --owner-group shop-team
 - `import` points every dataset at the target's own `Trino <catalog>` database and stamps each dashboard
   `certified_by: stardelt bundle <bundle>` and `certification_details: <target> @ <commit> by <ownerGroup>`.
   `--commit SHA` provides the commit in that stamp, and `--overwrite` replaces a dashboard of the same name.
+  An import is refused when a dashboard in the archive already exists certified by another bundle or owner
+  group, so a bundle can never take over another group's dashboard.
 
 ## The commands
 
