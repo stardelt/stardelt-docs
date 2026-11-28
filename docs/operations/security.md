@@ -202,7 +202,7 @@ Never paste a Secret value into an issue, a log or a chat.
 
 | Secret | Keys | Created by | Read by | After a rotation |
 |---|---|---|---|---|
-| `stardelt-s3-creds` | `access-key`, `secret-key`, `endpoint`, `bucket`, `region` | `scripts/s3-secrets.sh` / chart | Trino, Lakekeeper bootstrap, Airflow, CNPG backups | restart Trino; refresh Lakekeeper's warehouse credential; restart the CNPG pod |
+| `stardelt-s3-creds` | `access-key`, `secret-key`, `endpoint`, `bucket`, `region` | `scripts/s3-secrets.sh` / chart | Trino, Lakekeeper bootstrap, Airflow, CNPG backups | `make refresh-s3-credentials` (every platform warehouse); restart Trino, Nova and Airflow; restart the CNPG pod |
 | `seaweedfs-s3-config` | `seaweedfs_s3_config` (JSON, same key pair) | same, derived from the above | SeaweedFS S3 gateway | rolls with the Helm upgrade |
 | `keycloak-admin` | `username`, `password` | `identity-bootstrap.sh` / chart | Keycloak (bootstrap admin) | the bootstrap admin is only created on first start: change the password in the console too |
 | `stardelt-realm-admin` | `username`, `password` | same | realm import and `scripts/sync-realm-admin.sh` | re-run `make install-identity`, it re-applies and verifies it |
@@ -225,15 +225,25 @@ is not published; use `kcadm.sh` inside the pod (see [Known limits](#known-limit
 kubectl -n stardelt delete secret stardelt-s3-creds seaweedfs-s3-config
 kubectl -n stardelt delete job lakekeeper-bootstrap --ignore-not-found
 make install-core            # generates new Secrets, upgrades SeaweedFS, re-runs the bootstrap Job
+make refresh-s3-credentials       # push the new pair to every platform warehouse
 kubectl -n stardelt rollout restart deploy/seaweedfs-s3 deploy/trino-coordinator deploy/trino-worker deploy/lakekeeper
 kubectl -n stardelt delete pod lakekeeper-pg-1     # CNPG reads backup credentials at pod start
 ```
 
-Why each step: the Lakekeeper warehouse stores the key (encrypted) and only the bootstrap Job's
-credential refresh updates it (`POST /management/v1/warehouse/{id}/storage-credential`);
-Trino and CNPG read the Secret when their pods start. Prove it with a write and a read: sign in to
-Nova as an admin and run these statements in the SQL editor, one after the other (Trino accepts
-authenticated HTTPS only, so there is no unauthenticated command-line check):
+Why each step: Lakekeeper stores each warehouse's key encrypted and never returns it, so a
+rotation can only push it — `POST /management/v1/warehouse/{id}/storage-credential`.
+`make install-core` recreates the Secrets and re-runs the bootstrap Job for its own warehouse;
+`make refresh-s3-credentials` pushes the pair in Secret `stardelt-s3-creds` to every warehouse
+whose storage profile names the platform bucket and endpoint, which is every catalog's
+warehouse. Trino, Nova, Airflow and CNPG read the Secret when their pods start.
+
+Never `kubectl apply` either Secret: the client-side apply writes the whole value into
+`kubectl.kubernetes.io/last-applied-configuration`, which keeps the key in plain text
+(`create` and `patch` do not; stardelt/stardelt#1677).
+
+Prove it with a write and a read: sign in to Nova as an admin and run these statements in the
+SQL editor, one after the other (Trino accepts authenticated HTTPS only, so there is no
+unauthenticated command-line check):
 
 ```sql
 CREATE SCHEMA IF NOT EXISTS warehouse.rotation_check;
@@ -242,6 +252,11 @@ SELECT x FROM warehouse.rotation_check.t;      -- expect 1
 DROP TABLE warehouse.rotation_check.t;
 DROP SCHEMA warehouse.rotation_check;
 ```
+
+On a full install also run `make verify-s3-sts`, `make verify-stream-path`,
+`make verify-pegelonline` and `make verify-trino-auth` in `stardelt/stardelt`'s `platform/`;
+they cover the gateway's STS path, a stream, the public-database pipeline and the engine's
+token path.
 
 ## AI assistants
 
