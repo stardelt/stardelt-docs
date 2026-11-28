@@ -48,7 +48,12 @@ API's sentence in red, and nothing is stored.
 
 ## Run a catalog's evals
 
-`stardelt evals run` asks every question of a catalog, runs the answer and records the verdict:
+On the Evals page, **Run** in a row runs that question and **Run all** runs every question you may run, one after
+the other. You may run a question if you are an administrator or a member of its owner group. The page asks Ask,
+runs the answer as you and records it, so the verdict appears in **Last run**.
+
+From the command line, `stardelt evals run` asks every question of a catalog, runs the answer and records the
+verdict:
 
 ```console
 $ stardelt evals run --catalog gold
