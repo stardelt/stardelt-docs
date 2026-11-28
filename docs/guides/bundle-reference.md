@@ -178,6 +178,13 @@ name is left alone.
   `would-create` or `would-replace` and exits `1`: the form a CI job runs. It is not part of `bundle deploy`,
   because a documentation write has no document to record or replay.
 
+### Eval questions
+
+`evals:` names one `catalog` and 1 to 50 `questions`, each with `question` (1 to 500 characters) and `expected`,
+one of the three shapes in [Evals](/docs/guides/evals#the-three-answers). `stardelt bundle evals` stores them in that
+catalog under the bundle's `ownerGroup`, matching each question by its text. A question that another group owns,
+or one the catalog holds twice, is a problem.
+
 ### Editor completion
 
 [`python/stardelt/bundle.schema.json`](https://github.com/stardelt/stardelt/blob/@ref@/python/stardelt/bundle.schema.json) is a
@@ -377,6 +384,7 @@ sign-in; the others talk to Nova.
 | `bundle deploy [DIR] -t TARGET [--dry-run] [--prune] [--accept-drift] [--diff] [--smoke NAME [--smoke-timeout SECONDS]] [--adopt NAME] [--preview ID [--ttl DAYS]]` | applies the target's new migrations first, then checks every pipeline with Nova and creates or updates them and records one row in Nova's deployment record; `--dry-run` is `plan`; `--smoke NAME` then runs that pipeline of the bundle and fails the deploy unless the run succeeds; with `onGateFail: rollback` on the target, a failed gate replays the newest applied deployment and the problem names both ids; `--preview ID` deploys a development target as `<ID>-<name>` with no schedule and no table trigger, for a pull request (1 to 20 lower-case letters, digits and dashes; `--ttl` 1 to 30 days, default 7), and records its expiry so Nova removes the copy | yes |
 | `bundle approve PLAN-ID` | approves a migration plan that a production deploy needs a second person for | yes |
 | `bundle context [DIR] [--check]` | sets the guides of the bundle's `context:` block on their tables; `--check` answers what would change, writes nothing and exits `1` on drift | without `--check` |
+| `bundle evals [DIR] [--check]` | creates or corrects the `evals:` questions in their catalog; `--check` answers what would change, writes nothing and exits `1` on drift | without `--check` |
 | `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
 | `bundle destroy [DIR] -t TARGET [--yes] [--preview ID]` | lists, and with `--yes` removes, what a deploy of the target left on the stage; with `--preview ID` only that preview's pipelines and streams | with `--yes` |
