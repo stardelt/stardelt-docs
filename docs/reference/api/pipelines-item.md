@@ -106,7 +106,10 @@ Change a pipeline Nova created (`app.kubernetes.io/managed-by: stardelt-nova`) a
 | `tasks[].sparkPipeline.project` | string | Yes |  | The bundle directory that holds `spark-pipeline.yml`. |  |
 | `tasks[].sparkPipeline.refresh` | string (nullable) | No |  | `incremental` (the default) or `full`. |  |
 | `tasks[].sql` | string | No |  | The statement to run; exactly one of this, `notebook`, `dbt`, `quality` and `sparkPipeline` is given. |  |
-| `tasks[].writes` | array of string | No |  | The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16. `spec.publish: wap` audits exactly these tables. |  |
+| `tasks[].writes` | array of string | No |  | The tables a `sql`, `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16. `spec.publish: wap` audits exactly these tables. |  |
+| `triggers` | array of object (nullable) | No |  | Tables whose update starts the run (`spec.triggers`). At most one entry, 1 to 10 tables, and not together with `schedule`; omitted means none. |  |
+| `triggers[].mode` | string (nullable) | No |  |  |  |
+| `triggers[].tablesUpdated` | array of string | No |  |  |  |
 | `viewers` | array of string (nullable) | No |  | Omitted keeps the stored viewers; an empty list removes them. |  |
 
 **Responses**

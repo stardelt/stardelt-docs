@@ -19,15 +19,17 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 | [/api/access-requests](/docs/reference/api/access-requests) | 4 |
 | [/api/ask](/docs/reference/api/ask) | 3 |
 | [/api/auth](/docs/reference/api/auth) | 1 |
-| [/api/catalog](/docs/reference/api/catalog) | 19 |
+| [/api/catalog](/docs/reference/api/catalog) | 24 |
 | [/api/compute](/docs/reference/api/compute) | 4 |
 | [/api/connections](/docs/reference/api/connections) | 12 |
-| [/api/dashboards](/docs/reference/api/dashboards) | 1 |
+| [/api/dashboards](/docs/reference/api/dashboards) | 2 |
 | [/api/deployments](/docs/reference/api/deployments) | 5 |
 | [/api/destinations](/docs/reference/api/destinations) | 4 |
+| [/api/evals](/docs/reference/api/evals) | 4 |
 | [/api/health](/docs/reference/api/health) | 1 |
 | [/api/lineage](/docs/reference/api/lineage) | 4 |
 | [/api/me](/docs/reference/api/me) | 1 |
+| [/api/metrics](/docs/reference/api/metrics) | 1 |
 | [/api/migrations](/docs/reference/api/migrations) | 3 |
 | [/api/model-endpoints](/docs/reference/api/model-endpoints) | 1 |
 | [/api/notebooks](/docs/reference/api/notebooks) | 7 |
@@ -36,7 +38,7 @@ Every non-2xx answer uses the body shape `{"error": "<sentence>"}`.
 | [one pipeline](/docs/reference/api/pipelines-item) | 9 |
 | [/api/pipelines runs](/docs/reference/api/pipelines-runs) | 8 |
 | [/api/query](/docs/reference/api/query) | 1 |
-| [/api/query-log](/docs/reference/api/query-log) | 5 |
+| [/api/query-log](/docs/reference/api/query-log) | 6 |
 | [/api/runs](/docs/reference/api/runs) | 1 |
 | [/api/samples](/docs/reference/api/samples) | 1 |
 | [/api/saved-queries](/docs/reference/api/saved-queries) | 5 |

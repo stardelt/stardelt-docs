@@ -780,7 +780,7 @@
         "tags": [
           "internal"
         ],
-        "description": "What the platform used of each model endpoint this month (UTC). `month` is the calendar month as `YYYY-MM`; `groups` holds the month's tokens per group and endpoint, the largest total first — `(none)` is `nova`'s probe rows and callers without a group; `estimatedCalls` counts the calls whose tokens were estimated as `ceil(bytes / 4)`, so the page can say \"about\". `calls` holds the last calls, newest first; `limit` is 1 to 500 (50 by default) and `group` narrows `calls` only (the totals are always the whole month). No prompt and no answer text: the table stores sizes and SHA-256 hashes. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. Without a state store the answer is 503. Answers `Cache-Control: no-store`.",
+        "description": "What the platform used of each model endpoint this month (UTC). `month` is the calendar month as `YYYY-MM`; `groups` holds the month's tokens per group and endpoint, the largest total first — `(none)` is `nova`'s probe rows and callers without a group; `estimatedCalls` counts the calls whose tokens were estimated as `ceil(bytes / 4)`, so the page can say \"about\". `calls` holds the last calls, newest first; `limit` is 1 to 500 (50 by default) and `group` narrows `calls` only (the totals are always the whole month). `feedback` carries, per endpoint, how many of this month's calls the people rated 👍 (`up`) and 👎 (`down`); an endpoint nobody rated is absent. `evals` carries, per endpoint, the last 30 days' eval runs and how many passed (`passed` of `total`); an endpoint whose runs named no endpoint is absent. Never who voted. No prompt and no answer text: the table stores sizes and SHA-256 hashes. Administrator-only; a non-administrator answers 403 `this view is for platform administrators`. Without a state store the answer is 503. Answers `Cache-Control: no-store`.",
         "operationId": "admin_model_usage",
         "parameters": [
           {
@@ -1095,8 +1095,19 @@
           "public"
         ],
         "summary": "`POST /api/ask` — a question in, checked SQL out.",
-        "description": "A question in words, one Trino statement out. Nova searches the catalog as the caller for at most five tables — the tables whose name contains every word of the question, or, when none does, the tables sharing the most words with it — sends the question and **the documentation of those tables only** — description, tags, owner, domain, column names and their descriptions — to the first `ModelEndpoint` (name order) whose purpose list contains `ask` and whose probe found it reachable with JSON output, and answers the statement the model writes. No row, no query result and no table data ever leaves the platform, whatever the endpoint's `sendRows` says; never the endpoint's URL or its key either. The statement is **checked with `EXPLAIN` as the caller and is not run**: `explain` is `passed` or `failed`, and a failed check keeps the SQL in the answer with the engine's sentence in `error` (one correction is asked of the model first). No matching table is a `200` with `sql: null` and a sentence saying so; a model endpoint that is refused, unreachable or does not answer in the JSON shape is a `502`. A spent budget is the `429` the model budget answers (see `/api/admin/model-usage`). Every answer carries `Cache-Control: no-store`.",
+        "description": "A question in words, one Trino statement out. Nova searches the catalog as the caller for at most five tables — the tables whose name contains every word of the question, or, when none does, the tables sharing the most words with it — sends the question and **the documentation of those tables** — description, tags, owner, domain, column names and their descriptions, and the tables' metric definitions (name, description, expression, time column, dimensions) — **and up to five of their verified queries** (question and statement only, never the expected rows) to the first `ModelEndpoint` (name order) whose purpose list contains `ask` and whose probe found it reachable with JSON output, and answers the statement the model writes. No row, no query result and no table data ever leaves the platform, whatever the endpoint's `sendRows` says; never the endpoint's URL or its key either. The statement is **checked with `EXPLAIN` as the caller and is not run**: `explain` is `passed` or `failed`, and a failed check keeps the SQL in the answer with the engine's sentence in `error` (one correction is asked of the model first). No matching table is a `200` with `sql: null` and a sentence saying so; a model endpoint that is refused, unreachable or does not answer in the JSON shape is a `502`. A spent budget is the `429` the model budget answers (see `/api/admin/model-usage`). Every answer carries `Cache-Control: no-store`.",
         "operationId": "ask_answer",
+        "parameters": [
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "The catalog to search for tables; omitted, the default one",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1354,6 +1365,203 @@
           },
           "503": {
             "description": "A catalog the engine lists has no warehouse",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/evals": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/catalog/evals` — the catalog's evals, in id order.",
+        "description": "The evals of one catalog: questions with a known answer, kept as catalog context. A question may appear twice. In id order. Each eval carries its newest run as lastRun (null when it never ran). `?catalog=` picks the catalog; the caller must be able to browse it, and without a state store the route answers 503.",
+        "operationId": "catalog_eval_list",
+        "parameters": [
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The catalog's evals, in id order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EvalWithLastRun"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/catalog/evals` — `201` with the stored row.",
+        "description": "Store one eval: a question (1 to 500 characters) and its known answer, `{\"kind\":\"rows\",\"rows\":[[…],…]}` (1 to 100 rows of 1 to 50 scalars, a string at most 500 characters), `{\"kind\":\"value\",\"value\":<scalar>}`, or `{\"kind\":\"uses\",\"tables\":[\"namespace.table\", …]}` (1 to 10 names). Only a member of `ownerGroup` or an administrator may write one; the caller is recorded as `createdBy`. The eval is stored, never executed. There is no update route: changing an eval is delete and create. `?catalog=` picks the catalog.",
+        "operationId": "catalog_eval_create",
+        "parameters": [
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewEval"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The stored row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Eval"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The question, the owner group or the expected answer is not in the accepted shape, or the catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog, or only a member of the owner group or an administrator may write an eval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
             "content": {
               "application/json": {
                 "schema": {
@@ -1822,6 +2030,77 @@
         }
       }
     },
+    "/api/catalog/products": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The data products of one catalog (#37): every documented table that carries `stardelt.lifecycle` (`draft`, `published` or `deprecated`), with its owner, domain, description and replacement, with the number of distinct readers in the last 30 days (the query log; `0` when nobody read it). `?domain=` narrows to one domain, exactly and case-sensitively. The answer comes from Nova's documentation index, which is written on every documentation edit through Nova; an edit made directly in the catalog does not refresh it until the next Nova edit of that table. At most 500 products, in domain order (tables without a domain last), then namespace and table.",
+        "operationId": "catalog_products",
+        "parameters": [
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "The catalog to read; omitted, the default one",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "description": "Only products of this `stardelt.domain`",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The catalog's data products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataProducts"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/catalog/search": {
       "get": {
         "tags": [
@@ -2184,7 +2463,7 @@
         "tags": [
           "public"
         ],
-        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties.",
+        "description": "A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `stardelt.lifecycle` is `draft`, `published` or `deprecated` (a data product's life, #37), and `stardelt.replaced-by` names the table that replaces a deprecated one. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties.",
         "operationId": "table_documentation_get",
         "parameters": [
           {
@@ -2282,7 +2561,7 @@
         "tags": [
           "public"
         ],
-        "description": "Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`.",
+        "description": "Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. `lifecycle` is `draft`, `published` or `deprecated`; `replacedBy` is `catalog.schema.table` and only on a deprecated table. Publishing needs an owner, a description and a domain, and is refused with 409 while one of the table's verified queries failed its last check; a table with no verified query can publish. The check is only made when the lifecycle enters `published`, so a published table can still be edited. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`.",
         "operationId": "table_documentation_update",
         "parameters": [
           {
@@ -2366,6 +2645,16 @@
           },
           "404": {
             "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The table cannot be published while one of its verified queries fails its last check",
             "content": {
               "application/json": {
                 "schema": {
@@ -2684,6 +2973,239 @@
           },
           "502": {
             "description": "The catalog or the engine is not reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/tables/{ns}/{tbl}/metrics": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/catalog/tables/{ns}/{tbl}/metrics` — the table's, in `name` order.",
+        "description": "The metric definitions of one table: named numbers its owners declared over its columns, with the SQL expression that computes each, an optional time column and the dimensions it may be cut by. A definition is stored, never executed, by this API. In name order, no pagination: a table with more than 50 metrics is not a shape this milestone meets. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.",
+        "operationId": "metric_definitions_list",
+        "parameters": [
+          {
+            "name": "ns",
+            "in": "path",
+            "description": "Namespace (schema) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tbl",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The table's metric definitions, in name order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetricDefinition"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A name is not a single path segment, or the catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/catalog/tables/{ns}/{tbl}/metrics` — `201` with the stored row.",
+        "description": "Declare one metric of this table: a name (lower-case letters, digits and underscores, at most 64), a description (1 to 500 characters), the SQL expression that computes it (at most 2000 characters, no semicolon and no comment), an optional time column and up to 10 distinct dimensions. The expression is stored, never executed: it is the owner's assertion. Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. `?catalog=` picks the catalog.",
+        "operationId": "metric_definitions_create",
+        "parameters": [
+          {
+            "name": "ns",
+            "in": "path",
+            "description": "Namespace (schema) name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tbl",
+            "in": "path",
+            "description": "Table name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "catalog",
+            "in": "query",
+            "description": "Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewMetricDefinition"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The stored row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricDefinition"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The name, description, expression, timeColumn or dimensions are not in the accepted shape, or the catalog name is invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller may not browse that catalog, or only the owner group and administrators may add a metric definition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such catalog or no such table",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
             "content": {
               "application/json": {
                 "schema": {
@@ -4647,6 +5169,117 @@
         }
       }
     },
+    "/api/dashboards/{id}/export": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export for its own stage. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.",
+        "operationId": "dashboards_export",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Superset's numeric dashboard id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "bundle",
+            "in": "query",
+            "description": "The bundle that owns the dashboard",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ownerGroup",
+            "in": "query",
+            "description": "The bundle's owner group; the caller must be a member",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ZIP archive Superset exports for one dashboard, without `databases/`",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The bundle name or owner group is empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is not a member of the bundle's owner group, or a deploy principal names another stage",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Superset has no such dashboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Superset answered an error, or could not be reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "This instance has no Superset service user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/deployments": {
       "get": {
         "tags": [
@@ -5607,6 +6240,343 @@
         }
       }
     },
+    "/api/evals/{id}": {
+      "put": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`PUT /api/evals/{id}` — correct a question or its known answer, `200` with the row.",
+        "description": "Correct one eval's question and known answer in place; the runs of `GET /api/evals/{id}/runs` stay. Both fields are required and are checked exactly as `POST /api/catalog/evals` checks them. Only a member of its owner group or an administrator may correct it; the catalog and the owner group do not change.",
+        "operationId": "eval_update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The eval's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEval"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "The updated row",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Eval"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The question or the expected answer is not in the accepted shape",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only a member of the owner group or an administrator may correct an eval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such eval, or the id is not a number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`DELETE /api/evals/{id}` — `204`; `404` when the id is not a row.",
+        "description": "Remove one eval. Only a member of its owner group or an administrator may delete it; the eval was stored, never executed.",
+        "operationId": "eval_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The eval's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only a member of the owner group or an administrator may delete an eval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such eval, or the id is not a number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evals/{id}/runs": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/evals/{id}/runs` — the eval's runs, newest first.",
+        "description": "The runs of one eval — one posted answer and its verdict each — newest first. `?limit=` is 1 to 100, 20 by default. Reading a run is reading the eval's history, so the route needs a session like the rest of the API; it answers 404 for an id that is not an eval. Without a state store the route answers 503.",
+        "operationId": "eval_run_list",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The eval's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "How many runs, 1 to 100 (default 20)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The eval's runs, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EvalRun"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "limit is not a number from 1 to 100",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such eval, or the id is not a number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`POST /api/evals/{id}/runs` — compare one answer and store the verdict, `201` with the row.",
+        "description": "Post one answer to an eval — the SQL an agent wrote, the rows it returned, or the runner's own error — and store the verdict: Nova compares it with the eval's `expected` here, never sends the rows to a model. `value` passes for one row of one equal cell (numbers by value); `rows` passes when the two tables are equal as a multiset; `uses` passes when the SQL names every expected `namespace.table`; an `error` fails with its sentence. Only a member of the eval's owner group or an administrator may post one; the caller is recorded as `createdBy`. The reason sentences are the page's text.",
+        "operationId": "eval_run_create",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The eval's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewEvalRun"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "The stored run and its verdict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvalRun"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The answer is over one of the limits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only a member of the owner group or an administrator may run an eval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such eval, or the id is not a number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "tags": [
@@ -6043,6 +7013,83 @@
           },
           "401": {
             "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics/{id}": {
+      "delete": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`DELETE /api/metrics/{id}` — `204`; `404` when the id is not a row.",
+        "description": "Remove one metric definition; it was stored, never executed. Only the owner group of its table and administrators may delete it.",
+        "operationId": "metric_definitions_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The metric definition's id",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only the owner group and administrators may delete a metric definition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such metric definition, or the id is not a number",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "The catalog is not reachable or did not answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
             "content": {
               "application/json": {
                 "schema": {
@@ -9510,6 +10557,88 @@
         }
       }
     },
+    "/api/query-log/repeated": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "description": "The statements the caller runs repeatedly, worst first (stardelt#38): the last 30 days of FINISHED queries, grouped by their shape (string literals and whitespace do not split a group; numeric literals do), at least 2 runs per group, ordered by total execution time. `scope` is `mine` (default), `team` (the service principals the caller's groups own) or `all` (administrators only); `limit` is 1 to 100, default 20. The answer carries one sentence about the supported acceleration path — a `sql` task with `CREATE OR REPLACE TABLE … AS SELECT …` in a scheduled pipeline. Nothing is created or changed.",
+        "operationId": "query_log_repeated",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "mine (default), team, or all for administrators",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "How many groups, 1 to 100 (default 20)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The repeated statements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepeatedQueries"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "scope or limit is not one of the accepted values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The all scope is for administrators",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/query-log/usage": {
       "get": {
         "tags": [
@@ -11144,7 +12273,7 @@
         "tags": [
           "public"
         ],
-        "description": "Delete one StreamApp that the caller's group owns. The stream's Kafka topic is not deleted; what a deletion does to it is the operator's decision. Answers 204 when the object is gone, including when it was already gone.",
+        "description": "Delete one StreamApp that the caller's group owns. A `KafkaTopic` the operator created for the stream (platform bus, no `connectionRef`) is owned by the `StreamApp`, so Kubernetes deletes it and the topic operator deletes the topic with every message in it; a topic read through a `Connection`, or one another `KafkaTopic` manages, stays. Answers 204 when the object is gone, including when it was already gone.",
         "operationId": "streams_delete",
         "parameters": [
           {
@@ -13384,6 +14513,13 @@
           "type"
         ],
         "properties": {
+          "class": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The column's class from the `stardelt.column-classes` property, or `null`."
+          },
           "description": {
             "type": [
               "string",
@@ -14103,6 +15239,16 @@
             },
             "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook, a dbt run or SQL checks, with dependencies. Exclusive with `sql` and\n`notebook`."
           },
+          "triggers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TriggerRequest"
+            },
+            "description": "Tables whose update starts the run (`spec.triggers`). At most one entry, 1 to 10\ntables, and not together with `schedule`; omitted means none."
+          },
           "viewers": {
             "type": [
               "array",
@@ -14143,6 +15289,76 @@
           "target": {
             "type": "string",
             "description": "The stage the import is for (`dev`, `prod`, …)."
+          }
+        }
+      },
+      "DataProduct": {
+        "type": "object",
+        "description": "One row of a catalog's data products (#37): a documented table with a lifecycle.",
+        "required": [
+          "namespace",
+          "table",
+          "lifecycle",
+          "readers"
+        ],
+        "properties": {
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "domain": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lifecycle": {
+            "type": "string",
+            "description": "`draft`, `published` or `deprecated`."
+          },
+          "namespace": {
+            "type": "string"
+          },
+          "owner": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "readers": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Distinct `<query_log.principal>` values that read this table in the last 30 days."
+          },
+          "replacedBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "`catalog.schema.table`, on a deprecated product."
+          },
+          "table": {
+            "type": "string"
+          }
+        }
+      },
+      "DataProducts": {
+        "type": "object",
+        "required": [
+          "catalog",
+          "products"
+        ],
+        "properties": {
+          "catalog": {
+            "type": "string"
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataProduct"
+            }
           }
         }
       },
@@ -14499,6 +15715,19 @@
         "type": "object",
         "description": "`PUT /api/catalog/tables/{ns}/{tbl}/documentation` body.\n\nEvery key is optional. Absent changes nothing; `null` removes the property; an empty tag\nlist and a blank description also remove. A field whose value equals what the table\nalready stores is not a change.",
         "properties": {
+          "columnClasses": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "description": "Replaces every column class (`null` or `{}` removes them all); absent changes nothing.",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
           "description": {
             "type": [
               "string",
@@ -14520,12 +15749,26 @@
             ],
             "description": "New guide (`null` or blank removes it)."
           },
+          "lifecycle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "New lifecycle (`draft`, `published` or `deprecated`; `null` removes it)."
+          },
           "owner": {
             "type": [
               "string",
               "null"
             ],
             "description": "New owner group (`null` removes it)."
+          },
+          "replacedBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The table that replaces this one (`catalog.schema.table`; `null` removes it)."
           },
           "tags": {
             "type": [
@@ -14623,6 +15866,187 @@
           "error": {
             "type": "string",
             "description": "Human-readable sentence. Never contains tokens, URLs or stack traces."
+          }
+        }
+      },
+      "Eval": {
+        "type": "object",
+        "description": "One eval as the API returns it.",
+        "required": [
+          "id",
+          "ownerGroup",
+          "question",
+          "expected",
+          "createdBy",
+          "createdAt"
+        ],
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "When it was written, RFC 3339."
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "The `sub` of the person who wrote the eval."
+          },
+          "expected": {
+            "description": "The known answer: `{\"kind\":\"rows\",…}`, `{\"kind\":\"value\",…}` or `{\"kind\":\"uses\",…}`."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ownerGroup": {
+            "type": "string",
+            "description": "The group that owns the eval; only its members and administrators may change it."
+          },
+          "question": {
+            "type": "string",
+            "description": "The question a person asks, in words, 1 to 500 characters."
+          }
+        }
+      },
+      "EvalLastRun": {
+        "type": "object",
+        "description": "The newest run of an eval, as `GET /api/catalog/evals` returns it.",
+        "required": [
+          "id",
+          "passed",
+          "createdAt"
+        ],
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "When it was posted, RFC 3339."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The run's id."
+          },
+          "passed": {
+            "type": "boolean",
+            "description": "Whether that answer was the expected one."
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why it failed; absent when it passed."
+          }
+        }
+      },
+      "EvalRun": {
+        "type": "object",
+        "description": "One posted answer and its verdict, as the API returns it.",
+        "required": [
+          "id",
+          "evalId",
+          "passed",
+          "createdBy",
+          "createdAt"
+        ],
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "description": "When it was posted, RFC 3339."
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "The `sub` of the person who posted the run."
+          },
+          "endpoint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The model endpoint that answered, if the runner named it."
+          },
+          "evalId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The eval the run answers."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The model that wrote the answer, if the runner named it."
+          },
+          "passed": {
+            "type": "boolean",
+            "description": "Whether the answer was the expected one."
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why it failed; absent when it passed."
+          },
+          "sql": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The statement the agent wrote, if the runner had one."
+          },
+          "tokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The tokens the model call used, if the runner counted them."
+          }
+        }
+      },
+      "EvalWithLastRun": {
+        "type": "object",
+        "description": "One eval with its newest run; `lastRun` is `null` when the question never ran.",
+        "required": [
+          "id",
+          "ownerGroup",
+          "question",
+          "expected",
+          "createdBy",
+          "createdAt",
+          "lastRun"
+        ],
+        "properties": {
+          "createdAt": {
+            "type": "string"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "expected": {},
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "lastRun": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EvalLastRun",
+                "description": "The newest run; serde always writes the key, `null` when the question never ran."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ownerGroup": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
           }
         }
       },
@@ -15389,6 +16813,57 @@
           }
         }
       },
+      "MetricDefinition": {
+        "type": "object",
+        "description": "One metric definition as the API returns it.",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "expression",
+          "dimensions",
+          "verifiedBy",
+          "verifiedAt"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The columns the metric may be grouped by, in the order the owner wrote them."
+          },
+          "expression": {
+            "type": "string",
+            "description": "A SQL expression over the table's columns, e.g. `sum(total_cents) / 100.0`."
+          },
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timeColumn": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The column that carries the time the metric is counted over, or `null`."
+          },
+          "verifiedAt": {
+            "type": "string",
+            "description": "When it was written, RFC 3339."
+          },
+          "verifiedBy": {
+            "type": "string",
+            "description": "The `sub` of the person who wrote the definition."
+          }
+        }
+      },
       "MetricsResponse": {
         "type": "object",
         "description": "`GET /api/catalog/metrics`: what is in each catalog the caller may browse.",
@@ -15574,7 +17049,9 @@
         "required": [
           "month",
           "groups",
-          "calls"
+          "calls",
+          "feedback",
+          "evals"
         ],
         "properties": {
           "calls": {
@@ -15582,6 +17059,20 @@
             "items": {
               "$ref": "#/components/schemas/UsageCall"
             }
+          },
+          "evals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageEvals"
+            },
+            "description": "The last 30 days' eval verdicts per endpoint, name order; an endpoint with no run is absent."
+          },
+          "feedback": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageFeedback"
+            },
+            "description": "This month's votes per endpoint, name order; an endpoint nobody rated is absent."
           },
           "groups": {
             "type": "array",
@@ -15793,6 +17284,113 @@
           }
         },
         "additionalProperties": false
+      },
+      "NewEval": {
+        "type": "object",
+        "description": "`POST /api/catalog/evals` body.",
+        "required": [
+          "ownerGroup",
+          "question",
+          "expected"
+        ],
+        "properties": {
+          "expected": {
+            "description": "The known answer: `{\"kind\":\"rows\",…}`, `{\"kind\":\"value\",…}` or `{\"kind\":\"uses\",…}`."
+          },
+          "ownerGroup": {
+            "type": "string",
+            "description": "The group that owns the eval."
+          },
+          "question": {
+            "type": "string",
+            "description": "The question, 1 to 500 characters."
+          }
+        }
+      },
+      "NewEvalRun": {
+        "type": "object",
+        "description": "`POST /api/evals/{id}/runs` body: one answer, compared with the eval's `expected` here.",
+        "properties": {
+          "endpoint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The model endpoint that answered, at most 200 characters."
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The runner's own failure (Ask refused, the statement errored), at most 2 000 characters."
+          },
+          "model": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The model that wrote the answer, at most 200 characters."
+          },
+          "rows": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "array",
+              "items": {}
+            },
+            "description": "The rows the statement returned: 1 to 100 rows of 1 to 50 scalars."
+          },
+          "sql": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The statement an agent wrote, at most 20 000 characters."
+          },
+          "tokens": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "The tokens the model call used; not negative."
+          }
+        }
+      },
+      "NewMetricDefinition": {
+        "type": "object",
+        "description": "`POST /api/catalog/tables/{ns}/{tbl}/metrics` body.",
+        "required": [
+          "name",
+          "description",
+          "expression"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "expression": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "timeColumn": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
       },
       "NewSavedQuery": {
         "type": "object",
@@ -16492,6 +18090,16 @@
             },
             "description": "The tasks of a task-list pipeline (`sql`, `notebook` and `dbt` tasks), in the shape\n`pipelines_validate` accepts; left out for a single-task pipeline."
           },
+          "triggers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TriggerRequest"
+            },
+            "description": "Tables whose update starts a run (`spec.triggers`), at most one entry; left out when\nthe resource carries none."
+          },
           "viewers": {
             "type": "array",
             "items": {
@@ -16706,7 +18314,7 @@
             "items": {
               "type": "string"
             },
-            "description": "The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16.\n`spec.publish: wap` audits exactly these tables (#114)."
+            "description": "The tables a `sql`, `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16.\n`spec.publish: wap` audits exactly these tables (#114)."
           }
         }
       },
@@ -16718,6 +18326,7 @@
           "namespace",
           "canRun",
           "canEdit",
+          "triggers",
           "paused",
           "loaded",
           "state",
@@ -16825,6 +18434,13 @@
             "items": {
               "$ref": "#/components/schemas/TaskSpecView"
             }
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TriggerView"
+            },
+            "description": "`spec.triggers` as data: the tables and whether all or any starts a run."
           }
         }
       },
@@ -17809,6 +19425,67 @@
           "accepted": {
             "type": "boolean",
             "description": "Always `true`: a `202` is the acceptance, and the round has already started."
+          }
+        }
+      },
+      "RepeatedQueries": {
+        "type": "object",
+        "required": [
+          "statements",
+          "suggestion"
+        ],
+        "properties": {
+          "statements": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RepeatedStatement"
+            }
+          },
+          "suggestion": {
+            "type": "string",
+            "description": "The supported acceleration path; the same sentence for the API, the CLI and MCP."
+          }
+        }
+      },
+      "RepeatedStatement": {
+        "type": "object",
+        "required": [
+          "sqlFingerprint",
+          "sql",
+          "runs"
+        ],
+        "properties": {
+          "averageMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "maxMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "runs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sql": {
+            "type": "string",
+            "description": "The most recent run's statement."
+          },
+          "sqlFingerprint": {
+            "type": "string"
+          },
+          "totalMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -19126,12 +20803,26 @@
             ],
             "description": "The `stardelt.guide` property: how to use this table (joins, filters, definitions), or `null`."
           },
+          "lifecycle": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `stardelt.lifecycle` property: `draft`, `published` or `deprecated`, or `null`."
+          },
           "owner": {
             "type": [
               "string",
               "null"
             ],
             "description": "The `stardelt.owner` property: a group name, or `null`."
+          },
+          "replacedBy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The `stardelt.replaced-by` property (`catalog.schema.table`), or `null`."
           },
           "rollbackRule": {
             "type": "string",
@@ -19492,6 +21183,60 @@
           }
         }
       },
+      "TriggerRequest": {
+        "type": "object",
+        "description": "One `spec.triggers` entry: the tables whose update starts a run, and whether every one\nor any one must update. The CRD allows one entry today (#66, #2014).",
+        "properties": {
+          "mode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tablesUpdated": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TriggerView": {
+        "type": "object",
+        "description": "One `spec.triggers` entry as the pages read it.",
+        "required": [
+          "tablesUpdated",
+          "mode"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "tablesUpdated": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateEval": {
+        "type": "object",
+        "description": "`PUT /api/evals/{id}` body: the two fields a supervisor corrects.",
+        "required": [
+          "question",
+          "expected"
+        ],
+        "properties": {
+          "expected": {
+            "description": "The known answer, in the same three shapes `NewEval` takes."
+          },
+          "question": {
+            "type": "string",
+            "description": "The question, 1 to 500 characters."
+          }
+        }
+      },
       "UpdatePipelineRequest": {
         "type": "object",
         "description": "`PUT /api/pipelines/{namespace}/{name}`: change the statement, the schedule, the parameters\nand the options — or, for a notebook pipeline, the notebook, its version and its parameters.\nEvery other field of the resource stays as it is, and what the pipeline runs never changes\nkind.",
@@ -19599,6 +21344,16 @@
               "$ref": "#/components/schemas/PipelineTaskRequest"
             },
             "description": "A whole task list instead of one `run` task (`#905`): 1 to 30 tasks, each a statement, a\npinned notebook, a dbt run or SQL checks, with dependencies. Exclusive with `sql` and\n`notebook`."
+          },
+          "triggers": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/TriggerRequest"
+            },
+            "description": "Tables whose update starts the run (`spec.triggers`). At most one entry, 1 to 10\ntables, and not together with `schedule`; omitted means none."
           },
           "viewers": {
             "type": [
@@ -19723,6 +21478,52 @@
             "format": "int64"
           },
           "tokensOut": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "UsageEvals": {
+        "type": "object",
+        "description": "One endpoint's eval score for the last 30 days, from `eval_run`. An endpoint whose runs\nnamed no endpoint is absent from the answer, not a zero row.",
+        "required": [
+          "endpoint",
+          "passed",
+          "total"
+        ],
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The runs whose answer was the expected one."
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Every run in the window; `passed <= total`."
+          }
+        }
+      },
+      "UsageFeedback": {
+        "type": "object",
+        "description": "One endpoint's 👍 and 👎 this month, from `model_call.feedback`. An endpoint nobody rated\nis absent from the answer, not a zero row.",
+        "required": [
+          "endpoint",
+          "up",
+          "down"
+        ],
+        "properties": {
+          "down": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "up": {
             "type": "integer",
             "format": "int64"
           }

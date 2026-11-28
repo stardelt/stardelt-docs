@@ -40,3 +40,29 @@ Import one Superset dashboard archive for a bundle's target: every dataset is re
 | `422` | The target has no database for one of the archive's catalogs |
 | `502` | Superset answered an error, or could not be reached |
 | `503` | This instance has no Superset service user |
+
+## GET /api/dashboards/\{id\}/export
+
+Operation id `dashboards_export`: in Python `client.call("dashboards_export", …)`, on the command line `stardelt api dashboards_export`.
+
+The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export for its own stage. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `bundle` | query | string | Yes | The bundle that owns the dashboard |
+| `id` | path | integer | Yes | Superset's numeric dashboard id |
+| `ownerGroup` | query | string | Yes | The bundle's owner group; the caller must be a member |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The ZIP archive Superset exports for one dashboard, without `databases/` |
+| `400` | The bundle name or owner group is empty |
+| `401` | Not signed in |
+| `403` | The caller is not a member of the bundle's owner group, or a deploy principal names another stage |
+| `404` | Superset has no such dashboard |
+| `502` | Superset answered an error, or could not be reached |
+| `503` | This instance has no Superset service user |

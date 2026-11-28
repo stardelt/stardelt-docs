@@ -92,7 +92,10 @@ Schedule a statement or a published notebook: create a `Pipeline` for one of the
 | `tasks[].sparkPipeline.project` | string | Yes |  | The bundle directory that holds `spark-pipeline.yml`. |  |
 | `tasks[].sparkPipeline.refresh` | string (nullable) | No |  | `incremental` (the default) or `full`. |  |
 | `tasks[].sql` | string | No |  | The statement to run; exactly one of this, `notebook`, `dbt`, `quality` and `sparkPipeline` is given. |  |
-| `tasks[].writes` | array of string | No |  | The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16. `spec.publish: wap` audits exactly these tables. |  |
+| `tasks[].writes` | array of string | No |  | The tables a `sql`, `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16. `spec.publish: wap` audits exactly these tables. |  |
+| `triggers` | array of object (nullable) | No |  | Tables whose update starts the run (`spec.triggers`). At most one entry, 1 to 10 tables, and not together with `schedule`; omitted means none. |  |
+| `triggers[].mode` | string (nullable) | No |  |  |  |
+| `triggers[].tablesUpdated` | array of string | No |  |  |  |
 | `viewers` | array of string (nullable) | No |  | Groups that may read the pipeline without being members (`spec.viewers`). At most 16, each a group name; omitted writes none. A bundle's pipeline file carries it. |  |
 
 **Responses**
@@ -232,7 +235,10 @@ Check a pipeline document without writing it: the body is the body of `pipelines
 | `tasks[].sparkPipeline.project` | string | Yes |  | The bundle directory that holds `spark-pipeline.yml`. |  |
 | `tasks[].sparkPipeline.refresh` | string (nullable) | No |  | `incremental` (the default) or `full`. |  |
 | `tasks[].sql` | string | No |  | The statement to run; exactly one of this, `notebook`, `dbt`, `quality` and `sparkPipeline` is given. |  |
-| `tasks[].writes` | array of string | No |  | The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16. `spec.publish: wap` audits exactly these tables. |  |
+| `tasks[].writes` | array of string | No |  | The tables a `sql`, `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`; at most 16. `spec.publish: wap` audits exactly these tables. |  |
+| `triggers` | array of object (nullable) | No |  | Tables whose update starts the run (`spec.triggers`). At most one entry, 1 to 10 tables, and not together with `schedule`; omitted means none. |  |
+| `triggers[].mode` | string (nullable) | No |  |  |  |
+| `triggers[].tablesUpdated` | array of string | No |  |  |  |
 | `viewers` | array of string (nullable) | No |  | Groups that may read the pipeline without being members (`spec.viewers`). At most 16, each a group name; omitted writes none. A bundle's pipeline file carries it. |  |
 
 **Responses**
