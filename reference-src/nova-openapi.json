@@ -847,6 +847,89 @@
         }
       }
     },
+    "/api/admin/query-log/export": {
+      "get": {
+        "tags": [
+          "public"
+        ],
+        "summary": "`GET /api/admin/query-log/export?from=&cursor=&limit=` — the whole log, ascending.",
+        "description": "Administrator only. Every stored column of the query log, oldest first, a page at a time — the read a job copies into the platform's own tables so usage outlives the 90-day window. The order is ascending (createdAt, then id), so a writer keeps the nextCursor of one page and continues from it after a restart; nextCursor is null on the last page. limit is 1 to 1000, 500 by default; from is an epoch-millisecond lower bound. With NOVA_QUERY_LOG_REDACT_LITERALS=1 every statement shows '?' in place of each string literal.",
+        "operationId": "query_log_export",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Created at or after this time, epoch milliseconds",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "The nextCursor of the previous page; rows after it, ascending",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Page size from 1 to 1000; 500 by default",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One ascending page of the whole log",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryLogExportPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A parameter is not valid; the message names it",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The state store is not configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/admin/teams": {
       "post": {
         "tags": [
@@ -5080,7 +5163,7 @@
             }
           },
           "403": {
-            "description": "The caller is not a member of the bundle's owner group, or a deploy principal names another stage",
+            "description": "The caller is not a member of the bundle's owner group, or a deploy principal asks for another group's dashboards",
             "content": {
               "application/json": {
                 "schema": {
@@ -5117,7 +5200,7 @@
         "tags": [
           "public"
         ],
-        "description": "Import one Superset dashboard archive for a bundle's target: every dataset is remapped onto the target's own `Trino <catalog>` database, the target's `databases/` file is added, every dashboard is stamped `certified_by: stardelt bundle <bundle>` / `certification_details: <target> @ <commit>`, and Superset imports the result. The caller must be a member of the bundle's owner group; a deploy principal may only import to its own stage. The answer is Superset's own import result plus the database stems that were mapped.",
+        "description": "Import one Superset dashboard archive for a bundle's target: every dataset is remapped onto the target's own `Trino <catalog>` database, the target's `databases/` file is added, every dashboard is stamped `certified_by: stardelt bundle <bundle>` / `certification_details: <target> @ <commit>`, and Superset imports the result. The caller must be a member of the bundle's owner group; a deploy principal may only import to its own stage. An archive is refused when one of its dashboards already exists certified by another bundle or group. The answer is Superset's own import result plus the database stems that were mapped.",
         "operationId": "dashboards_import",
         "parameters": [
           {
@@ -5212,7 +5295,7 @@
             }
           },
           "403": {
-            "description": "The caller is not a member of the bundle's owner group, or a deploy principal names another stage",
+            "description": "The caller is not a member of the bundle's owner group, a deploy principal names another stage, or a dashboard in the archive is certified by another bundle or owner group",
             "content": {
               "application/json": {
                 "schema": {
@@ -5269,7 +5352,7 @@
         "tags": [
           "public"
         ],
-        "summary": "`DELETE /api/dashboards/{id}`: remove one dashboard **this bundle imported**. The\ndashboard's `certified_by` must be `stardelt bundle <bundle>` and its\n`certification_details` must end with ` by <ownerGroup>`; a dashboard without the stamp,\nor one another group imported, is refused and stays (#115 decision 6). The caller's rule\nis the export's owner-group rule.",
+        "summary": "`DELETE /api/dashboards/{id}`: remove one dashboard **this bundle imported**. The\ndashboard's `certified_by` must be `stardelt bundle <bundle>` and its\n`certification_details` must end with ` by <ownerGroup>`; a dashboard without the stamp,\nor one another group imported, is refused and stays (#115 decision 6). The caller's rule\nis the dashboards owner-group rule.",
         "description": "Remove one dashboard that this bundle imported. The dashboard's `certified_by` must be `stardelt bundle <bundle>` and its `certification_details` must name the caller's `ownerGroup` as the group that imported it; a dashboard without that stamp is refused. The caller must be a member of the bundle's owner group, and a deploy principal may only remove for its own group.",
         "operationId": "dashboards_delete",
         "parameters": [
@@ -5374,7 +5457,7 @@
         "tags": [
           "public"
         ],
-        "description": "The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export for its own stage. A dashboard whose stamp names another bundle or another group is refused; an unstamped one is the author's to export. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.",
+        "description": "The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export its own group's dashboards. A dashboard whose stamp names another bundle or another group is refused; an unstamped one is the author's to export. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.",
         "operationId": "dashboards_export",
         "parameters": [
           {
@@ -5438,7 +5521,7 @@
             }
           },
           "403": {
-            "description": "The caller is not a member of the bundle's owner group, a deploy principal names another stage, or the dashboard carries another bundle's or group's stamp",
+            "description": "The caller is not a member of the bundle's owner group, a deploy principal asks for another group's dashboards, or the dashboard carries another bundle's or group's stamp",
             "content": {
               "application/json": {
                 "schema": {
@@ -16474,7 +16557,8 @@
         "description": "What the readiness probe answers.",
         "required": [
           "status",
-          "db"
+          "db",
+          "superset"
         ],
         "properties": {
           "db": {
@@ -16483,6 +16567,10 @@
           "status": {
             "type": "string",
             "description": "Always `ok`."
+          },
+          "superset": {
+            "type": "boolean",
+            "description": "Whether this instance has a Superset service user, so a bundle can import dashboards."
           }
         }
       },
@@ -19362,6 +19450,146 @@
               "string",
               "null"
             ]
+          },
+          "warehouse": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryLogExportPage": {
+        "type": "object",
+        "description": "One ascending page of the export; `nextCursor` is null on the last page.",
+        "required": [
+          "rows"
+        ],
+        "properties": {
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QueryLogExportRow"
+            }
+          }
+        }
+      },
+      "QueryLogExportRow": {
+        "type": "object",
+        "description": "One row of the export: every stored column, so a writer can copy the table whole.",
+        "required": [
+          "id",
+          "state",
+          "user",
+          "clientTags",
+          "warehouse",
+          "sql",
+          "sqlHash",
+          "createdAt",
+          "updatedAt",
+          "timing",
+          "data",
+          "tablesRead",
+          "tablesWritten"
+        ],
+        "properties": {
+          "catalog": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clientTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "data": {
+            "$ref": "#/components/schemas/QueryData"
+          },
+          "endedAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "error": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/QueryFailure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "queryType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "schema": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sql": {
+            "type": "string"
+          },
+          "sqlHash": {
+            "type": "string"
+          },
+          "startedAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "state": {
+            "type": "string"
+          },
+          "tablesRead": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tablesWritten": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timing": {
+            "$ref": "#/components/schemas/QueryTiming"
+          },
+          "updatedAt": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user": {
+            "type": "string"
           },
           "warehouse": {
             "type": "string"

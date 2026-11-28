@@ -468,6 +468,22 @@ Ask every eval, run its answer read-only and record pass or fail.
 | `--catalog` | a value | Catalog to run; omitted, the default one. |
 | `--only` | a value | Run one eval by id. |
 
+## `stardelt query-log`
+
+Read Nova's query log: the administrator's export.
+
+### `stardelt query-log export`
+
+Write every row as JSON lines, oldest first (administrator only).
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `--out` | a value | The file to write; --cursor and --append add to it, otherwise it is replaced. Required. |
+| `--from` | a value | Only rows created at or after this epoch-millisecond time. |
+| `--cursor` | a value | The nextCursor a previous, interrupted export named. |
+| `--append` | — | Add the rows to the file instead of replacing it. |
+| `--limit` | a value | Rows per request, 1 to 1000 (default 500). |
+
 ## `stardelt classify`
 
 Suggest a data class for a table's unclassed columns.
