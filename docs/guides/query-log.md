@@ -119,6 +119,22 @@ A profile is cut at **512 KB**: above that it loses its operator list first, the
 (256 KB). The answer then carries `"truncated": true`, and the Profile group says the list is from the part
 that was kept. The profile follows its log row's scopes: **Mine**, **Team** and **Everyone**.
 
+## Archive the log before retention deletes it
+
+An administrator can copy every row to a file before the retention window closes it:
+
+```bash
+stardelt query-log export --out query-log.jsonl
+```
+
+The file holds one JSON object per row, oldest first, with the fields the page shows. `--from` takes an
+epoch-millisecond time and starts at the first row created then or later; `--limit` asks for `1` to `1000` rows per
+request (default `500`). Only platform administrators may run it; anybody else is refused.
+
+When a request fails, the command keeps what it fetched and names the `nextCursor` to continue from. `--out` is
+overwritten, so continue with `--cursor <value>` into another file and join the two. The command appears in the
+generated [command-line reference](../reference/cli) after the next `npm run sync:reference`.
+
 ## Hints in the profile
 
 When a finished query's numbers show a known cause, the **Profile** group lists a hint: what to change, the numbers it
