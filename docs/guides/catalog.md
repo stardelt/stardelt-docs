@@ -64,6 +64,25 @@ most 16,000 characters; **Edit** shows it in a textarea labelled **How to use th
 and clearing it removes the guide. The guide travels as the Iceberg table property `stardelt.guide`, so any Iceberg
 client sees it, and an agent reads it through the [`table_documentation`](./mcp.md) tool.
 
+### Column classes
+
+A column can carry a **class** — `public`, `personal`, `financial` or `secret` — so a person
+or an agent knows what kind of data a name holds without reading a value. The **Columns** tab
+shows the class beside each column; an owner changes it with the select in that cell, and
+`—` is a column with no class.
+
+A class is stored as the table property `stardelt.column-classes`, a JSON object that maps
+each column name to its class. It travels with the table, so any Iceberg client reads it, and
+an agent reads it through the `table_documentation` tool. The select offers the
+four names above plus any class the table already carries; anything you store follows the
+property's rule — 1 to 32 lower-case letters, digits, dashes or underscores, starting with a
+letter — and clearing the cell removes that column's class.
+
+A class is edited under the same owner rule as the description and the guide: a table
+without an owner can be claimed by the first editor for one of their own groups, and a table
+that has one is edited by that group or by an administrator. Everyone else reads the class
+and the card says whom to ask.
+
 ### Freshness: a promise the table's owner keeps
 
 The **Freshness** card answers "can I trust this table today?". The owner sets a promise — a
@@ -170,12 +189,10 @@ The tabs below the cards each answer one question about the same table:
   many distinct values it holds and its range. The card says what it sampled: *Profiled from the first 10,000 rows ·
   null % and distinct values*. A nested column has no counts and no range, and a type the engine cannot order has no
   range; the table shows `—`.
-- **Columns** lists each column with its type and its description; choose **Edit** beside a description to change
-  it and **Save** to keep it. **Class** says what a column holds: `public`, `personal`, `financial` or `secret`.
-  Whoever may edit the description picks it from a list. The class is stored in the table's
-  `stardelt.column-classes` property, so it travels with the table to every engine. The **From** column
-  names the columns of other tables this one was built from,
-  following each name to its table's lineage page; a source you may not read is one muted line instead of a name.
+- **Columns** lists each column with its type, its class and its description; choose **Edit** beside a
+  description to change it and **Save** to keep it, and change a class with the select in its cell. The **From**
+  column names the columns of other tables this one was built from, following each name to its table's lineage page;
+  a source you may not read is one muted line instead of a name.
 - **Details** shows the table's identity and layout: UUID, location, when it was last updated, the metadata file,
   the partitioning (or that it is unpartitioned) and the table properties.
 - **History** lists the table's snapshots with their time, operation and summary. **Preview** shows the table as it
