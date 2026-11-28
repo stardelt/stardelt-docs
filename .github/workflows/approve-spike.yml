@@ -1,0 +1,49 @@
+name: Approve spike
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  spike:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Push a branch with an open pull request, twice
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B chore/approve-spike
+          git commit --allow-empty -m "chore: approve spike (first commit, only to open the PR)"
+          git push --force origin chore/approve-spike
+          if ! gh pr list --head chore/approve-spike --state open --json number -q '.[0].number' | grep -q .; then
+            gh pr create --base main --head chore/approve-spike --draft \
+              --title "chore: approve spike (do not merge)" \
+              --body "Throwaway PR for stardelt-docs#1287: measures whether the workflow token may approve the run GitHub holds for its own push. Deleted by the spike."
+          fi
+          git commit --allow-empty -m "chore: approve spike (second commit, the held run)"
+          git push origin chore/approve-spike
+      - name: Approve the held pull_request run for the second commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          id=""
+          for _ in $(seq 1 12); do
+            id="$(gh run list --repo "$GITHUB_REPOSITORY" --branch chore/approve-spike --event pull_request --limit 20 \
+              --json databaseId,headSha,conclusion \
+              -q "[.[] | select(.headSha == \"$sha\" and .conclusion == \"action_required\")][0].databaseId" || true)"
+            if [ -n "$id" ] && [ "$id" != "null" ]; then break; fi
+            sleep 5
+          done
+          echo "held run: ${id:-none} for $sha"
+          test -n "$id" && test "$id" != "null"
+          gh api -X POST "repos/$GITHUB_REPOSITORY/actions/runs/$id/approve" && echo "approve: accepted"
