@@ -15,6 +15,8 @@ its rows, its history and the people and jobs that read it.
 
 The tree on the left lists every catalog open to you, then its schemas, then the tables in each schema. The
 **Search tables…** box filters the tree as you type, so a table can be found by name without opening every schema.
+A catalog's own page lists its schemas and, once its [evals](/docs/guides/evals) have run, says
+`3 of 4 evals passed` (out of the questions that have a run), linked to the Evals page for that catalog.
 Clicking a schema opens its page: the tables and views in it, each row saying which of the two it is, and a row
 opens that table's page. Clicking a table in the tree opens the table page directly.
 
@@ -82,6 +84,19 @@ A class is edited under the same owner rule as the description and the guide: a 
 without an owner can be claimed by the first editor for one of their own groups, and a table
 that has one is edited by that group or by an administrator. Everyone else reads the class
 and the card says whom to ask.
+
+`stardelt classify columns` proposes a class for the columns that have none, from the column's name only (it never
+reads a value): a name like `password` or `api_key` is `secret`, `iban` or `salary` is `financial`, and
+`email`, `phone` or `birth_date` is `personal`. It never changes a class a person set:
+
+```console
+$ stardelt classify columns gold.shop.customers
+email  personal  would-set
+$ stardelt classify columns gold.shop.customers --apply
+email  personal  set
+```
+
+Without `--apply` it writes nothing. The same owner rule applies, and an ownerless table needs `--owner GROUP`.
 
 ### Freshness: a promise the table's owner keeps
 

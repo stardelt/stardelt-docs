@@ -90,6 +90,23 @@ webhooks and addresses on [Destinations](runs.md#notification-destinations); a g
 add one if the answers must be watched. A gate on a model change, a guide promotion or a publication is
 not in this release.
 
+## From a bundle
+
+A bundle can carry its catalog's questions in an `evals:` block of `bundle.yaml`, so they are reviewed in Git:
+
+```yaml
+evals:
+  catalog: gold
+  questions:
+    - question: How many orders are there?
+      expected: {"kind":"value","value":1284}
+```
+
+`stardelt bundle evals` creates each new question with the bundle's `ownerGroup` and corrects a differing expected
+answer in place, so runs are kept. It prints `unchanged`, `created` or `corrected` per question. With
+`--check` it writes nothing, prints `would-create` or `would-update` and exits `1`. A question that another group
+owns is refused. See the [bundle reference](/docs/reference/bundle#eval-questions).
+
 ## In CI
 
 A run's exit code is all a pipeline needs, so a step can run the catalog's evals on a schedule or
