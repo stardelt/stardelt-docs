@@ -324,6 +324,18 @@ Set the guides and metric definitions the bundle's context block names.
 | --- | --- | --- |
 | `--check` | — | Answer what would change, write nothing; exits 1 when anything differs. |
 
+### `stardelt bundle evals`
+
+Create or correct the bundle's `evals:` questions in their catalog.
+
+| Argument | Meaning |
+| --- | --- |
+| `directory` | The bundle directory (default: the current one). Optional. |
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `--check` | — | Answer what would change, write nothing; exits 1 when anything differs. |
+
 ### `stardelt bundle dashboards`
 
 Import the bundle's `dashboards:` folders for one target.
@@ -455,3 +467,20 @@ Ask every eval, run its answer read-only and record pass or fail.
 | --- | --- | --- |
 | `--catalog` | a value | Catalog to run; omitted, the default one. |
 | `--only` | a value | Run one eval by id. |
+
+## `stardelt classify`
+
+Suggest a data class for a table's unclassed columns.
+
+### `stardelt classify columns`
+
+Propose a class from each column's name; writes only with --apply.
+
+| Argument | Meaning |
+| --- | --- |
+| `CATALOG.SCHEMA.TABLE` | The table to scan. |
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `--apply` | — | Write the suggestions through the documentation update. |
+| `--owner` | `GROUP` | Claim an ownerless table for this group (one of yours). |

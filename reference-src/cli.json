@@ -831,6 +831,27 @@
           "commands": []
         },
         {
+          "name": "evals",
+          "help": "create or correct the bundle's `evals:` questions in their catalog",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--check"
+              ],
+              "help": "answer what would change, write nothing; exits 1 when anything differs",
+              "flag": true
+            }
+          ],
+          "commands": []
+        },
+        {
           "name": "dashboards",
           "help": "import the bundle's `dashboards:` folders for one target",
           "arguments": [
@@ -1133,6 +1154,41 @@
                 "--only"
               ],
               "help": "run one eval by id"
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "classify",
+      "help": "suggest a data class for a table's unclassed columns",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "columns",
+          "help": "propose a class from each column's name; writes only with --apply",
+          "arguments": [
+            {
+              "name": "CATALOG.SCHEMA.TABLE",
+              "help": "the table to scan"
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--apply"
+              ],
+              "help": "write the suggestions through the documentation update",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--owner"
+              ],
+              "help": "claim an ownerless table for this group (one of yours)",
+              "metavar": "GROUP"
             }
           ],
           "commands": []

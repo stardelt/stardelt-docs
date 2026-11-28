@@ -15,6 +15,7 @@ A streaming app: a Kafka topic in, an Iceberg table out.
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `spec.deletionPolicy` | string | No | `Retain` | What happens to this stream's source topic when the StreamApp is deleted. Defaults to Retain: the operator created the `KafkaTopic` without an owner reference, so the topic and every message stay. `Delete` lets Kubernetes delete the `KafkaTopic` with the stream, and Strimzi then deletes the topic. | `Retain`, `Delete` |
 | `spec.engine` | string | No | `spark` |  | `spark` |
 | `spec.ownerGroup` | string (nullable) | No |  | The group whose members may see and stop the stream; absent means administrators only. | min 1, max 64; pattern `^[A-Za-z0-9][A-Za-z0-9._-]*$` |
 | `spec.restartPolicy` | string | No | `always` |  | `always`, `on-failure` |

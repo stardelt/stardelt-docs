@@ -5,6 +5,15 @@
     "spec": {
       "description": "One long-running stream: a Kafka topic in, an Iceberg table out (decision D42).",
       "properties": {
+        "deletionPolicy": {
+          "default": "Retain",
+          "description": "What happens to this stream's source topic when the StreamApp is deleted (D18 applied\nto a stream). Defaults to Retain: the operator created the `KafkaTopic` without an\nowner reference, so the topic and every message stay. `Delete` lets Kubernetes delete\nthe `KafkaTopic` with the stream, and Strimzi then deletes the topic.",
+          "enum": [
+            "Retain",
+            "Delete"
+          ],
+          "type": "string"
+        },
         "engine": {
           "default": "spark",
           "enum": [

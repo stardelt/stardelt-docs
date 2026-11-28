@@ -12,6 +12,32 @@ custom_edit_url: null
 
 The operations Nova tags `public` under `/api/dashboards`. Generated from `reference-src/nova-openapi.json`.
 
+## GET /api/dashboards
+
+Operation id `dashboards_list`: in Python `client.call("dashboards_list", …)`, on the command line `stardelt api dashboards_list`.
+
+`GET /api/dashboards`: the dashboards **this bundle and this owner group** imported, with the target and commit of the stamp the import wrote. A dashboard without that stamp, and one another group imported, is never listed. At most 100 (Superset's page size). The caller's rule is the export's owner-group rule.
+
+The dashboards this bundle and this owner group imported, each with the target and commit of the stamp the import wrote. A dashboard without that stamp, and one another group imported, is never listed. At most 100 (Superset's page size). The caller must be a member of the bundle's owner group, and a deploy principal sees its own group.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `bundle` | query | string | Yes | The bundle that imported the dashboards |
+| `ownerGroup` | query | string | Yes | The bundle's owner group; the caller must be a member |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The dashboards this bundle imported, in Superset's order |
+| `400` | The bundle name or owner group is empty |
+| `401` | Not signed in |
+| `403` | The caller is not a member of the bundle's owner group, or a deploy principal names another stage |
+| `502` | Superset answered an error, or could not be reached |
+| `503` | This instance has no Superset service user |
+
 ## POST /api/dashboards/import
 
 Operation id `dashboards_import`: in Python `client.call("dashboards_import", …)`, on the command line `stardelt api dashboards_import`.
@@ -33,7 +59,7 @@ Import one Superset dashboard archive for a bundle's target: every dataset is re
 | Code | Description |
 | --- | --- |
 | `200` | Superset's import result and the mapped database stems |
-| `400` | The body is not a dashboard archive, or a name is empty or too long |
+| `400` | The body is not a dashboard archive, or a field has the wrong shape: `bundle` 3–40 lower-case letters, digits and dashes; `target` and `ownerGroup` 1–64 letters, digits, dots, underscores or dashes; `commit` lower-case hex |
 | `401` | Not signed in |
 | `403` | The caller is not a member of the bundle's owner group, or a deploy principal names another stage |
 | `413` | The archive is larger than 16 MiB |
@@ -41,11 +67,39 @@ Import one Superset dashboard archive for a bundle's target: every dataset is re
 | `502` | Superset answered an error, or could not be reached |
 | `503` | This instance has no Superset service user |
 
+## DELETE /api/dashboards/\{id\}
+
+Operation id `dashboards_delete`: in Python `client.call("dashboards_delete", …)`, on the command line `stardelt api dashboards_delete`.
+
+`DELETE /api/dashboards/{id}`: remove one dashboard **this bundle imported**. The dashboard's `certified_by` must be `stardelt bundle <bundle>` and its `certification_details` must end with ` by <ownerGroup>`; a dashboard without the stamp, or one another group imported, is refused and stays. The caller's rule is the export's owner-group rule.
+
+Remove one dashboard that this bundle imported. The dashboard's `certified_by` must be `stardelt bundle <bundle>` and its `certification_details` must name the caller's `ownerGroup` as the group that imported it; a dashboard without that stamp is refused. The caller must be a member of the bundle's owner group, and a deploy principal may only remove for its own group.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `bundle` | query | string | Yes | The bundle that imported the dashboard |
+| `id` | path | integer | Yes | Superset's numeric dashboard id |
+| `ownerGroup` | query | string | Yes | The bundle's owner group; the caller must be a member |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `204` | Deleted |
+| `400` | The bundle name or owner group is empty |
+| `401` | Not signed in |
+| `403` | The caller is not a member of the bundle's owner group, or the dashboard is not stamped by this bundle |
+| `404` | Superset has no such dashboard |
+| `502` | Superset answered an error, or could not be reached |
+| `503` | This instance has no Superset service user |
+
 ## GET /api/dashboards/\{id\}/export
 
 Operation id `dashboards_export`: in Python `client.call("dashboards_export", …)`, on the command line `stardelt api dashboards_export`.
 
-The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export for its own stage. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.
+The ZIP archive of one dashboard for a bundle's author: the caller must be a member of the bundle's owner group, and a deploy principal may only export for its own stage. A dashboard whose stamp names another bundle or another group is refused; an unstamped one is the author's to export. The archive's `databases/` folder is dropped server-side, so a bundle never receives the target's connection URI.
 
 **Parameters**
 
@@ -62,7 +116,7 @@ The ZIP archive of one dashboard for a bundle's author: the caller must be a mem
 | `200` | The ZIP archive Superset exports for one dashboard, without `databases/` |
 | `400` | The bundle name or owner group is empty |
 | `401` | Not signed in |
-| `403` | The caller is not a member of the bundle's owner group, or a deploy principal names another stage |
+| `403` | The caller is not a member of the bundle's owner group, a deploy principal names another stage, or the dashboard carries another bundle's or group's stamp |
 | `404` | Superset has no such dashboard |
 | `502` | Superset answered an error, or could not be reached |
 | `503` | This instance has no Superset service user |

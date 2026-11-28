@@ -25,7 +25,8 @@ group `demo` (`GROUP=` names another one) and also checks that the Catalogs `bro
 
 Every key and every command is listed on [Bundle reference](bundle-reference.md); this section shows the ones you need first.
 
-A bundle is a directory in Git that says what a team publishes: the pipeline files, the notebooks and SQL they run, and one target
+A bundle is a directory in Git that says what a team publishes: the pipeline files, the notebooks and SQL they run, the
+[dashboards](/docs/guides/dashboards) it promotes, and one target
 per stage (`dev`, `test`, `prod`). `init` writes a small one that passes `validate`; neither command needs a host or a sign-in, so a
 pull request can run them:
 
