@@ -1161,6 +1161,54 @@
       ]
     },
     {
+      "name": "query-log",
+      "help": "read Nova's query log: the administrator's export",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "export",
+          "help": "write every row as JSON lines, oldest first (administrator only)",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--out"
+              ],
+              "help": "the file to write; --cursor and --append add to it, otherwise it is replaced",
+              "required": true
+            },
+            {
+              "flags": [
+                "--from"
+              ],
+              "help": "only rows created at or after this epoch-millisecond time"
+            },
+            {
+              "flags": [
+                "--cursor"
+              ],
+              "help": "the nextCursor a previous, interrupted export named"
+            },
+            {
+              "flags": [
+                "--append"
+              ],
+              "help": "add the rows to the file instead of replacing it",
+              "flag": true
+            },
+            {
+              "flags": [
+                "--limit"
+              ],
+              "help": "rows per request, 1 to 1000 (default 500)"
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
       "name": "classify",
       "help": "suggest a data class for a table's unclassed columns",
       "arguments": [],
