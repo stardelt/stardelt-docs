@@ -106,6 +106,9 @@ in the detail view, while the owner always sees the text they ran. It is off by 
 identifiers, and belongs on where a team reads the log — a team scope is exactly that case.
 
 Rows are removed after 90 days by default; `NOVA_QUERY_LOG_RETENTION_DAYS` changes this (`0` keeps everything).
+To keep usage longer, an administrator can read every row with `GET /api/admin/query-log/export`. Rows come
+oldest first, up to 1,000 a page (500 by default), and `from` sets an epoch-millisecond start. Each page's
+`nextCursor` continues the read after a restart and is `null` on the last page. Hidden literals stay hidden.
 
 A finished query also keeps its **profile**: the engine's plan, the per-operator statistics, spilled bytes, split counts
 and the connector's input counts. Profiles are large, so they are kept **14 days** by default — shorter than the log's
