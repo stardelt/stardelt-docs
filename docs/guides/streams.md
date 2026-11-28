@@ -109,28 +109,28 @@ kubectl -n <namespace> patch streamapp <name> --type merge -p '{"spec":{"stopped
 
 ## Deleting a stream
 
-**Delete** on a stream's own page removes it, after one confirmation. Only its owner group may delete it.
-The dialog says what happens to the topic. Deleting a
-`StreamApp` also deletes the `KafkaTopic` the operator created for it, and deleting a
-`KafkaTopic` deletes the topic in Kafka — together with every message in it, including messages
-a producer wrote before the stream existed.
+**Delete** on a stream's own page removes it, after one confirmation. Only its owner group may
+delete it. The dialog says what happens to the topic, from the stream's own
+`spec.deletionPolicy`.
 
-To keep the topic and its messages, stop the topic operator managing it before you delete the
-stream:
+By default (`deletionPolicy: Retain`) the stream's source topic is **kept**: the operator
+created its `KafkaTopic` without an owner, so the `KafkaTopic` stays, keeps managing the topic
+and every message stays — including messages a producer wrote before the stream existed. A
+topic read through a `Connection` is never touched; the operator creates no `KafkaTopic` for it.
+
+To delete the topic with the stream, create it with `deletionPolicy: Delete` (in its manifest
+or bundle) or change it first:
 
 ```bash
-kubectl -n <namespace> annotate kafkatopic <topic-resource> strimzi.io/managed="false"
-kubectl -n <namespace> delete streamapp <name>
+kubectl -n <namespace> patch streamapp <name> --type merge -p '{"spec":{"deletionPolicy":"Delete"}}'
 ```
 
-`<topic-resource>` is the name `kubectl -n <namespace> get kafkatopics` prints: the topic name
-when Kubernetes allows it as an object name, otherwise `stream-<name>`. The `KafkaTopic` object
-disappears with the stream; the topic stays in Kafka with its messages and is no longer managed
-by Strimzi.
+Then deleting the `StreamApp` deletes the `KafkaTopic` too, and Strimzi deletes the topic and
+every message in it. A stream without the field is `Retain`, so an existing stream keeps its
+messages after the upgrade.
 
-To delete the topic as well, delete the `StreamApp` without the annotation. The checkpoint in
-the object store is not removed in either case; delete it in the bucket if the stream will never
-run again.
+The checkpoint in the object store stays; delete it in the bucket if the stream will never run
+again.
 
 ## See streams from the command line
 
