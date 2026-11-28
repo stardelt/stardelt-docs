@@ -377,6 +377,10 @@ stardelt dashboards import dashboards/shop --bundle shop --owner-group shop-team
   An import is refused when a dashboard in the archive already exists certified by another bundle or owner
   group, so a bundle can never take over another group's dashboard.
 
+`bundle summary` adds one `Dashboard` row per dashboard this bundle and owner group imported for the target,
+with the commit its import stamp recorded. A bundle without a `dashboards:` block makes no request for
+dashboards and adds no such row.
+
 ## The commands
 
 All take the bundle directory as an optional argument (the current directory by default). The first two need no host and no
@@ -392,7 +396,7 @@ sign-in; the others talk to Nova.
 | `bundle context [DIR] [--check]` | sets the guides of the bundle's `context:` block on their tables; `--check` answers what would change, writes nothing and exits `1` on drift | without `--check` |
 | `bundle dashboards [DIR] -t TARGET [--overwrite]` | imports the `dashboards:` folders for one target: each dataset is remapped to the target's `Trino <catalog>` database and each dashboard is stamped; `--overwrite` replaces a dashboard of the same name | yes |
 | `bundle evals [DIR] [--check]` | creates or corrects the `evals:` questions in their catalog; `--check` answers what would change, writes nothing and exits `1` on drift | without `--check` |
-| `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines and stream apps) | no |
+| `bundle summary [DIR] -t TARGET` | shows what a deploy of the target left on the stage (pipelines, stream apps and dashboards) | no |
 | `bundle run [DIR] -t TARGET [--only NAME] [--timeout SECONDS] [--interval SECONDS]` | starts the pipelines a deploy of the target left on the stage, one after the other, and waits for each; stops at the first that does not succeed | starts runs |
 | `bundle destroy [DIR] -t TARGET [--yes] [--preview ID]` | lists, and with `--yes` removes, what a deploy of the target left on the stage; with `--preview ID` only that preview's pipelines and streams | with `--yes` |
 | `bundle generate NAMESPACE NAME [DIR]` | writes a pipeline made in the interface into the bundle (its file, and its SQL or notebook file); never overwrites | no |
@@ -444,7 +448,7 @@ prints what it printed before.
   tasks) when tasks failed. It runs what `summary` lists, in name order, and stops at the first run that does not end `success`
   (exit code `1`); `--only NAME` runs one pipeline (in a `development` target without the `dev-<your name>-` prefix), and
   `--timeout` stops waiting after that many seconds without stopping the run (a problem sentence, exit code `2`). It deploys nothing.
-- `destroy` prints `would-delete` or `deleted` lines; `summary` prints one line per pipeline or stream app with `name` and, when
+- `destroy` prints `would-delete` or `deleted` lines; `summary` prints one line per pipeline, stream app or dashboard with `name` and, when
   Nova knows them, `revision`, `deployedBy`, `deployedAt` and `modified` (a stream app's row also carries `"kind": "StreamApp"`).
 - If Nova refuses any pipeline, nothing is written, the sentences are shown (`prod: daily: you are not a member of the group
   shop`, or `prod: daily: No principal for this group yet: …` when the group has no ready pipeline identity), the pipelines that
