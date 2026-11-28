@@ -69,8 +69,8 @@ sign-in is needed, so scripts can tell the cases apart.
 | `stardelt deployments show` | one recorded deploy: its pipelines and the documents it applied | [Bundle reference](/docs/reference/bundle) |
 | `stardelt maintenance run` | optimize small files, expire snapshots and remove orphan files for one catalog's tables | — |
 | `stardelt notebook publish` | publish a notebook as a new version that a schedule can pin | [Publish a notebook version](./schedule#publish-a-notebook-version) |
-| `stardelt dashboards export` | write a dashboard as a folder for a bundle | [Command line reference](/docs/reference/cli#stardelt-dashboards) |
-| `stardelt dashboards import` | import a bundle's dashboard folder for one target | [Command line reference](/docs/reference/cli#stardelt-dashboards) |
+| `stardelt dashboards export` | write a dashboard as a folder for a bundle; run it inside the bundle | [A dashboard folder](/docs/reference/bundle#a-dashboard-folder) |
+| `stardelt dashboards import` | import a bundle's dashboard folder for one target | [A dashboard folder](/docs/reference/bundle#a-dashboard-folder) |
 | `stardelt setup vscode` | write the stardelt kernel for VS Code on your laptop | [VS Code on your laptop](./develop#vs-code-on-your-laptop) |
 
 Run any of them with `--help` for the values it takes.
