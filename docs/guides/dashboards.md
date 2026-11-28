@@ -13,6 +13,10 @@ unzipped Superset export, so Git holds it beside the pipelines and a pull reques
 A `production` target is read-only by design: the dashboard's only owner there is Nova's service
 user, so people edit in dev and promote the result through the bundle.
 
+On an instance without the Superset starter, `bundle plan`, `bundle deploy` and `bundle dashboards` refuse a
+bundle that names dashboards, with `dashboards: this instance has no Superset starter; promote dashboards with your
+BI tool`.
+
 ## Build it in dev
 
 Open Superset in the dev stage (Nova → **Dashboards**) and sign in with your platform account. Build
@@ -26,13 +30,18 @@ Run the command inside the bundle directory, from a signed-in session:
 
 ```console
 $ stardelt dashboards export 12 -o dashboards/shop
-stardelt: wrote 8 file(s) to dashboards/shop; databases/ is not stored
+stardelt: wrote 8 file(s) to dashboards/shop; removed 0 stale export file(s); databases/ is not stored
 ```
 
 The command reads the bundle's name and owner group from `bundle.yaml`, and Nova exports only for a
 member of that owner group. The result is Superset's own unzipped export (`metadata.yaml`,
 `dashboards/`, `charts/`, `datasets/`) with one difference: Nova drops the archive's `databases/`
 folder, which holds the stage's connection URI, so no connection address ever reaches Git.
+
+Export again after a change into the same folder. Export files the new archive no longer carries, such as a deleted
+chart, are removed, and the summary counts them. Other files in the folder stay. A refused export writes and removes
+nothing. Give each dashboard a folder of its own: the bundle directory itself is refused
+(`. is a bundle root; export into a folder of its own, for example dashboards/<slug>`).
 
 Name the folder under `dashboards:` in `bundle.yaml`:
 

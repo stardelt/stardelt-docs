@@ -131,8 +131,9 @@ The file holds one JSON object per row, oldest first, with the fields the page s
 epoch-millisecond time and starts at the first row created then or later; `--limit` asks for `1` to `1000` rows per
 request (default `500`). Only platform administrators may run it; anybody else is refused.
 
-When a request fails, the command keeps what it fetched and names the `nextCursor` to continue from. `--out` is
-overwritten, so continue with `--cursor <value>` into another file and join the two. The command appears in the
+`--out` is replaced on each run, unless you pass `--cursor` or `--append`: then the rows are added to the end of the
+file. When a request fails, the command keeps what it wrote and names the file and the `nextCursor`. Run it again
+with the same `--out` and `--cursor <value>`, and the file continues where it stopped. The command appears in the
 generated [command-line reference](../reference/cli) after the next `npm run sync:reference`.
 
 ## Hints in the profile
