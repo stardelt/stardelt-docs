@@ -159,8 +159,8 @@ is appended when files are uncommitted; outside a Git checkout there is no commi
 page shows it under **Deployed from**, with who deployed it and when. The Pipelines page shows it in its **Source** column
 (`Git · shop-etl/prod @ 0123abc`; `Nova` for a pipeline made in the interface). Each deploy is also recorded (the bundle, the stage, the commit, who ran it and what it touched); [what the page shows](#the-deployments-page).
 
-To read it for the whole bundle at once, `stardelt bundle summary shop -t prod` prints one line per pipeline the target left on the
-stage: its `name`, the Git `revision`, `deployedBy`, `deployedAt` and `"modified": true` when someone changed
+To read it for the whole bundle at once, `stardelt bundle summary shop -t prod` prints one line per object the target left on the
+stage — a pipeline, a stream app or a dashboard: its `name`, the Git `revision`, `deployedBy`, `deployedAt` and `"modified": true` when someone changed
 it after the deploy. The command only reads.
 
 ## 5. Keep Git and the stage in step
