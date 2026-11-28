@@ -57,9 +57,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sha="$(git rev-parse HEAD)"
-          id="$(gh run list --repo "$GITHUB_REPOSITORY" --branch chore/reference-sync --event pull_request --limit 20 \
-            --json databaseId,headSha,conclusion \
-            -q "[.[] | select(.headSha == \"$sha\" and .conclusion == \"action_required\")][0].databaseId")"
+          id=""
+          for _ in $(seq 1 12); do
+            id="$(gh run list --repo "$GITHUB_REPOSITORY" --branch chore/reference-sync --event pull_request --limit 20 \
+              --json databaseId,headSha,conclusion \
+              -q "[.[] | select(.headSha == \"$sha\" and .conclusion == \"action_required\")][0].databaseId" || true)"
+            if [ -n "$id" ] && [ "$id" != "null" ]; then break; fi
+            sleep 5
+          done
           if [ -z "$id" ] || [ "$id" = "null" ]; then
             echo "no held pull_request run for $sha" >&2
             exit 1
