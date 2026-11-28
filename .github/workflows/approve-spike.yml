@@ -1,6 +1,8 @@
 name: Approve spike
 
 on:
+  push:
+    branches: [chore/approve-spike]
   workflow_dispatch:
 
 permissions:
@@ -11,6 +13,7 @@ permissions:
 jobs:
   spike:
     runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
     steps:
       - uses: actions/checkout@v7
         with:
