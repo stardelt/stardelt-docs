@@ -27,6 +27,66 @@ The catalogs the caller may browse, each with its Lakekeeper warehouse id and it
 | `502` | The query engine or the catalog is not reachable |
 | `503` | A catalog the engine lists has no warehouse |
 
+## GET /api/catalog/evals
+
+Operation id `catalog_eval_list`: in Python `client.call("catalog_eval_list", …)`, on the command line `stardelt api catalog_eval_list`.
+
+`GET /api/catalog/evals` — the catalog's evals, in id order.
+
+The evals of one catalog: questions with a known answer, kept as catalog context. A question may appear twice. In id order. Each eval carries its newest run as lastRun (null when it never ran). `?catalog=` picks the catalog; the caller must be able to browse it, and without a state store the route answers 503.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The catalog's evals, in id order |
+| `400` | The catalog name is invalid |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
+
+## POST /api/catalog/evals
+
+Operation id `catalog_eval_create`: in Python `client.call("catalog_eval_create", …)`, on the command line `stardelt api catalog_eval_create`.
+
+`POST /api/catalog/evals` — `201` with the stored row.
+
+Store one eval: a question (1 to 500 characters) and its known answer, `{"kind":"rows","rows":[[…],…]}` (1 to 100 rows of 1 to 50 scalars, a string at most 500 characters), `{"kind":"value","value":<scalar>}`, or `{"kind":"uses","tables":["namespace.table", …]}` (1 to 10 names). Only a member of `ownerGroup` or an administrator may write one; the caller is recorded as `createdBy`. The eval is stored, never executed. There is no update route: changing an eval is delete and create. `?catalog=` picks the catalog.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `expected` | any | Yes |  | The known answer: `{"kind":"rows",…}`, `{"kind":"value",…}` or `{"kind":"uses",…}`. |  |
+| `ownerGroup` | string | Yes |  | The group that owns the eval. |  |
+| `question` | string | Yes |  | The question, 1 to 500 characters. |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The stored row |
+| `400` | The question, the owner group or the expected answer is not in the accepted shape, or the catalog name is invalid |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog, or only a member of the owner group or an administrator may write an eval |
+| `404` | No such catalog |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
+
 ## GET /api/catalog/health
 
 Operation id `catalog_health_list`: in Python `client.call("catalog_health_list", …)`, on the command line `stardelt api catalog_health_list`.
@@ -128,6 +188,28 @@ List tables in one namespace of one catalog. `?catalog=` picks the catalog; omit
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
 
+## GET /api/catalog/products
+
+Operation id `catalog_products`: in Python `client.call("catalog_products", …)`, on the command line `stardelt api catalog_products`.
+
+The data products of one catalog: every documented table that carries `stardelt.lifecycle` (`draft`, `published` or `deprecated`), with its owner, domain, description and replacement, with the number of distinct readers in the last 30 days (the query log; `0` when nobody read it). `?domain=` narrows to one domain, exactly and case-sensitively. The answer comes from Nova's documentation index, which is written on every documentation edit through Nova; an edit made directly in the catalog does not refresh it until the next Nova edit of that table. At most 500 products, in domain order (tables without a domain last), then namespace and table.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | The catalog to read; omitted, the default one |
+| `domain` | query | string | No | Only products of this `stardelt.domain` |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The catalog's data products |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog |
+| `503` | The state store is not configured |
+
 ## GET /api/catalog/search
 
 Operation id `catalog_search`: in Python `client.call("catalog_search", …)`, on the command line `stardelt api catalog_search`.
@@ -218,7 +300,7 @@ Set or remove one column's description. The column must be a field of the curren
 
 Operation id `table_documentation_get`: in Python `client.call("table_documentation_get", …)`, on the command line `stardelt api table_documentation_get`.
 
-A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties.
+A table's documentation: the Iceberg `comment` as `description`, the `stardelt.tags`/`stardelt.owner`/`stardelt.domain`/`stardelt.guide` custom properties, and the description and type of every column of the **current** schema. `stardelt.guide` is a guide in plain text or Markdown, at most 16000 characters: how to use the table. `stardelt.lifecycle` is `draft`, `published` or `deprecated` (a data product's life), and `stardelt.replaced-by` names the table that replaces a deprecated one. `?catalog=` picks the catalog. `canEdit`/`editRule` apply Nova's interim rule: until the catalog enforces permissions, Nova decides who may edit, and anyone who reaches Lakekeeper or Trino directly can still change these properties.
 
 **Parameters**
 
@@ -243,7 +325,7 @@ A table's documentation: the Iceberg `comment` as `description`, the `stardelt.t
 
 Operation id `table_documentation_update`: in Python `client.call("table_documentation_update", …)`, on the command line `stardelt api table_documentation_update`.
 
-Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`.
+Set or remove a table's description, tags, owner, domain and guide in one Lakekeeper commit. `?catalog=` picks the catalog. Every key is optional: absent changes nothing, `null` (or an empty tag list, or a blank description or guide) removes the property, and a write with nothing to change sends no commit. Description at most 4,000 characters; guide at most 16,000 characters and keeps its line breaks; at most 20 unique tags `^[a-z0-9][a-z0-9_-]{0,31}$`; owner a group name; domain `^[a-z0-9][a-z0-9_-]{0,39}$`. `lifecycle` is `draft`, `published` or `deprecated`; `replacedBy` is `catalog.schema.table` and only on a deprecated table. Publishing needs an owner, a description and a domain, and is refused with 409 while one of the table's verified queries failed its last check; a table with no verified query can publish. The check is only made when the lifecycle enters `published`, so a published table can still be edited. An ownerless table may be edited by anybody, but the request must then set `owner` to one of the caller's own groups. **The interim rule is enforced by Nova; the catalog does not enforce it yet** — anyone who reaches Lakekeeper or Trino directly can still change these properties. Edits of one table are serialised by Nova and a contended commit is retried; a catalog that stays busy answers 502 `the catalog is busy, try again`.
 
 **Parameters**
 
@@ -257,10 +339,13 @@ Set or remove a table's description, tags, owner, domain and guide in one Lakeke
 
 | Field | Type | Required | Default | Description | Constraints |
 | --- | --- | --- | --- | --- | --- |
+| `columnClasses` | object (map of string) (nullable) | No |  | Replaces every column class (`null` or `{}` removes them all); absent changes nothing. |  |
 | `description` | string (nullable) | No |  | New table description (`null` removes it). |  |
 | `domain` | string (nullable) | No |  | New domain (`null` removes it). |  |
 | `guide` | string (nullable) | No |  | New guide (`null` or blank removes it). |  |
+| `lifecycle` | string (nullable) | No |  | New lifecycle (`draft`, `published` or `deprecated`; `null` removes it). |  |
 | `owner` | string (nullable) | No |  | New owner group (`null` removes it). |  |
+| `replacedBy` | string (nullable) | No |  | The table that replaces this one (`catalog.schema.table`; `null` removes it). |  |
 | `tags` | array of string (nullable) | No |  | New tag list (`null` or `[]` removes them). |  |
 
 **Responses**
@@ -272,6 +357,7 @@ Set or remove a table's description, tags, owner, domain and guide in one Lakeke
 | `401` | Not signed in |
 | `403` | The caller may not browse that catalog, or only the owner group and administrators may edit |
 | `404` | No such catalog or no such table |
+| `409` | The table cannot be published while one of its verified queries fails its last check |
 | `502` | The catalog is not reachable, did not answer, or stayed busy |
 
 ## GET /api/catalog/tables/\{ns\}/\{tbl\}/health
@@ -358,6 +444,72 @@ The table's last 100 snapshots, newest first: `committed_at`, `snapshot_id`, `pa
 | `403` | The caller may not browse that catalog |
 | `404` | No such catalog |
 | `502` | The catalog or the engine is not reachable |
+
+## GET /api/catalog/tables/\{ns\}/\{tbl\}/metrics
+
+Operation id `metric_definitions_list`: in Python `client.call("metric_definitions_list", …)`, on the command line `stardelt api metric_definitions_list`.
+
+`GET /api/catalog/tables/{ns}/{tbl}/metrics` — the table's, in `name` order.
+
+The metric definitions of one table: named numbers its owners declared over its columns, with the SQL expression that computes each, an optional time column and the dimensions it may be cut by. A definition is stored, never executed, by this API. In name order, no pagination: a table with more than 50 metrics is not a shape this milestone meets. A table the caller may not see answers what the documentation route answers. `?catalog=` picks the catalog.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The table's metric definitions, in name order |
+| `400` | A name is not a single path segment, or the catalog name is invalid |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
+
+## POST /api/catalog/tables/\{ns\}/\{tbl\}/metrics
+
+Operation id `metric_definitions_create`: in Python `client.call("metric_definitions_create", …)`, on the command line `stardelt api metric_definitions_create`.
+
+`POST /api/catalog/tables/{ns}/{tbl}/metrics` — `201` with the stored row.
+
+Declare one metric of this table: a name (lower-case letters, digits and underscores, at most 64), a description (1 to 500 characters), the SQL expression that computes it (at most 2000 characters, no semicolon and no comment), an optional time column and up to 10 distinct dimensions. The expression is stored, never executed: it is the owner's assertion. Only the owner group of the table and administrators may add one; the caller is recorded as `verifiedBy`. `?catalog=` picks the catalog.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `catalog` | query | string | No | Catalog to work in (`warehouse`, `finance`, …). Omitted, the default catalog is used. |
+| `ns` | path | string | Yes | Namespace (schema) name |
+| `tbl` | path | string | Yes | Table name |
+
+**Request body**
+
+| Field | Type | Required | Default | Description | Constraints |
+| --- | --- | --- | --- | --- | --- |
+| `description` | string | Yes |  |  |  |
+| `dimensions` | array of string | No |  |  |  |
+| `expression` | string | Yes |  |  |  |
+| `name` | string | Yes |  |  |  |
+| `timeColumn` | string (nullable) | No |  |  |  |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `201` | The stored row |
+| `400` | The name, description, expression, timeColumn or dimensions are not in the accepted shape, or the catalog name is invalid |
+| `401` | Not signed in |
+| `403` | The caller may not browse that catalog, or only the owner group and administrators may add a metric definition |
+| `404` | No such catalog or no such table |
+| `502` | The catalog is not reachable or did not answer |
+| `503` | The state store is not configured |
 
 ## POST /api/catalog/tables/\{ns\}/\{tbl\}/rollback
 

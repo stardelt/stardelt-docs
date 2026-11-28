@@ -48,7 +48,7 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 | `spec.tasks[].refresh` | string (nullable) | No |  | `incremental` (the default) or `full`; only a `spark-pipeline` task. | `incremental`, `full`, `null` |
 | `spec.tasks[].sql` | string (nullable) | No |  | The statement of a `sql` task. `${run.date}`, `${run.id}` and `${params.<name>}` are expanded when the task runs, not in the resource. | min 1, max 100000 |
 | `spec.tasks[].warehouse` | string (nullable) | No |  | Warehouse that runs a `sql` task; absent means the default warehouse. |  |
-| `spec.tasks[].writes` | array of string | No |  | The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone. | max 16 |
+| `spec.tasks[].writes` | array of string | No |  | The tables a `sql`, `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`. Only these get an audit branch when `spec.publish: wap`; a read leaves them alone. A `sql` task's writes never make it a `wap` writer: only a `notebook` or `spark-pipeline` task writes the audit branch. | max 16 |
 | `spec.timeout` | string (nullable) | No |  | Longest a whole run may take, for example `2h`. |  |
 | `spec.triggers` | array of object | No |  | Tables whose update starts a run. At most one trigger today, and not together with `spec.schedule`; absent means the pipeline starts on demand or by its cron only. | max 1 |
 | `spec.triggers[].mode` | string | No | `all` | `all` (default) waits for every table, `any` for one of them. | `all`, `any` |
@@ -80,13 +80,14 @@ A pipeline: tasks with dependencies and an optional schedule, run on one engine.
 - a sql task needs a sql statement
 - publish: wap needs a quality task with at least one check
 - publish: wap needs a task that writes at least one table
+- publish: wap moves main from the audit branch, so a sql task cannot declare writes: only a notebook or spark-pipeline task writes under wap
 - notify needs an ownerGroup: only a pipeline's owner group can name destinations
 - a pipeline has spec.schedule or spec.triggers, not both
 - a notebook task needs config.notebook (a .ipynb file name) and config.objectVersion (the published version)
 - notebook tasks accept only notebook, objectVersion and params
 - notebook params must be a JSON object string of at most 4096 characters
 - a sql task cannot name a connection: it runs inside the engine
-- only a spark-pipeline or notebook task declares writes
+- only a sql, notebook or spark-pipeline task declares writes
 - writes must be catalog.schema.table
 - only a quality task declares checks
 - a spark-pipeline task needs project (the bundle directory with spark-pipeline.yml)

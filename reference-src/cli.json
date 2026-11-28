@@ -808,6 +808,56 @@
             }
           ],
           "commands": []
+        },
+        {
+          "name": "context",
+          "help": "set the guides and metric definitions the bundle's context block names",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "--check"
+              ],
+              "help": "answer what would change, write nothing; exits 1 when anything differs",
+              "flag": true
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "dashboards",
+          "help": "import the bundle's `dashboards:` folders for one target",
+          "arguments": [
+            {
+              "name": "directory",
+              "help": "the bundle directory (default: the current one)",
+              "optional": true
+            }
+          ],
+          "options": [
+            {
+              "flags": [
+                "-t",
+                "--target"
+              ],
+              "help": "the target the import is for (a name under targets in bundle.yaml)",
+              "required": true
+            },
+            {
+              "flags": [
+                "--overwrite"
+              ],
+              "help": "replace a dashboard of the same name",
+              "flag": true
+            }
+          ],
+          "commands": []
         }
       ]
     },
@@ -973,7 +1023,7 @@
       "commands": [
         {
           "name": "export",
-          "help": "write a dashboard as an unzipped Superset export for a bundle (databases/ is not stored)",
+          "help": "write a dashboard as an unzipped Superset export for a bundle; run it inside the bundle (databases/ is not stored)",
           "arguments": [
             {
               "name": "dashboard_id",
@@ -1041,6 +1091,48 @@
               ],
               "help": "replace a dashboard of the same name",
               "flag": true
+            }
+          ],
+          "commands": []
+        }
+      ]
+    },
+    {
+      "name": "evals",
+      "help": "the catalog's evals: a question with a known answer, run them or list them",
+      "arguments": [],
+      "options": [],
+      "commands": [
+        {
+          "name": "list",
+          "help": "the stored evals of a catalog",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--catalog"
+              ],
+              "help": "catalog to read; omitted, the default one"
+            }
+          ],
+          "commands": []
+        },
+        {
+          "name": "run",
+          "help": "ask every eval, run its answer read-only and record pass or fail",
+          "arguments": [],
+          "options": [
+            {
+              "flags": [
+                "--catalog"
+              ],
+              "help": "catalog to run; omitted, the default one"
+            },
+            {
+              "flags": [
+                "--only"
+              ],
+              "help": "run one eval by id"
             }
           ],
           "commands": []

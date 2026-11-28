@@ -322,6 +322,13 @@
               "nullable": true,
               "type": "string"
             },
+            "controllerNamespace": {
+              "description": "The namespace of the ingress controller that proxies the public names. Its pods may\nreach the internal ports a NetworkPolicy guards (the Spark Connect fronts on 15002\nand 25002). Absent: `traefik` when `className` is `traefik`, else `ingress-nginx`\n(the assumption before this field existed).",
+              "maxLength": 253,
+              "minLength": 1,
+              "nullable": true,
+              "type": "string"
+            },
             "enabled": {
               "default": false,
               "description": "Create an Ingress for Nova (on `baseDomain` itself); the identity provider\non `id.` with `identity.mode: platform`; Airflow on `airflow.` with the `pipelines` pillar;\nJupyterHub on `jupyter.` with `notebooks`.",

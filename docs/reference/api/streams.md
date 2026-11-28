@@ -152,7 +152,7 @@ Stop or resume one stream by setting `spec.stopped` (the one verb a stream has).
 
 Operation id `streams_delete`: in Python `client.call("streams_delete", …)`, on the command line `stardelt api streams_delete`.
 
-Delete one StreamApp that the caller's group owns. The stream's Kafka topic is not deleted; what a deletion does to it is the operator's decision. Answers 204 when the object is gone, including when it was already gone.
+Delete one StreamApp that the caller's group owns. A `KafkaTopic` the operator created for the stream (platform bus, no `connectionRef`) is owned by the `StreamApp`, so Kubernetes deletes it and the topic operator deletes the topic with every message in it; a topic read through a `Connection`, or one another `KafkaTopic` manages, stays. Answers 204 when the object is gone, including when it was already gone.
 
 **Parameters**
 

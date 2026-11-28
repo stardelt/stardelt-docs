@@ -76,6 +76,7 @@
             "s3",
             "kafka",
             "sftp",
+            "mlflow",
             "generic"
           ],
           "type": "string"
@@ -150,6 +151,10 @@
         {
           "message": "a kafka connection needs config.bootstrapServers",
           "rule": "self.type != 'kafka' || (has(self.config) && 'bootstrapServers' in self.config)"
+        },
+        {
+          "message": "an mlflow connection needs the setting trackingUrl",
+          "rule": "self.type != 'mlflow' || (has(self.config) && 'trackingUrl' in self.config)"
         }
       ]
     },

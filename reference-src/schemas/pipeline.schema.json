@@ -275,7 +275,7 @@
                 "type": "string"
               },
               "writes": {
-                "description": "The tables a `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`. Only these get an audit\nbranch when `spec.publish: wap`; a read leaves them alone (nova#628 decision 3).",
+                "description": "The tables a `sql`, `spark-pipeline` or `notebook` task writes, as `catalog.schema.table`.\nOnly these get an audit branch when `spec.publish: wap`; a read leaves them alone (nova#628\ndecision 3). A `sql` task's writes never make it a `wap` writer: only a `notebook` or\n`spark-pipeline` task writes the audit branch.",
                 "items": {
                   "maxLength": 512,
                   "minLength": 1,
@@ -308,8 +308,8 @@
                 "rule": "self.kind != 'sql' || !has(self.connection)"
               },
               {
-                "message": "only a spark-pipeline or notebook task declares writes",
-                "rule": "!has(self.writes) || self.kind == 'notebook' || self.kind == 'spark-pipeline'"
+                "message": "only a sql, notebook or spark-pipeline task declares writes",
+                "rule": "!has(self.writes) || self.kind == 'sql' || self.kind == 'notebook' || self.kind == 'spark-pipeline'"
               },
               {
                 "message": "writes must be catalog.schema.table",
@@ -427,7 +427,11 @@
         },
         {
           "message": "publish: wap needs a task that writes at least one table",
-          "rule": "!has(self.publish) || self.publish != 'wap' || self.tasks.exists(t, has(t.writes) && size(t.writes) > 0)"
+          "rule": "!has(self.publish) || self.publish != 'wap' || self.tasks.exists(t, (t.kind == 'notebook' || t.kind == 'spark-pipeline') && has(t.writes) && size(t.writes) > 0)"
+        },
+        {
+          "message": "publish: wap moves main from the audit branch, so a sql task cannot declare writes: only a notebook or spark-pipeline task writes under wap",
+          "rule": "!has(self.publish) || self.publish != 'wap' || self.tasks.all(t, t.kind != 'sql' || !has(t.writes) || size(t.writes) == 0)"
         },
         {
           "message": "notify needs an ownerGroup: only a pipeline's owner group can name destinations",

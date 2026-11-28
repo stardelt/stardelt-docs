@@ -12,7 +12,8 @@
 # (identity.mode: platform), Nova with its database and its session key (the lakehouse pillar is on
 # by default), and the Ingress objects for Nova (data.example.com) and the identity provider
 # (id.data.example.com). The Lakehouse adds the object store, the catalog, the query engine and the
-# connection details the applications read.
+# connection details the applications read. The SqlWarehouse is the one compute class (`small`) every
+# member of `stardelt-users` lands in.
 apiVersion: stardelt.io/v1alpha1
 kind: PlatformInstance
 metadata:
@@ -42,3 +43,24 @@ metadata:
   namespace: stardelt                # the platform namespace above
 spec:
   dryRun: false
+---
+# One compute class for `stardelt-users`, so the first query answers: without it the engine's
+# resource groups route a non-administrator to `no-warehouse` (zero concurrency) and every
+# statement is refused. `default: true` is the catch-all for a principal that matches no group
+# at all; `autoStop` + `minWorkers: 0` keep an idle node from paying for the engine (#30 step A).
+apiVersion: stardelt.io/v1alpha1
+kind: SqlWarehouse
+metadata:
+  name: small
+  namespace: stardelt
+spec:
+  lakehouseRef: { name: main }
+  displayName: "Small"
+  size: small
+  autoStop: 15m
+  minWorkers: 0
+  maxWorkers: 1
+  default: true
+  grants:
+    - { group: stardelt-users }
+    - { group: stardelt-admins }

@@ -312,6 +312,31 @@ Check a bundle offline (no host, no sign-in).
 | `-t`, `--target` | a value | Check this target only. |
 | `--format` | `text`, `json` | Text: sentences and one line per target (default); json: one object for machines. Default: `text`. |
 
+### `stardelt bundle context`
+
+Set the guides and metric definitions the bundle's context block names.
+
+| Argument | Meaning |
+| --- | --- |
+| `directory` | The bundle directory (default: the current one). Optional. |
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `--check` | — | Answer what would change, write nothing; exits 1 when anything differs. |
+
+### `stardelt bundle dashboards`
+
+Import the bundle's `dashboards:` folders for one target.
+
+| Argument | Meaning |
+| --- | --- |
+| `directory` | The bundle directory (default: the current one). Optional. |
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `-t`, `--target` | a value | The target the import is for (a name under targets in bundle.yaml). Required. |
+| `--overwrite` | — | Replace a dashboard of the same name. |
+
 ## `stardelt deployments`
 
 Read the deployment record: what each bundle deploy put on a stage.
@@ -384,7 +409,7 @@ Work with Superset dashboards.
 
 ### `stardelt dashboards export`
 
-Write a dashboard as an unzipped Superset export for a bundle (databases/ is not stored).
+Write a dashboard as an unzipped Superset export for a bundle; run it inside the bundle (databases/ is not stored).
 
 | Argument | Meaning |
 | --- | --- |
@@ -409,3 +434,24 @@ Import a dashboard folder for a bundle's target (the target's databases are rema
 | `--target` | `STAGE` | The stage the import is for (dev, prod, …). Required. |
 | `--commit` | `SHA` | The commit the bundle was read at, for the provenance stamp. Default: ``. |
 | `--overwrite` | — | Replace a dashboard of the same name. |
+
+## `stardelt evals`
+
+The catalog's evals: a question with a known answer, run them or list them.
+
+### `stardelt evals list`
+
+The stored evals of a catalog.
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `--catalog` | a value | Catalog to read; omitted, the default one. |
+
+### `stardelt evals run`
+
+Ask every eval, run its answer read-only and record pass or fail.
+
+| Option | Value | Meaning |
+| --- | --- | --- |
+| `--catalog` | a value | Catalog to run; omitted, the default one. |
+| `--only` | a value | Run one eval by id. |

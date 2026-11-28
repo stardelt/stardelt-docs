@@ -22,7 +22,7 @@ A typed connection to an outside system: settings here, the credentials in the s
 | `spec.secret` | object (nullable) | No |  | The secret fields, when this connection has any. Absent for a connection that needs no credentials (the platform's own Kafka bus, an anonymous `generic` endpoint). The per-type validation below still requires it for every type that authenticates. |  |
 | `spec.secret.keys` | array of string | Yes |  | Names of the secret fields, for example `user` and `password`. They become the keys of the synced Kubernetes Secret and the environment variables `CONN_<NAME>_<KEY>`. | min 1, max 16 |
 | `spec.secret.remoteRef` | string (nullable) | No |  | Path in the secret store. Absent: derived from the scope, `connections/group/<ownerGroup>/<name>` or `connections/managed/<name>`. Set it only when the platform reads the customer's own store (`spec.secrets` mode `external`); in platform mode the controller refuses a value, because a path chosen by the author could point at another group's secret. | min 1, max 512; pattern `^[A-Za-z0-9][A-Za-z0-9_./-]*$` |
-| `spec.type` | string | Yes |  | What a connection reaches. The type decides which settings and secret keys are required. | `postgresql`, `mysql`, `sqlserver`, `oracle`, `rest-api`, `s3`, `kafka`, `sftp`, `generic` |
+| `spec.type` | string | Yes |  | What a connection reaches. The type decides which settings and secret keys are required. | `postgresql`, `mysql`, `sqlserver`, `oracle`, `rest-api`, `s3`, `kafka`, `sftp`, `mlflow`, `generic` |
 | `spec.usableBy` | array of string | No |  | Scope `managed`: the groups whose platform-run work may use the connection. | max 20 |
 | `spec.viewers` | array of string | No |  | Groups that may SEE this connection in Nova — its name, type, settings and the secret's key names — and nothing else. Creating, rotating and deleting stay with the scope's owner. Absent means nobody but the owner's group (or an administrator). | max 16 |
 
@@ -55,3 +55,4 @@ A typed connection to an outside system: settings here, the credentials in the s
 - an s3 connection needs config.bucket and the secret keys accessKeyId and secretAccessKey
 - an sftp connection needs config.host and the secret keys user and password or privateKey
 - a kafka connection needs config.bootstrapServers
+- an mlflow connection needs the setting trackingUrl

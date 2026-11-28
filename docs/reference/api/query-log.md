@@ -43,6 +43,29 @@ The statements run on the engine, newest first, a page at a time. A person sees 
 | `403` | scope=all by somebody who is not an administrator |
 | `503` | The state store is not configured |
 
+## GET /api/query-log/repeated
+
+Operation id `query_log_repeated`: in Python `client.call("query_log_repeated", …)`, on the command line `stardelt api query_log_repeated`.
+
+The statements the caller runs repeatedly, worst first (stardelt#38): the last 30 days of FINISHED queries, grouped by their shape (string literals and whitespace do not split a group; numeric literals do), at least 2 runs per group, ordered by total execution time. `scope` is `mine` (default), `team` (the service principals the caller's groups own) or `all` (administrators only); `limit` is 1 to 100, default 20. The answer carries one sentence about the supported acceleration path — a `sql` task with `CREATE OR REPLACE TABLE … AS SELECT …` in a scheduled pipeline. Nothing is created or changed.
+
+**Parameters**
+
+| Name | In | Type | Required | Description |
+| --- | --- | --- | --- | --- |
+| `limit` | query | integer | No | How many groups, 1 to 100 (default 20) |
+| `scope` | query | string | No | mine (default), team, or all for administrators |
+
+**Responses**
+
+| Code | Description |
+| --- | --- |
+| `200` | The repeated statements |
+| `400` | scope or limit is not one of the accepted values |
+| `401` | Not signed in |
+| `403` | The all scope is for administrators |
+| `503` | The state store is not configured |
+
 ## GET /api/query-log/usage
 
 Operation id `query_log_usage`: in Python `client.call("query_log_usage", …)`, on the command line `stardelt api query_log_usage`.
